@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1553474201 "/home/line/usr/doc/ic/revision/co142/main.tex" "/home/line/usr/doc/ic/revision/co142/main.pdf" "main" 1553474202
+["pdflatex"] 1553483268 "/home/line/usr/doc/ic/revision/co142/main.tex" "/home/line/usr/doc/ic/revision/co142/main.pdf" "main" 1553483268
   "/etc/texmf/web2c/texmf.cnf" 1539013394 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/line/usr/doc/ic/revision/co142/main.aux" 1553474202 8 a94a2480d3289e625eea47cd1b285758 ""
-  "/home/line/usr/doc/ic/revision/co142/main.tex" 1553474201 5194 bb9436ddb04b827d4a22277cada9ab23 ""
+  "/home/line/usr/doc/ic/revision/co142/main.aux" 1553483268 8 a94a2480d3289e625eea47cd1b285758 ""
+  "/home/line/usr/doc/ic/revision/co142/main.tex" 1553483268 5202 9f8fe8bab57e739e910559e7bccfa9ce ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1480098670 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1480098698 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1480098698 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -24,7 +24,6 @@
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmsy8.tfm" 1480098701 1120 8b7d695260f3cff42e636090a8002094 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmti12.tfm" 1480098701 1484 ed72f8f5cf654cda15ecc8e32bfcbee5 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmtt12.tfm" 1480098701 772 9a936b7f5e2ff0557fce0f62822f0bbf ""
-  "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmtt8.tfm" 1480098701 768 d7b9a2629a0c353102ad947dc9221d49 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb" 1480098733 32080 340ef9bf63678554ee606688e7b5339d ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb" 1480098733 36741 fa121aac0049305630cf160b86157ee4 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb" 1480098733 35469 70d41d2b9ea31d5d813066df7c99281c ""
@@ -141,11 +140,11 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1503024366 32036 8f10cb8f6ef259fb5791f09c065d3d13 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1539013419 2377213 8bc19c9e6d8db8e1c35694d1be199981 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1539013437 4127239 e1466e408df9e9b069860e3f23441253 ""
-  "main.aux" 1553474202 8 a94a2480d3289e625eea47cd1b285758 ""
-  "main.tex" 1553474201 5194 bb9436ddb04b827d4a22277cada9ab23 ""
+  "main.aux" 1553483268 8 a94a2480d3289e625eea47cd1b285758 ""
+  "main.tex" 1553483268 5202 9f8fe8bab57e739e910559e7bccfa9ce ""
   (generated)
-  "/home/line/usr/doc/ic/revision/co142/main.pdf"
-  "/home/line/usr/doc/ic/revision/co142/main.log"
-  "main.log"
-  "main.pdf"
   "main.aux"
+  "main.log"
+  "/home/line/usr/doc/ic/revision/co142/main.pdf"
+  "main.pdf"
+  "/home/line/usr/doc/ic/revision/co142/main.log"
