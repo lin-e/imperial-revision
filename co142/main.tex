@@ -1,0 +1,126 @@
+\documentclass[a4paper, 12pt]{article}
+    % packages
+    \usepackage{amssymb}
+    \usepackage[fleqn]{mathtools}
+    \usepackage{tikz}
+    \usepackage{enumerate}
+    \usepackage{bussproofs}
+    \usepackage[margin=1.3cm]{geometry}
+
+    % augmented matrix
+    \makeatletter
+    \renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+    \hskip -\arraycolsep
+    \let\@ifnextchar\new@ifnextchar
+    \array{#1}}
+    \makeatother
+
+    % ceiling / floor
+    \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+    \DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+    % custom commands
+    \newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
+    \newcommand{\defint}[4]{\int_#1^#2 #3 \, \mathrm{d}#4}
+    \newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+    \newcommand{\limit}[2]{\displaystyle{\lim_{#1 \to #2}}}
+    \newcommand{\summation}[3]{\sum\limits_{#1}^#2 #3}
+    \newcommand{\intbracket}[3]{\left[#3\right]_#1^#2}
+
+    \newcommand{\powerset}[0]{\wp}
+    \renewcommand{\emptyset}[0]{\varnothing}
+
+    \newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
+    \newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
+
+    % no indent
+    \setlength\parindent{0pt}
+
+    % reasoning proofs
+    \newcommand{\proofline}[3]{(#1)\ & #2 & \text{#3} \\}
+    \allowdisplaybreaks
+
+    % actual document
+    \begin{document}
+        \section*{CO142 - Discrete Structures}
+        \subsection*{9th October 2018}
+        \subsubsection*{Recommended Books}
+        \begin{itemize}
+            \item K.H. Rosen. \textit{Discrete Mathematics and its Applications}
+            \item J.L. Gersting. \textit{Mathematical Structures for Computer Science}
+            \item J.K. Truss. \textit{Discrete Mathematics for Computer Science}
+            \item R. Johsonbaugh. \textit{Disctete Mathematics}
+            \item C. Schumacher. \textit{Fundamental Notions of Abstract Mathematics}
+        \end{itemize}
+        However, these books don't cover the same content. Learn his notation.
+        \subsubsection*{Logical Formula, and Notation}
+        This notation will be shared with \textbf{CO140}.
+        \medskip
+
+        $A \land B$ \hfill $A$ and $B$ both hold
+        \smallskip
+
+        $A \lor B$ \hfill $A$ or $B$ holds (or both)
+        \smallskip
+
+        $\neg A$ \hfill $A$ does not hold
+        \smallskip
+
+        $A \Rightarrow B$ \hfill if $A$ holds, then so does $B$
+        \smallskip
+
+        $A \Leftrightarrow B$ \hfill $A$ holds if and only if $B$ holds
+        \smallskip
+
+        $\forall x (A)$ \hfill the predicate $A$ holds for all $x$
+        \smallskip
+
+        $\exists x (A)$ \hfill the predicate $A$ holds for some $x$
+        \smallskip
+
+        $a \in A$ \hfill the object $a$ is in the set $A$ ($a$ is an element of $A$)
+        \smallskip
+
+        $a \notin A$ \hfill the object $a$ is not in the set $A$
+        \smallskip
+
+        $=_A$ \hfill tests whether two elements of $A$ are the same
+        \subsubsection*{Sets}
+        Sets are like data types in Haskell: Haskell data type declaration;
+        \medskip
+
+        \texttt{data Bool = False | True}
+        \smallskip
+
+        Set of Boolean values: \hfill \texttt{\{false, true\}}
+        \smallskip
+
+        List of Boolean values: \hfill \texttt{[true, false, true, false]}
+        \smallskip
+
+        Set equality: \hfill $\texttt{\{false, true\} = \{true, false\}}_\text{note order doesn't matter}$
+        \medskip
+
+        A set is a collection of objects from a pool of objects. Each object is an \textit{element}, or a \textit{member} of the set. A set \textit{contains} its elements. Sets can be defined in the following ways;
+        \medskip
+
+        $\{a_1, ..., a_2\}$ \hfill as a collection of $n$ distinct elements
+        \smallskip
+
+        $\{x \in A\ |\ P(x)\}$ \hfill for all the elements in $A$, where $P$ holds
+        \smallskip
+
+        $\{x\ |\ P(x)\}$ \hfill for all elements, where $P$ holds (dangerous - Russel's paradox)
+        \subsubsection*{Use of "triangleq"}
+        The use of $\triangleq$ is for "is defined by". Hence the empty set, $\varnothing \triangleq \{\}$. The difference between $\triangleq$ and $=$, is that the former cannot be proven, it is fact, whereas the latter takes work to prove.
+
+        \subsubsection*{Russel's paradox}
+        Not everything we write as $\{x\ |\ P(x)\}$ is automatically a set. Assume $R = \{X\ |\ X \notin X\}$ is a set, the set of all sets which don't contain themselves. As $R$ is a set, then $R \in R$, or $R \notin R$ (law of excluded middle), and thus we can do a case by case analysis.
+
+        \begin{itemize}
+            \item Assume $R \in R$. By the definition of $R$, it then follows that $R \notin R$ (if $R \in R$, then it doesn't satisfy the definition of $R$) - which is a contradiction.
+            \item Assume $R \notin R$. It then follows that $R \in R$, as it follows the definition of $R$, hence it is another contradiction.
+        \end{itemize}
+
+        As both assumptions lead to contradictions, it's possible to write sets which aren't defined. We should only select from a set that we know is defined; $\{x \in A\ |\ P(x)\}$ - where $A$ is a set.
+    \end{document}
