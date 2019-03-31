@@ -1,0 +1,68 @@
+\documentclass[a4paper, 12pt]{article}
+    % packages
+    \usepackage{amssymb}
+    \usepackage[fleqn]{mathtools}
+    \usepackage{tikz}
+    \usepackage{enumerate}
+    \usepackage{bussproofs}
+    \usepackage[margin=1.3cm]{geometry}
+
+    % augmented matrix
+    \makeatletter
+    \renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+    \hskip -\arraycolsep
+    \let\@ifnextchar\new@ifnextchar
+    \array{#1}}
+    \makeatother
+
+    % ceiling / floor
+    \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+    \DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+    % custom commands
+    \newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
+    \newcommand{\defint}[4]{\int_#1^#2 #3 \, \mathrm{d}#4}
+    \newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+    \newcommand{\limit}[2]{\displaystyle{\lim_{#1 \to #2}}}
+    \newcommand{\summation}[3]{\sum\limits_{#1}^#2 #3}
+    \newcommand{\intbracket}[3]{\left[#3\right]_#1^#2}
+
+    \newcommand{\powerset}[0]{\wp}
+    \renewcommand{\emptyset}[0]{\varnothing}
+
+    \newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
+    \newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
+
+    % no indent
+    \setlength\parindent{0pt}
+
+    % reasoning proofs
+    \newcommand{\proofline}[3]{(#1)\ & #2 & \text{#3} \\}
+    \allowdisplaybreaks
+
+    % actual document
+    \begin{document}
+        \section*{CO140 - Logic}
+        \subsection*{Introduction}
+        A logic system consists of 3 things:
+        \begin{enumerate}[1.]
+            \item Syntax - formal language used to express concepts
+            \item Semantics - meaning for the syntax
+            \item Proof theory - syntactic way of identifying valid statements of language
+        \end{enumerate}
+        Considering the basic example in a program, we can then see the features;
+        \begin{verbatim}
+if count > 0 and not found then
+    decrement count;
+    look for next entry;
+end if\end{verbatim}
+        \begin{enumerate}[1.]
+            \item basic (\textbf{atomic}) statements (\textbf{propositions}) are either $\top$ or $\bot$ depending on circumstance;
+                \begin{enumerate}[i.]
+                    \item \texttt{count > 0}
+                    \item \texttt{found}
+                \end{enumerate}
+            \item \textbf{boolean operations}, such as \texttt{and}, \texttt{or}, \texttt{not}, etc. are used to build complex statements from \textbf{atomic propositions}
+            \item the final statement \texttt{count > 0 and not found} evalulates to either $\top$ or $\bot$
+        \end{enumerate}
+    \end{document}
