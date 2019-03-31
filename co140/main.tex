@@ -72,7 +72,21 @@ end if
             \item Propositional atoms (propositional variables), evaluate to a truth value of either $\top$ or $\bot$. These are represented with letters; $p, p^\prime, p_0, p_1, p_2, p_n, q, r, s, ...$
             \item Boolean connectives;
                 \begin{itemize}
-                    \item 
+                    \item \texttt{and} is written as $p \land q$ \hfill $p$ and $q$ both hold
+                    \item \texttt{or} is written as $p \lor q$ \hfill $p$ or $q$ holds (or both)
+                    \item \texttt{not} is written as $\neg p$ \hfill $p$ does not hold
+                    \item \texttt{if-then / implies} is written as $p \rightarrow q$ \hfill if $p$ holds, then so does $q$
+                    \item \texttt{if-and-only-if} is written as $p \leftrightarrow q$ \hfill $p$ holds if and only if $q$ holds
+                    \item \texttt{truth}, and \texttt{falsity} are written as $\top$, and $\bot$ respectively. \hfill logical constants
                 \end{itemize}
+            \item Punctuation. Similar to arithmetic, the lack of brackets can make an expression ambiguous. For example, $p_0 \lor p_1 \land p_2$ can be read as either $(p_0 \lor p_1) \land p_2$ or $p_0 \lor (p_1 \land p_2)$, which are different. The latter is the correct interpretation due to binding conventions.
+        \end{enumerate}
+        \subsection*{Formulas}
+        Something is a \textbf{well-formed formula} only if it is built from the following rules;
+        \begin{enumerate}[1.]
+            \item a propositional atom ($p, p^\prime, p_0, p_1, p_2, p_n, q, r, s, ...$) is a propositional formula
+            \item $\top$, and $\bot$ are both formulas
+            \item if $A$ is a formula, then $(\neg A)$ is also a formula
+            \item if $A$, and $B$ are both formulas, then $(A \land B), (A \lor B), (A \rightarrow B), (A \leftrightarrow B)$ are also formulas
         \end{enumerate}
     \end{document}
