@@ -5,7 +5,9 @@
     \usepackage{tikz}
     \usepackage{enumerate}
     \usepackage{bussproofs}
+    \usepackage{xcolor}
     \usepackage[margin=1.3cm]{geometry}
+    \usepackage{logicproof}
 
     % augmented matrix
     \makeatletter
@@ -80,6 +82,10 @@ end if
                     \item \texttt{truth}, and \texttt{falsity} are written as $\top$, and $\bot$ respectively. \hfill logical constants
                 \end{itemize}
             \item Punctuation. Similar to arithmetic, the lack of brackets can make an expression ambiguous. For example, $p_0 \lor p_1 \land p_2$ can be read as either $(p_0 \lor p_1) \land p_2$ or $p_0 \lor (p_1 \land p_2)$, which are different. The latter is the correct interpretation due to binding conventions.
+                \subitem We can order the boolean connectives by decreasing binding strength;
+                \subitem (strongest) $\neg,\ \land,\ \lor,\ \rightarrow,\ \leftrightarrow$ (weakest)
+                \subitem While repeated disjunctions ($\lor$), and conjunctions ($\land$) are fine, as $p \land q \land r$ is equivalent to $p \land (q \land r)$, and the same for $\lor$, due to associativity, the same isn't true for $\rightarrow$. Due to the ambiguity, brackets should always be used.
+                \subitem There are also exceptions to the rule, for example with $p \rightarrow r \land q \rightarrow r$ - this should be $p \rightarrow (r \land q) \rightarrow r$ according to our binding conventions, but brackets should be used to ensure the correct interpretation.
         \end{enumerate}
         \subsection*{Formulas}
         Something is a \textbf{well-formed formula} only if it is built from the following rules;
@@ -89,4 +95,35 @@ end if
             \item if $A$ is a formula, then $(\neg A)$ is also a formula
             \item if $A$, and $B$ are both formulas, then $(A \land B), (A \lor B), (A \rightarrow B), (A \leftrightarrow B)$ are also formulas
         \end{enumerate}
+        We can also create a tree to parse a logical formula, for example; $(\neg p \rightarrow r) \land (q \rightarrow r)$
+
+        \begin{center}
+            \begin{tikzpicture}
+                \node[] (o) at (0, 0) {$\textcolor{blue}{\land}\ (\neg p \rightarrow r) \land (q \rightarrow r)$};
+                \node[] (ol) at (-2, -1.5) {$\textcolor{blue}{\rightarrow}\ \neg p \rightarrow r$};
+                \node[] (or) at (2, -1.5) {$\textcolor{blue}{\rightarrow}\ q \rightarrow r$};
+                \node[] (oll) at (-3, -3) {$\textcolor{blue}{\neg}\ \neg p$};
+                \node[] (olr) at (-1, -3) {$\textcolor{red}{r}$};
+                \node[] (orl) at (1, -3) {$\textcolor{red}{q}$};
+                \node[] (orr) at (3, -3) {$\textcolor{red}{r}$};
+                \node[] (ollc) at (-3, -4.5) {$\textcolor{red}{p}$};
+                \draw
+                (o) edge[] node{} (ol)
+                (o) edge[] node{} (or)
+                (ol) edge[] node{} (oll)
+                (ol) edge[] node{} (olr)
+                (or) edge[] node{} (orl)
+                (or) edge[] node{} (orr)
+                (oll) edge[] node{} (ollc);
+            \end{tikzpicture}
+        \end{center}
+
+        Note that this tree shows the principal connective in \textcolor{blue}{blue}, and the propositional atoms in \textcolor{red}{red}. Note that $\land$ is the principal connective in the top layer, and it therefore has the general form $A \land B$, and so on going down.
+
+        \subsection*{Technical terms}
+        \begin{itemize}
+            \item A formula is a \textbf{negated formula} when it is in the form $\neg A$, negated atoms are sometimes called \textbf{negated-atomic}.
+            \item $A \land B$, and $A \lor B$ are \textbf{conjunctions}, and \textbf{disjunctions}. $A$, and $B$, are \textbf{conjuncts}, and \textbf{disjuncts}, respectively.
+            \item $A \rightarrow B$ is an implication. $A$ is the \textbf{antecedent}, and $B$ is the \textbf{consequent}
+        \end{itemize}
     \end{document}
