@@ -88,7 +88,7 @@ end if
                 \subitem There are also exceptions to the rule, for example with $p \rightarrow r \land q \rightarrow r$ - this should be $p \rightarrow (r \land q) \rightarrow r$ according to our binding conventions, but brackets should be used to ensure the correct interpretation.
         \end{enumerate}
         \subsection*{Formulas}
-        Something is a \textbf{well-formed formula} only if it is built from the following rules;
+        Something is a \textbf{well-formed formula} only if it is built from the following rules (the brackets are required);
         \begin{enumerate}[1.]
             \item a propositional atom ($p, p^\prime, p_0, p_1, p_2, p_n, q, r, s, ...$) is a propositional formula
             \item $\top$, and $\bot$ are both formulas
@@ -117,13 +117,26 @@ end if
                 (oll) edge[] node{} (ollc);
             \end{tikzpicture}
         \end{center}
-
         Note that this tree shows the principal connective in \textcolor{blue}{blue}, and the propositional atoms in \textcolor{red}{red}. Note that $\land$ is the principal connective in the top layer, and it therefore has the general form $A \land B$, and so on going down.
-
         \subsection*{Technical terms}
         \begin{itemize}
             \item A formula is a \textbf{negated formula} when it is in the form $\neg A$, negated atoms are sometimes called \textbf{negated-atomic}.
             \item $A \land B$, and $A \lor B$ are \textbf{conjunctions}, and \textbf{disjunctions}. $A$, and $B$, are \textbf{conjuncts}, and \textbf{disjuncts}, respectively.
             \item $A \rightarrow B$ is an implication. $A$ is the \textbf{antecedent}, and $B$ is the \textbf{consequent}
         \end{itemize}
+        \subsection*{Semantics}
+        The connectives covered above have a rough English translation. However a natural language has ambiguity, and as engineers, we need precise meanings for formulas. This is the truth table for every connective that will be used in this course (?):
+        \begin{center}
+            \begin{tabular}{||c|c||c|c|c|c|c|c|c||c||}
+                \hline
+                $p$ & $q$ & $\top$ & $\bot$ & $p \land q$ & $p \lor q$ & $\neg p$ & $p \rightarrow q$ & $p \leftrightarrow q$ & $p \uparrow q$ \\
+                \hline
+                0 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & 1 & 1\\
+                0 & 1 & 1 & 0 & 0 & 1 & 1 & 1 & 0 & 1\\
+                1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 1\\
+                1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 & 1 & 0\\
+                \hline
+            \end{tabular}
+        \end{center}
+        Note how we can also define new connectives (see how $A \uparrow B$ was defined in the last column); this is a NAND connective - equivalent to $\neg (A \land B)$.
     \end{document}
