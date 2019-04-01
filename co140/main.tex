@@ -139,4 +139,22 @@ end if
             \end{tabular}
         \end{center}
         Note how we can also define new connectives (see how $A \uparrow B$ was defined in the last column); this is a NAND connective - equivalent to $\neg (A \land B)$.
+        \subsection*{Translation}
+        \subsubsection*{English to Logic}
+        \begin{itemize}
+            \item \textbf{but} means \texttt{and}
+                \subitem "I will go out, but it is raining" \hfill $\texttt{(i will go out)} \land \texttt{(it is raining)}$
+            \item \textbf{unless} generally means \texttt{or}
+                \subitem "I will go out unless it rains" \hfill $\texttt{(i will go out)} \lor \texttt{(it will rain)}$ (note the \texttt{will})
+                \subitem \hfill $\neg\texttt{(it will rain)} \rightarrow \texttt{i will go out}$
+                \subitem There is also the strong form of \textbf{unless}, but in we generally use the weak form in computing
+                \subitem \hfill $\texttt{(i will go out)} \leftrightarrow \neg\texttt{(it will rain)}$
+            \item \textbf{or} generally refers to exclusive or (strong reading) in English, but it can also refer to inclusive or (weak reading). However, we always take the weak reading in computing.
+        \end{itemize}
+        \subsubsection*{Modality}
+        \texttt{I don't know what this means, so I'm just ignoring it for now}
+        \subsubsection*{Logic to English}
+        While the others are slightly more straightforward, $\rightarrow$ is a pain to translate.
+
+        For example, $\texttt{(i am the pope)} \rightarrow \texttt{(i am an atheist)}$ is true, as falsity implies anything, however if we were to translate it into English, "If I am the Pope, then I am an atheist" is (most likely) untrue.
     \end{document}
