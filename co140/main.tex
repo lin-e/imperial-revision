@@ -155,6 +155,32 @@ end if
         \texttt{I don't know what this means, so I'm just ignoring it for now}
         \subsubsection*{Logic to English}
         While the others are slightly more straightforward, $\rightarrow$ is a pain to translate.
+        \smallskip
 
-        For example, $\texttt{(i am the pope)} \rightarrow \texttt{(i am an atheist)}$ is true, as falsity implies anything, however if we were to translate it into English, "If I am the Pope, then I am an atheist" is (most likely) untrue.
+        For example, $\texttt{(i am the pope)} \rightarrow \texttt{(i am an atheist)}$ evaluates to true, as falsity implies anything, however if we were to translate it into English, "If I am the Pope, then I am an atheist" is (most likely) untrue.
+        \subsection*{Arguments}
+        We use the double turnstile, $\vDash$ (\texttt{\char`\\vDash} in \LaTeX), to mean \textbf{therefore}. For example, the \textit{Socrates syllogism} can be expressed as $\texttt{(socrates is a man)}, \texttt{(men are mortal)} \vDash \texttt{(socrates is mortal)}$ in logic, and in English as;
+        \begin{itemize}
+            \item Socrates is a man
+            \item Men are mortal
+            \item Therefore, Socrates is mortal
+        \end{itemize}
+        \medskip
+
+        The definition of a valid argument is as follows;
+        \smallskip
+
+        Given valid formulas $A_1, A_2, ..., A_n, B$, and '$A_1, ..., A_n$ therefore $B$', we can write it as $A_1, ..., A_n \vDash B$, iff $B$ is true in every situation where $A_1, ..., A_n$ are all true.
+        \subsubsection*{Examples}
+        \begin{itemize}
+            \item $A, A \rightarrow B \vDash B$ \hfill \textbf{modus ponens}
+            \item $A \rightarrow B, \neg B \vDash \neg A$ \hfill \textbf{modus tollens}
+            \item $A \rightarrow B, B \nvDash A$ \hfill $A$ can be false, as falsity implies anything
+        \end{itemize}
+        \subsubsection*{Definitions}
+        \begin{itemize}
+            \item A propositional formula is logically \textbf{valid} if it's true in all situations ($\vDash A$), if $A$ is \textbf{valid}
+            \item A propositional formula is \textbf{satisfiable} if it's true in at least one situation
+            \item Two propositonal formulas are logically \textbf{equivalent} if they are true in the same situations.
+        \end{itemize}
     \end{document}
