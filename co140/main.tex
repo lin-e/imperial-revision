@@ -118,7 +118,7 @@ end if
             \end{tikzpicture}
         \end{center}
         Note that this tree shows the principal connective in \textcolor{blue}{blue}, and the propositional atoms in \textcolor{red}{red}. Note that $\land$ is the principal connective in the top layer, and it therefore has the general form $A \land B$, and so on going down.
-        \subsection*{Technical terms}
+        \subsubsection*{Definitions}
         \begin{itemize}
             \item A formula is a \textbf{negated formula} when it is in the form $\neg A$, negated atoms are sometimes called \textbf{negated-atomic}.
             \item $A \land B$, and $A \lor B$ are \textbf{conjunctions}, and \textbf{disjunctions}. $A$, and $B$, are \textbf{conjuncts}, and \textbf{disjuncts}, respectively.
@@ -158,6 +158,9 @@ end if
         \smallskip
 
         For example, $\texttt{(i am the pope)} \rightarrow \texttt{(i am an atheist)}$ evaluates to true, as falsity implies anything, however if we were to translate it into English, "If I am the Pope, then I am an atheist" is (most likely) untrue.
+        \smallskip
+
+        Another example is the following; $p \land q \rightarrow r$, and $(p \rightarrow r) \lor (q \rightarrow r)$ are logically equivalent, but can be translated into different meanings. For example, let $p$ be "event A happens", let $q$ be "event B happens", and $q$ be "event C happens". The former can be translated to "If both A and B happens, then C happens", whereas the latter becomes "If A happens, then C happens, or if B happens, then C also happens".
         \subsection*{Arguments}
         We use the double turnstile, $\vDash$ (\texttt{\char`\\vDash} in \LaTeX), to mean \textbf{therefore}. For example, the \textit{Socrates syllogism} can be expressed as $\texttt{(socrates is a man)}, \texttt{(men are mortal)} \vDash \texttt{(socrates is mortal)}$ in logic, and in English as;
         \begin{itemize}
@@ -180,7 +183,22 @@ end if
         \subsubsection*{Definitions}
         \begin{itemize}
             \item A propositional formula is logically \textbf{valid} if it's true in all situations ($\vDash A$), if $A$ is \textbf{valid}
-            \item A propositional formula is \textbf{satisfiable} if it's true in at least one situation
+            \item A propositional formula is \textbf{satisfiable} if it's true in at least one situation (hence \textbf{valid} $\rightarrow$ \textbf{satisfiable})
             \item Two propositonal formulas are logically \textbf{equivalent} if they are true in the same situations.
         \end{itemize}
+        \begin{center}
+            \begin{tabular}{|c|c|c|c|}
+                \hline
+                argument & validity & satisfiability & equivalence \\
+                \hline
+                $A \vDash B$ & $A \rightarrow B$ valid & $A \land \neg B$ unsatisfiable & $(A \rightarrow B) \equiv \top$ \\
+                $\top \vDash A$ & $A$ valid & $\neg A$ unsatisfiable & $A \equiv \top$ \\
+                $A \nvDash \bot$ & $\neg A$ not valid & $A$ satisfiable & \\
+                $A \vDash B$, and $B \vDash A$ & & $A \leftrightarrow \neg B$ unsatisfiable & $A \equiv B$ \\
+                \hline
+            \end{tabular}
+            \medskip
+
+            (copied directly from \textit{Propositional Logic - Arguments and Validity.pdf})
+        \end{center}
     \end{document}
