@@ -243,7 +243,7 @@ end if
         \end{itemize}
         \subsubsection*{Equivalences}
         Refer to \textit{Logic cribsheet.pdf} for a full list of equivalences
-        \begin{itemize}
+        \begin{enumerate}[1.]
             \item $A \land B \equiv B \land A$ \hfill commutativity of $\land$
             \item $A \land A \equiv A$ \hfill idempotence of $\land$
             \item $A \land \top \equiv A$
@@ -270,5 +270,29 @@ end if
             \item $A \land (B \lor C) \equiv (A \land B) \lor (A \land C)$
             \item $A \lor (B \land C) \equiv (A \lor B) \land (A \lor C)$
             \item $A \lor (A \land B) \equiv A \lor (A \land B) \equiv A$
+        \end{enumerate}
+        \subsection*{Normal forms}
+        \begin{itemize}
+            \item A formula is in \textbf{disjunctive} NF (\textbf{DNF} - $\lor$) if it's a disjunction of conjunctions of literals
+            \item A formula is in \textbf{conjunctive} NF (\textbf{CNF} - $\land$) if it's a conjunction of disjunctions of literals (a conjunction of clauses)
+        \end{itemize}
+        \subsubsection*{Rewriting}
+        \begin{enumerate}[1.]
+            \item Get rid of $\rightarrow$, and $\leftrightarrow$
+                \subitem Replace $A \rightarrow B$ with $\neg A \lor B$
+                \subitem Replace $A \leftrightarrow B$ with $(A \land B) \lor (\neg A \land \neg B)$
+            \item Use de Morgan laws to push negations down to the atoms
+            \item Delete double negations (replace $\neg \neg A$ with $A$)
+            \item Rearrange with distributivity equivalences to the desired form
+            \item Use the equivalences which reduce two atoms to one ($\bot \lor A \equiv A$ etc.) until no further progress can be made
+        \end{enumerate}
+        \subsubsection*{Example}
+        Write $p \land q \rightarrow \neg (p \leftrightarrow \neg r)$ in DNF
+        \begin{itemize}
+            \item $p \land q \rightarrow \neg (p \leftrightarrow \neg r)$
+            \item $\neg (p \land q) \lor \neg (p \leftrightarrow \neg r)$ \hfill remove $\rightarrow$
+            \item $\neg (p \land q) \lor \neg ((p \land \neg r) \lor (\neg p \land r))$ \hfill remove $\leftrightarrow$
+            \item $\neg p \lor \neg q \lor \neg (p \land \neg r) \land \neg (\neg p \land r)$ \hfill de Morgan
+            \item $\neg p \lor \neg q \lor (\neg p \lor r) \land (p \lor \neg r) $ \hfill de Morgan
         \end{itemize}
     \end{document}
