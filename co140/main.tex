@@ -201,4 +201,74 @@ end if
 
             (copied directly from \textit{Propositional Logic - Arguments and Validity.pdf})
         \end{center}
+        \subsection*{Validity}
+        The main ways used to check validity are as follows;
+        \begin{itemize}
+            \item Truth tables - check all possible situations, and check the results of each formula are $\top$
+            \item Direct argument
+            \item Equivalences - using equivalences to reduce the initial formula to $\top$
+            \item Various proof systems - including Natural Deduction
+        \end{itemize}
+        In general, if we want to show that $A$ is logically equivalent to $B$, we need to show $A \leftrightarrow B$ is \textbf{valid}.
+        \subsubsection*{Truth Tables}
+        The use of truth tables to prove validity is fairly self-explanatory; as we're testing each situation, it's the easiest method (and it works for propositional logic since we have a finite number of configurations - doesn't work for first-order), however it's inelegant, and quite tedious depending on the number of propositional atoms.
+        \medskip
+
+        For example, if we were to prove $(p \rightarrow q) \leftrightarrow (\neg p \lor q)$ is valid, we have to evaluate all of the subformulas.
+        \begin{center}
+            \begin{tabular}{||c|c||c||c|c||c||}
+                \hline
+                $p$ & $q$ & $p \rightarrow q$ & $\neg p$ & $\neg p \lor q$ & $(p \rightarrow q) \leftrightarrow (\neg p \lor q)$ \\
+                \hline
+                0 & 0 & 1 & 1 & 1 & 1 \\
+                0 & 1 & 1 & 1 & 1 & 1 \\
+                1 & 0 & 0 & 0 & 0 & 1 \\
+                1 & 1 & 1 & 0 & 1 & 1 \\
+                \hline
+            \end{tabular}
+            \medskip
+
+            (copied directly from \textit{Propositional Logic - CheckValidity.pdf})
+        \end{center}
+        As the propositional formula has 1 in all four possible configurations of $p$, and $q$, we can then say it is valid, and as such, $p \rightarrow q$ is logically equivalent to $\neg p \lor q$
+        \subsubsection*{Direct Argument}
+        We can show the validity of $((p \rightarrow q) \rightarrow p) \rightarrow p$ (known as \textit{Peirce's law}) with direct argument.
+        \medskip
+
+        We can take an argument by cases, either $p$ is $\top$ or $p$ is $\bot$.
+        \begin{itemize}
+            \item $p \leftrightarrow \top$ - we know this is true as $A \rightarrow B$ is $\top$ whenever $B$ is $\top$
+            \item $p \leftrightarrow \bot$ - we have $p \rightarrow q$ evaluating to $\top$, as $A \rightarrow B$ is $\top$ whenever $A$ is $\bot$. As such, this formula is evaluated to $(\top \rightarrow p) \rightarrow q$. However, we know that $p$ is $\bot$, hence we have $\top \rightarrow \bot$, which we know evaluates to $\bot$ by the truth table for $\rightarrow$. As such, we have $\bot \rightarrow p$, hence it follows that it is valid, seeing as $A \rightarrow B$ is $\top$ whenever $A$ is $\bot$.
+            \item This is an argument by cases, known as \textbf{law of excluded middle} (you will use this often in Natural Deduction).
+        \end{itemize}
+        \subsubsection*{Equivalences}
+        Refer to \textit{Logic cribsheet.pdf} for a full list of equivalences
+        \begin{itemize}
+            \item $A \land B \equiv B \land A$ \hfill commutativity of $\land$
+            \item $A \land A \equiv A$ \hfill idempotence of $\land$
+            \item $A \land \top \equiv A$
+            \item $\bot \land A, \neg A \land A \equiv \bot$
+            \item $(A \land B) \land C \equiv A \land (B \land C)$ \hfill associativity of $\land$
+            \item $A \lor B \equiv B \land A$ \hfill commutativity of $\lor$
+            \item $A \lor A \equiv A$ \hfill idempotence of $\lor$
+            \item $\bot \lor A \equiv A$
+            \item $\top \lor A, \neg A \lor A \equiv \top$
+            \item $(A \lor B) \lor C \equiv A \lor (B \lor C)$ \hfill associativity of $\lor$
+            \item $\neg \top \equiv \bot$
+            \item $\neg \bot \equiv \top$
+            \item $\neg \neg A \equiv A$
+            \item $A \rightarrow A \equiv \top$
+            \item $\top \rightarrow A \equiv A$
+            \item $A \rightarrow \top \equiv \top$
+            \item $\bot \rightarrow A \equiv \top$
+            \item $A \rightarrow \bot \equiv \neg A$
+            \item $A \rightarrow B \equiv \neg A \lor B$
+            \item $A \leftrightarrow B \equiv (A \rightarrow B) \land (B \rightarrow A) \equiv (A \land B) \lor (\neg A \land \neg B) \equiv \neg A \leftrightarrow \neg B$
+            \item $\neg (A \leftrightarrow B) \equiv \neg A \leftrightarrow B \equiv ...$ \hfill the rest can be derived from the above
+            \item $\neg (A \land B) \equiv \neg A \lor \neg B$ \hfill de Morgan laws
+            \item $\neg (A \lor B) \equiv \neg A \land \neg B$ \hfill de Morgan laws
+            \item $A \land (B \lor C) \equiv (A \land B) \lor (A \land C)$
+            \item $A \lor (B \land C) \equiv (A \lor B) \land (A \lor C)$
+            \item $A \lor (A \land B) \equiv A \lor (A \land B) \equiv A$
+        \end{itemize}
     \end{document}
