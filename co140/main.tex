@@ -45,6 +45,19 @@
     % actual document
     \begin{document}
         \section*{CO140 - Logic}
+        \subsection*{Material Order}
+        \begin{enumerate}[1.]
+            \item \textit{Propositional Logic - Syntax.pdf}
+            \item \textit{Propositional Logic - Semantics.pdf}
+            \item \textit{Propositional Logic - English Correspondence.pdf}
+            \item \textit{Propositional Logic - Arguments and Validity.pdf}
+            \item \textit{PropositionalLogic - CheckValidity.pdf}
+            \item \textit{Propositional Logic - Natural Deduction Part1.pdf}
+            \item \textit{Propositional Logic - Natural Deduction Part 2.pdf}
+            \item \textit{Propositional Logic- Natural Deduction Part 3.pdf}
+            \item \textit{Propositional Logic - Lemmas.pdf}
+            \item \textit{First-order logic.pdf}
+        \end{enumerate}
         \subsection*{Introduction}
         A logic system consists of 3 things:
         \begin{enumerate}[1.]
@@ -241,7 +254,7 @@ end if
             \item $p \leftrightarrow \bot$ - we have $p \rightarrow q$ evaluating to $\top$, as $A \rightarrow B$ is $\top$ whenever $A$ is $\bot$. As such, this formula is evaluated to $(\top \rightarrow p) \rightarrow q$. However, we know that $p$ is $\bot$, hence we have $\top \rightarrow \bot$, which we know evaluates to $\bot$ by the truth table for $\rightarrow$. As such, we have $\bot \rightarrow p$, hence it follows that it is valid, seeing as $A \rightarrow B$ is $\top$ whenever $A$ is $\bot$.
             \item This is an argument by cases, known as \textbf{law of excluded middle} (you will use this often in Natural Deduction).
         \end{itemize}
-        \subsubsection*{Equivalences}
+        \subsection*{Equivalences}
         Refer to \textit{Logic cribsheet.pdf} for a full list of equivalences
         \begin{enumerate}[1.]
             \item $A \land B \equiv B \land A$ \hfill commutativity of $\land$
@@ -293,6 +306,13 @@ end if
             \item $\neg (p \land q) \lor \neg (p \leftrightarrow \neg r)$ \hfill remove $\rightarrow$
             \item $\neg (p \land q) \lor \neg ((p \land \neg r) \lor (\neg p \land r))$ \hfill remove $\leftrightarrow$
             \item $\neg p \lor \neg q \lor \neg (p \land \neg r) \land \neg (\neg p \land r)$ \hfill de Morgan
-            \item $\neg p \lor \neg q \lor (\neg p \lor r) \land (p \lor \neg r) $ \hfill de Morgan
+            \item $\neg p \lor \neg q \lor (\neg p \lor r) \land (p \lor \neg r)$ \hfill de Morgan
+            \item $\neg p \lor \neg q \lor ((\neg p \lor r) \land p) \lor ((\neg p \lor r) \land \neg r)$ \hfill distributivity of $\land$
+            \item $\neg p \lor \neg q \lor (\neg p \land p) \lor (r \land p) \lor (\neg p \land \neg r) \lor (r \land \neg r)$ \hfill distributivity of $\land$
+            \item $\neg p \lor \neg q \lor (r \land p) \lor (\neg p \land \neg r)$ \hfill distributivity of $\land$
+            \item $\neg p \lor \neg q \lor (r \land p)$ \hfill $A \lor (A \land B) \equiv A$
+            \item While this is in DNF, we can leave it, and simplify further
+            \item $\neg q \lor ((r \lor \neg p) \land (p \lor \neg p))$ \hfill distributivity of $\lor$
+            \item $\neg q \lor r \lor \neg p$ \hfill $A \land (B \lor \neg B) \equiv A$ (combination of equivalences)
         \end{itemize}
     \end{document}
