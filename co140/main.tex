@@ -46,6 +46,7 @@
     \begin{document}
         \section*{CO140 - Logic}
         \subsection*{Material Order}
+        Seeing as this module isn't on Panopto, these notes are solely based off of the provided notes on CATe. This is the order in which they are uploaded (and I'd assume the order in which they are taught).
         \begin{enumerate}[1.]
             \item \textit{Propositional Logic - Syntax.pdf}
             \item \textit{Propositional Logic - Semantics.pdf}
@@ -318,5 +319,33 @@ end if
             \item $\neg q \lor r \lor \neg p$ \hfill $A \land (B \lor \neg B) \equiv A$ (combination of equivalences)
         \end{enumerate}
         \subsection*{Natural Deduction}
-        \texttt{Read Jordan Spooner's notes for this; just practice it on Pandora until you feel \\ confident}
+        \texttt{Read Jordan Spooner's notes for this; just practice it on Pandora until you feel \\ confident. These are just some key points from the slides, examples are excluded, \\ as it's better to just do questions}
+        \begin{itemize}
+            \item If we prove $A$, and $B$, we get $A \land B$ ($\land$I)
+            \item If we have $A \land B$, we get both $A$, and $B$ ($\land$E)
+            \item We often need to make a temporary assumption, for example, if we assume $A$, and in that box, we get $B$, then it follows that $A \rightarrow B$ ($\rightarrow$I)
+                \subitem nothing in the box can be used outside of it; consider it as a scope
+            \item If we have $A \rightarrow B$, and $A$, we get $B$ ($\rightarrow$E)
+            \item If we have $A$, we get $A \lor B$ ($\lor$I)
+                \subitem it doesn't matter what $B$ is, it can literally be $\bot$
+            \item If we have $A \lor B$, and we can prove $A \rightarrow C$, and $B \rightarrow C$ (see in the \textit{Translation} section  for a similar example to $(p \lor q) \rightarrow r \equiv (p \rightarrow r) \land (q \rightarrow r)$), we get $C$ ($\lor$E).
+            \item Note that $\vdash$, and $\vDash$, are different. The former is syntactic, and involves proofs, whereas the latter is semantic, and involves situations
+            \item If assuming $A$ leads to $\bot$, we get $\neg A$ ($\neg$I)
+            \item If assuming $\neg A$ leads to $\bot$, we get $A$ ($\neg$E)
+            \item If we have $\neg \neg A$, we get $A$ ($\neg \neg$)
+            \item If we have both $A$, and $\neg A$, we get $\bot$ ($\bot$I)
+            \item If we have $\bot$, we get $A$ ($\bot$E)
+                \subitem $A$ can be anything, as we can prove anything from $\bot$
+            \item If we prove $A \rightarrow B$, and $B \rightarrow A$, we get $A \leftrightarrow B$ ($\leftrightarrow$I)
+            \item If we prove $A \leftrightarrow B$, and $A$ (or $B$), we get $B$ (or $A$), respectively ($\leftrightarrow$E)
+            \item PC is a derived rule from $\neg$I, and $\neg \neg$
+            \item 
+        \end{itemize}
+        \subsubsection*{Definitions}
+        \begin{itemize}
+            \item If a formula can be proved by a given proof system, it's a \textbf{theorem} (hence a \textbf{theorem} is any formula $A$ where $\vdash A$)
+            \item A system is \textbf{sound} if every theorem is valid, and \textbf{complete} if every valid formula is a theorem
+            \item A formula is \textbf{consistent} if $\nvdash \neg A$
+            \item A formula is consistent iff it is satisfiable
+        \end{itemize}
     \end{document}
