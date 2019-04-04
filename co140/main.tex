@@ -347,4 +347,38 @@ end if
             \item A formula is \textbf{consistent} if $\nvdash \neg A$
             \item A formula is consistent iff it is satisfiable
         \end{itemize}
+        \subsection*{First-order Predicate Logic}
+        While we can use direct argument, equivalences, and natural deduction, truth tables can no longer be used, since we're working on an infinite set of possible situations.
+        \subsubsection*{Limitations of Propositional Logic}
+        \begin{itemize}
+            \item the list is ordered
+            \item every worker has a boss
+            \item there is someone worse off than you
+            \item it also can't express some of de Morgan's arguments, for example;
+                \begin{enumerate}[i.]
+                    \item a horse is an animal
+                    \item therefore, the head of a horse is the head of an animal
+                \end{enumerate}
+        \end{itemize}
+        \subsubsection*{Splitting the Atom}
+        Previously, we considered phrases such as \texttt{the left lift is falling}, and \texttt{Adam gets in the left lift}, as atomic, without any internal structure. However, we can then regard \texttt{falling} as a \textbf{property}, or an \textbf{attribute}.
+        \begin{itemize}
+            \item a \textbf{unary} relation symbol takes one argument, hence it has an \textbf{arity} of 1.
+                \subitem e.g. \texttt{falling(LeftLift)}
+            \item a \textbf{binary} relation symbol takes two arguments, hence it has an arity of 2.
+                \subitem e.g. \texttt{gets\_in(Adam, LeftLift)}
+            \item \textbf{constants}, which can name individual objects
+                \subitem e.g. \texttt{LeftLift}, or \texttt{Adam}
+        \end{itemize}
+        While \texttt{gets\_in(Adam, LeftLift)} doesn't seem that different from the original propositional atom \texttt{Adam gets in the left lift}, predicate logic is able to vary the arguments passed into the relation \texttt{gets\_in}. The machinery used in predicate logic is \textbf{quantifiers}. In first-order logic, we have two quantifiers;
+        \begin{itemize}
+            \item $\forall$ - 'for all' \hfill e.g $\forall x (A)$, means that the predicate $A$ applies to all $x$.
+            \item $\exists$ - 'exists' (or 'some') \hfill e.g. $\exists x (A)$, means that the predicate $A$ applies to at least one $x$.
+        \end{itemize}
+        Expressions like \texttt{LeftLift}, or \texttt{Adam} are constants, but to express more complex statements we need stuff like;
+        \begin{itemize}
+            \item $\exists x (\texttt{falling}(x)\ \land\ \texttt{gets\_in}(\texttt{Adam}, x))$ \hfill \texttt{Adam} gets into a falling lift
+                \subitem \hfill Some $x$ is a falling lift, and \texttt{Adam} gets in $x$
+            \item $\exists x (\texttt{falling}(x))$ \hfill There exists an $x$ that is a falling lift
+        \end{itemize}
     \end{document}
