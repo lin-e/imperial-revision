@@ -380,10 +380,67 @@ end if
             \item $\exists x (\texttt{falling}(x)\ \land\ \texttt{gets\_in}(\texttt{Adam}, x))$ \hfill \texttt{Adam} gets into a falling lift
                 \subitem \hfill Some $x$ is a falling lift, and \texttt{Adam} gets in $x$
             \item $\exists x (\texttt{falling}(x))$ \hfill There exists an $x$ that is a falling lift
+            \item $\forall x (\texttt{falling}(x))$ \hfill Everything is a falling lift
         \end{itemize}
         \subsubsection*{Signatures}
         A \textbf{signature} is a set of constants, and relation symbols with specific arities. Also known as \textbf{similarity type}, \textbf{vocabulary}, or \textbf{language} (loosely)
         \medskip
 
         This replaces the collection of propositional atoms we previously used in propositional logic. Usually $L$ denotes a signature, $c, d, ...$ for constants, and $P, Q, R, S, ...$ for relation symbols.
+        \medskip
+
+        Let us define an example signature $L$, consisting of the following;
+        \begin{itemize}
+            \item constants
+                \begin{itemize}
+                    \item \texttt{Adam}
+                    \item \texttt{Ben}
+                    \item \texttt{Charlie}
+                    \item \texttt{Apple}
+                    \item \texttt{Orange}
+                    \item \texttt{Kale}
+                    \item \texttt{Phone}
+                \end{itemize}
+            \item unary relations (arity 1)
+                \begin{itemize}
+                    \item \texttt{fruit}
+                    \item \texttt{human}
+                    \item \texttt{student}
+                \end{itemize}
+            \item binary relations (arity 2)
+                \begin{itemize}
+                    \item \texttt{ate}
+                \end{itemize}
+        \end{itemize}
+        Everything listed in $L$ are just symbols, hence they don't come with any meaning. We will need to add a \textbf{situation}.
+        \subsubsection*{Terms}
+        In order to write formulas, we need \textbf{terms} to name objects, they are not true or false, since they themselves are not formulas.
+        \medskip
+
+        With a fixed signature $L$, any constant in $L$ is an $L$-term, as well as any variable. Nothing else is an $L$-term.
+        \smallskip
+
+        A \textbf{closed} (or \textbf{ground}) term doesn't involve a variable. Hence constants are \textbf{ground} terms, and variables are not.
+
+        \subsubsection*{Formulas}
+        Once again, with a fixed signature $L$, we can say the following are formulas, and nothing else is;
+        \begin{itemize}
+            \item given an $n$-ary relation $R$ in $L$, and a set of $L$-terms ($t_1, t_2, ..., t_n$), then $R(t_1, t_2, ..., t_n)$ is an atomic $L$-formula
+            \item if $t$, and $t^\prime$ are $L$-terms, then $t = t^\prime$ is an atomic $L$-formula (equality)
+            \item $\top$, and $\bot$, are atomic $L$-formulas
+            \item if $A$, and $B$ are $L$-formulas, then so are $(\neg A)$, $(A \land B)$, $(A \lor B)$ , $(A \rightarrow B)$, and $(A \leftrightarrow B)$
+            \item if $A$ is an $L$-formula, then $\forall x (A)$, and $\exists x (A)$ are $L$-formulas
+        \end{itemize}
+        Note that the binding conventions are the same as propositional logic, with the additional fact that $\forall x$, and $\exists x$ have the same binding strength as $\neg$
+        \medskip
+
+        Now that we have these definitions, we can begin to construct examples of first-order logical formulas;
+        \begin{itemize}
+            \item $\texttt{ate}(\texttt{Adam}, x)$ \hfill Adam ate $x$
+            \item $\exists x (\texttt{ate}(\texttt{Adam}, x))$ \hfill Adam ate something
+            \item $\forall x (\texttt{student}(x) \rightarrow \texttt{human}(x))$ \hfill all students are human (important)
+            \item $\forall x (\texttt{ate}(\texttt{Adam}, x) \rightarrow \texttt{fruit}(x))$ \hfill Adam only ate fruits / Everything Adam ate is a fruit
+        \end{itemize}
+
+        \texttt{Note that diagrams will be too much hassle to draw, so I will be inserting \\ screenshots of the slides}
     \end{document}
