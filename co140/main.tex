@@ -493,6 +493,11 @@ end if
                 (adam) edge[->, right, color=blue] node{ate} (kale);
             \end{tikzpicture}
         \end{center}
+        \textbf{NOTATION:} given an $L$-structure $M$, and a constant $c$ in $L$, we use the notation $c^M$ to denote the interpretation of $c$ in $M$. $c$ is an object in dom($M$) that $c$ names in $M$. Therefore the black node in the model, is $\texttt{Adam}^M$, which is not to be confused with \texttt{Adam}. The meaning of a constant $c$ is the object $c^M$, which is assigned by the $L$-structure $M$, hence a constant can have multiple meanings since each $L$-structure assigns $c$ a new meaning.
+        \medskip
 
-        Notation; Given an $L$-structure $M$, and a constant $c$ in $L$, we use the notation $c^M$ to denote the interpretation of $c$ in $M$. $c$ is an object in dom($M$) that $c$ names in $M$. Therefore the black node in the model, is $\texttt{Adam}^M$, which is not to be confused with \texttt{Adam}. The meaning of a constant $c$ is the object $c^M$, which is assigned by the $L$-structure $M$, hence a constant can have multiple meanings since each $L$-structure assigns $c$ a new meaning.
+        While our model is quite simple, it illustrates the basic requirements for an $L$-structure; it has the collection of objects (dom($M$)), marks the constants, marks which objects satisfy the unary relations, as well as directed arrows showing which pairs of objects satisfy the binary relations. Generally, there isn't any easy way to represent $n$-ary relations (where $n \geq 3$). 0-ary (nullary) relations are propositional atoms.
+        \medskip
+
+        The structure $M$ tells us that \texttt{student}(\texttt{Ben}) is true, as the node representing $\texttt{Ben}^M$ is coloured black; therefore this can be written as $M \vDash \texttt{student}(\texttt{Ben})$ - or $M$ says \texttt{student}(\texttt{Ben}). $M$ also tells us that \texttt{ate}(\texttt{Ben}, \texttt{Orange}) is false, hence we can write $M \nvDash \texttt{ate}(\texttt{Ben},\ \texttt{Orange})$. This is a different use of $\vDash$ from the start of the module.
     \end{document}
