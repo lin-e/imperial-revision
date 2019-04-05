@@ -492,7 +492,8 @@ end if
                 \draw
                 (ben) edge[->, right, color=blue] node{ate} (kale)
                 (ben) edge[->, right, color=blue] node{ate} (apple)
-                (adam) edge[->, right, color=blue] node{ate} (kale);
+                (adam) edge[->, right, color=blue] node{ate} (kale)
+                (charlie) edge[->, right, color=blue] node{ate} (apple);
             \end{tikzpicture}
         \end{center}
         \textbf{NOTATION:} given an $L$-structure $M$, and a constant $c$ in $L$, we use the notation $c^M$ to denote the interpretation of $c$ in $M$. $c$ is an object in dom($M$) that $c$ names in $M$. Therefore the black node in the model, is $\texttt{Adam}^M$, which is not to be confused with \texttt{Adam}. The meaning of a constant $c$ is the object $c^M$, which is assigned by the $L$-structure $M$, hence a constant can have multiple meanings since each $L$-structure assigns $c$ a new meaning.
@@ -511,4 +512,51 @@ end if
         \medskip
 
         \textbf{TIP:} if you have something asking $M \vDash \forall x (R(x, ...) \rightarrow B)$?, the idea is to restrict the $\forall x$. We know that falsity implies anything from propositional logic, and therefore we only need to consider the cases in which $R(x, ...)$ is true. For example, on $M$, if we were asked $M \vDash \forall x (\texttt{ate}(\texttt{Adam}, x) \rightarrow \texttt{ate}(\texttt{Ben}, x))$?, instead of evaluating all the objects in dom($M$), we should only consider the ones in which $\texttt{ate}(\texttt{Adam}, x)$ evaluates to true, which would be just the object $\texttt{Kale}^M$. And as $\texttt{ate}(\texttt{Ben}, \texttt{Kale}^M)$ is true, the statement is valid.
+        \medskip
+
+        \textbf{TIP:} for a fairly complex formula (we'll work with $\exists x (\texttt{fruit}(x) \land \exists y (\texttt{ate}(y, x)))$), a simple method is to work out what each subformula says in English (working upwards from the atomic subformulas). For example;
+        \begin{center}
+            \begin{tikzpicture}
+                \node[] (l_r) at (0, 0) {$\exists x (\texttt{fruit}(x) \land \exists y (\texttt{ate}(y, x)))$};
+                \node[] (l_rc) at (0, -1.5) {$\texttt{fruit}(x) \land \exists y (\texttt{ate}(y, x))$};
+                \node[] (l_rcl) at (-2, -3) {$\texttt{fruit}(x)$};
+                \node[] (l_rcr) at (2, -3) {$\exists y (\texttt{ate}(y, x))$};
+                \node[] (l_rcrc) at (2, -4.5) {$\texttt{ate}(y, x)$};
+
+                \node[] (e_r) at (8, 0) {something ate a fruit};
+                \node[] (e_rc) at (8, -1.5) {$x$ is a fruit, and something ate $x$};
+                \node[] (e_rcl) at (6, -3) {$x$ is a fruit};
+                \node[] (e_rcr) at (10, -3) {something ate $x$};
+                \node[] (e_rcrc) at (10, -4.5) {$y$ ate $x$};
+
+                \draw
+                (l_r) -- (l_rc)
+                (l_rc) -- (l_rcr)
+                (l_rc) -- (l_rcl)
+                (l_rcr) -- (l_rcrc)
+                (e_r) -- (e_rc)
+                (e_rc) -- (e_rcr)
+                (e_rc) -- (e_rcl)
+                (e_rcr) -- (e_rcrc);
+            \end{tikzpicture}
+        \end{center}
+        \subsubsection*{Truth in a Structure (Formal)}
+        Once again, natural language is only a rough guide, and as engineers we need a more rigorous system. While we are able to work out the truth value of a complex formula by evaluating propositional atoms from the root of a formation tree in propositional logic, it's not as simple in predicate logic. For example, if we tried to evaluate $\forall x (\texttt{ate}(\texttt{Charlie}, x) \rightarrow \texttt{fruit}(x))$ with a formation tree, we'd quickly run into trouble;
+        \begin{center}
+            \begin{tikzpicture}
+                \node[] (o) at (0, 0) {$\forall x$};
+                \node[] (oc) at (0, -1.5) {$\rightarrow$};
+                \node[] (ocl) at (-2, -3) {$\texttt{ate}(\texttt{Charlie}, x)$};
+                \node[] (ocr) at (2, -3) {$\texttt{fruit}(x)$};
+
+                \draw
+                (o) -- (oc)
+                (oc) -- (ocl)
+                (oc) -- (ocr);
+            \end{tikzpicture}
+        \end{center}
+        What are the truth values for the leaf nodes? We don't know, since formulas of predicate logic doesn't have to be true or false in a given structure.
+        \medskip
+
+        With a given formula $A$, a variable $x$ in an atomic subformula of $A$ is \texttt{bound} if it's under a quantifiers in the formation tree. Otherwise, the variable is \textbf{free}.
     \end{document}
