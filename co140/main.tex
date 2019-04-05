@@ -558,5 +558,32 @@ end if
         What are the truth values for the leaf nodes? We don't know, since formulas of predicate logic doesn't have to be true or false in a given structure.
         \medskip
 
-        With a given formula $A$, a variable $x$ in an atomic subformula of $A$ is \texttt{bound} if it's under a quantifiers in the formation tree. Otherwise, the variable is \textbf{free}.
+        With a given formula $A$, a variable $x$ in an atomic subformula of $A$ is \textbf{bound} if it's under a quantifiers in the formation tree. Otherwise, the variable is \textbf{free}. For example (copied directly from \textit{First-order logic.pdf});
+        \begin{center}
+            \begin{tikzpicture}
+                \node[] (o) at (0, 0) {$\textcolor{blue}{\forall x} (R(x, y) \land R(y, z) \rightarrow \exists z (S(x, z) \land z = y))$};
+                \node[] (oc) at (0, -1.5) {$R(\textcolor{blue}{x}, y) \land R(y, z) \rightarrow \exists z (S(\textcolor{blue}{x}, z) \land z = y)$};
+                \node[] (ocl) at (-2, -3) {$R(\textcolor{blue}{x}, y) \land R(y, z)$};
+                \node[] (ocr) at (2, -3) {$\textcolor{red}{\exists z} (S(\textcolor{blue}{x}, z) \land z = y)$};
+                \node[] (ocll) at (-3, -4.5) {$R(\textcolor{blue}{x}, y)$};
+                \node[] (oclr) at (-1, -4.5) {$R(y, z)$};
+                \node[] (ocrc) at (2, -4.5) {$S(\textcolor{blue}{x}, \textcolor{red}{z}) \land \textcolor{red}{z} = y$};
+                \node[] (ocrcl) at (1, -6) {$S(\textcolor{blue}{x}, \textcolor{red}{z})$};
+                \node[] (ocrcr) at (3, -6) {$\textcolor{red}{z} = y$};
+
+                \draw
+                (o) -- (oc)
+                (oc) -- (ocl)
+                (oc) -- (ocr)
+                (ocl) -- (ocll)
+                (ocl) -- (oclr)
+                (ocr) -- (ocrc)
+                (ocrc) -- (ocrcl)
+                (ocrc) -- (ocrcr);
+            \end{tikzpicture}
+        \end{center}
+        The coloured variables are bound, and the uncoloured ones are free. Notice that $z$ occurs as both a free, and as an unbound variable. The two instances of $z$ are different, and have nothing to do with each other.
+        \medskip
+
+        A \textbf{sentence} is defined as a formula without any free variables (hence all variables are bound).
     \end{document}
