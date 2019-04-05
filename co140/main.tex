@@ -440,7 +440,59 @@ end if
             \item $\exists x (\texttt{ate}(\texttt{Adam}, x))$ \hfill Adam ate something
             \item $\forall x (\texttt{student}(x) \rightarrow \texttt{human}(x))$ \hfill all students are human (important)
             \item $\forall x (\texttt{ate}(\texttt{Adam}, x) \rightarrow \texttt{fruit}(x))$ \hfill Adam only ate fruits / Everything Adam ate is a fruit
+            \item $\forall x \exists y (\texttt{ate}(x, y))$ \hfill eveyone ate something
+            \item $\exists y \forall x (\texttt{ate}(x, y))$ \hfill there is something that everyone ate
+            \item $\exists x \forall y (\texttt{ate}(x, y))$ \hfill someone ate everything
+        \end{itemize}
+        Note the subtle differences in the latter three examples, and how they have a rather drastic impact on the meaning of the formula.
+        \subsubsection*{Semantics}
+        Like in propositional logic, we have to specify a \textbf{situation} for predicate logic, and how to evaluate predicate logic formulas in a specific situation.
+        \medskip
+
+        With a given signature $L$, we have an $L$-structure (or \textbf{model}) $M$, which identifies an non-empty set of objects that $M$ covers. It is defined as the \textbf{domain}, or \textbf{universe} of $M$, also known as dom($M$). $M$ also specifies the meanings of the symbols in $L$, in terms of the objects in dom($M$).
+        \smallskip
+
+        An \textbf{object} in dom($M$) is the interpretation in $M$ of a constant, and \textbf{relation} on dom($M$) is the internal in $M$ of a relation symbol.
+        \medskip
+
+        Using the our previously defined symbols, we can define a model $M$ on $L$, which must state which objects are in dom($M$), which objects are the constants (\texttt{Adam}, \texttt{Ben}, ...), which objects are \texttt{human}, \texttt{student}, \texttt{fruit}, and which objects \texttt{ate} which.
+
+        \begin{itemize}
+            \item the labelled nodes represent the constants in $L$
+            \item the interpretations / meanings of \texttt{fruit}, and \texttt{human} are drawn as regions (the arrows)
+            \item the interpretation of \texttt{student} are the black nodes
+            \item the interpretation of the binary relation \texttt{ate} is shown by the arrow between two nodes
         \end{itemize}
 
-        \texttt{Note that diagrams will be too much hassle to draw, so I will be inserting \\ screenshots of the slides}
+        \begin{center}
+            \begin{tikzpicture}
+                \draw[rounded corners=5]
+                (0, 0) -- (10, 0) -- (10, 10) -- (0, 10) -- cycle;
+
+                \draw
+                (0, 5) -- (10, 7)
+                (0, 3) -- (10, 3);
+
+                \draw
+                (12, 8.5) edge[->, above] node{human} (9.5, 8.5)
+                (12, 1.5) edge[->, above] node{fruit} (9.5, 1.5);
+
+                \node[draw, circle, label=, fill=black] () at (2, 4) {};
+                \node[draw, circle, label=Charlie, fill=black] (charlie) at (4, 7.5) {};
+                \node[draw, circle, label=Adam, fill=black] (adam) at (6, 9) {};
+                \node[draw, circle, label=Ben, fill=black] (ben) at (2, 8) {};
+                \node[draw, circle, label=] () at (1, 6) {};
+                \node[draw, circle, label=right:Kale] (kale) at (7, 5) {};
+                \node[draw, circle, label=Phone] (phone) at (6, 4) {};
+                \node[draw, circle, label=left:Apple] (apple) at (4, 1) {};
+                \node[draw, circle, label=Orange] (orange) at (8, 1.5) {};
+
+                \draw
+                (ben) edge[->, right, color=blue] node{ate} (kale)
+                (ben) edge[->, right, color=blue] node{ate} (apple)
+                (adam) edge[->, right, color=blue] node{ate} (kale);
+            \end{tikzpicture}
+        \end{center}
+
+        Notation; Given an $L$-structure $M$, and a constant $c$ in $L$, we use the notation $c^M$ to denote the interpretation of $c$ in $M$. $c$ is an object in dom($M$) that $c$ names in $M$. Therefore the black node in the model, is $\texttt{Adam}^M$, which is not to be confused with \texttt{Adam}. The meaning of a constant $c$ is the object $c^M$, which is assigned by the $L$-structure $M$, hence a constant can have multiple meanings since each $L$-structure assigns $c$ a new meaning.
     \end{document}
