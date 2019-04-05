@@ -466,16 +466,18 @@ end if
 
         \begin{center}
             \begin{tikzpicture}
-                \draw[rounded corners=5]
+                \draw[rounded corners=15]
                 (0, 0) -- (10, 0) -- (10, 10) -- (0, 10) -- cycle;
 
                 \draw
                 (0, 5) -- (10, 7)
                 (0, 3) -- (10, 3);
 
+                \node[] (human) at (11, 8.5) {human};
+                \node[] (fruit) at (11, 1.5) {fruit};
                 \draw
-                (12, 8.5) edge[->, above] node{human} (9.5, 8.5)
-                (12, 1.5) edge[->, above] node{fruit} (9.5, 1.5);
+                (human) edge[->] node{} (9.5, 8.5)
+                (fruit) edge[->] node{} (9.5, 1.5);
 
                 \node[draw, circle, label=, fill=black] () at (2, 4) {};
                 \node[draw, circle, label=Charlie, fill=black] (charlie) at (4, 7.5) {};
@@ -499,5 +501,14 @@ end if
         While our model is quite simple, it illustrates the basic requirements for an $L$-structure; it has the collection of objects (dom($M$)), marks the constants, marks which objects satisfy the unary relations, as well as directed arrows showing which pairs of objects satisfy the binary relations. Generally, there isn't any easy way to represent $n$-ary relations (where $n \geq 3$). 0-ary (nullary) relations are propositional atoms.
         \medskip
 
-        The structure $M$ tells us that \texttt{student}(\texttt{Ben}) is true, as the node representing $\texttt{Ben}^M$ is coloured black; therefore this can be written as $M \vDash \texttt{student}(\texttt{Ben})$ - or $M$ says \texttt{student}(\texttt{Ben}). $M$ also tells us that \texttt{ate}(\texttt{Ben}, \texttt{Orange}) is false, hence we can write $M \nvDash \texttt{ate}(\texttt{Ben},\ \texttt{Orange})$. This is a different use of $\vDash$ from the start of the module.
+        The structure $M$ tells us that \texttt{student}(\texttt{Ben}) is true, as the node representing $\texttt{Ben}^M$ is coloured black; therefore this can be written as $M \vDash \texttt{student}(\texttt{Ben})$ - or $M$ says \texttt{student}(\texttt{Ben}). $M$ also tells us that \texttt{ate}(\texttt{Ben}, \texttt{Orange}) is false, hence we can write $M \nvDash \texttt{ate}(\texttt{Ben},\ \texttt{Orange})$. $M$ also states $\texttt{Kale}^M$ is not \texttt{human}, therefore we are able to write $M \vDash \neg \texttt{human}(\texttt{Kale})$.
+        \medskip
+
+        This is a different use of $\vDash$ from the start of the module.
+        \medskip
+
+        \texttt{There should be a section here about another model on the same signature, but that \\ takes too much effort to draw.}
+        \medskip
+
+        \textbf{TIP:} if you have something asking $M \vDash \forall x (R(x, ...) \rightarrow B)$?, the idea is to restrict the $\forall x$. We know that falsity implies anything from propositional logic, and therefore we only need to consider the cases in which $R(x, ...)$ is true. For example, on $M$, if we were asked $M \vDash \forall x (\texttt{ate}(\texttt{Adam}, x) \rightarrow \texttt{ate}(\texttt{Ben}, x))$?, instead of evaluating all the objects in dom($M$), we should only consider the ones in which $\texttt{ate}(\texttt{Adam}, x)$ evaluates to true, which would be just the object $\texttt{Kale}^M$. And as $\texttt{ate}(\texttt{Ben}, \texttt{Kale}^M)$ is true, the statement is valid.
     \end{document}
