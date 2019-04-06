@@ -664,4 +664,25 @@ end if
             \item the value of the term \texttt{Charlie} in $M$ under $h$ is the black node marked 'Charlie' \hfill $\texttt{Charlie}^M$
             \item the value of the term $x$ in $M$ under $h$ is the white node marked 'Apple' \hfill $h(x)$
         \end{itemize}
+        This now allows us to evaluate anything without quantifiers; with a fixed $L$-structure $M$, and an assignment $h$, we can write $M, h \vDash A$, or $M, h \nvDash A$ depending on whether $A$ is true in $M$ under $h$ (or not). Therefore the semantics of quantifier-free formulas are as follows;
+        \begin{enumerate}[1.]
+            \item let $R$ represent an $n$-ary relation in $L$, $t_1, t_2, ..., t_n$ be $L$-terms, and $t_i$ has the value $a_i$ in $M$ under $h$, $\forall i \in [1..n]$. Then, $M, h \vDash R(t_1, t_2, ..., t_n)$ iff the sequence $(a_1, a_2, ..., a_n)$ is in the relation $R$, otherwise $M, h \nvDash R(t_1, t_2, ..., t_n)$.
+            \item let $t, t^\prime$ be $L$-terms, then $M, h \vDash t = t^\prime$ if they both have the same value in $M$ under $h$, and $M, h \nvDash t = t^\prime$ otherwise.
+                \subitem Hence in our example, we have $M, h \vDash \texttt{Apple} = x$
+            \item $M, h \vDash \top$, and $M,h \nvDash \bot$
+            \item $M, h \vDash A \land B$ if $M, h \vDash A$, as well as $M, h \vDash B$, and $M, h \nvDash A \land B$ otherwise.
+            \item $\neg A, A \lor B, A \rightarrow B, A \leftrightarrow B$, same as propositional logic.
+        \end{enumerate}
+        \subsubsection*{Problems with Bound Variables}
+        While knowing how to specify values for free variables is useful, the majority of formulas we'll be dealing with involve quantifiers, and hence involve bound variables. Values are not given by the situation, as they are controlled by quantifiers. In general, if we encounter $\exists$, we want to find \textbf{some} assignment to make the formula true, and with $\forall$, it requiresthat \textbf{all} assignments keep it true.
+        \medskip
+
+        The list below is a continuation of the semantics mentioned in the previous section;
+        \begin{enumerate}[1.]
+            \setcounter{enumi}{5}
+            \item $g =_x h$ means $g(y) = h(y)$ for all $y$, other than $x$ (however $g(x) = h(x)$ is still possible). $g =_x h$ does not imply $g = h$, as we might have $g(x) \neq h(x)$.
+            % TODO: not 100% sure on this part
+            \item $M, h \vDash \exists x (A)$ if $M, g \vDash A$ for \textbf{some} assignment $g$, with $g =_x h$, else $M, h \nvDash \exists x (A)$
+            \item $M, h \vDash \forall x (A)$ if $M, g \vDash A$ for \textbf{every} assignment $g$, with $g =_x h$, else $M, h \nvDash \forall x (A)$
+        \end{enumerate}
     \end{document}
