@@ -8,6 +8,7 @@
 \usepackage{xcolor}
 \usepackage[margin=1.3cm]{geometry}
 \usepackage{logicproof}
+\usepackage{diagbox}
 
 % augmented matrix
 \makeatletter
@@ -715,7 +716,7 @@ end if
 
                     \begin{tabular}{|c|c|c|c|c|}
                         \hline
-                        $y$\textbackslash$x$ & Adam & $\circ$ & Apple & \\
+                        \backslashbox{$y$}{$x$} & Adam & $\circ$ & Apple & \\
                         \hline
                         Adam & $h_1$ & $h_2$ & $h_3$ & $=_x$ \\
                         \hline
@@ -757,4 +758,65 @@ end if
                 \medskip
 
                 Using the same $C$ mentioned above, and we have $h(y) = a$, and $h(z) = b$, instead of writing $M, h \vDash C$, we can write $M \vDash C(a, b)$, or $M \vDash \forall x (R(x, a) \rightarrow \exists y (S(y, b)))$
+                \medskip
+
+                Let there be an $L$-structure, $M$, with $L$-formula $A(x, y_1, y_2, ..., y_n)$, and dom($M$) = $(a_1, a_2, ..., a_n)$, proving $M \vDash \forall x (A(x, a_1, a_2, ..., a_n))$, with all objects $x$ in dom($M$), and similar for $\exists$.
+            \subsubsection*{Evaluation}
+                In practice, there are multiple methods for working out $M \vDash A$;
+                \begin{itemize}
+                    \item working out the natural language meaning of $A$, and checking it against $M$
+                    \item checking all assignments (using the definitions for semantics of quantifier, and quantifier-free formulas)
+                    \item rewriting the formula with equivalences
+                    \item using a combination of the three methods
+                \end{itemize}
+                However, generally evaluation is difficult. In most practical cases, with a easily understood formula, evaluating mentally is possible.
+            \subsubsection*{Translation}
+                While translating isn't much harder than in propositional logic, it's important to use standard natural language constructions when translating some logical patterns (e.g. $\forall x (A \rightarrow B)$ roughly translates to 'every $A$ is a $B$'). All variables \textbf{must} be eliminated, as it isn't used in natural language. These are some examples;
+                \begin{itemize}
+                    \item $\forall x (\texttt{student}(x) \land \neg (x = \texttt{Adam}) \rightarrow \texttt{ate}(x, \texttt{Apple}))$
+                        \subitem For all $x$, if $x$ is a student who isn't Adam, then $x$ ate an Apple
+                        \subitem Every student apart from Adam ate an apple
+                    \item $\exists x \exists y \exists z (\texttt{ate}(x, y) \land \texttt{ate}(x, z) \land \neg (y = z))$
+                        \subitem There are $x$, $y$, and $z$, such that $x$ ate $y$, and $z$, but $y$ is not $z$
+                        \subitem Something ate at least two different things
+                    \item $\forall x (\exists y \exists z ((\texttt{ate}(x, y) \land \texttt{ate}(x, z) \land \neg (y = z)) \rightarrow x = \texttt{Adam}))$
+                        \subitem For all $x$ that ate two different things (see the translation from above), then $x$ is Adam
+                        \subitem Anything thate ate two different things is Adam
+                        \subitem Remember that falsity implies anything, hence if no-one ate two things, then the sentence still holds
+                    \item $\exists x (\texttt{student}(x) \rightarrow \texttt{ate}(x, \texttt{Apple}))$
+                        \subitem There is an $x$, such that if $x$ is a student, then $x$ ate an apple
+                        \subitem If there are any students, then at least one student ate an apple.
+                \end{itemize}
+                Common English-to-logic translations exist; for example
+                \begin{itemize}
+                    \item $\forall x (\texttt{student}(x) \rightarrow \texttt{human}(x))$ \hfill all students are human
+                    \item $\exists x (\texttt{student}(x) \land \texttt{human}(x))$ \hfill some student is human
+                        \subitem $\exists x (\texttt{student}(x) \rightarrow \texttt{human}(x))$ is different - it's also true when there are no students. It's a rare case, so if it occurs, it should be checked, especially if $x$ is free in $A$.
+                    \item $\exists x (\texttt{fruit}(x) \land \texttt{ate}(\texttt{Adam}, x))$ \hfill Adam ate a fruit
+                    \item The common patterns you'll likely see are;
+                        \begin{itemize}
+                            \item $\forall x (A \rightarrow B)$
+                            \item $\exists x (A \land B)$
+                            \item $\forall x (A \land B)$
+                            \item $\forall x (A \lor B)$
+                            \item $\exists x (A \lor B)$
+                        \end{itemize}
+                \end{itemize}
+                We can also use propositional logic to count (the ones in red are less straightforward);
+                \begin{itemize}
+                    \item $\exists x (\texttt{fruit}(x))$ \hfill there is at least one fruit
+                    \item $\exists x \exists y (\texttt{fruit}(x) \land \texttt{fruit}(y) \land x \neq y)$ \hfill there are at least two fruits
+                    \item $\textcolor{red}{\forall x \exists y (\texttt{fruit}(y) \land x \neq y)}$ \hfill there are at least two fruits
+                        \subitem We know at least 1 fruit exists, since there exists a fruit, let it be $a$. Now, when $x = a$, there has to be at least another fruit $b$, which isn't the same as $a$, hence there are at least two fruits.
+                    \item $\exists x \exists y \exists z (\texttt{fruit}(x) \land \texttt{fruit}(y) \land \texttt{fruit}(z) \land x \neq y \land y \neq z \land z \neq x)$ \hfill there are at least three fruits
+                    \item $\textcolor{red}{\forall x \forall y \exists z (\texttt{fruit}(z) \land z \neq x \land z \neq y)}$ \hfill there are at least three fruits
+                    \item $\neg \exists x (\texttt{fruit}(x))$ \hfill there are no fruits
+                    \item $\forall x (\neg \texttt{fruit}(x))$ \hfill there are no fruits
+                    \item $\neg(\texttt{(there are at least two fruits)})$ \hfill there is at most one fruit
+                    \item $\forall x \forall y (\texttt{fruit}(x) \land \texttt{fruit}(y) \rightarrow x = y)$ \hfill there is at most one fruit
+                    \item $\textcolor{red}{\exists x \forall y (\texttt{fruit}(y) \rightarrow y = x)}$ \hfill there is at most one fruit
+                    \item $\texttt{(there is at least one fruit)} \land \texttt{(there is at most one fruit)}$ \hfill there is exactly one fruit
+                    \item $\exists x (\texttt{fruit}(x) \land \forall y (\text{fruit}(y) \rightarrow x = y))$ \hfill there is exactly one fruit
+                    \item $\textcolor{red}{\exists x \forall y (\texttt{fruit}(y) \leftrightarrow x = y)}$ \hfill there is exactly one fruit
+                \end{itemize}
 \end{document}
