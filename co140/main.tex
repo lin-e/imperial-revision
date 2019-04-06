@@ -674,6 +674,7 @@ end if
             \item $\neg A, A \lor B, A \rightarrow B, A \leftrightarrow B$, same as propositional logic.
         \end{enumerate}
         \subsubsection*{Problems with Bound Variables}
+        % TODO: not 100% sure on this part, so a lot of it is copied from the slides
         While knowing how to specify values for free variables is useful, the majority of formulas we'll be dealing with involve quantifiers, and hence involve bound variables. Values are not given by the situation, as they are controlled by quantifiers. In general, if we encounter $\exists$, we want to find \textbf{some} assignment to make the formula true, and with $\forall$, it requiresthat \textbf{all} assignments keep it true.
         \medskip
 
@@ -681,8 +682,69 @@ end if
         \begin{enumerate}[1.]
             \setcounter{enumi}{5}
             \item $g =_x h$ means $g(y) = h(y)$ for all $y$, other than $x$ (however $g(x) = h(x)$ is still possible). $g =_x h$ does not imply $g = h$, as we might have $g(x) \neq h(x)$.
-            % TODO: not 100% sure on this part
             \item $M, h \vDash \exists x (A)$ if $M, g \vDash A$ for \textbf{some} assignment $g$, with $g =_x h$, else $M, h \nvDash \exists x (A)$
+                \subitem (NOT SURE) $M, h \vDash \exists x (A) \equiv \exists g (g =_x h \land [M, g \vDash A])$ - I probably shouldn't use $\vDash$ to express a truth value.
             \item $M, h \vDash \forall x (A)$ if $M, g \vDash A$ for \textbf{every} assignment $g$, with $g =_x h$, else $M, h \nvDash \forall x (A)$
+                \subitem (NOT SURE) $M, h \vDash \forall x (A) \equiv \forall g (g =_x h \land [M, g \vDash A])$
         \end{enumerate}
+        Let us create a simple situation $Q$;
+        \begin{center}
+            \begin{tikzpicture}
+                \draw[rounded corners=15]
+                (0, 0) -- (5, 0) -- (5, 5) -- (0, 5) -- cycle;
+
+                \draw
+                (0, 2.5) -- (5, 3.5)
+                (0, 1.5) -- (5, 1.5);
+
+                \node[] (human) at (6, 4.25) {human};
+                \node[] (fruit) at (6, 0.75) {fruit};
+                \draw
+                (human) edge[->] node{} (4.5, 4.25)
+                (fruit) edge[->] node{} (4.5, 0.75);
+
+                \node[draw, circle, label=Adam, fill=black] (adam) at (1, 4) {};
+                \node[draw, circle, label=right:Apple, fill=black] (apple) at (1, 0.75) {};
+                \node[draw, circle, label=] (empty) at (4, 2.5) {};
+
+                \draw
+                (adam) edge[left, ->, color=blue] node{ate} (empty)
+                (empty) edge[above, ->, color=blue] node{ate} (apple)
+                (apple) edge[right, ->, color=blue] node{ate} (adam);
+            \end{tikzpicture}
+            \bigskip
+
+            \begin{tabular}{|c|c|c|c|c|}
+                \hline
+                $y$\textbackslash$x$ & Adam & $\circ$ & Apple & \\
+                \hline
+                Adam & $h_1$ & $h_2$ & $h_3$ & $=_x$ \\
+                \hline
+                $\circ$ & $h_4$ & $h_5$ & $h_6$ & $=_x$ \\
+                \hline
+                Apple & $h_7$ & $h_8$ & $h_9$ & $=_x$ \\
+                \hline
+                & $=_y$ & $=_y$ & $=_y$ & \\
+                \hline
+            \end{tabular}
+            \medskip
+
+            e.g. $h_2(x) = \circ$, and $h_2(y) = \text{Adam}$
+        \end{center}
+        Using this example, we can begin to answer questions about $Q$, with quantifiers;
+        \begin{itemize}
+            \item $Q, h_2 \nvDash \texttt{human}(x)$, as $h_2(x)$ refers to $\circ$, which isn't in the section of objects that satisfy the \texttt{human} relation.
+            \item $Q, h_2 \vDash \exists x (\texttt{human}(x))$, as there exists an assignment $h_1$ ($h_1 =_x h_2$, and $M, h_1 \vDash \texttt{human}(x)$).
+            \item $Q, h_7 \nvDash \forall x (\texttt{human}(x))$, as we only need one example to disprove it, either $h_8$, or $h_9$ can be used to disprove it, as $M, h_8 \nvDash \texttt{human}(x)$.
+        \end{itemize}
+        For a complex example; $Q, h_4 \vDash \forall x \exists y (\texttt{ate}(x, y))$, we need to establish that $Q, g \vDash \exists y (\texttt{ate}(x, y))$ for $g = h_4, h_5, h_6$;
+        \begin{itemize}
+            \item $Q, h_4 \vDash \exists y (\texttt{ate}(x, y))$
+                \subitem $h_4$ is valid, as $h_4(x) = \text{Adam}$, $h_4(y) = \circ$, and $\texttt{ate}(\text{Adam}, \circ)$ exists in $M$
+            \item $Q, h_5 \vDash \exists y (\texttt{ate}(x, y))$
+                \subitem $h_8$ is valid, as $h_8(x) = \circ$, $h_8(y) = \text{Apple}$, and $\texttt{ate}(\circ, \text{Apple})$ exists in $M$
+            \item $Q, h_6 \vDash \exists y (\texttt{ate}(x, y))$
+                \subitem $h_3$ is valid, as $h_3(x) = \text{Apple}$, $h_3(y) = \text{Adam}$, and $\texttt{ate}(\text{Apple}, \text{Adam})$ exists in $M$
+        \end{itemize}
+        Therefore, we've proven $Q, h_4 \vDash \forall x \exists y (\texttt{ate}(x, y))$.
     \end{document}
