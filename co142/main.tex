@@ -115,11 +115,9 @@
                 The use of $\triangleq$ is for "is defined by". Hence the empty set, $\varnothing \triangleq \{\}$. The difference between $\triangleq$ and $=$, is that the former cannot be proven, it is fact, whereas the latter takes work to prove.
             \subsubsection*{Russel's paradox}
                 Not everything we write as $\{x\ |\ P(x)\}$ is automatically a set. Assume $R = \{X\ |\ X \notin X\}$ is a set, the set of all sets which don't contain themselves. As $R$ is a set, then $R \in R$, or $R \notin R$ (law of excluded middle), and thus we can do a case by case analysis.
-
                 \begin{itemize}
                     \item Assume $R \in R$. By the definition of $R$, it then follows that $R \notin R$ (if $R \in R$, then it doesn't satisfy the definition of $R$) - which is a contradiction.
                     \item Assume $R \notin R$. It then follows that $R \in R$, as it follows the definition of $R$, hence it is another contradiction.
                 \end{itemize}
-
                 As both assumptions lead to contradictions, it's possible to write sets which aren't defined. We should only select from a set that we know is defined; $\{x \in A\ |\ P(x)\}$ - where $A$ is a well-defined set.
 \end{document}
