@@ -544,8 +544,8 @@ end if
         Once again, natural language is only a rough guide, and as engineers we need a more rigorous system. While we are able to work out the truth value of a complex formula by evaluating propositional atoms from the root of a formation tree in propositional logic, it's not as simple in predicate logic. For example, if we tried to evaluate $\forall x (\texttt{ate}(\texttt{Charlie}, x) \rightarrow \texttt{fruit}(x))$ with a formation tree, we'd quickly run into trouble;
         \begin{center}
             \begin{tikzpicture}
-                \node[] (o) at (0, 0) {$\forall x$};
-                \node[] (oc) at (0, -1.5) {$\rightarrow$};
+                \node[] (o) at (0, 0) {$\forall x(\texttt{ate}(\texttt{Charlie}, x) \rightarrow \texttt{fruit}(x))$};
+                \node[] (oc) at (0, -1.5) {$\texttt{ate}(\texttt{Charlie}, x) \rightarrow \texttt{fruit}(x)$};
                 \node[] (ocl) at (-2, -3) {$\texttt{ate}(\texttt{Charlie}, x)$};
                 \node[] (ocr) at (2, -3) {$\texttt{fruit}(x)$};
 
