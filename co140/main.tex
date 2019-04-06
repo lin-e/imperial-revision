@@ -452,7 +452,7 @@ end if
         With a given signature $L$, we have an $L$-structure (or \textbf{model}) $M$, which identifies an non-empty set of objects that $M$ covers. It is defined as the \textbf{domain}, or \textbf{universe} of $M$, also known as dom($M$). $M$ also specifies the meanings of the symbols in $L$, in terms of the objects in dom($M$).
         \smallskip
 
-        An \textbf{object} in dom($M$) is the interpretation in $M$ of a constant, and \textbf{relation} on dom($M$) is the internal in $M$ of a relation symbol.
+        An \textbf{object} in dom($M$) is the interpretation in $M$ of a constant, and \textbf{relation} on dom($M$) is the interpretation in $M$ of a relation symbol.
         \medskip
 
         Using the our previously defined symbols, we can define a model $M$ on $L$, which must state which objects are in dom($M$), which objects are the constants (\texttt{Adam}, \texttt{Ben}, ...), which objects are \texttt{human}, \texttt{student}, \texttt{fruit}, and which objects \texttt{ate} which.
@@ -463,7 +463,6 @@ end if
             \item the interpretation of \texttt{student} are the black nodes
             \item the interpretation of the binary relation \texttt{ate} is shown by the arrow between two nodes
         \end{itemize}
-
         \begin{center}
             \begin{tikzpicture}
                 \draw[rounded corners=15]
@@ -483,6 +482,7 @@ end if
                 \node[draw, circle, label=Charlie, fill=black] (charlie) at (4, 7.5) {};
                 \node[draw, circle, label=Adam, fill=black] (adam) at (6, 9) {};
                 \node[draw, circle, label=Ben, fill=black] (ben) at (2, 8) {};
+                \node[draw, circle, label=, fill=black] () at (8, 8) {};
                 \node[draw, circle, label=] () at (1, 6) {};
                 \node[draw, circle, label=right:Kale] (kale) at (7, 5) {};
                 \node[draw, circle, label=Phone] (phone) at (6, 4) {};
@@ -586,4 +586,82 @@ end if
         \medskip
 
         A \textbf{sentence} is defined as a formula without any free variables (hence all variables are bound).
+        \medskip
+
+        For example, $\forall x (\texttt{ate}(\texttt{Charlie}, x) \rightarrow \texttt{fruit}(x))$ is a valid sentence, however the subformulas aren't ($\texttt{ate}(\texttt{Charlie}, x) \rightarrow \texttt{fruit}(x)$) isn't a sentence, since the $x$ is free.
+        \medskip
+
+        For example, take the slightly more complex formula $\forall x \forall y (x = y \rightarrow \forall z (R(x, z) \rightarrow R(y, z)))$; we can say it's a sentence. This can be proven by the following formation tree;
+        \begin{center}
+            \begin{tikzpicture}
+                \node[] (o) at (0, 0) {$\textcolor{blue}{\forall x} \forall y (x = y \rightarrow \forall z (R(x, z) \rightarrow R(y, z)))$};
+                \node[] (oc) at (0, -1.5) {$\textcolor{red}{\forall y} (\textcolor{blue}{x} = y \rightarrow \forall z (R(\textcolor{blue}{x}, z) \rightarrow R(y, z)))$};
+                \node[] (occ) at (0, -3) {$\textcolor{blue}{x} = \textcolor{red}{y} \rightarrow \forall z (R(\textcolor{blue}{x}, z) \rightarrow R(\textcolor{red}{y}, z))$};
+                \node[] (occl) at (-2, -4.5) {$\textcolor{blue}{x} = \textcolor{red}{y}$};
+                \node[] (occr) at (2, -4.5) {$\textcolor{violet}{\forall z} (R(\textcolor{blue}{x}, z) \rightarrow R(\textcolor{red}{y}, z))$};
+                \node[] (occrc) at (2, -6) {$R(\textcolor{blue}{x}, \textcolor{violet}{z}) \rightarrow R(\textcolor{red}{y}, \textcolor{violet}{z})$};
+                \node[] (occrcl) at (1, -7.5) {$R(\textcolor{blue}{x}, \textcolor{violet}{z})$};
+                \node[] (occrcr) at (3, -7.5) {$R(\textcolor{red}{y}, \textcolor{violet}{z})$};
+
+                \draw
+                (o) -- (oc)
+                (oc) -- (occ)
+                (occ) -- (occl)
+                (occ) -- (occr)
+                (occr) -- (occrc)
+                (occrc) -- (occrcl)
+                (occrc) -- (occrcr);
+            \end{tikzpicture}
+        \end{center}
+        Evidently, there are no free variables, as all the atomic $L$-formula consist of bound variables.
+        \subsubsection*{Problems with Free Variables}
+        While a sentence can be evaluated to true or false in a structure, the same cannot be said for non-sentences. A formula with free variables doesn't evaluate to a truth value, seeing as they have no meaning in a given $L$-structure $M$. For example, $x = 7$ might be true, but we have no way of saying whether it is, since we don't know the value of $x$ in $M$. Therefore the structure is an \textbf{incomplete} situation, since it doesn't fix the meanings of free variables. Note that we need to specify values for fre variables, even if they don't change the answer e.g. $x = x$.
+        \medskip
+
+        We solve this with \textbf{assignments}; suppling a missing value to a free variable. \textbf{An assignment does for a variable the same as what a structure / model does for a constant}.
+        \medskip
+
+        \textbf{NOTATION:} let there be a signature $L$, have an $L$-structure $M$, and let $h$ be an assignment into $M$. Then for any given $L$-term $t$, the value of $t$ in $M$ under $h$ is allocated by;
+        \begin{itemize}
+            \item $t$ is constant \hfill $M$: $t^M$
+            \item $t$ is variable \hfill $h$: $h(t)$
+        \end{itemize}
+        Reusing the previously drawn model ($M, h$), because doing diagrams with TikZ is painful;
+        \begin{center}
+            \begin{tikzpicture}
+                \draw[rounded corners=15]
+                (0, 0) -- (10, 0) -- (10, 10) -- (0, 10) -- cycle;
+
+                \draw
+                (0, 5) -- (10, 7)
+                (0, 3) -- (10, 3);
+
+                \node[] (human) at (11, 8.5) {human};
+                \node[] (fruit) at (11, 1.5) {fruit};
+                \draw
+                (human) edge[->] node{} (9.5, 8.5)
+                (fruit) edge[->] node{} (9.5, 1.5);
+
+                \node[draw, circle, label=, fill=black] () at (2, 4) {};
+                \node[draw, circle, label=Charlie, fill=black] (charlie) at (4, 7.5) {};
+                \node[draw, circle, label=Adam, fill=black] (adam) at (6, 9) {};
+                \node[draw, circle, label=Ben, fill=black] (ben) at (2, 8) {};
+                \node[draw, circle, label=above:{[$h(y), h(z)$]}, fill=black] () at (8, 8) {};
+                \node[draw, circle, label=above:{[$h(w)$]}] () at (1, 6) {};
+                \node[draw, circle, label=right:Kale] (kale) at (7, 5) {};
+                \node[draw, circle, label=Phone] (phone) at (6, 4) {};
+                \node[draw, circle, label=left:{Apple [$h(x)$]}] (apple) at (4, 1) {};
+                \node[draw, circle, label=Orange] (orange) at (8, 1.5) {};
+
+                \draw
+                (ben) edge[->, right, color=blue] node{ate} (kale)
+                (ben) edge[->, right, color=blue] node{ate} (apple)
+                (adam) edge[->, right, color=blue] node{ate} (kale)
+                (charlie) edge[->, right, color=blue] node{ate} (apple);
+            \end{tikzpicture}
+        \end{center}
+        \begin{itemize}
+            \item the value of the term \texttt{Charlie} in $M$ under $h$ is the black node marked 'Charlie' \hfill $\texttt{Charlie}^M$
+            \item the value of the term $x$ in $M$ under $h$ is the white node marked 'Apple' \hfill $h(x)$
+        \end{itemize}
     \end{document}
