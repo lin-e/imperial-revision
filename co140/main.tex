@@ -682,9 +682,9 @@ end if
                     \setcounter{enumi}{5}
                     \item $g =_x h$ means $g(y) = h(y)$ for all $y$, other than $x$ (however $g(x) = h(x)$ is still possible). $g =_x h$ does not imply $g = h$, as we might have $g(x) \neq h(x)$.
                     \item $M, h \vDash \exists x (A)$ if $M, g \vDash A$ for \textbf{some} assignment $g$, with $g =_x h$, else $M, h \nvDash \exists x (A)$
-                        \subitem (NOT SURE) $M, h \vDash \exists x (A) \equiv \exists g (g =_x h \land [M, g \vDash A])$ - I probably shouldn't use $\vDash$ to express a truth value.
+                        \subitem (NOT SURE) $M, h \vDash \exists x (A) \triangleq \exists g (g =_x h \land [M, g \vDash A])$ - I probably shouldn't use $\vDash$ to express a truth value.
                     \item $M, h \vDash \forall x (A)$ if $M, g \vDash A$ for \textbf{every} assignment $g$, with $g =_x h$, else $M, h \nvDash \forall x (A)$
-                        \subitem (NOT SURE) $M, h \vDash \forall x (A) \equiv \forall g (g =_x h \land [M, g \vDash A])$
+                        \subitem (NOT SURE) $M, h \vDash \forall x (A) \triangleq \forall g (g =_x h \land [M, g \vDash A])$
                 \end{enumerate}
                 Let us create a simple situation $Q$;
                 \begin{center}
@@ -746,4 +746,15 @@ end if
                         \subitem $h_3$ is valid, as $h_3(x) = \text{Apple}$, $h_3(y) = \text{Adam}$, and $\texttt{ate}(\text{Apple}, \text{Adam})$ exists in $M$
                 \end{itemize}
                 Therefore, we've proven $Q, h_4 \vDash \forall x \exists y (\texttt{ate}(x, y))$.
+            \subsubsection*{Notation}
+                If we had a formula $A(x_1, x_2, ..., x_n)$, it indicates that the free variables of $A$ are in the set $(x_1, x_2, ..., x_n)$, but not all the variables need to occur free.
+                \medskip
+
+                For example, if we were to have a formula $C$ representing $\forall x (R(x, y) \rightarrow \exists y (S(y, z)))$, we can write $C(y, z)$, $C(a, b, c, d, e, f, x, y, z)$, or even just $C$. But we cannot write it as $C(x)$, as it doesn't include the free variables.
+                \medskip
+
+                For an example formula $C(x_1, x_2, ..., x_n)$, and $x_i$ has the value $a_i$ in $M$ under $h$, $\forall i \in [1..n]$, we can write $M \vDash C(a_1, a_2, ..., a_n)$ instead of $M, h \vDash A$.
+                \medskip
+
+                Using the same $C$ mentioned above, and we have $h(y) = a$, and $h(z) = b$, instead of writing $M, h \vDash C$, we can write $M \vDash C(a, b)$, or $M \vDash \forall x (R(x, a) \rightarrow \exists y (S(y, b)))$
 \end{document}
