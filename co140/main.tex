@@ -947,4 +947,20 @@ end if
                         (charlie) edge[->, right, color=blue] node{$\texttt{ate}_\mathbf{S, F}$} (apple);
                     \end{tikzpicture}
                 \end{center}
+        \subsection*{Specifications}
+            A program \textbf{specification} describes what a program is expected to do. It states the inputs, outputs, and their corresponding types. The \textbf{pre-conditions} are conditions in which the program is guaranteed to operate under, and the \textbf{post-condition} states the outcome in all cases. This will be explored in much greater detail during \textbf{CO141 - Reasoning about Programs}.
+            \medskip
+
+            A programmer wants the post-condition to be as close to the pre-condition as possible, as that leads to less work. If the pre-condition is weaker (and therefore more general, as there are less assumptions), or if the post-condition is stronger (more results to produce), it means there would be more work for the programmer. On the other hand, the customer wants the opposite to the programmer, since a weaker pre-condition means that there is less work to do prior to the execution of the program, and more is gained after.
+            \medskip
+
+            The compromise comes when the customer promises pre-conditions for which the program will operate, and the programmer then guarantees the post-conditions, where the program will produce the expected outputs, given the pre-conditions are met.
+            \subsubsection*{Specifying Haskell Programs}
+                Let 0, 1, 2, ... be represented by the sort \texttt{Nat} (natural numbers), and a sort \texttt{[Nat]} for lists of said numbers. This is easier than using Haskell's \texttt{Int} sort, which would require one to say $\forall x : \texttt{Int}\ (x \geq 0 \rightarrow A)$, instead of the simpler $\forall x : \texttt{Nat}\ (A)$
+                \medskip
+
+                We also need to define stuff such as [], :, ++, head, tail, length (\#), !!, +, -, *, etc. for lists and arithmetic.
+                \smallskip
+
+                Here we run into a problem, as a structure must provide meaning for a function symbol on all possible arguments (given the sorts match the template), but operations such as \texttt{tail}, \texttt{-}, \texttt{!!} are partial functions. For example, with \texttt{tail}, we can either use a function $\texttt{tail}: \texttt{[Nat]} \mapsto \texttt{[Nat]}$, and give an arbitrary value of sort \texttt{[Nat]} for \texttt{tail}([]), or we could use a relation \texttt{Rtail}(\texttt{[Nat]}, \texttt{[Nat]}), such that \texttt{Rtail}($xs, ys$) has a truth value of $\top$ when $ys$ is the tail of $xs$, and $\bot$ otherwise. Normally, we'll use the first option, but note that values of functions on \textbf{invalid} arguments are \textbf{unpredictable}.
 \end{document}
