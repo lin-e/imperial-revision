@@ -49,6 +49,7 @@
         \subsection*{Material Order}
             Seeing as this module isn't on Panopto, these notes are solely based off of the provided notes on CATe. This is the order in which they are uploaded (and I'd assume the order in which they are taught).
             \begin{enumerate}[1.]
+                \itemsep0em
                 \item \textit{Propositional Logic - Syntax.pdf}
                 \item \textit{Propositional Logic - Semantics.pdf}
                 \item \textit{Propositional Logic - English Correspondence.pdf}
@@ -63,6 +64,7 @@
         \subsection*{Introduction}
             A logic system consists of 3 things:
             \begin{enumerate}[1.]
+                \itemsep0em
                 \item Syntax - formal language used to express concepts
                 \item Semantics - meaning for the syntax
                 \item Proof theory - syntactic way of identifying valid statements of language
@@ -75,8 +77,10 @@ if count > 0 and not found then
 end if
             \end{verbatim}
             \begin{enumerate}[1.]
+                \itemsep0em
                 \item basic (\textbf{atomic}) statements (\textbf{propositions}) are either $\top$ or $\bot$ depending on circumstance;
                     \begin{enumerate}[i.]
+                        \itemsep0em
                         \item \texttt{count > 0}
                         \item \texttt{found}
                     \end{enumerate}
@@ -86,9 +90,11 @@ end if
         \subsection*{Syntax}
             The formal language of logic consists of three ingredients;
             \begin{enumerate}[1.]
+                \itemsep0em
                 \item Propositional atoms (propositional variables), evaluate to a truth value of either $\top$ or $\bot$. These are represented with letters; $p, p^\prime, p_0, p_1, p_2, p_n, q, r, s, ...$
                 \item Boolean connectives;
                     \begin{itemize}
+                        \itemsep0em
                         \item \texttt{and} is written as $p \land q$ \hfill $p$ and $q$ both hold
                         \item \texttt{or} is written as $p \lor q$ \hfill $p$ or $q$ holds (or both)
                         \item \texttt{not} is written as $\neg p$ \hfill $p$ does not hold
@@ -105,6 +111,7 @@ end if
         \subsection*{Formulas}
             Something is a \textbf{well-formed formula} only if it is built from the following rules (the brackets are required);
             \begin{enumerate}[1.]
+                \itemsep0em
                 \item a propositional atom ($p, p^\prime, p_0, p_1, p_2, p_n, q, r, s, ...$) is a propositional formula
                 \item $\top$, and $\bot$ are both formulas
                 \item if $A$ is a formula, then $(\neg A)$ is also a formula
@@ -135,6 +142,7 @@ end if
             Note that this tree shows the principal connective in \textcolor{blue}{blue}, and the propositional atoms in \textcolor{red}{red}. Note that $\land$ is the principal connective in the top layer, and it therefore has the general form $A \land B$, and so on going down.
             \subsubsection*{Definitions}
                 \begin{itemize}
+                    \itemsep0em
                     \item A formula is a \textbf{negated formula} when it is in the form $\neg A$, negated atoms are sometimes called \textbf{negated-atomic}.
                     \item $A \land B$, and $A \lor B$ are \textbf{conjunctions}, and \textbf{disjunctions}. $A$, and $B$, are \textbf{conjuncts}, and \textbf{disjuncts}, respectively.
                     \item $A \rightarrow B$ is an implication. $A$ is the \textbf{antecedent}, and $B$ is the \textbf{consequent}
@@ -157,6 +165,7 @@ end if
         \subsection*{Translation}
             \subsubsection*{English to Logic}
                 \begin{itemize}
+                    \itemsep0em
                     \item \textbf{but} means \texttt{and}
                         \subitem "I will go out, but it is raining" \hfill $\texttt{(i will go out)} \land \texttt{(it is raining)}$
                     \item \textbf{unless} generally means \texttt{or}
@@ -179,6 +188,7 @@ end if
         \subsection*{Arguments}
             We use the double turnstile, $\vDash$ (\texttt{\char`\\vDash} in \LaTeX), to mean \textbf{therefore}. For example, the \textit{Socrates syllogism} can be expressed as $\texttt{(socrates is a man)}, \texttt{(men are mortal)} \vDash \texttt{(socrates is mortal)}$ in logic, and in English as;
             \begin{itemize}
+                \itemsep0em
                 \item Socrates is a man
                 \item Men are mortal
                 \item Therefore, Socrates is mortal
@@ -191,12 +201,14 @@ end if
             Given valid formulas $A_1, A_2, ..., A_n, B$, and '$A_1, ..., A_n$ therefore $B$', we can write it as $A_1, ..., A_n \vDash B$, iff $B$ is true in every situation where $A_1, ..., A_n$ are all true.
             \subsubsection*{Examples}
                 \begin{itemize}
+                    \itemsep0em
                     \item $A, A \rightarrow B \vDash B$ \hfill \textbf{modus ponens}
                     \item $A \rightarrow B, \neg B \vDash \neg A$ \hfill \textbf{modus tollens}
                     \item $A \rightarrow B, B \nvDash A$ \hfill $A$ can be false, as falsity implies anything
                 \end{itemize}
             \subsubsection*{Definitions}
                 \begin{itemize}
+                    \itemsep0em
                     \item A propositional formula is logically \textbf{valid} if it's true in all situations ($\vDash A$), if $A$ is \textbf{valid}
                     \item A propositional formula is \textbf{satisfiable} if it's true in at least one situation (hence \textbf{valid} $\rightarrow$ \textbf{satisfiable})
                     \item Two propositonal formulas are logically \textbf{equivalent} if they are true in the same situations.
@@ -219,6 +231,7 @@ end if
         \subsection*{Validity}
             The main ways used to check validity are as follows;
             \begin{itemize}
+                \itemsep0em
                 \item Truth tables - check all possible situations, and check the results of each formula are $\top$
                 \item Direct argument
                 \item Equivalences - using equivalences to reduce the initial formula to $\top$
@@ -252,6 +265,7 @@ end if
 
                 We can take an argument by cases, either $p$ is $\top$ or $p$ is $\bot$.
                 \begin{itemize}
+                    \itemsep0em
                     \item $p \leftrightarrow \top$ - we know this is true as $A \rightarrow B$ is $\top$ whenever $B$ is $\top$
                     \item $p \leftrightarrow \bot$ - we have $p \rightarrow q$ evaluating to $\top$, as $A \rightarrow B$ is $\top$ whenever $A$ is $\bot$. As such, this formula is evaluated to $(\top \rightarrow p) \rightarrow q$. However, we know that $p$ is $\bot$, hence we have $\top \rightarrow \bot$, which we know evaluates to $\bot$ by the truth table for $\rightarrow$. As such, we have $\bot \rightarrow p$, hence it follows that it is valid, seeing as $A \rightarrow B$ is $\top$ whenever $A$ is $\bot$.
                     \item This is an argument by cases, known as \textbf{law of excluded middle} (you will use this often in Natural Deduction).
@@ -259,6 +273,7 @@ end if
         \subsection*{Equivalences}
             Refer to \textit{Logic cribsheet.pdf} for a full list of equivalences
             \begin{enumerate}[1.]
+                \itemsep0em
                 \item $A \land B \equiv B \land A$ \hfill commutativity of $\land$
                 \item $A \land A \equiv A$ \hfill idempotence of $\land$
                 \item $A \land \top \equiv A$
@@ -288,11 +303,13 @@ end if
             \end{enumerate}
         \subsection*{Normal Forms}
             \begin{itemize}
+                \itemsep0em
                 \item A formula is in \textbf{disjunctive} NF (\textbf{DNF} - $\lor$) if it's a disjunction of conjunctions of literals
                 \item A formula is in \textbf{conjunctive} NF (\textbf{CNF} - $\land$) if it's a conjunction of disjunctions of literals (a conjunction of clauses)
             \end{itemize}
             \subsubsection*{Rewriting}
                 \begin{enumerate}[1.]
+                    \itemsep0em
                     \item Get rid of $\rightarrow$, and $\leftrightarrow$
                         \subitem Replace $A \rightarrow B$ with $\neg A \lor B$
                         \subitem Replace $A \leftrightarrow B$ with $(A \land B) \lor (\neg A \land \neg B)$
@@ -304,6 +321,7 @@ end if
             \subsubsection*{Example}
                 Write $p \land q \rightarrow \neg (p \leftrightarrow \neg r)$ in DNF
                 \begin{enumerate}[1.]
+                    \itemsep0em
                     \item $p \land q \rightarrow \neg (p \leftrightarrow \neg r)$
                     \item $\neg (p \land q) \lor \neg (p \leftrightarrow \neg r)$ \hfill remove $\rightarrow$
                     \item $\neg (p \land q) \lor \neg ((p \land \neg r) \lor (\neg p \land r))$ \hfill remove $\leftrightarrow$
@@ -322,6 +340,7 @@ end if
         \subsection*{Natural Deduction}
             \texttt{Read Jordan Spooner's notes for this; just practice it on Pandora until you feel \\ confident. These are just some key points from the slides, examples are excluded, \\ as it's better to just do questions}
             \begin{itemize}
+                \itemsep0em
                 \item If we prove $A$, and $B$, we get $A \land B$ ($\land$I)
                 \item If we have $A \land B$, we get both $A$, and $B$ ($\land$E)
                 \item We often need to make a temporary assumption, for example, if we assume $A$, and in that box, we get $B$, then it follows that $A \rightarrow B$ ($\rightarrow$I)
@@ -343,6 +362,7 @@ end if
             \end{itemize}
             \subsubsection*{Definitions}
                 \begin{itemize}
+                    \itemsep0em
                     \item If a formula can be proved by a given proof system, it's a \textbf{theorem} (hence a \textbf{theorem} is any formula $A$ where $\vdash A$)
                     \item A system is \textbf{sound} if every theorem is valid, and \textbf{complete} if every valid formula is a theorem
                     \item A formula is \textbf{consistent} if $\nvdash \neg A$
@@ -352,6 +372,7 @@ end if
             While we can use direct argument, equivalences, and natural deduction, truth tables can no longer be used, since we're working on an infinite set of possible situations.
             \subsubsection*{Limitations of Propositional Logic}
                 \begin{itemize}
+                    \itemsep0em
                     \item the list is ordered
                     \item every worker has a boss
                     \item there is someone worse off than you
@@ -364,6 +385,7 @@ end if
             \subsubsection*{Splitting the Atom}
                 Previously, we considered phrases such as \texttt{the left lift is falling}, and \texttt{Adam gets in the left lift}, as atomic, without any internal structure. However, we can then regard \texttt{falling} as a \textbf{property}, or an \textbf{attribute}.
                 \begin{itemize}
+                    \itemsep0em
                     \item a \textbf{unary} relation symbol takes one argument, hence it has an \textbf{arity} of 1.
                         \subitem e.g. \texttt{falling(LeftLift)}
                     \item a \textbf{binary} relation symbol takes two arguments, hence it has an arity of 2.
@@ -373,11 +395,13 @@ end if
                 \end{itemize}
                 While \texttt{gets\_in(Adam, LeftLift)} doesn't seem that different from the original propositional atom \texttt{Adam gets in the left lift}, predicate logic is able to vary the arguments passed into the relation \texttt{gets\_in}. The machinery used in predicate logic is \textbf{quantifiers}. In first-order logic, we have two quantifiers;
                 \begin{itemize}
+                    \itemsep0em
                     \item $\forall$ - 'for all' \hfill e.g $\forall x (A)$, means that the predicate $A$ applies to all $x$.
                     \item $\exists$ - 'exists' (or 'some') \hfill e.g. $\exists x (A)$, means that the predicate $A$ applies to at least one $x$.
                 \end{itemize}
                 Expressions like \texttt{LeftLift}, or \texttt{Adam} are constants, but to express more complex statements we need stuff like;
                 \begin{itemize}
+                    \itemsep0em
                     \item $\exists x (\texttt{falling}(x)\ \land\ \texttt{gets\_in}(\texttt{Adam}, x))$ \hfill \texttt{Adam} gets into a falling lift
                         \subitem \hfill Some $x$ is a falling lift, and \texttt{Adam} gets in $x$
                     \item $\exists x (\texttt{falling}(x))$ \hfill There exists an $x$ that is a falling lift
@@ -392,8 +416,10 @@ end if
 
                 Let us define an example signature $L$, consisting of the following;
                 \begin{itemize}
+                    \itemsep0em
                     \item constants
                         \begin{itemize}
+                            \itemsep0em
                             \item \texttt{Adam}
                             \item \texttt{Ben}
                             \item \texttt{Charlie}
@@ -404,12 +430,14 @@ end if
                         \end{itemize}
                     \item unary relations (arity 1)
                         \begin{itemize}
+                            \itemsep0em
                             \item \texttt{fruit}
                             \item \texttt{human}
                             \item \texttt{student}
                         \end{itemize}
                     \item binary relations (arity 2)
                         \begin{itemize}
+                            \itemsep0em
                             \item \texttt{ate}
                         \end{itemize}
                 \end{itemize}
@@ -425,6 +453,7 @@ end if
             \subsubsection*{Formulas}
                 Once again, with a fixed signature $L$, we can say the following are formulas, and nothing else is;
                 \begin{itemize}
+                    \itemsep0em
                     \item given an $n$-ary relation $R$ in $L$, and a set of $L$-terms ($t_1, t_2, ..., t_n$), then $R(t_1, t_2, ..., t_n)$ is an atomic $L$-formula
                     \item if $t$, and $t^\prime$ are $L$-terms, then $t = t^\prime$ is an atomic $L$-formula (equality)
                     \item $\top$, and $\bot$, are atomic $L$-formulas
@@ -436,6 +465,7 @@ end if
 
                 Now that we have these definitions, we can begin to construct examples of first-order logical formulas;
                 \begin{itemize}
+                    \itemsep0em
                     \item $\texttt{ate}(\texttt{Adam}, x)$ \hfill Adam ate $x$
                     \item $\exists x (\texttt{ate}(\texttt{Adam}, x))$ \hfill Adam ate something
                     \item $\forall x (\texttt{student}(x) \rightarrow \texttt{human}(x))$ \hfill all students are human (important)
@@ -458,6 +488,7 @@ end if
                 Using the our previously defined symbols, we can define a model $M$ on $L$, which must state which objects are in dom($M$), which objects are the constants (\texttt{Adam}, \texttt{Ben}, ...), which objects are \texttt{human}, \texttt{student}, \texttt{fruit}, and which objects \texttt{ate} which.
 
                 \begin{itemize}
+                    \itemsep0em
                     \item the labelled nodes represent the constants in $L$
                     \item the interpretations / meanings of \texttt{fruit}, and \texttt{human} are drawn as regions (the arrows)
                     \item the interpretation of \texttt{student} are the black nodes
@@ -623,6 +654,7 @@ end if
 
                 \textbf{NOTATION:} let there be a signature $L$, have an $L$-structure $M$, and let $h$ be an assignment into $M$. Then for any given $L$-term $t$, the value of $t$ in $M$ under $h$ is allocated by;
                 \begin{itemize}
+                    \itemsep0em
                     \item $t$ is constant \hfill $M$: $t^M$
                     \item $t$ is variable \hfill $h$: $h(t)$
                 \end{itemize}
@@ -661,11 +693,13 @@ end if
                     \end{tikzpicture}
                 \end{center}
                 \begin{itemize}
+                    \itemsep0em
                     \item the value of the term \texttt{Charlie} in $M$ under $h$ is the black node marked 'Charlie' \hfill $\texttt{Charlie}^M$
                     \item the value of the term $x$ in $M$ under $h$ is the white node marked 'Apple' \hfill $h(x)$
                 \end{itemize}
                 This now allows us to evaluate anything without quantifiers; with a fixed $L$-structure $M$, and an assignment $h$, we can write $M, h \vDash A$, or $M, h \nvDash A$ depending on whether $A$ is true in $M$ under $h$ (or not). Therefore the semantics of quantifier-free formulas are as follows;
                 \begin{enumerate}[1.]
+                    \itemsep0em
                     \item let $R$ represent an $n$-ary relation in $L$, $t_1, t_2, ..., t_n$ be $L$-terms, and $t_i$ has the value $a_i$ in $M$ under $h$, $\forall i \in [1..n]$. Then, $M, h \vDash R(t_1, t_2, ..., t_n)$ iff the sequence $(a_1, a_2, ..., a_n)$ is in the relation $R$, otherwise $M, h \nvDash R(t_1, t_2, ..., t_n)$.
                     \item let $t, t^\prime$ be $L$-terms, then $M, h \vDash t = t^\prime$ if they both have the same value in $M$ under $h$, and $M, h \nvDash t = t^\prime$ otherwise.
                         \subitem Hence in our example, we have $M, h \vDash \texttt{Apple} = x$
@@ -680,6 +714,7 @@ end if
 
                 The list below is a continuation of the semantics mentioned in the previous section;
                 \begin{enumerate}[1.]
+                    \itemsep0em
                     \setcounter{enumi}{5}
                     \item $g =_x h$ means $g(y) = h(y)$ for all $y$, other than $x$ (however $g(x) = h(x)$ is still possible). $g =_x h$ does not imply $g = h$, as we might have $g(x) \neq h(x)$.
                     \item $M, h \vDash \exists x (A)$ if $M, g \vDash A$ for \textbf{some} assignment $g$, with $g =_x h$, else $M, h \nvDash \exists x (A)$
@@ -733,12 +768,14 @@ end if
                 \end{center}
                 Using this example, we can begin to answer questions about $Q$, with quantifiers;
                 \begin{itemize}
+                    \itemsep0em
                     \item $Q, h_2 \nvDash \texttt{human}(x)$, as $h_2(x)$ refers to $\circ$, which isn't in the section of objects that satisfy the \texttt{human} relation.
                     \item $Q, h_2 \vDash \exists x (\texttt{human}(x))$, as there exists an assignment $h_1$ ($h_1 =_x h_2$, and $M, h_1 \vDash \texttt{human}(x)$).
                     \item $Q, h_7 \nvDash \forall x (\texttt{human}(x))$, as we only need one example to disprove it, either $h_8$, or $h_9$ can be used to disprove it, as $M, h_8 \nvDash \texttt{human}(x)$.
                 \end{itemize}
                 For a complex example; $Q, h_4 \vDash \forall x \exists y (\texttt{ate}(x, y))$, we need to establish that $Q, g \vDash \exists y (\texttt{ate}(x, y))$ for $g = h_4, h_5, h_6$;
                 \begin{itemize}
+                    \itemsep0em
                     \item $Q, h_4 \vDash \exists y (\texttt{ate}(x, y))$
                         \subitem $h_4$ is valid, as $h_4(x) = \text{Adam}$, $h_4(y) = \circ$, and $\texttt{ate}(\text{Adam}, \circ)$ exists in $M$
                     \item $Q, h_5 \vDash \exists y (\texttt{ate}(x, y))$
@@ -764,6 +801,7 @@ end if
             \subsubsection*{Evaluation}
                 In practice, there are multiple methods for working out $M \vDash A$;
                 \begin{itemize}
+                    \itemsep0em
                     \item working out the natural language meaning of $A$, and checking it against $M$
                     \item checking all assignments (using the definitions for semantics of quantifier, and quantifier-free formulas)
                     \item rewriting the formula with equivalences
@@ -773,6 +811,7 @@ end if
             \subsubsection*{Translation}
                 While translating isn't much harder than in propositional logic, it's important to use standard natural language constructions when translating some logical patterns (e.g. $\forall x (A \rightarrow B)$ roughly translates to 'every $A$ is a $B$'). All variables \textbf{must} be eliminated, as it isn't used in natural language. These are some examples;
                 \begin{itemize}
+                    \itemsep0em
                     \item $\forall x (\texttt{student}(x) \land \neg (x = \texttt{Adam}) \rightarrow \texttt{ate}(x, \texttt{Apple}))$
                         \subitem For all $x$, if $x$ is a student who isn't Adam, then $x$ ate an Apple
                         \subitem Every student apart from Adam ate an apple
@@ -789,6 +828,7 @@ end if
                 \end{itemize}
                 Common English-to-logic translations exist; for example
                 \begin{itemize}
+                    \itemsep0em
                     \item $\forall x (\texttt{student}(x) \rightarrow \texttt{human}(x))$ \hfill all students are human
                     \item $\exists x (\texttt{student}(x) \land \texttt{human}(x))$ \hfill some student is human
                         \subitem $\exists x (\texttt{student}(x) \rightarrow \texttt{human}(x))$ is different - it's also true when there are no students. It's a rare case, so if it occurs, it should be checked, especially if $x$ is free in $A$.
@@ -804,6 +844,7 @@ end if
                 \end{itemize}
                 We can also use propositional logic to count (the ones in red are less straightforward);
                 \begin{itemize}
+                    \itemsep0em
                     \item $\exists x (\texttt{fruit}(x))$ \hfill there is at least one fruit
                     \item $\exists x \exists y (\texttt{fruit}(x) \land \texttt{fruit}(y) \land x \neq y)$ \hfill there are at least two fruits
                     \item $\textcolor{red}{\forall x \exists y (\texttt{fruit}(y) \land x \neq y)}$ \hfill there are at least two fruits
@@ -819,4 +860,23 @@ end if
                     \item $\exists x (\texttt{fruit}(x) \land \forall y (\text{fruit}(y) \rightarrow x = y))$ \hfill there is exactly one fruit
                     \item $\textcolor{red}{\exists x \forall y (\texttt{fruit}(y) \leftrightarrow x = y)}$ \hfill there is exactly one fruit
                 \end{itemize}
+            \subsubsection*{Function Symbols}
+                A \textbf{function symbol} is like a relation symbol, or constant, but is interpreted in a given structure as a function. Functions have fixed arities (number of arguments), and function symbols are often written as $f$, or $g$.
+                \medskip
+
+                With functions, we can now amend a few definitions; a \textbf{signature} is a set of constants, as well as relation and function symbols with specific arities. With a fixed signature $L$, any constant in $L$ is an $L$-term, as well as any variable. If $f$ is an $n$-ary function symbol in $L$, and the collection of terms $t_1, t_2, ..., t_n$ are also $L$-terms, then $f(t_1, t_2, ..., t_n)$ is also an $L$-term. Nothing else is an $L$-term.
+                \medskip
+
+                Given a unary function symbol $f$, a binary function symbol $g$, a constant $c$, and a variable $x$, the following are all $L$-terms;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $c$
+                    \item $x$
+                    \item $f(c)$
+                    \item $f(x)$
+                    \item $g(c, x)$
+                    \item $g(f(c), f(x))$
+                    \item etc.
+                \end{itemize}
+                Any of the $L$-terms not containing an $x$ (variable) are closed (ground) terms.
 \end{document}
