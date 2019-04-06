@@ -864,7 +864,7 @@ end if
                 A \textbf{function symbol} is like a relation symbol, or constant, but is interpreted in a given structure as a function. Functions have fixed arities (number of arguments), and function symbols are often written as $f$, or $g$.
                 \medskip
 
-                With functions, we can now amend a few definitions; a \textbf{signature} is a set of constants, as well as relation and function symbols with specific arities. With a fixed signature $L$, any constant in $L$ is an $L$-term, as well as any variable. If $f$ is an $n$-ary function symbol in $L$, and the collection of terms $t_1, t_2, ..., t_n$ are also $L$-terms, then $f(t_1, t_2, ..., t_n)$ is also an $L$-term. Nothing else is an $L$-term.
+                With functions, we can now amend a few definitions; a \textbf{signature} is a set of constants, as well as relation and function symbols with specific arities. With a fixed signature $L$, any constant in $L$ is an $L$-term, as well as any variable. If $f$ is an $n$-ary function symbol in $L$, and the collection of terms $t_1, t_2, ..., t_n$ are also $L$-terms, then $f(t_1, t_2, ..., t_n)$ is also an $L$-term. Nothing else is an $L$-term. Additionally, an $L$-structure must also define the meaning of any existing function symbols.
                 \medskip
 
                 Given a unary function symbol $f$, a binary function symbol $g$, a constant $c$, and a variable $x$, the following are all $L$-terms;
@@ -879,4 +879,72 @@ end if
                     \item etc.
                 \end{itemize}
                 Any of the $L$-terms not containing an $x$ (variable) are closed (ground) terms.
+                \medskip
+
+                Let $f$ be an arbitrary function symbol $f$ in $L$, an $L$-structure $M$ must define which object from dom($M$) is associated with each sequence of arguments $(a_1, a_2, ..., a_n)$, note that $a_1, a_2, ..., a_n \in \text{dom}(M)$. Formally, we write $f^M: \text{dom}(M)^n \mapsto \text{dom}(M)$
+                \medskip
+
+                \textbf{AMENDED NOTATION:} let there be a signature $L$, have an $L$-structure $M$, let $h$ be an assignment into $M$, and let $f$ be a function symbol defined in $M$. Then for any given $L$-term $t$, the value of $t$ in $M$ under $h$ is allocated by;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $t$ is constant \hfill $M$: $t^M$
+                    \item $t$ is variable \hfill $h$: $h(t)$
+                    \item $t$ is $f(t_1, t_2, ..., t_n)$, and $t_i$ is $a_i$ in $M$ under $h$ \hfill $f$: $f^M(a_1, a_2, ..., a_n)$
+                \end{itemize}
+                Therefore the value of a term in $M$ under $h$ is an object in dom($M$), and not a truth value.
+            \subsubsection*{Sorts}
+                In logic, the types we are used to in conventional (typed) programming languages, are referred to as \textbf{sorts}. Once again, dealing with our previously defined $L$-structure $M$, objects might be students, fruits, etc. With a given collection of sorts $\mathbf{s}, \mathbf{s}^\prime, \mathbf{s}^{\prime\prime}, ...$ determined, and named, by the application, it \textbf{cannot} generate new sorts such as $(\mathbf{s}, \mathbf{s}^\prime)$ (a tuple), and therefore the extra sorts must be explicitly added to the original collection of sorts.
+                \medskip
+
+                Once again, we will need to adjust some definitions. In order to give each term a sort, each variable, and constant, comes with a specific sort $\mathbf{s}$, for example $c : \mathbf{s}$, $x : \mathbf{s}$. Each $n$-ary function $f$, has a template $f: (\mathbf{s}_1, \mathbf{s}_2, ..., \mathbf{s}_n) \mapsto \mathbf{s}$, where $\mathbf{s}, \mathbf{s}_1, \mathbf{s}_2, ..., \mathbf{s}_n$ are all sorts. If the all the terms match with the sorts (such that $t_i$ has sort $\mathbf{s}_i$), then $f(t_1, t_2, ..., t_n)$ evaluates to a term of sort $\mathbf{s}$. Otherwise, it doesn't have any meaning. Again; we can extend the requirements for formulas in \textbf{many-sorted} logic;
+                \begin{itemize}
+                    \itemsep0em
+                    \item an $n$-ary relation has a template $R(\mathbf{s}_1, \mathbf{s}_2, ..., \mathbf{s}_n)$, where $\mathbf{s}_1, \mathbf{s}_2, ..., \mathbf{s}_n$ are all sorts; if the all the terms match with the sorts (such that $t_i$ has sort $\mathbf{s}_i$), then $R(t_1, t_2, ..., t_n)$ is a formula
+                    \item $t = t^\prime$ is only a formula if $t$ and $t^\prime$ have the same sort
+                    \item other operations don't change, however we can indicate the sort of bound variables by writing $\forall x : \mathbf{s} (A)$, and $\exists x : \mathbf{s}^\prime (B)$
+                        \subitem This can also be used in order to simplify some formulas; instead of writing $\forall x (\texttt{student}(x) \rightarrow \exists y (\texttt{fruit}(y) \land \texttt{ate}(x, y)))$, we can write $\forall x : \mathbf{student}\ \exists y : \mathbf{fruit}\ (\texttt{ate}(x, y))$
+                \end{itemize}
+                Once again, we will be using the structure $M$, note that $\text{ate}_\mathbf{S, F}$ is shorthand for $\text{ate}_\mathbf{student, fruit}$, and $\text{ate}_\mathbf{S, R}$ is shorthand for $\text{ate}_\mathbf{student, rest}$. They are \textbf{not} two different sorts, an object can only have one sort.
+                \begin{itemize}
+                    \itemsep0em
+                    \item sorts have the ability to replace some, or even all, unary relation symbols
+                    \item as objects can only have 1 sort, the previous definition of \texttt{human} would have to be replaced with $\texttt{human}_\mathbf{student}$, $\texttt{human}_\mathbf{rest}$, and $\texttt{human}_\mathbf{fruit}$, but if we don't want to discuss humans of sort \textbf{fruit}, we can omit it
+                    \item binary relations have to be defined for each pair of sorts, which is why $\texttt{ate}_\mathbf{student, fruit}$, and  $\texttt{ate}_\mathbf{student, rest}$ have to be written differently, even though they previously referred to the same relation
+                    \item an example of how quantifiers can be used with sorts is shown above
+                \end{itemize}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw[rounded corners=15]
+                        (0, 0) -- (10, 0) -- (10, 10) -- (0, 10) -- cycle;
+
+                        \draw
+                        (0, 5) -- (10, 7)
+                        (0, 3) -- (10, 3);
+
+                        \node[] (student) at (11.5, 8.5) {$\mathbf{student}$};
+                        \node[] (fruit) at (11, 1.5) {$\mathbf{fruit}$};
+                        \node[] (rest) at (11, 5) {$\mathbf{rest}$};
+                        \draw
+                        (student) edge[->] node{} (9.5, 8.5)
+                        (fruit) edge[->] node{} (9.5, 1.5)
+                        (rest) edge[->] node{} (9.5, 5);
+
+                        \node[draw, circle, label=] () at (2, 4) {};
+                        \node[draw, circle, label=Charlie] (charlie) at (4, 7.5) {};
+                        \node[draw, circle, label=Adam] (adam) at (6, 9) {};
+                        \node[draw, circle, label=Ben] (ben) at (2, 8) {};
+                        \node[draw, circle, label=] () at (8, 8) {};
+                        \node[draw, circle, label=] () at (1, 6) {};
+                        \node[draw, circle, label=right:Kale] (kale) at (7, 5) {};
+                        \node[draw, circle, label=Phone] (phone) at (6, 4) {};
+                        \node[draw, circle, label=left:Apple] (apple) at (4, 1) {};
+                        \node[draw, circle, label=Orange] (orange) at (8, 1.5) {};
+
+                        \draw
+                        (ben) edge[->, right, color=blue] node{$\texttt{ate}_\mathbf{S, R}$} (kale)
+                        (ben) edge[->, left, color=blue] node{$\texttt{ate}_\mathbf{S, F}$} (apple)
+                        (adam) edge[->, right, color=blue] node{$\texttt{ate}_\mathbf{S, R}$} (kale)
+                        (charlie) edge[->, right, color=blue] node{$\texttt{ate}_\mathbf{S, F}$} (apple);
+                    \end{tikzpicture}
+                \end{center}
 \end{document}
