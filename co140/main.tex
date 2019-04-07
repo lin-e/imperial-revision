@@ -272,7 +272,7 @@ end if
                     \item $p \leftrightarrow \bot$ - we have $p \rightarrow q$ evaluating to $\top$, as $A \rightarrow B$ is $\top$ whenever $A$ is $\bot$. As such, this formula is evaluated to $(\top \rightarrow p) \rightarrow q$. However, we know that $p$ is $\bot$, hence we have $\top \rightarrow \bot$, which we know evaluates to $\bot$ by the truth table for $\rightarrow$. As such, we have $\bot \rightarrow p$, hence it follows that it is valid, seeing as $A \rightarrow B$ is $\top$ whenever $A$ is $\bot$.
                     \item This is an argument by cases, known as \textbf{law of excluded middle} (you will use this often in Natural Deduction).
                 \end{itemize}
-        \subsection*{Equivalences}
+        \subsection*{Equivalences in Propositional Logic}
             Refer to \textit{Logic cribsheet.pdf} for a full list of equivalences
             \begin{enumerate}[1.]
                 \itemsep0em
@@ -295,6 +295,7 @@ end if
                 \item $\bot \rightarrow A \equiv \top$
                 \item $A \rightarrow \bot \equiv \neg A$
                 \item $A \rightarrow B \equiv \neg A \lor B$
+                \item $\neg (A \rightarrow B) \equiv A \land \neg B$
                 \item $A \leftrightarrow B \equiv (A \rightarrow B) \land (B \rightarrow A) \equiv (A \land B) \lor (\neg A \land \neg B) \equiv \neg A \leftrightarrow \neg B$
                 \item $\neg (A \leftrightarrow B) \equiv \neg A \leftrightarrow B \equiv ...$ \hfill the rest can be derived from the above
                 \item $\neg (A \land B) \equiv \neg A \lor \neg B$ \hfill de Morgan laws
@@ -591,7 +592,7 @@ end if
                 What are the truth values for the leaf nodes? We don't know, since formulas of predicate logic doesn't have to be true or false in a given structure.
                 \medskip
 
-                With a given formula $A$, a variable $x$ in an atomic subformula of $A$ is \textbf{bound} if it's under a quantifiers in the formation tree. Otherwise, the variable is \textbf{free}. For example (copied directly from \textit{First-order logic.pdf});
+                With a given formula $A$, a variable $x$ in an atomic subformula of $A$ is \textbf{bound} if it's under a quantifier in the formation tree. Otherwise, the variable is \textbf{free}. For example (copied directly from \textit{First-order logic.pdf});
                 \begin{center}
                     \begin{tikzpicture}
                         \node[] (o) at (0, 0) {$\textcolor{blue}{\forall x} (R(x, y) \land R(y, z) \rightarrow \exists z (S(x, z) \land z = y))$};
@@ -1028,4 +1029,75 @@ end if
             \medskip
 
             All valid propositional arguments, such as $A \rightarrow B, A \vDash B$ are valid in predicate logic. However, with predicate logic, we can create very powerful arguments such as $\forall(\texttt{horse}(x) \rightarrow \texttt{animal}(x) \vDash \forall [\exists y (\texttt{head-of}(x, y) \land \texttt{horse}(y)) \rightarrow \exists y (\texttt{head-of}(x, y) \land \texttt{animal}(y))]$, which couldn't be expressed before (we tried to, right at the start of the first-order predicate logic section).
+            \medskip
+
+            Generally, deciding whether an argument is valid is extremely hard; we cannot check all $L$-structures, and corresponding assignments, since there are infinitely many $L$-structures, with some being infinite themselves. Often, we can still verify whether an argument is valid in predicate logic with useful tools;
+            \begin{itemize}
+                \itemsep0em
+                \item direct reasoning (easiest, but requires practice)
+                \item equivalences
+                \item proof systems like natural deduction
+                \item but \textbf{not} truth tables - you can't make a table of structures when infinitely many exist
+            \end{itemize}
+            \subsubsection*{Direct reasoning}
+                For direct reasoning, we need to take an \textbf{arbitrary} a in dom($M$), and show $M \vDash B(a)$. Here we are assuming a general argument similar to;
+                \begin{equation*}
+                    \begin{rcases}
+                        (1) & A_1 \\
+                        (2) & A_2 \\
+                        & ... \\
+                        (n) & A_n
+                    \end{rcases}
+                    \vDash \forall x (B)
+                \end{equation*}
+                For this example, we are trying to verify the following argument
+                \begin{equation*}
+                    \begin{rcases}
+                        (1) & \forall x (\texttt{human}(x) \rightarrow \texttt{student}(x)) \\
+                        (2) & \forall x (\texttt{computer}(x) \rightarrow \texttt{student}(x)) \\
+                        (3) & \forall x (\texttt{human}(x) \lor \texttt{computer}(x))
+                    \end{rcases}
+                    \vDash \forall x (\texttt{student}(x))
+                \end{equation*}
+                We will first take an $a$ from dom($M$). This can be anything, and we aim to show $M \vDash \texttt{student}(a)$. By (3), we know that $M \vDash \texttt{human}(a) \lor \texttt{computer}(a)$. We can now consider each case, if $M \vDash \texttt{human}(a)$, then it follows that $M \vDash \texttt{student}(a)$ by (1). On the other hand, if $M \vDash \texttt{computer}(a)$, it also follows that $M \vDash \texttt{student}(a)$ by (2). Either way, we can conclude that $M \vDash \texttt{student}(a)$. And as $a$ is arbitrary, it follows for all $x$.
+                \medskip
+
+                Once again, working with the slightly more complex horse example; we have $\forall(\texttt{horse}(x) \rightarrow \texttt{animal}(x) \vDash \forall [\exists y (\texttt{head-of}(x, y) \land \texttt{horse}(y)) \rightarrow \exists y (\texttt{head-of}(x, y) \land \texttt{animal}(y))]$.
+                \begin{align*}
+                    \shortintertext{take any $M$, and make an assumption;}
+                    (1)\ &\ M \vDash \forall x (\texttt{horse}(x) \rightarrow \texttt{animal}(x))
+                    \shortintertext{now we can take an arbitrary $b \in \text{dom}(M)$, and try to prove $B$ (the right hand side of $\vDash$) for $x = b$, and now make another assumption;}
+                    (2)\ &\ M \vDash \exists y (\texttt{head-of}(b, y) \land \texttt{horse}(y))
+                    \shortintertext{by (2), we know there is at least one $h \in \text{dom}(M)$, so we can say;}
+                    (3)\ &\ M \vDash \texttt{head-of}(b, h) \land \texttt{horse}(h)
+                    \shortintertext{by (3), we can conclude the following;}
+                    (4)\ &\ M \vDash \texttt{head-of}(b, h) \\
+                    (5)\ &\ M \vDash \texttt{horse}(h)
+                    \shortintertext{by (1), and (5), we can conclude;}
+                    (6)\ &\ M \vDash \texttt{animal}(h)
+                    \shortintertext{by (4), and (6), we can conclude;}
+                    (7)\ &\ M \vDash \texttt{head-of}(b, h) \land \texttt{animal}(h)
+                    \shortintertext{now, we have a valid $h$ which proves;}
+                    (*)\ &\ M \vDash \exists y (\texttt{head-of}(b, y) \land \texttt{animal}(y))
+                \end{align*}
+                We might also need to deal with equality in our direct reasoning tasks; for example, show that the following argument is valid; $\forall x \forall y (x = y \land \exists z (R(x, z)) \rightarrow \exists v (R(y, v)))$. Take a structure $M$, and arbitrary $a, b \in \text{dom}(M)$. As we are dealing with an implication, we need only consider when it is true (once again, as falsity implies anything).
+                \smallskip
+
+                Now we take the case when it is true; $M \vDash a = b \land \exists z (R(a, z))$, and only then does $M \vDash \exists v (R(b, v))$ follow. However, if the former is true, and we are assuming it is, $a$, and $b$ refer to the same object, therefore $M \vDash \exists z (b, z)$, which means; "there is a $c \in \text{dom}(M)$, such that $M \vDash R(b, c)$". Therefore, it follows that $M \vDash \exists v (R(b, v))$, and so the proof is complete.
+            \subsubsection*{Validity in Predicate Logic}
+            This continues on from the list stated during propositonal logic.
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \setcounter{enumi}{27}
+                \item $\forall x \forall y (A) \equiv \forall y \forall x (A)$
+                \item $\exists x \exists y (A) \equiv \exists y \exists x (A)$
+                \item $\neg \forall x (A) \equiv \exists x (\neg A)$
+                \item $\neg \exists x (A) \equiv \forall x (\neg A)$
+                \item $\forall x (A \land B) \equiv \forall x (A) \land \forall x (B)$
+                \item $\exists x (A \lor B) \equiv \exists x (A) \lor \exists x (B)$
+                \item $\forall x (A) \equiv \exists x (A) \equiv A$ \hfill only if $x$ doesn't occur free (or at all) in $A$
+                \item $\exists x (A \land B) \equiv A \land \exists x (B)$ \hfill only if $x$ doesn't occur free (or at all) in $A$ \\ $\forall x (A \lor B) \equiv A \lor \forall x (B)$
+                \item $\forall x (A \rightarrow B) \equiv A \rightarrow \forall x (B)$ \hfill only if $x$ doesn't occur free (or at all) in $A$ \\ $\exists x (A \rightarrow B) \equiv A \rightarrow \exists x (B)$
+                \item $\forall x (A \rightarrow B) \equiv \exists x (A) \rightarrow B$ \hfill only if $x$ doesn't occur free (or at all) in $B$ (quantifier changes) \\ $\exists x (A \rightarrow B) \equiv \forall x (A) \rightarrow B$
+            \end{enumerate}
 \end{document}
