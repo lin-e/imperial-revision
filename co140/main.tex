@@ -1100,4 +1100,27 @@ end if
                 \item $\forall x (A \rightarrow B) \equiv A \rightarrow \forall x (B)$ \hfill only if $x$ doesn't occur free (or at all) in $A$ \\ $\exists x (A \rightarrow B) \equiv A \rightarrow \exists x (B)$
                 \item $\forall x (A \rightarrow B) \equiv \exists x (A) \rightarrow B$ \hfill only if $x$ doesn't occur free (or at all) in $B$ (quantifier changes) \\ $\exists x (A \rightarrow B) \equiv \forall x (A) \rightarrow B$
             \end{enumerate}
+            This is a brief interlude, in which equivalence 35 is proven (36, and 37 now follow); let there be $A$, a formula in which $x$ does not occur free, and an arbitrary $M, h$.
+            \begin{itemize}
+                \itemsep0em
+                \item assume $M, h \vDash \exists x (A \land B)$
+                    \subitem it then follows that $M, h \vDash \exists x (A)$, and $M, h \vDash \exists x (B)$
+                    \subitem by equivalence 34, $M, h \vDash \exists x (A) \equiv A$, hence $M, h \vDash A$, and $M, h \vDash \exists x (B)$
+                    \subitem therefore $M, h \vDash A \land \exists x (B)$
+                \item assume $M, h \vDash A \land \exists x (B)$
+                    \subitem then we have $M, h \vDash A$, and $M, h \vDash \exists x (B)$, the latter meaning there is $g =_x h$, such that $M, g \vDash B$
+                    \subitem by equivalence 34, we can replace $M, h \vDash A$ with $M, h \vDash \forall x (A)$
+                    \subitem therefore, we have $M, g \vDash A$, and $M, g \vDash B$
+                    \subitem hence we can conclude $M, h \vDash \exists x (A \land B)$, remember that $g =_x h$
+            \end{itemize}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \setcounter{enumi}{37}
+                \item if we get $B$ by replacing all bound occurences of $x$ in $A$, by a variable $y$ that doesn't exist in $A$, replacing $\exists x$ with $\exists y$, and same for $\forall$, then $A \equiv B$. \hfill $\forall x \exists y (\texttt{ate}(x, y)) \equiv \forall w \exists z (\texttt{ate}(w, z))$
+                \item $t = t \equiv \top$
+                \item $t = u \equiv u = t$
+                \item (Leibniz principle) if $y$ doesn't occur in $A$, and $B$ can be gotten from $A$ by replacing free occurences of $x$ by $y$
+                    \subitem $x = y \rightarrow (A \leftrightarrow B) \equiv \top$ \hfill general
+                    \subitem $x = y \rightarrow (\forall z (R(x, z)) \leftrightarrow \forall z (R(y, z))) \equiv \top$ \hfill example
+            \end{enumerate}
 \end{document}
