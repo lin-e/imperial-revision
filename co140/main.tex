@@ -344,23 +344,23 @@ end if
             \texttt{Read Jordan Spooner's notes for this; just practice it on Pandora until you feel \\ confident. These are just some key points from the slides, examples are excluded, \\ as it's better to just do questions}
             \begin{itemize}
                 \itemsep0em
-                \item If we prove $A$, and $B$, we get $A \land B$ ($\land$I)
-                \item If we have $A \land B$, we get both $A$, and $B$ ($\land$E)
-                \item We often need to make a temporary assumption, for example, if we assume $A$, and in that box, we get $B$, then it follows that $A \rightarrow B$ ($\rightarrow$I)
+                \item If we prove $A$, and $B$, we get $A \land B$ \hfill ($\land$I)
+                \item If we have $A \land B$, we get both $A$, and $B$ \hfill ($\land$E)
+                \item We often need to make a temporary assumption, for example, if we assume $A$, and in that box, we get $B$, then it follows that $A \rightarrow B$ \hfill ($\rightarrow$I)
                     \subitem nothing in the box can be used outside of it; consider it as a scope
-                \item If we have $A \rightarrow B$, and $A$, we get $B$ ($\rightarrow$E)
-                \item If we have $A$, we get $A \lor B$ ($\lor$I)
+                \item If we have $A \rightarrow B$, and $A$, we get $B$ \hfill ($\rightarrow$E)
+                \item If we have $A$, we get $A \lor B$ \hfill ($\lor$I)
                     \subitem it doesn't matter what $B$ is, it can literally be $\bot$
-                \item If we have $A \lor B$, and we can prove $A \rightarrow C$, and $B \rightarrow C$ (see in the \textit{Translation} section  for a similar example to $(p \lor q) \rightarrow r \equiv (p \rightarrow r) \land (q \rightarrow r)$), we get $C$ ($\lor$E).
+                \item If we have $A \lor B$, and we can prove $A \rightarrow C$, and $B \rightarrow C$ (see in the \textit{Translation} section  for a similar example to $(p \lor q) \rightarrow r \equiv (p \rightarrow r) \land (q \rightarrow r)$), we get $C$ \hfill ($\lor$E).
                 \item Note that $\vdash$, and $\vDash$, are different. The former is syntactic, and involves proofs, whereas the latter is semantic, and involves situations
-                \item If assuming $A$ leads to $\bot$, we get $\neg A$ ($\neg$I)
-                \item If assuming $\neg A$ leads to $\bot$, we get $A$ ($\neg$E)
-                \item If we have $\neg \neg A$, we get $A$ ($\neg \neg$)
-                \item If we have both $A$, and $\neg A$, we get $\bot$ ($\bot$I)
-                \item If we have $\bot$, we get $A$ ($\bot$E)
+                \item If assuming $A$ leads to $\bot$, we get $\neg A$ \hfill ($\neg$I)
+                \item If assuming $\neg A$ leads to $\bot$, we get $A$ \hfill ($\neg$E)
+                \item If we have $\neg \neg A$, we get $A$ \hfill ($\neg \neg$)
+                \item If we have both $A$, and $\neg A$, we get $\bot$ \hfill ($\bot$I)
+                \item If we have $\bot$, we get $A$ \hfill ($\bot$E)
                     \subitem $A$ can be anything, as we can prove anything from $\bot$
-                \item If we prove $A \rightarrow B$, and $B \rightarrow A$, we get $A \leftrightarrow B$ ($\leftrightarrow$I)
-                \item If we prove $A \leftrightarrow B$, and $A$ (or $B$), we get $B$ (or $A$), respectively ($\leftrightarrow$E)
+                \item If we prove $A \rightarrow B$, and $B \rightarrow A$, we get $A \leftrightarrow B$ \hfill ($\leftrightarrow$I)
+                \item If we prove $A \leftrightarrow B$, and $A$ (or $B$), we get $B$ (or $A$), respectively \hfill ($\leftrightarrow$E)
                 \item PC is a derived rule from $\neg$I, and $\neg \neg$
             \end{itemize}
             \subsubsection*{Definitions}
@@ -1085,42 +1085,71 @@ end if
 
                 Now we take the case when it is true; $M \vDash a = b \land \exists z (R(a, z))$, and only then does $M \vDash \exists v (R(b, v))$ follow. However, if the former is true, and we are assuming it is, $a$, and $b$ refer to the same object, therefore $M \vDash \exists z (b, z)$, which means; "there is a $c \in \text{dom}(M)$, such that $M \vDash R(b, c)$". Therefore, it follows that $M \vDash \exists v (R(b, v))$, and so the proof is complete.
             \subsubsection*{Validity in Predicate Logic}
-            This continues on from the list stated during propositonal logic.
-            \begin{enumerate}[1.]
-                \itemsep0em
-                \setcounter{enumi}{27}
-                \item $\forall x \forall y (A) \equiv \forall y \forall x (A)$
-                \item $\exists x \exists y (A) \equiv \exists y \exists x (A)$
-                \item $\neg \forall x (A) \equiv \exists x (\neg A)$
-                \item $\neg \exists x (A) \equiv \forall x (\neg A)$
-                \item $\forall x (A \land B) \equiv \forall x (A) \land \forall x (B)$
-                \item $\exists x (A \lor B) \equiv \exists x (A) \lor \exists x (B)$
-                \item $\forall x (A) \equiv \exists x (A) \equiv A$ \hfill only if $x$ doesn't occur free (or at all) in $A$
-                \item $\exists x (A \land B) \equiv A \land \exists x (B)$ \hfill only if $x$ doesn't occur free (or at all) in $A$ \\ $\forall x (A \lor B) \equiv A \lor \forall x (B)$
-                \item $\forall x (A \rightarrow B) \equiv A \rightarrow \forall x (B)$ \hfill only if $x$ doesn't occur free (or at all) in $A$ \\ $\exists x (A \rightarrow B) \equiv A \rightarrow \exists x (B)$
-                \item $\forall x (A \rightarrow B) \equiv \exists x (A) \rightarrow B$ \hfill only if $x$ doesn't occur free (or at all) in $B$ (quantifier changes) \\ $\exists x (A \rightarrow B) \equiv \forall x (A) \rightarrow B$
-            \end{enumerate}
-            This is a brief interlude, in which equivalence 35 is proven (36, and 37 now follow); let there be $A$, a formula in which $x$ does not occur free, and an arbitrary $M, h$.
+                This continues on from the list stated during propositonal logic.
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \setcounter{enumi}{27}
+                    \item $\forall x \forall y (A) \equiv \forall y \forall x (A)$
+                    \item $\exists x \exists y (A) \equiv \exists y \exists x (A)$
+                    \item $\neg \forall x (A) \equiv \exists x (\neg A)$
+                    \item $\neg \exists x (A) \equiv \forall x (\neg A)$
+                    \item $\forall x (A \land B) \equiv \forall x (A) \land \forall x (B)$
+                    \item $\exists x (A \lor B) \equiv \exists x (A) \lor \exists x (B)$
+                    \item $\forall x (A) \equiv \exists x (A) \equiv A$ \hfill only if $x$ doesn't occur free (or at all) in $A$
+                    \item $\exists x (A \land B) \equiv A \land \exists x (B)$ \hfill only if $x$ doesn't occur free (or at all) in $A$ \\ $\forall x (A \lor B) \equiv A \lor \forall x (B)$
+                    \item $\forall x (A \rightarrow B) \equiv A \rightarrow \forall x (B)$ \hfill only if $x$ doesn't occur free (or at all) in $A$ \\ $\exists x (A \rightarrow B) \equiv A \rightarrow \exists x (B)$
+                    \item $\forall x (A \rightarrow B) \equiv \exists x (A) \rightarrow B$ \hfill only if $x$ doesn't occur free (or at all) in $B$ (quantifier changes) \\ $\exists x (A \rightarrow B) \equiv \forall x (A) \rightarrow B$
+                \end{enumerate}
+                This is a brief interlude, in which equivalence 35 is proven (36, and 37 now follow); let there be $A$, a formula in which $x$ does not occur free, and an arbitrary $M, h$.
+                \begin{itemize}
+                    \itemsep0em
+                    \item assume $M, h \vDash \exists x (A \land B)$
+                        \subitem it then follows that $M, h \vDash \exists x (A)$, and $M, h \vDash \exists x (B)$
+                        \subitem by equivalence 34, $M, h \vDash \exists x (A) \equiv A$, hence $M, h \vDash A$, and $M, h \vDash \exists x (B)$
+                        \subitem therefore $M, h \vDash A \land \exists x (B)$
+                    \item assume $M, h \vDash A \land \exists x (B)$
+                        \subitem then we have $M, h \vDash A$, and $M, h \vDash \exists x (B)$, the latter meaning there is $g =_x h$, such that $M, g \vDash B$
+                        \subitem by equivalence 34, we can replace $M, h \vDash A$ with $M, h \vDash \forall x (A)$
+                        \subitem therefore, we have $M, g \vDash A$, and $M, g \vDash B$
+                        \subitem hence we can conclude $M, h \vDash \exists x (A \land B)$, remember that $g =_x h$
+                \end{itemize}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \setcounter{enumi}{37}
+                    \item if we get $B$ by replacing all bound occurences of $x$ in $A$, by a variable $y$ that doesn't exist in $A$, replacing $\exists x$ with $\exists y$, and same for $\forall$, then $A \equiv B$. \hfill $\forall x \exists y (\texttt{ate}(x, y)) \equiv \forall w \exists z (\texttt{ate}(w, z))$
+                    \item $t = t \equiv \top$
+                    \item $t = u \equiv u = t$
+                    \item (Leibniz principle) if $y$ doesn't occur in $A$, and $B$ can be gotten from $A$ by replacing free occurences of $x$ by $y$
+                        \subitem $x = y \rightarrow (A \leftrightarrow B) \equiv \top$ \hfill general
+                        \subitem $x = y \rightarrow (\forall z (R(x, z)) \leftrightarrow \forall z (R(y, z))) \equiv \top$ \hfill example
+                \end{enumerate}
+            \subsubsection*{First-Order Natural Deduction}
+                It's even more important in predicate logic that we first consider a direct argument for a proof, then convert it into a natural deduction format. Note that we will use $A$ to represent a formula, $x$ to represent a variable, $t$ to represent a term, and $A(t/x)$ to represent $A$ after all free occurences of $x$ have been replaced with $t$.
+                \begin{itemize}
+                    \itemsep0em
+                    \item If we can somehow prove $A(t/x)$, we get $\exists x (A)$ \hfill ($\exists$I)
+                        \subitem $t$ has to be a closed term - one with no variables
+                        \subitem Choosing $t$ can be difficult, which is why it's important to consider a direct argument
+                    \item If we have $\exists x (A)$, and we can prove $B$ from assuming $A(c/x)$, where $c$ is a Skolem constant not used in $B$, or used previously in the proof, we get $B$. \hfill ($\exists$E)
+                        \subitem This is justified by 'giving any object a name'. If $M \vDash \exists x (A)$, then there is at least one object $a \in \text{dom}(M)$, such that $M \vDash A(a)$. While $a$ might not be a constant in $M$, we can add a constant $c$ to $M$, which names $a$. This is why it has to be a new constant, as an existing one cannot now name $a$.
+                    \item If we can prove $A(c/x)$ by introducing a \textbf{new} constant $c$, we get $\forall x (A)$ \hfill ($\forall$I)
+                        \subitem This is the only time in which we have a line containing a \textbf{term}, and starting a new box without labelling an assumption.
+                        \subitem This is justified by choosing an arbitrary $a$, and having a \textbf{new} constant $c$ name $a$. Since $a$ is arbitrary, it applies for all $a \in \text{dom}(M)$.
+                    \item If we have $\forall x (A)$, we can easily get $A(t/x)$ \hfill ($\forall$E)
+                    \item ($\forall \rightarrow$ E) is a derived rule from ($\forall$E), and ($\rightarrow$E)
+                    \item We can introduce $t = t$ at any point \hfill (refl)
+                        \subitem This is called reflexivity of equality
+                    \item If we have a formula $A$, closed terms $t,u$, and have proven $A(t/x)$, as well as $t = u$ or $u = t$, we can write $A(u/x)$ \hfill (=sub)
+                    \item (=sym) is a derived rule from (refl), and (=sub)
+                        \subitem If we have $t = u$, we can also get $u = t$
+                \end{itemize}
+        \subsection*{Final remarks}
+            This is the formal definition of an $L$-structure $M$ - it consists of;
             \begin{itemize}
                 \itemsep0em
-                \item assume $M, h \vDash \exists x (A \land B)$
-                    \subitem it then follows that $M, h \vDash \exists x (A)$, and $M, h \vDash \exists x (B)$
-                    \subitem by equivalence 34, $M, h \vDash \exists x (A) \equiv A$, hence $M, h \vDash A$, and $M, h \vDash \exists x (B)$
-                    \subitem therefore $M, h \vDash A \land \exists x (B)$
-                \item assume $M, h \vDash A \land \exists x (B)$
-                    \subitem then we have $M, h \vDash A$, and $M, h \vDash \exists x (B)$, the latter meaning there is $g =_x h$, such that $M, g \vDash B$
-                    \subitem by equivalence 34, we can replace $M, h \vDash A$ with $M, h \vDash \forall x (A)$
-                    \subitem therefore, we have $M, g \vDash A$, and $M, g \vDash B$
-                    \subitem hence we can conclude $M, h \vDash \exists x (A \land B)$, remember that $g =_x h$
+                \item a set, $\text{dom}(M) \neq \emptyset$ (a non-empty set)
+                \item for each constant $c \in L$, an element $c^M \in \text{dom}(M)$
+                \item for each $n$-ary function $f \in L$, a fuction is $f^M: \text{dom}(M)^n \mapsto \text{dom}(M)$
+                \item for each $n$-ary relation $R \in L$n, an $n$-ary relation $R^M$ on dom($M$) ($R^m \subseteq \text{dom}(M)^n$)
             \end{itemize}
-            \begin{enumerate}[1.]
-                \itemsep0em
-                \setcounter{enumi}{37}
-                \item if we get $B$ by replacing all bound occurences of $x$ in $A$, by a variable $y$ that doesn't exist in $A$, replacing $\exists x$ with $\exists y$, and same for $\forall$, then $A \equiv B$. \hfill $\forall x \exists y (\texttt{ate}(x, y)) \equiv \forall w \exists z (\texttt{ate}(w, z))$
-                \item $t = t \equiv \top$
-                \item $t = u \equiv u = t$
-                \item (Leibniz principle) if $y$ doesn't occur in $A$, and $B$ can be gotten from $A$ by replacing free occurences of $x$ by $y$
-                    \subitem $x = y \rightarrow (A \leftrightarrow B) \equiv \top$ \hfill general
-                    \subitem $x = y \rightarrow (\forall z (R(x, z)) \leftrightarrow \forall z (R(y, z))) \equiv \top$ \hfill example
-            \end{enumerate}
 \end{document}
