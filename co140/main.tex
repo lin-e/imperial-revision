@@ -213,7 +213,7 @@ end if
                     \itemsep0em
                     \item A propositional formula is logically \textbf{valid} if it's true in all situations ($\vDash A$), if $A$ is \textbf{valid}
                     \item A propositional formula is \textbf{satisfiable} if it's true in at least one situation (hence \textbf{valid} $\rightarrow$ \textbf{satisfiable})
-                    \item Two propositonal formulas are logically \textbf{equivalent} if they are true in the same situations.
+                    \item Two propositional formulas are logically \textbf{equivalent} if they are true in the same situations.
                 \end{itemize}
                 \begin{center}
                     \begin{tabular}{|c|c|c|c|}
@@ -473,7 +473,7 @@ end if
                     \item $\exists x (\texttt{ate}(\texttt{Adam}, x))$ \hfill Adam ate something
                     \item $\forall x (\texttt{student}(x) \rightarrow \texttt{human}(x))$ \hfill all students are human (important)
                     \item $\forall x (\texttt{ate}(\texttt{Adam}, x) \rightarrow \texttt{fruit}(x))$ \hfill Adam only ate fruits / Everything Adam ate is a fruit
-                    \item $\forall x \exists y (\texttt{ate}(x, y))$ \hfill eveyone ate something
+                    \item $\forall x \exists y (\texttt{ate}(x, y))$ \hfill everyone ate something
                     \item $\exists y \forall x (\texttt{ate}(x, y))$ \hfill there is something that everyone ate
                     \item $\exists x \forall y (\texttt{ate}(x, y))$ \hfill someone ate everything
                 \end{itemize}
@@ -649,10 +649,10 @@ end if
                 \end{center}
                 Evidently, there are no free variables, as all the atomic $L$-formula consist of bound variables.
             \subsubsection*{Problems with Free Variables}
-                While a sentence can be evaluated to true or false in a structure, the same cannot be said for non-sentences. A formula with free variables doesn't evaluate to a truth value, seeing as they have no meaning in a given $L$-structure $M$. For example, $x = 7$ might be true, but we have no way of saying whether it is, since we don't know the value of $x$ in $M$. Therefore the structure is an \textbf{incomplete} situation, since it doesn't fix the meanings of free variables. Note that we need to specify values for fre variables, even if they don't change the answer e.g. $x = x$.
+                While a sentence can be evaluated to true or false in a structure, the same cannot be said for non-sentences. A formula with free variables doesn't evaluate to a truth value, seeing as they have no meaning in a given $L$-structure $M$. For example, $x = 7$ might be true, but we have no way of saying whether it is, since we don't know the value of $x$ in $M$. Therefore the structure is an \textbf{incomplete} situation, since it doesn't fix the meanings of free variables. Note that we need to specify values for free variables, even if they don't change the answer e.g. $x = x$.
                 \medskip
 
-                We solve this with \textbf{assignments}; suppling a missing value to a free variable. \textbf{An assignment does for a variable the same as what a structure / model does for a constant}.
+                We solve this with \textbf{assignments}; supplying a missing value to a free variable. \textbf{An assignment does for a variable the same as what a structure / model does for a constant}.
                 \medskip
 
                 \textbf{NOTATION:} let there be a signature $L$, have an $L$-structure $M$, and let $h$ be an assignment into $M$. Then for any given $L$-term $t$, the value of $t$ in $M$ under $h$ is allocated by;
@@ -712,7 +712,7 @@ end if
                 \end{enumerate}
             \subsubsection*{Problems with Bound Variables}
                 % TODO: not 100% sure on this part, so a lot of it is copied from the slides
-                While knowing how to specify values for free variables is useful, the majority of formulas we'll be dealing with involve quantifiers, and hence involve bound variables. Values are not given by the situation, as they are controlled by quantifiers. In general, if we encounter $\exists$, we want to find \textbf{some} assignment to make the formula true, and with $\forall$, it requiresthat \textbf{all} assignments keep it true.
+                While knowing how to specify values for free variables is useful, the majority of formulas we'll be dealing with involve quantifiers, and hence involve bound variables. Values are not given by the situation, as they are controlled by quantifiers. In general, if we encounter $\exists$, we want to find \textbf{some} assignment to make the formula true, and with $\forall$, it requires that \textbf{all} assignments keep it true.
                 \medskip
 
                 The list below is a continuation of the semantics mentioned in the previous section;
@@ -823,7 +823,7 @@ end if
                         \subitem Something ate at least two different things
                     \item $\forall x (\exists y \exists z ((\texttt{ate}(x, y) \land \texttt{ate}(x, z) \land \neg (y = z)) \rightarrow x = \texttt{Adam}))$
                         \subitem For all $x$ that ate two different things (see the translation from above), then $x$ is Adam
-                        \subitem Anything thate ate two different things is Adam
+                        \subitem Anything that ate two different things is Adam
                         \subitem Remember that falsity implies anything, hence if no-one ate two things, then the sentence still holds
                     \item $\exists x (\texttt{student}(x) \rightarrow \texttt{ate}(x, \texttt{Apple}))$
                         \subitem There is an $x$, such that if $x$ is a student, then $x$ ate an apple
@@ -1002,7 +1002,7 @@ end if
                 The post-condition expresses what the program will do, not how it will do it. Generally, it can look drastically different to the actual code. The formula's \textbf{free-variables} should be the arguments of a function. The formula should only evaluate to $\top$ if, and only if the output is as expected.
                 \medskip
 
-                Let there be some formula $B(x_1, x_2, ..., x_n, y)$ representing the post-condition, corresponding to the $n$-ary function symbol $f$, where $x_1, x_2, ..., x_n$ are the input arguments of correct sort, and $y$ is the output. Let there also be the pre-condition $A(x_1, x_2, ..., x_n)$, corresponding to the same function. To express that for any $a, b, ...$ that satisfy the pre-condition, it should return some $z$ that satisfies the post-condition (note that $z$ isn't unique, it can be anything that satisifies the condition). In general, we should write $M \vDash \forall x_1, \forall x_2, ..., \forall x_n (A(x_1, x_2, ..., x_n) \rightarrow \exists y (B(x_1, x_2, ..., x_n, y)))$.
+                Let there be some formula $B(x_1, x_2, ..., x_n, y)$ representing the post-condition, corresponding to the $n$-ary function symbol $f$, where $x_1, x_2, ..., x_n$ are the input arguments of correct sort, and $y$ is the output. Let there also be the pre-condition $A(x_1, x_2, ..., x_n)$, corresponding to the same function. To express that for any $a, b, ...$ that satisfy the pre-condition, it should return some $z$ that satisfies the post-condition (note that $z$ isn't unique, it can be anything that satisfies the condition). In general, we should write $M \vDash \forall x_1, \forall x_2, ..., \forall x_n (A(x_1, x_2, ..., x_n) \rightarrow \exists y (B(x_1, x_2, ..., x_n, y)))$.
                 \medskip
 
                 A simple example to start with would be $\texttt{contains}(x, xs)$, with Haskell type $\texttt{Nat -> [Nat] -> Bool}$. There are no pre-conditions, hence the pre-condition would be $\top$ (or 'none'). However, the post condition would be as follows; $\texttt{contains}(x, xs) \leftrightarrow \exists k : \texttt{Nat}\ (k < \#(xs) \land xs !! k = x)$.
@@ -1085,7 +1085,7 @@ end if
 
                 Now we take the case when it is true; $M \vDash a = b \land \exists z (R(a, z))$, and only then does $M \vDash \exists v (R(b, v))$ follow. However, if the former is true, and we are assuming it is, $a$, and $b$ refer to the same object, therefore $M \vDash \exists z (b, z)$, which means; "there is a $c \in \text{dom}(M)$, such that $M \vDash R(b, c)$". Therefore, it follows that $M \vDash \exists v (R(b, v))$, and so the proof is complete.
             \subsubsection*{Validity in Predicate Logic}
-                This continues on from the list stated during propositonal logic.
+                This continues on from the list stated during propositional logic.
                 \begin{enumerate}[1.]
                     \itemsep0em
                     \setcounter{enumi}{27}
@@ -1116,15 +1116,15 @@ end if
                 \begin{enumerate}[1.]
                     \itemsep0em
                     \setcounter{enumi}{37}
-                    \item if we get $B$ by replacing all bound occurences of $x$ in $A$, by a variable $y$ that doesn't exist in $A$, replacing $\exists x$ with $\exists y$, and same for $\forall$, then $A \equiv B$. \hfill $\forall x \exists y (\texttt{ate}(x, y)) \equiv \forall w \exists z (\texttt{ate}(w, z))$
+                    \item if we get $B$ by replacing all bound occurrences of $x$ in $A$, by a variable $y$ that doesn't exist in $A$, replacing $\exists x$ with $\exists y$, and same for $\forall$, then $A \equiv B$. \hfill $\forall x \exists y (\texttt{ate}(x, y)) \equiv \forall w \exists z (\texttt{ate}(w, z))$
                     \item $t = t \equiv \top$
                     \item $t = u \equiv u = t$
-                    \item (Leibniz principle) if $y$ doesn't occur in $A$, and $B$ can be gotten from $A$ by replacing free occurences of $x$ by $y$
+                    \item (Leibniz principle) if $y$ doesn't occur in $A$, and $B$ can be gotten from $A$ by replacing free occurrences of $x$ by $y$
                         \subitem $x = y \rightarrow (A \leftrightarrow B) \equiv \top$ \hfill general
                         \subitem $x = y \rightarrow (\forall z (R(x, z)) \leftrightarrow \forall z (R(y, z))) \equiv \top$ \hfill example
                 \end{enumerate}
             \subsubsection*{First-Order Natural Deduction}
-                It's even more important in predicate logic that we first consider a direct argument for a proof, then convert it into a natural deduction format. Note that we will use $A$ to represent a formula, $x$ to represent a variable, $t$ to represent a term, and $A(t/x)$ to represent $A$ after all free occurences of $x$ have been replaced with $t$.
+                It's even more important in predicate logic that we first consider a direct argument for a proof, then convert it into a natural deduction format. Note that we will use $A$ to represent a formula, $x$ to represent a variable, $t$ to represent a term, and $A(t/x)$ to represent $A$ after all free occurrences of $x$ have been replaced with $t$.
                 \begin{itemize}
                     \itemsep0em
                     \item If we can somehow prove $A(t/x)$, we get $\exists x (A)$ \hfill ($\exists$I)
@@ -1149,7 +1149,7 @@ end if
                 \itemsep0em
                 \item a set, $\text{dom}(M) \neq \emptyset$ (a non-empty set)
                 \item for each constant $c \in L$, an element $c^M \in \text{dom}(M)$
-                \item for each $n$-ary function $f \in L$, a fuction is $f^M: \text{dom}(M)^n \mapsto \text{dom}(M)$
+                \item for each $n$-ary function $f \in L$, a function is $f^M: \text{dom}(M)^n \mapsto \text{dom}(M)$
                 \item for each $n$-ary relation $R \in L$n, an $n$-ary relation $R^M$ on dom($M$) ($R^m \subseteq \text{dom}(M)^n$)
             \end{itemize}
 \end{document}
