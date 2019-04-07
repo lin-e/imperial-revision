@@ -230,7 +230,7 @@ end if
 
                     (copied directly from \textit{Propositional Logic - Arguments and Validity.pdf})
                 \end{center}
-        \subsection*{Validity}
+        \subsection*{Validity in Propositional Logic}
             The main ways used to check validity are as follows;
             \begin{itemize}
                 \itemsep0em
@@ -1002,4 +1002,17 @@ end if
                 \medskip
 
                 Let there be some formula $B(x_1, x_2, ..., x_n, y)$ representing the post-condition, corresponding to the $n$-ary function symbol $f$, where $x_1, x_2, ..., x_n$ are the input arguments of correct sort, and $y$ is the output. Let there also be the pre-condition $A(x_1, x_2, ..., x_n)$, corresponding to the same function. To express that for any $a, b, ...$ that satisfy the pre-condition, it should return some $z$ that satisfies the post-condition (note that $z$ isn't unique, it can be anything that satisifies the condition). In general, we should write $M \vDash \forall x_1, \forall x_2, ..., \forall x_n (A(x_1, x_2, ..., x_n) \rightarrow \exists y (B(x_1, x_2, ..., x_n, y)))$.
+                \medskip
+
+                A simple example to start with would be $\texttt{contains}(x, xs)$, with Haskell type $\texttt{Nat -> [Nat] -> Bool}$. There are no pre-conditions, hence the pre-condition would be $\top$ (or 'none'). However, the post condition would be as follows; $\texttt{contains}(x, xs) \leftrightarrow \exists k : \texttt{Nat}\ (k < \#(xs) \land xs !! k = x)$.
+                \smallskip
+
+                Therefore, we can write $M \vDash \exists k : \texttt{Nat}\ (k < \#(bs) \land bs !! k = a)$, if $a$ is in the list $bs$ in $M$. In general, $M \vDash \forall x \forall xs (\texttt{contains}(x, xs) \leftrightarrow \exists k : \texttt{Nat}\ (k < \#(xs) \land xs !! k = x))$, however it's traditional to use free variables for arguments. Functions with boolean return values are treated as relation symbols, and ones that return other values (in dom($M$)) are treated as function symbols.
+                \medskip
+
+                A more complex example would be one that finds the least value of a list, with type signature $\texttt{[Nat] -> Nat}$. This will also use the previously defined \textbf{contains} function. Here with have the pre-condition $xs \neq []$, specifying the input isn't an empty list. As we can't treat this as a relation, we need to specify that $m = \texttt{least}(xs)$ in the post-condition. Now we can use this variable in the newly formed relation $\texttt{contains}(m, xs) \land \forall n (\texttt{contains}(n, xs) \rightarrow n \geq m)$.
+                \medskip
+
+                Another useful post condition to remember would be the condition for a sorted list (which is treated as a relation, since it has signature \texttt{[Nat] -> Bool}); $\forall n \forall m (n < m \land m < \#(xs) \rightarrow xs!!n \leq xs!!m)$
+        \subsection*{Validity in Predicate Logic}
 \end{document}
