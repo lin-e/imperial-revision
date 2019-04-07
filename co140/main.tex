@@ -1015,4 +1015,17 @@ end if
 
                 Another useful post condition to remember would be the condition for a sorted list (which is treated as a relation, since it has signature \texttt{[Nat] -> Bool}); $\forall n \forall m (n < m \land m < \#(xs) \rightarrow xs!!n \leq xs!!m)$
         \subsection*{Validity in Predicate Logic}
+            While this carries many similarities with the previous definitions of valid arguments in propositional logic, we should still define some terms (in order to avoid tedious repetition, let there exist an $L$-structure $M$, and an assignment $h$ into $M$);
+            \medskip
+
+            An \textbf{argument} ($A_1, A_2, ..., A_n$, therefore $B$) is \textbf{valid} if $M, h \vDash A_1,\ M, h \vDash A_2,\ ...,\ M, h \vDash A_n$, then $M, h \vDash B$. This is written as $A_1, A_2, ..., A_n \vDash B$. In the special case that $n = 0$, then $\vDash B$, so $B$ is true within any $L$-structure under any assignment.
+            \medskip
+
+            A formula in $L$, $A$, is \textbf{valid} if we have $M, h \vDash A$, for every $L$-structure $M$ under any assignment $h$. Also written as $\vDash A$. On the other hand, if there exists some $M, h$ that $M, h \vDash A$, then it is \textbf{satisfiable}.
+            \medskip
+
+            Two formulas in $L$, $A, B$, are \textbf{logically equivalent} if we have $M, h \vDash A$ if, and only if $M, h \vDash B$ for all assignments $h$ into every $L$-structure $M$.
+            \medskip
+
+            All valid propositional arguments, such as $A \rightarrow B, A \vDash B$ are valid in predicate logic. However, with predicate logic, we can create very powerful arguments such as $\forall(\texttt{horse}(x) \rightarrow \texttt{animal}(x) \vDash \forall [\exists y (\texttt{head-of}(x, y) \land \texttt{horse}(y)) \rightarrow \exists y (\texttt{head-of}(x, y) \land \texttt{animal}(y))]$, which couldn't be expressed before (we tried to, right at the start of the first-order predicate logic section).
 \end{document}
