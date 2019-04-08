@@ -60,7 +60,39 @@
                     1 & 1 & 1 & 1 & 0
                 \end{tabular}
             \end{center}
+        \subsection*{Panopto - Lecture 14}
+            Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and intstructions. Our model will be based on 8 bits.
+            \medskip
+
+            Our example action is to find the average of two numbers, $A$, and $B$, such that $R = \frac{A + B}{2}$. Since we are dealing with 8 bits, $A + B < 256$.
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item The first number is set up in input lines, and stored in register (A)
+                \item The same is done for the second number, and stored in register (B)
+                \item The arithmetic circuits are set to register (A) to (B).
+                \item The resulting sum is put into (A)
+                \item The shift circuits shift (A) one bit to the right, which is integer division by 2
+                \item Result is loaded into (Res).
+            \end{enumerate}
+            In order to do this, we need a number of components;
+            \begin{itemize}
+                \item Registers
+                    \begin{itemize}
+                        \item store data (A), and (B)
+                        \item store result (Res)
+                        \item one bit for carry (C)
+                        \item store instruction (IR)
+                    \end{itemize}
+                \item Arithmetic circuits
+                    \begin{itemize}
+                        \item 8-bit adder
+                        \item 8-bit shifter
+                    \end{itemize}
+            \end{itemize}
+            Note in the figure below, that the 8 means it is an 8-bit line.
+
+            \includegraphics[width=0.5\linewidth]{2019-04-08-15-00-51.png}
         \subsection*{Notes - Lecture 14}
-        
+
 
 \end{document}
