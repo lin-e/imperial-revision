@@ -75,5 +75,27 @@
                     (pc1) -- (pc2);
                 \end{tikzpicture}
             \end{center}
-            Note how all the PCs are directly connected to the printer, but PC2 can only reach the server through PC1.
+            Note how all the PCs are directly connected to the printer, but PC2 can only reach the server through PC1. On the other hand, we can create a more general graph to display some features that may be less common;
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[circle, fill=black, label=above:A] (a) at (0, 0) {};
+                    \node[circle, fill=black, label=above:B] (b) at (2, 0) {};
+                    \node[circle, fill=black, label=above:C] (c) at (5, 0) {};
+                    \node[circle, fill=black, label=above:D] (d) at (8, 0) {};
+                    \node[circle, fill=black, label=below:E] (e) at (6, -2) {};
+                    \node[circle, fill=black, label=below:F] (f) at (3, -2) {};
+                    \node[circle, fill=black, label=below:G] (g) at (1, -2) {};
+
+                    \draw
+                    (b) -- (g)
+                    (g) -- (f)
+                    (f) -- (b)
+                    (c) -- (d)
+                    (d) -- (e)
+                    (a) edge[bend left=15] node{} (g)
+                    (a) edge[bend right=15] node{} (g)
+                    (c) edge[loop, out=230, in=130, distance=1cm] (c);
+                \end{tikzpicture}
+            \end{center}
+            Note that this isn't actually two graphs; it's \textbf{disconnected components}. Between A, and G, there are two \textbf{parallel arcs / edges}, and C has \textbf{loop} with itself.
 \end{document}
