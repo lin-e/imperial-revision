@@ -9,6 +9,7 @@
 \usepackage[margin=1.3cm]{geometry}
 \usepackage{logicproof}
 \usepackage{diagbox}
+\usepackage{karnaugh-map}
 
 % augmented matrix
 \makeatletter
@@ -92,7 +93,64 @@
                 Now, if we had something with two inputs, $A$, and $B$, and a control $C$, we could use $C$ to determine whether $R = A$, or $R = B$. This is done with the boolean equation $R = A \cdot C^\prime + B \cdot C$. This is a \textbf{multiplexer}, which will be used very often in circuit design for other components.
         \subsection*{Lecture 3}
             \subsubsection*{Notes}
-                Consider an more complex circuit, where we have 3 outputs; $R_1, R_2$, and $R_3$, and 4 inputs; $A, B, C$, and $D$, where $R_n=f_n(A, B, C, D)$. For now, we ignore sequential circuits, where the output can be on either side of the equation. The first step of creating a circuit is to construct a truth table
+                Consider an more complex circuit, where we have 3 outputs; $R_1, R_2$, and $R_3$, and 4 inputs; $A, B, C$, and $D$, where $R_n=f_n(A, B, C, D)$. For now, we ignore sequential circuits, where the output can be on either side of the equation. The first step of creating a circuit is to construct a truth table as a starting point. We also need to define a few terms;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{minterm} - a boolean product where each input, or its complement, appears exactly once
+                        \subitem hence $A \cdot B^\prime \cdot C$ is a minterm, but $A \cdot B$ isn't.
+                        \subitem also known as sum-of-products, or disjunction-of-conjunctions
+                    \item \textbf{maxterm} - a boolean sum where each input, or its complement, appears exactly once
+                        \subitem hence $A + B^\prime + C$ is a minterm, but $A + B$ isn't.
+                        \subitem also known as product-of-sums, or conjunction-of-disjunctions
+                \end{itemize}
+                For example, let's work on the following truth table;
+                \begin{center}
+                    \begin{tabular}{c|c|c|c|c}
+                        $A$ & $B$ & $C$ & $R$ & \\
+                        \hline
+                        0 & 0 & 0 & 0 & maxterm $A + B + C$ \\
+                        0 & 0 & 1 & 0 & maxterm $A + B + C^\prime$ \\
+                        0 & 1 & 0 & 0 & maxterm $A + B^\prime + C$ \\
+                        0 & 1 & 1 & 1 & minterm $A \cdot B \cdot C$ \\
+                        1 & 0 & 0 & 0 & maxterm $A^\prime + B + C$ \\
+                        1 & 0 & 1 & 1 & minterm $A \cdot B^\prime \cdot C$ \\
+                        1 & 1 & 0 & 1 & minterm $A \cdot B \cdot C^\prime$ \\
+                        1 & 1 & 1 & 1 & minterm $A \cdot B \cdot C$
+                    \end{tabular}
+                \end{center}
+                Now, we can evaluate $R$ in two ways;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $R = (A \cdot B \cdot C) + (A \cdot B^\prime \cdot C) + (A \cdot B \cdot C^\prime) + (A \cdot B \cdot C)$ \hfill sum of minterms
+                    \item $R = (A + B + C) \cdot (A + B + C^\prime) \cdot (A + B^\prime + C) \cdot (A^\prime + B + C)$ \hfill product of maxterms
+                \end{itemize}
+                Knowing this, we can convert any truth table into a \textbf{Karnaugh map}
+                \begin{center}
+                    \begin{tabular}{c|c|c|c|c||c|c|c|c|c}
+                        $A$ & $B$ & $C$ & $D$ & $R$ & $A$ & $B$ & $C$ & $D$ & $R$ \\
+                        \hline
+                        0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 \\
+                        0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 1 \\
+                        0 & 0 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & 1 \\
+                        0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 1 \\
+                        0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 1 \\
+                        0 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 \\
+                        0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 \\
+                        0 & 1 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1
+                    \end{tabular}
+
+                    \begin{karnaugh-map}[4][4][1][$CD$][$R:\ AB$]
+                        \manualterms{0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1}
+                        \implicant{12}{10}
+                        \implicant{1}{9}
+                        \implicant{3}{2}
+                        \implicant{6}{6}
+                    \end{karnaugh-map}
+                \end{center}
+                Hence we can use minterms, to get $R = \underbrace{A}_\text{red} + \underbrace{C^\prime \cdot D}_\text{green} + \underbrace{A^\prime \cdot B^\prime \cdot C}_\text{yellow} + \underbrace{A^\prime \cdot B \cdot C \cdot D^\prime}_\text{blue}$. 
+                \medskip
+
+                Remember that the regions in the map can wrap around, and that don't cares can count as either 0, or 1.
         \subsection*{Lecture 14}
             \subsubsection*{Panopto}
                 Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions. Our model will be based on 8 bits.
@@ -132,6 +190,5 @@
                 \begin{figure}[h!]\includegraphics[width=\linewidth]{2019-04-08-20-08-22.png}\end{figure}
 
                 For an $n$-bit ALU, there are $n + 1$ multiplexers, as the last one handles the carry bit. The $C_\text{in}$ bit for the $n^\text{th}$ multiplexer is the $C_\text{out}$ for the $(n - 1)^\text{th}$ multiplexer. The $C_\text{in}$ for the first multiplexer is 0.
-
 
 \end{document}
