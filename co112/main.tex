@@ -11,6 +11,7 @@
 \usepackage{diagbox}
 \usepackage{karnaugh-map}
 \usepackage{circuitikz}
+\usetikzlibrary{arrows, shapes.gates.logic.US, calc}
 
 % augmented matrix
 \makeatletter
@@ -257,6 +258,53 @@
             \medskip
 
             Going back to the problem at hand, with the NAND gate, we would have an extremely high frequency oscillation. If we construct a table for the states, we can determine which states are stable. This effect can be harnessed to make memory.
+        \subsection*{Lecture 7}
+            I will use the following notation for stating the values of inputs; $I_1...I_n(v_1, ..., v_n)$ means that $I_i = v_i\ \forall i \in [1, n]$; so $SR(1, 0)$ would mean $S = 1$, and $R = 0$.
+            \medskip
+
+            Looking at the states for the \textbf{R-S flip flop}, we can get the following states;
+            \begin{center}
+                \begin{tabular}{c|c||c|c|c|c}
+                    $S$ & $R$ & $P_t$ & $Q_t$ & $P_{t+1}$ & $Q_{t+1}$ \\
+                    \hline
+                    0 & 0 & $\times$ & $\times$ & 1 & 1 \\
+                    0 & 1 & $\times$ & $\times$ & 1 & 0 \\
+                    1 & 0 & $\times$ & $\times$ & 0 & 1 \\
+                    1 & 1 & 0 & 0 & 1 & 1 \\
+                    1 & 1 & 0 & 1 & 0 & 1 \\
+                    1 & 1 & 1 & 0 & 1 & 0 \\
+                    1 & 1 & 1 & 1 & 0 & 0
+                \end{tabular}
+            \end{center}
+            You might be able to notice that when $SR(1, 1)$, and $P = Q^\prime$, we have a stable state. In general, we have $P = Q^\prime$, as long as we reset the flip-flop, and avoid $RS(0, 0)$. Looking at the $RS(1, 1)$ state, where it's bistable, it can theoretically oscillate infinitely, but in practice the gates will likely have different time delays, and will therefore fall into a stable state. As we have this uncertainty, we send a reset signal $RS(0, 1)$, which sets the $Q$ to 1, and after that point we have predictable behaviour (given we avoid $RS(0, 0)$). This way, we will be able to get $RS(0, 1) \to Q = 1$, and $RS(1, 0) \to Q = 0$. However, this mechanism isn't convenient for practical memory circuits, so we adapt it with a latch. This way, if the latch is engaged ($L = 1$), we set $Q = D$. See \textit{Notes07 - Flip-Flops.pdf} for the circuit diagram, since I don't know how to draw one in TikZ. However; there would be a time delay, as
+            \begin{center}
+                \begin{tikzpicture}
+                    \node (L) at (2, 1) {Latch};
+                    \node (D) at (0, 0) {$D$};
+
+                    \node[not gate US, draw] (notD) at ($(D) + (1, 0)$) {};
+                    \node[nand gate US, draw, logic gate inputs=nn] (nand1) at ($(notD) + (1.5, -0.085)$) {};
+                    \node[nand gate US, draw, logic gate inputs=nn] (nand2) at ($(nand1) + (0, -1.5)$) {};
+                    \node[nand gate US, draw, logic gate inputs=nn] (nand3) at ($(nand1) + (1.5, -0.085)$) {};
+                    \node[nand gate US, draw, logic gate inputs=nn] (nand4) at ($(nand2) + (1.5, 0.085)$) {};
+
+                    \node (Qp) at ($(nand3) + (2, 0)$) {$Q^\prime$};
+                    \node (Q) at ($(nand4) + (2, 0)$) {$Q$};
+
+                    \draw
+                    (D) -- (notD.input)
+                    ($(D) + (0.6, 0)$) |- (nand2.input 1)
+                    (notD.output) -- (nand1.input 1)
+                    (L) |- (nand1.input 2)
+                    (L) |- (nand2.input 2)
+                    (nand1.output) -- (nand3.input 1)
+                    (nand2.output) -- (nand4.input 2)
+                    (nand3.output) -- (Qp)
+                    (nand4.output) -- (Q)
+                    (nand3.input 2) -| ($(Qp) + (-2.5, -0.35)$) -- ($(Q) + (-1, 0.35)$) -- ($(Q) + (-1, 0)$)
+                    (nand4.input 1) -| ($(Q) + (-2.5, 0.35)$) -- ($(Qp) + (-1, -0.35)$) -- ($(Qp) + (-1, 0)$);
+                \end{tikzpicture}
+            \end{center}
         \subsection*{Lecture 14}
             Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions. Our model will be based on 8 bits.
             \medskip
