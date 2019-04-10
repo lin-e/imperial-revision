@@ -10,6 +10,7 @@
 \usepackage{logicproof}
 \usepackage{diagbox}
 \usepackage{karnaugh-map}
+\usepackage{circuitikz}
 
 % augmented matrix
 \makeatletter
@@ -97,7 +98,7 @@
                     \subitem hence $A \cdot B^\prime \cdot C$ is a minterm, but $A \cdot B$ isn't.
                     \subitem also known as sum-of-products, or disjunction-of-conjunctions
                 \item \textbf{maxterm} - a boolean sum where each input, or its complement, appears exactly once
-                    \subitem hence $A + B^\prime + C$ is a minterm, but $A + B$ isn't.
+                    \subitem hence $A + B^\prime + C$ is a maxterm, but $A + B$ isn't.
                     \subitem also known as product-of-sums, or conjunction-of-disjunctions
             \end{itemize}
             For example, let's work on the following truth table;
@@ -149,7 +150,7 @@
 
             Remember that the regions in the map can wrap around, and that don't cares can count as either 0, or 1.
         \subsection*{Lecture 4}
-            A general circuit can be used to generate all possible $n$-input digital circuits. If we were to have inputs $V_1, V_2, ..., V_n$, and have each one come out as two lines, so $V_i$ would come out with $V_i$, and its complement $V_i^\prime$. We can have $2^n$ $n$-input AND gates, which correspond to each possible combination (00...00), (00...01), (00...11), all the way to (11...11). This is hard to visualise (see \textit{Notes04 - Description to Circuit.pdf}), but the general idea is that each AND gate corresponds to a possible minterm, which is joined to a $2^n$-input OR gate, if it's a 1 in the truth table. This is a \textbf{Programmable Array Logic (PAL)} device, and the device can be prgrammed by sending a current through specific links to connect them to the OR gate.
+            A general circuit can be used to generate all possible $n$-input digital circuits. If we were to have inputs $V_1, V_2, ..., V_n$, and have each one come out as two lines, so $V_i$ would come out with $V_i$, and its complement $V_i^\prime$. We can have $2^n$ $n$-input AND gates, which correspond to each possible combination (00...00), (00...01), (00...11), all the way to (11...11). This is hard to visualise (see \textit{Notes04 - Description to Circuit.pdf}), but the general idea is that each AND gate corresponds to a possible minterm, which is joined to a $2^n$-input OR gate, if it's a 1 in the truth table. This is a \textbf{Programmable Array Logic (PAL)} device, and the device can be programmed by sending a current through specific links to connect them to the OR gate.
             \medskip
 
             The general steps for creating a device from a specified device are as follows;
@@ -172,7 +173,7 @@
                     \subitem finding bugs before production is important (and expensive, if not spotted); see the \textit{Floating Point Division Bug} in \textit{Intel Pentium P5}
             \end{enumerate}
         \subsection*{Lecture 5}
-            While boolean algebra is a good abstraction for the behaviour of logic gates, it has some subtle differences, which can be problematic, and cause bugs. Practically, voltages aren't exact values, and therefore thresholds have to be abritrarily determined - leading to more issues (such as what happens when the voltage is between the lower, and upper threshold). The main difference is that boolean algebra doesn't consider time delays, which exist despite electrons moving at lightspeed. This failure to synchronise events is a common error in hardware design, and therefore we will require a more accurate physical model (note that all models are simply approximations, but we should choose one of a sensible degree of accuracy).
+            While boolean algebra is a good abstraction for the behaviour of logic gates, it has some subtle differences, which can be problematic, and cause bugs. Practically, voltages aren't exact values, and therefore thresholds have to be arbitrarily determined - leading to more issues (such as what happens when the voltage is between the lower, and upper threshold). The main difference is that boolean algebra doesn't consider time delays, which exist despite electrons moving at light-speed. This failure to synchronise events is a common error in hardware design, and therefore we will require a more accurate physical model (note that all models are simply approximations, but we should choose one of a sensible degree of accuracy).
             \medskip
 
             To define the physical representation of a logic gate, we'll need to reuse some components from A Level Physics.
@@ -195,7 +196,7 @@
             In general, if there is a high resistance (the circuit is broken), then the output is high (since we have (almost) no current flowing, $I \approx 0$, therefore the P.D. across the resistor, $V_\text{R} \approx 0$), and $V_\text{out} \approx 5$. However, if it is connected, we will consider it to have a very low resistance, hence the larger P.D. would be across the resistor, thus having a lower $V_\text{out}$.
             \medskip
 
-            The physical representation of logic gates explains why NAND, and NOR gates are cheaper, as they each only require two transisters (in series, or in parallel, respectively).
+            The physical representation of logic gates explains why NAND, and NOR gates are cheaper, as they each only require two transistors (in series, or in parallel, respectively).
             \medskip
 
             There are two main reasons for why there are time delays in a circuit. The first is the state change of the transistor; the electrons will still take time to move through it. Second is the representation of the transistor; we need to consider the transistor as more of a variable resistor. By reducing the size of the capacitor, we have a lower capacitance, and hence a faster charge. We can calculate a formula for voltage over time; (note that $K = -\mathrm{ln}(5)$, since $V(0) = 0$)
@@ -222,8 +223,40 @@
                     \subitem only differs from boolean algebra due to the inclusion of a time delay between the change in the input, and the change in the output
                 \item \textbf{Resistance and Capacitance}
                     \subitem this is a more accurate representation of real behaviour, and during the time delay period, it's no longer a valid boolean signal
-                    \subitem this is a analogue model, and not digital (digital electronics don't actualy exist, due to noise, and therefore we use safety margins) - for example, a voltage above 1.7v would be logic 1, and a voltage between 0.5v would be logic 0
+                    \subitem this is a analogue model, and not digital (digital electronics don't actually exist, due to noise, and therefore we use safety margins) - for example, a voltage above 1.7v would be logic 1, and a voltage between 0.5v would be logic 0
             \end{itemize}
+            Despite defining the noise margins above, we should design our circuits so that they operate far from the thresholds, such that we can have boolean 1 around 3.5v, and boolean 0 at around 0.3v. Since we're considering the transistor as a variable resistor, it acts like a potential divider.
+            \medskip
+
+            Remembering from physics, we can take $\frac{1}{R_\text{total}} = \frac{1}{R_\text{var}} + \frac{1}{R_\text{load}}$, and therefore calculate $V_\text{out} = \frac{5R_\text{total}}{R_\text{source} + R_\text{total}}$. Here, $R_\text{load}$ is the combined resistance of all gates the transistor is connected to.
+            \begin{center}
+                \begin{circuitikz}
+                    \node[] (5v) at (0, 4) {5v};
+                    \node[] (vout) at (3, 2) {$V_\text{out}$};
+                    \draw
+                    (5v) -- (1.5, 4)
+                    (0.75, 2) -- (vout)
+                    (0, 0) -- (3, 0)
+                    (0.75, 4) to[R, l=$R_\text{source}$] (0.75, 2)
+                    (0.75, 0) to[R, l=$R_\text{var}$] (0.75, 2)
+                    (1.5, 2) to[R, l=$R_\text{load}$] (1.5, 0);
+                \end{circuitikz}
+                $\equiv$
+                \begin{circuitikz}
+                    \node[] (5v) at (0, 4) {5v};
+                    \node[] (vout) at (3, 2) {$V_\text{out}$};
+                    \draw
+                    (5v) -- (1.5, 4)
+                    (0.75, 2) -- (vout)
+                    (0, 0) -- (3, 0)
+                    (0.75, 4) to[R, l=$R_\text{source}$] (0.75, 2)
+                    (0.75, 2) to[R, l=$R_\text{total}$] (0.75, 0);
+                \end{circuitikz}
+            \end{center}
+            As we know the inverse law for parallel resistors, we can say the load resistance $R_\text{load}$ becomes $\frac{1}{n}$ of a single gate, when there are $n$ identical gates connected to a single gate output. Not only does this \textbf{fan-out} cause issues with the thresholds, we also need to consider the time delay. The time delay is directly proportional to the size of the load capacitor (trivial to derive from the equations listed), and capacitors in parallel add up, hence a larger fan-out would have a larger time delay. For the time being, we will stick to the original \textbf{switch-and-delay} model.
+            \medskip
+
+            Going back to the problem at hand, with the NAND gate, we would have an extremely high frequency oscillation. If we construct a table for the states, we can determine which states are stable. This effect can be harnessed to make memory.
         \subsection*{Lecture 14}
             Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions. Our model will be based on 8 bits.
             \medskip
