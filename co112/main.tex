@@ -469,6 +469,11 @@
             \end{enumerate}
             One of the most important circuits is the comparator; which compares values in two registers ($A$, and $B$), and gives an output depending on; $A > B$, $A = B$, or $A < B$. In reality, only two of those are needed, as the missing one is the NOR of the other two, whichever one we decide to drop is arbitrary. See the diagrams in the notes, since I've had enough of drawing them in TikZ for today.
         \subsection*{Lecture 13}
+            \subsubsection*{Addition}
+                First consider the half-adder; we have 3 inputs; $A$, $B$, and $C_\text{in}$, which is the carry bit. We also have 2 outputs; $S$, the sum, and $C_\text{out}$, which is the bit carried to the next most significant bit. This is trivial to represent as a truth table, so that will be skipped. We can say $C_\text{out} = A \cdot B$, and $S = A \oplus B$. We can also make a full-adder with two half-adders, this is done by having the $A_2 = S_1$, and $B_2 = C_{1_\text{out}}$. From this, we can get $S_2$ (the final sum), to be $S = S_1 \oplus C_\text{in} = (A \oplus B) \oplus C_\text{in}$, and $C_\text{out}$ (the final carry bit), to be $C_\text{out} = C_{1_\text{out}} + (S_1 \cdot C_\text{in}) = (A \cdot B) + C_\text{in} \cdot (A \oplus B)$.
+                \medskip
+
+                An $n$-bit full adder chains together $n$ full-adders, with a carry of 0 in the least significant bit, and the carries ripple through to the next most significant bit. A single full adder can also be used to sum up serial data; the $C_\text{out}$ goes in to a D-Q flip-flop, and the $Q$ of the flip-flop is used as the $C_\text{in}$. This way, a serial sum is produced.
         \subsection*{Lecture 14}
             Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions. Our model will be based on 8 bits.
             \medskip
