@@ -205,7 +205,7 @@
                 5 - V & = I \cdot R \\
                 I & = C \dif{V}{t} \\
                 5 - V & = RC \dif{V}{t} \\
-                \frac{5 - V}{\mathrm{dV}} & = \frac{RC}{\mathrm{d}t} \\
+                \frac{5 - V}{\mathrm{d}V} & = \frac{RC}{\mathrm{d}t} \\
                 \indefint{\frac{1}{5 - V}}{V} & = \indefint{\frac{1}{RC}}{t} \\
                 -\mathrm{ln}(5 - V) & = \frac{t}{RC} + K \\
                 -\mathrm{ln}(5 - V) & = \frac{t}{RC} - \mathrm{ln}(5) \\
@@ -276,7 +276,7 @@
                     1 & 1 & 1 & 1 & 0 & 0
                 \end{tabular}
             \end{center}
-            You might be able to notice that when $SR(1, 1)$, and $P = Q^\prime$, we have a stable state. In general, we have $P = Q^\prime$, as long as we reset the flip-flop, and avoid $RS(0, 0)$. Looking at the $RS(1, 1)$ state, where it's bistable, it can theoretically oscillate infinitely, but in practice the gates will likely have different time delays, and will therefore fall into a stable state. As we have this uncertainty, we send a reset signal $RS(0, 1)$, which sets the $Q$ to 1, and after that point we have predictable behaviour (given we avoid $RS(0, 0)$). This way, we will be able to get $RS(0, 1) \to Q = 1$, and $RS(1, 0) \to Q = 0$. However, this mechanism isn't convenient for practical memory circuits, so we adapt it with a latch. This way, if the latch is engaged ($L = 1$), we set $Q = D$.
+            You might be able to notice that when $SR(1, 1)$, and $P = Q^\prime$, we have a stable state. In general, we have $P = Q^\prime$, as long as we reset the flip-flop, and avoid $RS(0, 0)$. Looking at the $RS(1, 1)$ state, where it's bi-stable, it can theoretically oscillate infinitely, but in practice the gates will likely have different time delays, and will therefore fall into a stable state. As we have this uncertainty, we send a reset signal $RS(0, 1)$, which sets the $Q$ to 1, and after that point we have predictable behaviour (given we avoid $RS(0, 0)$). This way, we will be able to get $RS(0, 1) \to Q = 1$, and $RS(1, 0) \to Q = 0$. However, this mechanism isn't convenient for practical memory circuits, so we adapt it with a latch. This way, if the latch is engaged ($L = 1$), we set $Q = D$.
             \begin{center}
                 \begin{tikzpicture}[y=-1cm]
                     \node (L) at (2, -2.5) {Latch};
@@ -405,11 +405,47 @@
                 \item express the state sequencing logic, and minimise said logic with Karnaugh maps
                 \item express the output logic as a function of the states, minimising if possible
             \end{enumerate}
-            There's an example in the notes, and in the lecture, but once again this is covered mostly in Cousrework 2, and therefore will be skipped here.
+            There's an example in the notes, and in the lecture, but once again this is covered mostly in Coursework 2, and therefore will be skipped here.
         \subsection*{Lecture 10}
             Once again, the content from this lecture is covered in the coursework. However, it's important to note how to notice problems with the "don't care" states. In the slides, you'll see an example where the FSM gets stuck in a state, when we replace the "don't cares" with 1s or 0s, depending on whether they're in any Karnaugh map region, or not, respectively. To fix this, we find the offending line, and make a small change that will fix the bug, without adding too much additional bulk to the circuit. This is fixing by hacking.
         \subsection*{Lecture 11}
-            Registers are fast, small bits of memory that are very accesssible. An example of a register is the bank of D-Q flip-flops in the synchronous circuit., which can store an integer in the range $[-2^{n - 1}, 2^{n - 1} - 1]$, or $[0, 2^n - 1]$, depending on whether a sign is being used. However, we frequently use serial data, and not just parallel, in real life. For example, cables are often serial as it reduces size, and minimises the chance of cable failure. However in practice, data is often processed in parallel in a computer to increase speed, therefore conversion between the two types of data is required. The same circuit can be used for doing parallel-to-serial, and serial-to-parallel, being toggled by a multiplexer.
+            Registers are fast, small bits of memory that are very accessible. An example of a register is the bank of D-Q flip-flops in the synchronous circuit., which can store an integer in the range $[-2^{n - 1}, 2^{n - 1} - 1]$, or $[0, 2^n - 1]$, depending on whether a sign is being used. However, we frequently use serial data, and not just parallel, in real life. For example, cables are often serial as it reduces size, and minimises the chance of cable failure. However in practice, data is often processed in parallel in a computer to increase speed, therefore conversion between the two types of data is required. The same circuit can be used for doing parallel-to-serial, and serial-to-parallel, being toggled by a multiplexer
+            \medskip
+
+            This method for loading serial data can be slow (due to the capacitance of the wires), especially with a larger set of data. Serial communication cannot be done as quickly as operations within the processor, which is why it is normally run on a separate clock, and utilises control lines to indicate when conversions are complete.
+            \medskip
+
+            This register can also be used for division, and multiplication, by 2. By increasing the number of functions our shift register has, we need to implement a more complex multiplexer. First we have to create a binary to unary converter, which converts an $n$-bit input, to a $2^n$ separate lines. This can then easily be combined with $n$ AND gates, and a single OR to select between $2^n$ inputs.
+            \medskip
+
+            We can use this to half the frequency of a clock, by connecting $Q^\prime$ into $D$. This will create the following square wave;
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[] at (0, 0) {Clock};
+                    \node[] at (0, -1) {$Q$};
+                    \draw
+                    (1, -0.25) -- (1.5, -0.25) -- (1.5, 0.25) -- (2, 0.25) -- (2, -0.25) -- (2.5, -0.25) -- (2.5, 0.25) -- (3, 0.25) -- (3, -0.25) -- (3.5, -0.25) -- (3.5, 0.25) -- (4, 0.25) -- (4, -0.25)
+                    (1, -1.25) -- (2, -1.25) -- (2, -0.75) -- (3, -0.75) -- (3, -1.25) -- (4, -1.25) -- (4, -0.75);
+                \end{tikzpicture}
+            \end{center}
+            This can then be easily chained to do divisions by powers of 2. However, only being able to divide by pwoers of 2 isn't exactly useful, and therefore division by other numbders is also important. By using a ripple through counter, we can count to a number, and then send a pulse on that tick, and then clear the memory, thus allowing us to divide by any integer. This counter however, is \textbf{not} synchronous. For example, if we wanted to divide by 5, we'd have $O = b_0 \cdot b_1^\prime \cdot b_2$, which would also feed into the top, as a clear signal.
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[] at (-1.4, -2.2) {clk};
+                    \node[] at (2, -3) {$b_0$};
+                    \node[] at (5, -3) {$b_1$};
+                    \node[] at (8, -3) {$b_2$};
+
+                    \foreach \x in {0,...,2} {
+                        \draw
+                        (3*\x, 0) -- (1 + 3*\x, 0) -- (1 + 3*\x, -2) -- (3*\x, -2) -- cycle
+                        (0.4 + 3*\x, -2) -- (0.5 + 3*\x, -1.86) -- (0.6 + 3*\x, -2)
+                        (-1 + 3*\x, -2.2) -| (0.5 + 3*\x, -2)
+                        (1 + 3*\x, -0.5) -| (2 + 3*\x, -2.7)
+                        (1 + 3*\x, -1) -| (1.5 + 3*\x, 0.5) -| (-0.5 + 3*\x, -0.5) -- (3*\x, -0.5);
+                    }
+                \end{tikzpicture}
+            \end{center}
         \subsection*{Lecture 14}
             Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions. Our model will be based on 8 bits.
             \medskip
