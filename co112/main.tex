@@ -439,13 +439,36 @@
                     \foreach \x in {0,...,2} {
                         \draw
                         (3*\x, 0) -- (1 + 3*\x, 0) -- (1 + 3*\x, -2) -- (3*\x, -2) -- cycle
+
                         (0.4 + 3*\x, -2) -- (0.5 + 3*\x, -1.86) -- (0.6 + 3*\x, -2)
+
                         (-1 + 3*\x, -2.2) -| (0.5 + 3*\x, -2)
                         (1 + 3*\x, -0.5) -| (2 + 3*\x, -2.7)
                         (1 + 3*\x, -1) -| (1.5 + 3*\x, 0.5) -| (-0.5 + 3*\x, -0.5) -- (3*\x, -0.5);
                     }
                 \end{tikzpicture}
             \end{center}
+        \subsection*{Lecture 12}
+            There's a lot of diagrams in this, so just look at \textit{Notes12 - Multiplexers.pdf} - TikZ is too painful.
+            \medskip
+
+            While we can build more optimised circuits, calculating the optimal solution is often not feasible, especially as the number of inputs grow (since the possible situations grow exponentially). In order to do this, we will reuse components - this is known as funcitonal design. Often, this will be done with the use of an Enable input, which in reality is just an additional AND gate right at the end.
+            \medskip
+
+            Something that will be needed often in a computer is transferring data between two registers. This is done in the following steps;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item select the input register (source)
+                    \subitem on a machine with $n$ registers, this will be done on a $n$-1 multiplexer; the inputs of the multiplexer are the $Q$s of the registers (note that in the diagrams, a line with a slash running across it, and a number above, means that it has a certain number of wires - it's a bus)
+                    \subitem the output of the multiplexer goes into $D$ for every register
+                \item select the output register (destination)
+                    \subitem you'll notice in the step above, it connects to every register - remember that a register only sets $Q$ to $D$, on the falling / rising edge of a clock
+                    \subitem the clock is connected to the enable line of a demultiplexer (which is also known as a decoder), and the outputs of the demultiplexer are connected to the clock input for each corresponding register
+                \item the data is then transferred on the clock edge
+                    \subitem this is commonly written as $R_\text{destination} \leftarrow R_\text{source}$
+            \end{enumerate}
+            One of the most important circuits is the comparator; which compares values in two registers ($A$, and $B$), and gives an output depending on; $A > B$, $A = B$, or $A < B$. In reality, only two of those are needed, as the missing one is the NOR of the other two, whichever one we decide to drop is arbitrary. See the diagrams in the notes, since I've had enough of drawing them in TikZ for today.
+        \subsection*{Lecture 13}
         \subsection*{Lecture 14}
             Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions. Our model will be based on 8 bits.
             \medskip
