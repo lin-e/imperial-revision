@@ -383,6 +383,12 @@
             The general notation we will be using is $S(t)$, or $S_t$ to represent $S$ at time $t$. We cover two main types of finite state machines in this course;
             \begin{itemize}
                 \itemsep0em
+                \item notation
+                    \subitem $S$ = state of D-Q flip-flops
+                    \subitem $O$ = output(s)
+                    \subitem $I$ = input(s)
+                    \subitem $f$ = input / sequencing logic
+                    \subitem $g$ = output / decode logic
                 \item Mealy Machine
                     \subitem $S(t + 1) = f(S(t), I(t))$
                     \subitem $O(t + 1) = g(S(t), I(t))$
@@ -390,7 +396,20 @@
                     \subitem $S(t + 1) = f(S(t), I(t))$
                     \subitem $O(t) = g(S(t))$
             \end{itemize}
-            
+            A synchronous digital circuit avoids time issues by having a bank of D-Q flip-flops (with a common clock), acting as a barrier between the input, and output. However, spikes can still occur in a Mealy machine, as the output is also controlled by the input. In general, the method for designing a synchronous circuit is as follows;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item determine the number of states
+                \item determine the state transitions (and draw FSM)
+                \item choose how the states are represented by the flip-flops
+                \item express the state sequencing logic, and minimise said logic with Karnaugh maps
+                \item express the output logic as a function of the states, minimising if possible
+            \end{enumerate}
+            There's an example in the notes, and in the lecture, but once again this is covered mostly in Cousrework 2, and therefore will be skipped here.
+        \subsection*{Lecture 10}
+            Once again, the content from this lecture is covered in the coursework. However, it's important to note how to notice problems with the "don't care" states. In the slides, you'll see an example where the FSM gets stuck in a state, when we replace the "don't cares" with 1s or 0s, depending on whether they're in any Karnaugh map region, or not, respectively. To fix this, we find the offending line, and make a small change that will fix the bug, without adding too much additional bulk to the circuit. This is fixing by hacking.
+        \subsection*{Lecture 11}
+            Registers are fast, small bits of memory that are very accesssible. An example of a register is the bank of D-Q flip-flops in the synchronous circuit., which can store an integer in the range $[-2^{n - 1}, 2^{n - 1} - 1]$, or $[0, 2^n - 1]$, depending on whether a sign is being used. However, we frequently use serial data, and not just parallel, in real life. For example, cables are often serial as it reduces size, and minimises the chance of cable failure. However in practice, data is often processed in parallel in a computer to increase speed, therefore conversion between the two types of data is required. The same circuit can be used for doing parallel-to-serial, and serial-to-parallel, being toggled by a multiplexer.
         \subsection*{Lecture 14}
             Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions. Our model will be based on 8 bits.
             \medskip
@@ -407,8 +426,10 @@
             \end{enumerate}
             In order to do this, we need a number of components;
             \begin{itemize}
+                \itemsep0em
                 \item Registers
                     \begin{itemize}
+                        \itemsep0em
                         \item store data (A), and (B)
                         \item store result (Res)
                         \item one bit for carry (C)
@@ -416,6 +437,7 @@
                     \end{itemize}
                 \item Arithmetic circuits
                     \begin{itemize}
+                        \itemsep0em
                         \item 8-bit adder
                         \item 8-bit shifter
                     \end{itemize}
