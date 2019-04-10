@@ -531,6 +531,50 @@
             PANOPTO 1:21:56
             \medskip
 
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[] (input) at (0, 0) {Input};
+                    \node[] () at (2, -1.5) {$A$ (8b)};
+                    \node[] () at (2, -3.5) {$B$ (8b)};
+                    \node[] () at (10.5, -1.5) {$R$ (8b)};
+                    \node[] () at (10.5, -3.5) {$C$ (1b)};
+                    \node[] () at (6.25, -2.5) {\shortstack{Arithmetic,\\and shift\\operations}};
+                    \node[] () at (6.25, -6.5) {Instruction (8b)};
+                    \draw
+                    (1, -1) -- (3, -1) -- (3, -2) -- (1, -2) -- cycle
+                    (1, -3) -- (3, -3) -- (3, -4) -- (1, -4) -- cycle
+                    (4.5, -0.5) -- (8, -0.5) -- (8, -4.5) -- (4.5, -4.5) -- cycle
+                    (4.5, -6) -- (8, -6) -- (8, -7) -- (4.5, -7) -- cycle
+                    (input) |- (4.5, -6.5)
+                    (9.5, -1) -- (11.5, -1) -- (11.5, -2) -- (9.5, -2) -- cycle
+                    (9.5, -3) -- (11.5, -3) -- (11.5, -4) -- (9.5, -4) -- cycle
+                    (0, -1.5) -- (1, -1.5)
+                    (0, -3.5) -- (1, -3.5)
+                    (3, -1.5) -- (4.5, -1.5)
+                    (3, -3.5) -- (4.5, -3.5)
+                    (8, -1.5) -- (9.5, -1.5)
+                    (8, -3.5) -- (9.5, -3.5)
+                    (11.5, -1.5) -- (12.5, -1.5)
+                    (11.5, -3.5) -- (12.5, -3.5)
+                    (6.25, -6) -- (6.25, -4.5);
+
+                    \node[] (i2a) at (6.25, -5.25) {};
+                    \node[] (i) at (0, -0.75) {};
+                    \node[] (a2a) at (3.75, -1.5) {};
+                    \node[] (b2a) at (3.75, -3.5) {};
+                    \node[] (a2r) at (8.75, -1.5) {};
+                    \node[] (r2o) at (12, -1.5) {};
+                    \draw
+                    %6.25, -5.25% (-0.25, -0.15)
+                    ($(i2a) + (-0.25, -0.15)$) edge[right] node{\ \ 8} ($(i2a) + (0.25, 0.15)$)
+                    ($(i) + (-0.25, -0.15)$) edge[right] node{\ \ 8} ($(i) + (0.25, 0.15)$)
+                    ($(a2a) + (-0.25, -0.15)$) edge[above] node{8} ($(a2a) + (0.25, 0.15)$)
+                    ($(b2a) + (-0.25, -0.15)$) edge[above] node{8} ($(b2a) + (0.25, 0.15)$)
+                    ($(a2r) + (-0.25, -0.15)$) edge[above] node{8} ($(a2r) + (0.25, 0.15)$)
+                    ($(r2o) + (-0.25, -0.15)$) edge[above] node{8} ($(r2o) + (0.25, 0.15)$);
+                \end{tikzpicture}
+            \end{center}
+
             \begin{figure}[h!]\includegraphics[width=\linewidth]{2019-04-08-20-08-22.png}\end{figure}
 
             For an $n$-bit ALU, there are $n + 1$ multiplexers, as the last one handles the carry bit. The $C_\text{in}$ bit for the $n^\text{th}$ multiplexer is the $C_\text{out}$ for the $(n - 1)^\text{th}$ multiplexer. The $C_\text{in}$ for the first multiplexer is 0.
