@@ -11,7 +11,7 @@
 \usepackage{diagbox}
 \usepackage{karnaugh-map}
 \usepackage{circuitikz}
-\usetikzlibrary{arrows, shapes.gates.logic.US, calc}
+\usetikzlibrary{arrows, shapes.gates.logic.US, calc, automata, positioning}
 
 % augmented matrix
 \makeatletter
@@ -327,6 +327,70 @@
                     (1.75, 0) -- (1.75, -1.1);
                 \end{tikzpicture}
             \end{center}
+            While we don't have to memorise the circuit diagrams of all the flip-flops for the exam, it's important to remember the state diagrams;
+            \begin{itemize}
+                \itemsep0em
+                \item D-Type Flip-Flop
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (0) at (0, 0) {0};
+                            \node[state] (1) at (3, 0) {1};
+
+                            \draw
+                            (0) edge[bend left=15, above, ->] node{1} (1)
+                            (1) edge[bend left=15, below, ->] node{0} (0)
+                            (0) edge[out=160, in=200, loop, left] node{0} (0)
+                            (1) edge[out=-20, in=20, loop, right] node{1} (1);
+                        \end{tikzpicture}
+                    \end{center}
+                \item T-Type Flip-Flop
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (0) at (0, 0) {0};
+                            \node[state] (1) at (3, 0) {1};
+
+                            \draw
+                            (0) edge[bend left=15, above, ->] node{1} (1)
+                            (1) edge[bend left=15, below, ->] node{1} (0)
+                            (0) edge[out=160, in=200, loop, left] node{0} (0)
+                            (1) edge[out=-20, in=20, loop, right] node{0} (1);
+                        \end{tikzpicture}
+                    \end{center}
+                \item J-K Flip-Flop
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (0) at (0, 0) {0};
+                            \node[state] (1) at (3, 0) {1};
+
+                            \draw
+                            (0) edge[bend left=15, above, ->] node{11, 10} (1)
+                            (1) edge[bend left=15, below, ->] node{11, 01} (0)
+                            (0) edge[out=160, in=200, loop, left] node{00, 01} (0)
+                            (1) edge[out=-20, in=20, loop, right] node{00, 10} (1);
+                        \end{tikzpicture}
+                    \end{center}
+                    \subitem this is very useful, as it is able to store memory when you have $JK(0, 0)$, since it doesn't change state on that input
+            \end{itemize}
+        \subsection*{Lecture 8}
+            The content covered in this lecture, is done in Coursework 2, and as such, I will be skipping over a lot of things. In general, if we have $k$ states, we will need to use $n = \ceil{\mathrm{log}_2(k)}$ D-type flip-flops, all connected to the same clock. A general synchronous sequential system would consist of a block of state sequencing logic, which takes in a set of $m$ inputs, as well as the current states of the flip-flops, and has $n$ outputs. The system would also need a block of output logic, which decodes the states into the appropriate outputs. In general, we can say that $Q_i = D_i(I_1, ..., I_m, Q_{1_\text{old}}, ..., Q_{n_\text{old}})\ \forall i \in [1..n]$, where $Q_i$ the updated state of the $i^\text{th}$ flip-flop.
+            \medskip
+
+            The J-K flip-flop is a very simple example of such a synchronise circuit, which is detailed above.
+            \medskip
+
+            In general, if we have "don't cares", we will consider them a logic 1 if they are inside any regions inside a Karnaugh map, and 0 otherwise. While components inside the Karnaugh map don't know about each other, we can reuse components when we implement our circuit in order to save silicon space.
+        \subsection*{Lecture 9}
+            The general notation we will be using is $S(t)$, or $S_t$ to represent $S$ at time $t$. We cover two main types of finite state machines in this course;
+            \begin{itemize}
+                \itemsep0em
+                \item Mealy Machine
+                    \subitem $S(t + 1) = f(S(t), I(t))$
+                    \subitem $O(t + 1) = g(S(t), I(t))$
+                \item Moore Machine
+                    \subitem $S(t + 1) = f(S(t), I(t))$
+                    \subitem $O(t) = g(S(t))$
+            \end{itemize}
+            
         \subsection*{Lecture 14}
             Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions. Our model will be based on 8 bits.
             \medskip
