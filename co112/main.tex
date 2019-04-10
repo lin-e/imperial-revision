@@ -276,10 +276,10 @@
                     1 & 1 & 1 & 1 & 0 & 0
                 \end{tabular}
             \end{center}
-            You might be able to notice that when $SR(1, 1)$, and $P = Q^\prime$, we have a stable state. In general, we have $P = Q^\prime$, as long as we reset the flip-flop, and avoid $RS(0, 0)$. Looking at the $RS(1, 1)$ state, where it's bistable, it can theoretically oscillate infinitely, but in practice the gates will likely have different time delays, and will therefore fall into a stable state. As we have this uncertainty, we send a reset signal $RS(0, 1)$, which sets the $Q$ to 1, and after that point we have predictable behaviour (given we avoid $RS(0, 0)$). This way, we will be able to get $RS(0, 1) \to Q = 1$, and $RS(1, 0) \to Q = 0$. However, this mechanism isn't convenient for practical memory circuits, so we adapt it with a latch. This way, if the latch is engaged ($L = 1$), we set $Q = D$. See \textit{Notes07 - Flip-Flops.pdf} for the circuit diagram, since I don't know how to draw one in TikZ. However; there would be a time delay, as
+            You might be able to notice that when $SR(1, 1)$, and $P = Q^\prime$, we have a stable state. In general, we have $P = Q^\prime$, as long as we reset the flip-flop, and avoid $RS(0, 0)$. Looking at the $RS(1, 1)$ state, where it's bistable, it can theoretically oscillate infinitely, but in practice the gates will likely have different time delays, and will therefore fall into a stable state. As we have this uncertainty, we send a reset signal $RS(0, 1)$, which sets the $Q$ to 1, and after that point we have predictable behaviour (given we avoid $RS(0, 0)$). This way, we will be able to get $RS(0, 1) \to Q = 1$, and $RS(1, 0) \to Q = 0$. However, this mechanism isn't convenient for practical memory circuits, so we adapt it with a latch. This way, if the latch is engaged ($L = 1$), we set $Q = D$.
             \begin{center}
-                \begin{tikzpicture}
-                    \node (L) at (2, 1) {Latch};
+                \begin{tikzpicture}[y=-1cm]
+                    \node (L) at (2, -2.5) {Latch};
                     \node (D) at (0, 0) {$D$};
 
                     \node[not gate US, draw] (notD) at ($(D) + (1, 0)$) {};
@@ -293,16 +293,38 @@
 
                     \draw
                     (D) -- (notD.input)
-                    ($(D) + (0.6, 0)$) |- (nand2.input 1)
-                    (notD.output) -- (nand1.input 1)
-                    (L) |- (nand1.input 2)
-                    (L) |- (nand2.input 2)
-                    (nand1.output) -- (nand3.input 1)
-                    (nand2.output) -- (nand4.input 2)
+                    ($(D) + (0.6, 0)$) |- (nand2.input 2)
+                    (notD.output) -- (nand1.input 2)
+                    (L) |- (nand1.input 1)
+                    (L) |- (nand2.input 1)
+                    (nand1.output) -- (nand3.input 2)
+                    (nand2.output) -- (nand4.input 1)
                     (nand3.output) -- (Qp)
                     (nand4.output) -- (Q)
-                    (nand3.input 2) -| ($(Qp) + (-2.5, -0.35)$) -- ($(Q) + (-1, 0.35)$) -- ($(Q) + (-1, 0)$)
-                    (nand4.input 1) -| ($(Q) + (-2.5, 0.35)$) -- ($(Qp) + (-1, -0.35)$) -- ($(Qp) + (-1, 0)$);
+                    (nand3.input 1) -| ($(Qp) + (-2.5, -0.35)$) -- ($(Q) + (-1, 0.35)$) -- ($(Q) + (-1, 0)$)
+                    (nand4.input 2) -| ($(Q) + (-2.5, 0.35)$) -- ($(Qp) + (-1, -0.35)$) -- ($(Qp) + (-1, 0)$);
+                \end{tikzpicture}
+            \end{center}
+            However; there would be a time delay, as the NOT gate would introduce a small delay. We can get around this by using a \textbf{Master-Slave Flip-Flop}, which combines two D Flip-Flops, thus allowing for $Q$ to only be set on the \textbf{falling edge} of the clock signal.
+            \begin{center}
+                \begin{tikzpicture}
+                    \node (clock) at (0, 0) {Clock};
+                    \node (d) at (0, -1.5) {$D$};
+                    \node (q) at (7.5, -1.5) {$Q$};
+                    \node (qp) at (7.5, -3.2) {$Q^\prime$};
+                    \node[not gate US, draw] (notclock) at (3.7 , 0) {};
+
+                    \draw
+                    (1, -1.1) -- (2.5, -1.1) -- (2.5, -3.6) -- (1, -3.6) -- cycle
+                    (5, -1.1) -- (6.5, -1.1) -- (6.5, -3.6) -- (5, -3.6) -- cycle
+                    (2.5, -1.5) -- (5, -1.5)
+                    (2.5, -3.2) -- (3, -3.2)
+                    (d) -- (1, -1.5)
+                    (q) -- (6.5, -1.5)
+                    (qp) -- (6.5, -3.2)
+                    (clock) -- (notclock.input)
+                    (notclock.output) -- (5.75, 0) -- (5.75, -1.1)
+                    (1.75, 0) -- (1.75, -1.1);
                 \end{tikzpicture}
             \end{center}
         \subsection*{Lecture 14}
