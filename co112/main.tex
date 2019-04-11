@@ -682,4 +682,49 @@
                 \end{tabular}
             \end{center}
         \subsection*{Lecture 15}
+            This builds on the manual processor we started in the previous lecture. The structure of our instructions that go into the 8-bit instruction register is as follows;
+            \begin{center}
+                \begin{tabular}{c|c|c|c|c|c|c|c}
+                    IR7 & IR6 & IR5 & IR4 & IR3 & IR2 & IR1 &IR0 \\
+                    \hline
+                    $\times$ & \multicolumn{3}{c|}{ALU/SHIFT INS} & $\times$ & S/$R$ & S/$C$ & S/$A$
+                \end{tabular}
+            \end{center}
+            Wherever there's a $\times$ - it's an unused bit. IR4-6 is used to select the function of the shifter or ALU; S/$R$ (in IR2) decides which of the two outputs is loaded into $R$. S/$C$ (in IR1) decides whether to use the $C_\text{out}$ of the ALU (when S/$C = 1$), or to use a constant logic 1. Finally, S/$A$ controls the multiplexer which decides whether $A$ is loaded from $R$ (S/$A = 0$), or from the data line (S/$A = 1$). Having unused bits has two benefits; there's redundancy built in, and also allows for the possiblitiy of upgrading the instruction set in the future. We can represent the cycle in the following state transition diagram, where the input 0 means idle, and 1 means operate;
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[state] (0) at (0, 0) {0};
+                    \node[state] (1) at (0, -3) {1};
+                    \node[state] (2) at (-3, -1) {2};
+                    \node[state] (3) at (-2, 2) {3};
+                    \node[state] (4) at (2, 2) {4};
+                    \node[state] (5) at (3, -1) {5};
+
+                    \draw
+                    (1) edge[bend left=15, below, ->] node{1} (2)
+                    (2) edge[bend left=15, left, ->] node{1} (3)
+                    (3) edge[bend left=15, above, ->] node{1} (4)
+                    (4) edge[bend left=15, right, ->] node{1} (5)
+                    (5) edge[bend left=15, below, ->] node{1} (1)
+                    (1) edge[->, left] node{0} (0)
+                    (2) edge[->, above] node{0} (0)
+                    (3) edge[->, above] node{0} (0)
+                    (4) edge[->, above] node{0} (0)
+                    (5) edge[->, above] node{0} (0)
+                    (0) edge[out=70, in=110, loop, above] node{0} (0);
+                \end{tikzpicture}
+            \end{center}
+            This has the corresponding output logic for each of the clock signals as follows;
+            \begin{center}
+                \begin{tabular}{c||c|c|c|c|c}
+                    State & ClkIR & ClkA & ClkB & ClkR & ClkC \\
+                    \hline
+                    0 & 0 & 0 & 0 & 0 & 0 \\
+                    1 & 1 & 0 & 0 & 0 & 0 \\
+                    2 & 0 & 1 & 0 & 0 & 0 \\
+                    3 & 0 & 0 & 1 & 0 & 1 \\
+                    4 & 1 & 0 & 0 & 0 & 0 \\
+                    5 & 0 & 0 & 0 & 1 & 1
+                \end{tabular}
+            \end{center}
 \end{document}
