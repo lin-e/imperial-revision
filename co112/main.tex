@@ -500,12 +500,12 @@
             Our example action is to find the average of two numbers, $A$, and $B$, such that $R = \frac{A + B}{2}$. Since we are dealing with 8 bits, $A + B < 256$.
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item The first number is set up in input lines, and stored in register (A)
-                \item The same is done for the second number, and stored in register (B)
-                \item The arithmetic circuits are set to register (A) + (B).
-                \item The resulting sum is put into (A)
-                \item The shift circuits shift (A) one bit to the right, which is integer division by 2
-                \item Result is loaded into (Res).
+                \item The first number is set up in input lines, and stored in register $A$
+                \item The same is done for the second number, and stored in register $B$
+                \item The arithmetic circuits are set to register $A$ + $B$.
+                \item The resulting sum is put into $A$
+                \item The shift circuits shifts $A$ one bit to the right, which is integer division by 2
+                \item Result is loaded into $R$.
             \end{enumerate}
             In order to do this, we need a number of components;
             \begin{itemize}
@@ -513,10 +513,10 @@
                 \item Registers
                     \begin{itemize}
                         \itemsep0em
-                        \item store data (A), and (B)
-                        \item store result (Res)
-                        \item one bit for carry (C)
-                        \item store instruction (IR)
+                        \item store data $A$, and $B$
+                        \item store result $R$ (Res)
+                        \item one bit for carry $C$
+                        \item store instruction $I$ (IR)
                     \end{itemize}
                 \item Arithmetic circuits
                     \begin{itemize}
@@ -526,9 +526,6 @@
                     \end{itemize}
             \end{itemize}
             Note in the figure below, that the 8 means it is an 8-bit line.
-            PANOPTO 1:21:56
-            \medskip
-
             \begin{center}
                 \begin{tikzpicture}
                     \node[] (input) at (0, 0) {Input};
@@ -563,13 +560,92 @@
                     \node[] (a2r) at (8.75, -1.5) {};
                     \node[] (r2o) at (12, -1.5) {};
                     \draw
-                    %6.25, -5.25% (-0.25, -0.15)
                     ($(i2a) + (-0.25, -0.15)$) edge[right] node{\ \ 8} ($(i2a) + (0.25, 0.15)$)
                     ($(i) + (-0.25, -0.15)$) edge[right] node{\ \ 8} ($(i) + (0.25, 0.15)$)
                     ($(a2a) + (-0.25, -0.15)$) edge[above] node{8} ($(a2a) + (0.25, 0.15)$)
                     ($(b2a) + (-0.25, -0.15)$) edge[above] node{8} ($(b2a) + (0.25, 0.15)$)
                     ($(a2r) + (-0.25, -0.15)$) edge[above] node{8} ($(a2r) + (0.25, 0.15)$)
                     ($(r2o) + (-0.25, -0.15)$) edge[above] node{8} ($(r2o) + (0.25, 0.15)$);
+                \end{tikzpicture}
+            \end{center}
+            However, the data path diagram above has no information about when the transfers occur, it it only shows the possible paths it can take. The arithmetic, and shift operations are done by combinational circuits, the function of which is determined by the bits in the instruction register. The processor also cannot operator on the results register. In our design, this is the specification for our ALU (in order to prevent ambiguity between the logical operators, and arithmetic, I will use symbols from \textbf{CO140}, and regular symbols for arithmetic);
+            \begin{center}
+                \begin{tabular}{c|c|c||c}
+                    $S_2$ & $S_1$ & $S_0$ & function \\
+                    \hline
+                    0 & 0 & 0 & 0 \\
+                    0 & 0 & 1 & $B - A$ \\
+                    0 & 1 & 0 & $A - B$ \\
+                    0 & 1 & 1 & $A + B$ \\
+                    1 & 0 & 0 & $A \oplus B$ \\
+                    1 & 0 & 1 & $A \lor B$ \\
+                    1 & 1 & 0 & $A \land B$ \\
+                    1 & 1 & 1 & 1
+                \end{tabular}
+            \end{center}
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[] (b) at (0, 0) {$B$};
+                    \node[] (a) at (0, -0.5) {$A$};
+                    \node[] (cin) at (0, -5) {$C_\text{in}$};
+
+                    \node[] (rbsa) at (6, 0) {$R(B-A)$};
+                    \node[] (rasb) at (6, -2) {$R(A-B)$};
+                    \node[] (rapb) at (6, -4) {$R(A+B)$};
+
+                    \node[] (cbsa) at (6, -0.5) {$C_\text{out}(B-A)$};
+                    \node[] (casb) at (6, -2.5) {$C_\text{out}(A-B)$};
+                    \node[] (capb) at (6, -4.5) {$C_\text{out}(A+B)$};
+
+                    \node[] () at (2.75, -0.5) {\shortstack{4 bit\\sub}};
+                    \node[] () at (2.75, -2.5) {\shortstack{4 bit\\sub}};
+                    \node[] () at (2.75, -4.5) {\shortstack{4 bit\\add}};
+                    \draw
+                    (2, 0.25) -- (3.5, 0.25) -- (3.5, -1.25) -- (2, -1.25) -- cycle
+                    (2, -1.75) -- (3.5, -1.75) -- (3.5, -3.25) -- (2, -3.25) -- cycle
+                    (2, -3.75) -- (3.5, -3.75) -- (3.5, -5.25) -- (2, -5.25) -- cycle;
+
+                    \node[] (bin) at (1.5, 0) {};
+                    \node[] (ain) at (1.5, -0.5) {};
+                    \node[] (op1) at (4.25, 0) {};
+                    \node[] (op2) at (4.25, -2) {};
+                    \node[] (op3) at (4.25, -4) {};
+                    \draw
+                    (b) -- (2, 0)
+                    (a) -- (2, -0.5)
+                    (cin) -- (2, -5)
+
+                    (3.5, 0) -- (rbsa)
+                    (3.5, -2) -- (rasb)
+                    (3.5, -4) -- (rapb)
+
+                    (3.5, -0.5) -- (cbsa)
+                    (3.5, -2.5) -- (casb)
+                    (3.5, -4.5) -- (capb)
+
+                    (0.5, 0) -- (0.5, -4)
+                    (1, -0.5) -- (1, -4.5)
+                    (1.5, -5) -- (1.5, -1)
+
+                    %c in for top 2
+                    (2, -1) -- (1.5, -1)
+                    (2, -3) -- (1.5, -3)
+
+                    %b in for bottom 2
+                    (2, -2) -- (0.5, -2)
+                    (2, -4) -- (0.5, -4)
+
+                    %a in for bottom 2
+                    (2, -2.5) -- (1, -2.5)
+                    (2, -4.5) -- (1, -4.5)
+
+                    ($(bin) + (-0.25, -0.15)$) edge[above] node{4} ($(bin) + (0.25, 0.15)$)
+                    ($(ain) + (-0.25, -0.15)$) edge[above] node{4} ($(ain) + (0.25, 0.15)$)
+
+                    ($(op1) + (-0.25, -0.15)$) edge[above] node{4} ($(op1) + (0.25, 0.15)$)
+                    ($(op2) + (-0.25, -0.15)$) edge[above] node{4} ($(op2) + (0.25, 0.15)$)
+                    ($(op3) + (-0.25, -0.15)$) edge[above] node{4} ($(op3) + (0.25, 0.15)$);
+
                 \end{tikzpicture}
             \end{center}
 
