@@ -727,4 +727,52 @@
                     5 & 0 & 0 & 0 & 1 & 1
                 \end{tabular}
             \end{center}
+            In our execution cycle above, we can list the states as follow;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item load the IR register from the Data In line
+                    \subitem this determines the source for $A$, and $C$
+                \item load in $A$
+                    \subitem source depends on IR0 - if it is 0, we have $A \leftarrow R$, otherwise we have $R \leftarrow \text{Data}$
+                \item load in $B$, and $C$ register
+                    \subitem $C$ source depends on IR1 - if it is 0, we're using logic 1, otherwise we're loading from the $C_\text{out}$ of the ALU
+                    \subitem $B \leftarrow \text{Data}$
+                \item load IR again
+                    \subitem it's loaded again here, as now we're doing the actual processing, as we previously loaded where the operators
+                \item load $R$, and $C$
+                    \subitem the source for $R$ is loaded from the ALU, or the Shift register, depending on IR2
+            \end{enumerate}
+            The structure of our instructions are in 5 bytes;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item Opcode 1
+                \item Data 1 (A)
+                \item Data 2 (B)
+                \item Opcode 2
+                \item Unused
+                    \subitem since we have 5 states, not using a $5^\text{th}$ byte would mean that a second clock is needed, which would make the operation asynchronous
+                    \subitem we don't need the last byte, as the source for $C_\text{in}$ is already specified in the other opcodes
+            \end{enumerate}
+            These are the cycles for $\frac{A + B}{2}$ in our manual processor
+            \begin{center}
+                \begin{tabular}{c|c|c|c|l}
+                    Stage & Step & Operate & Data & Actions \\
+                    \hline
+                    0 & 0 & 0 & \texttt{XXXXXXXX} & Set the processor to idle \\
+                    \hline
+                    1 & 1 & 1 & \texttt{X000XXX1} & Loaded into IR, ALU is set to 0, $C_\text{out}$ set to 0 \\
+                    1 & 2 & 1 & \texttt{AAAAAAAA} & IR0 = 1, so $A \leftarrow \text{Data}$ \\
+                    1 & 3 & 1 & \texttt{BBBBBBBB} & $B \leftarrow \text{Data}$, and $C \leftarrow 0$ \\
+                    1 & 4 & 1 & \texttt{X011X11X} & ALU is set to $A+B$, $C_\text{in} = 0$, as IR1 = 1 \\
+                    1 & 5 & 1 & \texttt{XXXXXXXX} & IR2 = 1, so $R \leftarrow \text{ALU}$ \\
+                    \hline
+                    2 & 1 & 1 & \texttt{X011X110} & Loaded into IR \\
+                    2 & 2 & 1 & \texttt{XXXXXXXX} & IR0 = 0, so $A \leftarrow R$ \\
+                    2 & 3 & 1 & \texttt{XXXXXXXX} & We don't care about $B$, and $C \leftarrow C_\text{out}$ \\
+                    2 & 4 & 1 & \texttt{X110X0XX} & Shift is set to Arithmetic Right Shift \\
+                    2 & 5 & 1 & \texttt{XXXXXXXX} & IR2 = 1, so $R \leftarrow \text{Shift}$ \\
+                    \hline
+                    0 & 0 & 0 & \texttt{XXXXXXXX} & Set the processor to idle
+                \end{tabular}
+            \end{center}
 \end{document}
