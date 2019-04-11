@@ -11,7 +11,7 @@
 \usepackage{diagbox}
 \usepackage{karnaugh-map}
 \usepackage{circuitikz}
-\usetikzlibrary{arrows, shapes.gates.logic.US, calc, automata, positioning}
+\usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
 
 % augmented matrix
 \makeatletter
@@ -45,6 +45,8 @@
 % reasoning proofs
 \newcommand{\proofline}[3]{(#1)\ & #2 & \text{#3} \\}
 \allowdisplaybreaks
+
+\input{tristatebuffer.tex}
 
 % actual document
 \begin{document}
@@ -727,7 +729,7 @@
                     5 & 0 & 0 & 0 & 1 & 1
                 \end{tabular}
             \end{center}
-            In our execution cycle above, we can list the states as follow;
+            The states are transitioned in the falling edge of the clock, and then pulsed out in the rising edge, by the NAND gate. In our execution cycle above, we can list the states as follow;
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item load the IR register from the Data In line
@@ -774,5 +776,44 @@
                     \hline
                     0 & 0 & 0 & \texttt{XXXXXXXX} & Set the processor to idle
                 \end{tabular}
+            \end{center}
+        \subsection*{Lecture 16}
+            When we move to larger systems, we will need to be able to address specific memory locations. This can be done with a decoder (which is also a demultiplexer). We will need to have a read line $R$, which is toggled based on whether memory is being read or not. The data in, and data out lines are connected to all of the flip-flops. The enable line of a D-Q flip-flop $M[i]$ has the logic $R^\prime \cdot D_i(\text{ADDRESS}) \cdot \text{Clk}$. Note that $D_i(\text{ADDRESS})$ is the line corresponding to the address in the decoder, this then allows the specific bit to be written.
+            \medskip
+
+            Note that reading is a combinatorial circuit, as it is simply $R^\prime \cdot D_i(\text{ADDRESS}) \cdot Q_i$, but writing is a sequential circuit, as it requires the address, and data to be present on the clock edge pulse. This asymmetric design is known as static RAMs, which are used in special applications, due to their larger physical space, but are generally faster.
+            \medskip
+
+            In the processor, we have collections of wires, known as busses; they are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item address bus
+                    \subitem since the same address lines go into each decoder, it is referred to as the address bus
+                \item control bus
+                    \subitem the control bus consists of the system clock, as well as the read line
+                \item data bus
+                    \subitem as we won't need to use both the data in, and data out lines at the same time, it makes sense for us to create a bi-directional bus, as it would reduce the size, and complexity of the memory circuit
+                    \subitem however, we can encounter some issues with this, as lines may short circuit, causing damage
+            \end{itemize}
+            In order to use a bi-directional data bus, a new gate called a \textbf{tri-state buffer} is required, which follows the input exactly if the input, $C_i$, of the buffer is 0. However, if $C_i$ is set to 1, the output is neither 0, nor 1, and it is effectively disconnected from the data line. This way, many different sources can feed into a single line, as long as only of of the $C_i=0$. This is yet another use of the demultiplexer. Physically, the RAM is organised in to a two-dimensional grid of units, where it is only active if both the decoded column, decoded row, are 1. Every cell is connected to the same bi-directional data line, and the same read/write line. The data line is connected through a two-way tri-state buffer, which prevents data from flowing in, or out, if the buffer isn't enabled. The following diagram is connected to each cell.
+            \begin{center}
+                \begin{tikzpicture}[circuit logic US, on grid, x=0.5cm, y=0.5cm]
+                    \node[] (r) at (0, 1) {R};
+                    \node[] (d) at (3, 1) {D};
+                    \node[] (e) at (4.5, 1) {E};
+                    \node[] () at (1.5, -5) {CELL};
+                    \node[tri state buffer active low, rotate=-90] (b1) at (3, -2) {};
+                    \node[tri state buffer active low, rotate=90] (b2) at (6, -2) {};
+
+                    \draw
+                    (-1, -4) -- (4, -4) -- (4, -6) -- (-1, -6) -- cycle
+                    (r) edge[->] node{} (0, -4)
+                    (d) -- (b1.input)
+                    (b1.output) edge[->] node{} (3, -4)
+                    (b2.input) |- (3, -3.5)
+                    (b2.output) |- (3, -0.5)
+                    (b1.control) -- (b2.control)
+                    (e) -- (4.5, -2);
+                \end{tikzpicture}
             \end{center}
 \end{document}

@@ -1,0 +1,84 @@
+
+% COPIED FROM https://tex.stackexchange.com/a/86918
+
+\makeatletter
+\pgfdeclareshape{tri state buffer active low}{
+    \inheritsavedanchors[from=buffer gate US]
+    \inheritanchorborder[from=buffer gate US]
+    \inheritanchor[from=buffer gate US]{center}
+    \inheritanchor[from=buffer gate US]{base}
+    \inheritanchor[from=buffer gate US]{base west}
+    \inheritanchor[from=buffer gate US]{base east}
+    \inheritanchor[from=buffer gate US]{mid}
+    \inheritanchor[from=buffer gate US]{mid west}
+    \inheritanchor[from=buffer gate US]{mid east}
+    \inheritanchor[from=buffer gate US]{north}
+    \inheritanchor[from=buffer gate US]{north west}
+    \inheritanchor[from=buffer gate US]{north east} 
+    \inheritanchor[from=buffer gate US]{south}
+    \inheritanchor[from=buffer gate US]{south east}
+    \inheritanchor[from=buffer gate US]{south west}
+    \inheritanchor[from=buffer gate US]{west}
+    \inheritanchor[from=buffer gate US]{east}
+    \inheritanchor[from=buffer gate US]{input}
+    \inheritanchor[from=buffer gate US]{output}
+    \anchor{control}{%
+        \dimensions
+        \tipanchor%
+        \pgf@xa\pgf@x%  
+        \pgf@ya\pgf@y%
+        \csname pgf@anchor@buffer gate US@north west\endcsname%
+        \advance\pgf@xa-\pgf@x%
+        \advance\pgf@ya-\pgf@y%
+        \pgfpointintersectionoflines{\csname pgf@anchor@buffer gate US@north west\endcsname}{\tipanchor}{\centerpoint}{\centerpoint\advance\pgf@y2pt}%
+        \pgfmathparse{sqrt(\pgf@xa^2+\pgf@ya^2)/\pgf@xa*\invertedradius}
+        \advance\pgf@y\pgfmathresult pt
+        \advance\pgf@y\invertedradius
+    }%
+    \backgroundpath{%
+        \dimensions%
+        \pgf@xc\halfwidth%
+        \pgf@yc\halfheight%
+        \advance\pgf@xc-\outerxsep%
+        \advance\pgf@yc-\outerysep%
+        {%
+            \pgftransformshift{\centerpoint}%
+            \pgfpathmoveto{\tipanchor}%
+            \pgfpathlineto{\pgfqpoint{-.833333\pgf@xc}{1.166666\pgf@yc}}%
+            \pgfpathlineto{\pgfqpoint{-.833333\pgf@xc}{-1.166666\pgf@yc}}%
+            \pgfpathclose%
+            %
+            % Draw the input.
+            %
+            \pgfpathcircle{%
+                \tipanchor%
+                \pgf@xa\pgf@x%  
+                \pgf@ya\pgf@y%
+                \csname pgf@anchor@buffer gate US@north west\endcsname%
+                \advance\pgf@xa-\pgf@x%
+                \advance\pgf@ya-\pgf@y%
+                \pgfpointintersectionoflines{\csname pgf@anchor@buffer gate US@north west\endcsname}{\tipanchor}{\centerpoint}{\centerpoint\advance\pgf@y1pt}%
+                \pgfmathparse{sqrt(\pgf@xa^2+\pgf@ya^2)/\pgf@xa*\invertedradius}
+        \advance\pgf@y\pgfmathresult pt
+                }{+\invertedradius}%
+            \expandafter\ifx\expandafter\pgf@lib@sh@itext\csname input-1\endcsname%
+                {%
+                    \pgfpathcircle{%
+                        \pgf@xa\halfside%
+                        \pgf@x-.833333\pgf@xa%
+                        \advance\pgf@x-.5\pgflinewidth%
+                        \advance\pgf@x-\invertedradius%
+                        \pgf@y0pt%
+                    }{+\invertedradius}%                
+                }%
+            \fi%                
+        }%
+    }%
+}
+
+\tikzset{
+    circuit declare symbol=tri state buffer active low,
+    set tri state buffer active low graphic={draw, shape=tri state buffer active low, minimum size=5mm},
+    circuit declare symbol=tri state buffer active high,
+    set tri state buffer active high graphic={draw,shape=tri state buffer active high,minimum size=5mm}
+}
