@@ -571,7 +571,7 @@
             However, the data path diagram above has no information about when the transfers occur, it it only shows the possible paths it can take. The arithmetic, and shift operations are done by combinational circuits, the function of which is determined by the bits in the instruction register. The processor also cannot operator on the results register. In our design, this is the specification for our ALU (in order to prevent ambiguity between the logical operators, and arithmetic, I will use symbols from \textbf{CO140}, and regular symbols for arithmetic);
             \begin{center}
                 \begin{tabular}{c|c|c||c}
-                    $S_2$ & $S_1$ & $S_0$ & function \\
+                    $S_2$ & $S_1$ & $S_0$ & Function \\
                     \hline
                     0 & 0 & 0 & 0 \\
                     0 & 0 & 1 & $B - A$ \\
@@ -648,7 +648,38 @@
 
                 \end{tikzpicture}
             \end{center}
-
             For an $n$-bit ALU, there are $n + 1$ multiplexers, as the last one handles the carry bit. The $C_\text{in}$ bit for the $n^\text{th}$ multiplexer is the $C_\text{out}$ for the $(n - 1)^\text{th}$ multiplexer. The $C_\text{in}$ for the first multiplexer is 0.
+            \medskip
 
+            In our 8 function shifter, we will be using the following rules;
+            \begin{center}
+                \begin{tabular}{c||c|c|c||c|c||c}
+                    & $F_2$ & $F_1$ & $F_0$ & Shift & Carry & Function \\
+                    \hline
+                    A & 0 & 0 & 0 & & & unchanged (hold) \\
+                    B & 0 & 0 & 1 & left & & rotate left \\
+                    C & 0 & 1 & 0 & left & 0 & arithmetic left shift \\
+                    D & 0 & 1 & 1 & left & $C_\text{in}$ & left shift with carry \\
+                    E & 1 & 0 & 0 & right & & rotate right \\
+                    F & 1 & 0 & 1 & right & 0 & logical right shift \\
+                    G & 1 & 1 & 0 & right & $I[7]$ & arithmetic right shift \\
+                    H & 1 & 1 & 1 & right & $C_\text{in}$ & shift right with carry
+                \end{tabular}
+            \end{center}
+            In reality, for an $n$-bit shifter, it's just $n$ multiplexers together, with carry cases for the first, and last, multiplexer. Given an $n$-bit shifter, these are the inputs for the multiplexers;
+            \begin{center}
+                \begin{tabular}{c||c|c|c}
+                    & $O[n-1]$ & $O[i] (i \neq n-1 \land i \neq 0)$ & $O[0]$ \\
+                    \hline
+                    A & $I[n-1]$ & $I[i]$ & $I[0]$ \\
+                    B & $I[n-2]$ & $I[i-1]$ & $I[n-1]$ \\
+                    C & $I[n-2]$ & $I[i-1]$ & $0$ \\
+                    D & $I[n-2]$ & $I[i-1]$ & $C_\text{in}$ \\
+                    E & $I[0]$ & $I[i+1]$ & $I[1]$ \\
+                    F & 0 & $I[i+1]$ & $I[1]$ \\
+                    G & $I[n-1]$ & $I[i+1]$ & $I[1]$ \\
+                    H & $C_\text{in}$ & $I[i+1]$ & $I[1]$
+                \end{tabular}
+            \end{center}
+        \subsection*{Lecture 15}
 \end{document}
