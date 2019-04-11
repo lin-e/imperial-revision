@@ -582,7 +582,7 @@
                     1 & 0 & 0 & $A \oplus B$ \\
                     1 & 0 & 1 & $A \lor B$ \\
                     1 & 1 & 0 & $A \land B$ \\
-                    1 & 1 & 1 & 1
+                    1 & 1 & 1 & -1
                 \end{tabular}
             \end{center}
             \begin{center}
@@ -950,4 +950,78 @@
                 \end{tikzpicture}
             \end{center}
             \subsubsection*{Memory Reference Instructions}
+            In the table below, I'll list the instructions used. Note that for all of them, bits 31-24 (inclusive) are used for the Opcode, and therefore I won't include them. Note that to save space, LOADI means LOADINDIRECT, and similar for STORE, JUMP, and CALL.
+            \begin{center}
+                \begin{tabular}{l||c|c|c||c|l|l}
+                    Instruction & $I_{23-20}$ & $I_{19-16}$ & $I_{15-0}$ & Cycle & Transfers & Path \\
+                    \hline
+                    LOAD & $R_\text{dest}$ & $\times$ & Adr & $E_1$ & $\text{MAR} \leftarrow \text{MDR}$ & bit mask \\
+                    & & & & $E_2$ & $\text{MDR} \leftarrow \text{Mem}$ & \\
+                    & & & & $E_3$ & $R_\text{dest} \leftarrow \text{MDR}$ & no mask \\
+                    \hline
+                    STORE & $R_\text{dest}$ & $\times$ & Adr & $E_1$ & $\text{MAR} \leftarrow \text{MDR}; A \leftarrow R_\text{dest}$ & bit mask \\
+                    & & & & $E_2$ & $\text{Mem} \leftarrow A$ & via shifter (hold) \\
+                    \hline
+                    JUMP & $\times$ & $\times$ & Adr & $E_1$ & $\text{PC} \leftarrow \text{MDR}$ & bit mask \\
+                    \hline
+                    CALL & $R_\text{dest}$ & $\times$ & Adr & $E_1$ & $\text{PC} \leftarrow \text{PC} + 1$ & \\
+                    & & & & $E_2$ & $R_\text{dest} \leftarrow \text{PC}$ & \\
+                    & & & & $E_3$ & $\text{PC} \leftarrow \text{MDR}$ & bit mask \\
+                    \hline
+                    LOADI & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    & & & & $E_2$ & $\text{MAR} \leftarrow A$ & via shifter (hold) \\
+                    & & & & $E_3$ & $\text{MDR} \leftarrow \text{Mem}$ & \\
+                    & & & & $E_4$ & $R_\text{dest} \leftarrow \text{MDR}$ & no mask \\
+                    \hline
+                    STOREI & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    & & & & $E_2$ & $\text{MAR} \leftarrow A; A \leftarrow R_\text{dest}$ & via shifter (hold) \\
+                    & & & & $E_3$ & $\text{Mem} \leftarrow A$ & via shifter (hold) \\
+                    \hline
+                    JUMPI & $\times$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    & & & & $E_2$ & $\text{PC} \leftarrow A$ & via shifter (hold) \\
+                    \hline
+                    CALLI & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $\text{PC} \leftarrow \text{PC} + 1; A \leftarrow R_\text{src}$ & \\
+                    & & & & $E_2$ & $R_\text{dest} \leftarrow \text{PC}$ & \\
+                    & & & & $E_3$ & $\text{PC} \leftarrow A$ & via shifter (hold) \\
+                    \hline
+                    MOVE & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    & & & & $E_2$ & $R_\text{dest} \leftarrow \text{Shifter}$ & via shifter (hold) \\
+                    \hline
+                    ADD & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    & & & & $E_2$ & $B \leftarrow R_\text{dest}$ & \\
+                    & & & & $E_3$ & $R_\text{dest} \leftarrow \text{ALU}_R; C \leftarrow \text{ALU}_{C_\text{O}}$ & ALU=$A+B$, $C_\text{I} = 0$\\
+                    \hline
+                    COMPARE & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    & & & & $E_2$ & $B \leftarrow R_\text{dest}$ & \\
+                    & & & & $E_3$ & $C \leftarrow \text{ALU}_{C_\text{O}}$ & ALU=$A-B$, $C_\text{I} = 0$ \\
+                    \hline
+                    CLEAR & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $R_\text{dest} \leftarrow \text{ALU}_R$ & ALU=0 out \\
+                    \hline
+                    INC & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
+                    & & & & $E_2$ & $B \leftarrow \text{ALU}_R$ & ALU=0 out \\
+                    & & & & $E_3$ & $R_\text{dest} \leftarrow \text{ALU}_R; C \leftarrow \text{ALU}_{C_\text{O}}$ & ALU=$A+B$, $C_\text{I} = 1$ \\
+                    \hline
+                    DEC & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
+                    & & & & $E_2$ & $B \leftarrow \text{ALU}_R$ & ALU=-1 out \\
+                    & & & & $E_3$ & $R_\text{dest} \leftarrow \text{ALU}_R; C \leftarrow \text{ALU}_{C_\text{O}}$ & ALU=$A+B$, $C_\text{I} = 0$ \\
+                    \hline
+                    COMP & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
+                    & & & & $E_2$ & $B \leftarrow \text{ALU}_R$ & ALU=-1 out \\
+                    & & & & $E_3$ & $R_\text{dest} \leftarrow \text{ALU}_R$ & ALU=$A \oplus B$ \\
+                    \hline
+                    ASL & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
+                    & & & & $E_2$ & $R_\text{dest} \leftarrow \text{Shifter}$ & via shifter (a. left) \\
+                    \hline
+                    RETURN & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
+                    & & & & $E_2$ & $\text{PC} \leftarrow \text{Shifter}$ & via shifter (hold) \\
+                    \hline
+                    SKIP & $\times$ & $\times$ & $\times$ & $E_1$ & $\text{PC} \leftarrow \text{PC} + 1$ & \\
+                    \hline
+                \end{tabular}
+            \end{center}
+            SUBTRACT, AND, OR, and XOR are done in the same way as ADD, with the appropriate ALU settings. COMPARE is just subtract with a zero check. Since we don't have any hardware for checking ALU, we can the carry bit (0 if $R_\text{src} \leq R_\text{dest}$, 1 otherwise). Other shifts are done in the same way as ASL, but the settings, and carry will change. COMP would flip the bits for the register, and in order to get a number in twos complement, we'd do a COMP followed by INC.
+            \medskip
+
+            There are some limitations to this design, for example - INC, DEC, and COMP, $B$ is loaded from the main bus, but $A$ is loaded from the registers the programmer specified; another multiplexer could be used to allow these to happen simultaneously.
+        \subsection*{Lecture 18}
 \end{document}
