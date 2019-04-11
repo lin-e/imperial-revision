@@ -1024,4 +1024,34 @@
 
             There are some limitations to this design, for example - INC, DEC, and COMP, $B$ is loaded from the main bus, but $A$ is loaded from the registers the programmer specified; another multiplexer could be used to allow these to happen simultaneously.
         \subsection*{Lecture 18}
+            We can model the cycles as a FSM, but what we need to work out is the input to the FSM;
+            \begin{center}
+                \begin{tikzpicture}[x=1.5cm, y=-1.5cm]
+                    \node[state] (f1) at (2, 0) {$F_1$};
+                    \node[state] (f2) at (1.247, 1.564) {$F_2$};
+                    \node[state] (f3) at (-0.445, 1.95) {$F_3$};
+                    \node[state] (e1) at (-1.802, 0.868) {$E_1$};
+                    \node[state] (e2) at (-1.802, -0.868) {$E_2$};
+                    \node[state] (e3) at (-0.445, -1.95) {$E_3$};
+                    \node[state] (e4) at (1.247, -1.564) {$E_4$};
+
+                    \draw
+                    (f1) edge[bend left=15, ->, right] node{1, 0} (f2)
+                    (f2) edge[bend left=15, ->, below] node{1, 0} (f3)
+                    (f3) edge[bend left=15, ->, below] node{1} (e1)
+                    (e1) edge[bend left=15, ->, left] node{1} (e2)
+                    (e2) edge[bend left=15, ->, above] node{1} (e3)
+                    (e3) edge[bend left=15, ->, above] node{1} (e4)
+                    (e4) edge[bend left=15, ->, right] node{1, 0} (f1)
+
+                    (f3) edge[->, above] node{0} (f1)
+                    (e1) edge[->, above] node{0} (f1)
+                    (e2) edge[->, above] node{0} (f1)
+                    (e3) edge[->, above] node{0} (f1);
+                \end{tikzpicture}
+            \end{center}
+            The input, $C$, is a combinatorial circuit of $\text{IR}_{31-24}$, $Q_2$, $Q_1$, and $Q_0$. In order to make it easier for us to deal with the opcode, we can use an 8-256 demultiplexer, which will give us 1 line corresponding to each possible instruction, only one of which will be 1, depending on the opcode. In order to make this easier for us, we can group together instructions that have the same state sequence; for example, we can say ADDS = ADD + SUBTRACT + AND + OR + XOR, and SHIFTS = ASL + ASR + ROR, and so on - this will allow us to save some time when we start the circuit. We will also need to know the states, however, this can be done with a 3-8 demultiplexer, in the same fashion as the demultiplexer used for the opcode.
+            \medskip
+
+            Now, we can work the return condition from the state $E_2$ (I explicitly mention state here, as we will be using $E_2$ to refer to the 3-8 multiplexer output later on). The condition is $(E_2 \cdot (\text{RETURN} + \text{SHIFTS} + \text{MOVE} + \text{JUMPI}))^\prime$. This is inverted, as if it is on $E_2$, and it's currently performing the last action (since these items all have 2 stages), it should output a 0, as it will need to return to the state $F_1$ (see the FSM). The final outcome will be $C = (F_3 \cdot \text{NOP})^\prime \cdot (E_1 \cdot (\text{SKIPS} + \text{CLEAR} + \text{JUMP}))^\prime \cdot (E_2 \cdot (\text{RETURN} + \text{SHIFTS} + \text{MOVE} + \text{JUMPI}))^\prime \cdot (E_3 \cdot (\text{COMP} + \text{DEC} + \text{INC} + \text{COMPARE} + \text{ADDS} + \text{STOREI} + \text{LOAD}))^\prime$. This extremely long input, is then used in the state transition table, which follows the same methodology as we have used multiple times before. We can also reuse the outputs of the multiplexers, once we do our minterms.
 \end{document}
