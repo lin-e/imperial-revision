@@ -430,7 +430,7 @@
                     (1, -1.25) -- (2, -1.25) -- (2, -0.75) -- (3, -0.75) -- (3, -1.25) -- (4, -1.25) -- (4, -0.75);
                 \end{tikzpicture}
             \end{center}
-            This can then be easily chained to do divisions by powers of 2. However, only being able to divide by pwoers of 2 isn't exactly useful, and therefore division by other numbders is also important. By using a ripple through counter, we can count to a number, and then send a pulse on that tick, and then clear the memory, thus allowing us to divide by any integer. This counter however, is \textbf{not} synchronous. For example, if we wanted to divide by 5, we'd have $O = b_0 \cdot b_1^\prime \cdot b_2$, which would also feed into the top, as a clear signal.
+            This can then be easily chained to do divisions by powers of 2. However, only being able to divide by powers of 2 isn't exactly useful, and therefore division by other numbers is also important. By using a ripple through counter, we can count to a number, and then send a pulse on that tick, and then clear the memory, thus allowing us to divide by any integer. This counter however, is \textbf{not} synchronous. For example, if we wanted to divide by 5, we'd have $O = b_0 \cdot b_1^\prime \cdot b_2$, which would also feed into the top, as a clear signal.
             \begin{center}
                 \begin{tikzpicture}
                     \node[] at (-1.4, -2.2) {clk};
@@ -454,7 +454,7 @@
             There's a lot of diagrams in this, so just look at \textit{Notes12 - Multiplexers.pdf} - TikZ is too painful.
             \medskip
 
-            While we can build more optimised circuits, calculating the optimal solution is often not feasible, especially as the number of inputs grow (since the possible situations grow exponentially). In order to do this, we will reuse components - this is known as funcitonal design. Often, this will be done with the use of an Enable input, which in reality is just an additional AND gate right at the end.
+            While we can build more optimised circuits, calculating the optimal solution is often not feasible, especially as the number of inputs grow (since the possible situations grow exponentially). In order to do this, we will reuse components - this is known as functional design. Often, this will be done with the use of an Enable input, which in reality is just an additional AND gate right at the end.
             \medskip
 
             Something that will be needed often in a computer is transferring data between two registers. This is done in the following steps;
@@ -692,7 +692,7 @@
                     $\times$ & \multicolumn{3}{c|}{ALU/SHIFT INS} & $\times$ & S/$R$ & S/$C$ & S/$A$
                 \end{tabular}
             \end{center}
-            Wherever there's a $\times$ - it's an unused bit. IR4-6 is used to select the function of the shifter or ALU; S/$R$ (in IR2) decides which of the two outputs is loaded into $R$. S/$C$ (in IR1) decides whether to use the $C_\text{out}$ of the ALU (when S/$C = 1$), or to use a constant logic 1. Finally, S/$A$ controls the multiplexer which decides whether $A$ is loaded from $R$ (S/$A = 0$), or from the data line (S/$A = 1$). Having unused bits has two benefits; there's redundancy built in, and also allows for the possiblitiy of upgrading the instruction set in the future. We can represent the cycle in the following state transition diagram, where the input 0 means idle, and 1 means operate;
+            Wherever there's a $\times$ - it's an unused bit. IR4-6 is used to select the function of the shifter or ALU; S/$R$ (in IR2) decides which of the two outputs is loaded into $R$. S/$C$ (in IR1) decides whether to use the $C_\text{out}$ of the ALU (when S/$C = 1$), or to use a constant logic 1. Finally, S/$A$ controls the multiplexer which decides whether $A$ is loaded from $R$ (S/$A = 0$), or from the data line (S/$A = 1$). Having unused bits has two benefits; there's redundancy built in, and also allows for the possibility of upgrading the instruction set in the future. We can represent the cycle in the following state transition diagram, where the input 0 means idle, and 1 means operate;
             \begin{center}
                 \begin{tikzpicture}
                     \node[state] (0) at (0, 0) {0};
@@ -879,7 +879,7 @@
             However, this design still has quite a few issues; you'll see how we fetch from memory 4 times during one instruction, which adds on 12 stages to our original sequential circuit, with a total of 17 steps (plus an idle state). We also don't have the result register, therefore we need to store that somewhere within memory. However, finding out where that will be would require another 3 steps, since that would have to be loaded as well, which means we'd need an extremely large multiplexer to replace the selection for $R$, or we'd need to read it through $A$, which would then overwrite it, thus causing us to lose our computed result. There are multiple ways to get around this;
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item ccale the architecture up to 32-bits, or even higher
+                \item scale the architecture up to 32-bits, or even higher
                     \subitem everything will then use four times as many gates, but we aren't reading, or writing, four times as fast
                     \subitem we can also fetch all the bytes for our instructions at the same time
                     \subitem we no longer need to consider carries, as we will have a much larger possible set of numbers to work on
@@ -1054,4 +1054,7 @@
             \medskip
 
             Now, we can work the return condition from the state $E_2$ (I explicitly mention state here, as we will be using $E_2$ to refer to the 3-8 multiplexer output later on). The condition is $(E_2 \cdot (\text{RETURN} + \text{SHIFTS} + \text{MOVE} + \text{JUMPI}))^\prime$. This is inverted, as if it is on $E_2$, and it's currently performing the last action (since these items all have 2 stages), it should output a 0, as it will need to return to the state $F_1$ (see the FSM). The final outcome will be $C = (F_3 \cdot \text{NOP})^\prime \cdot (E_1 \cdot (\text{SKIPS} + \text{CLEAR} + \text{JUMP}))^\prime \cdot (E_2 \cdot (\text{RETURN} + \text{SHIFTS} + \text{MOVE} + \text{JUMPI}))^\prime \cdot (E_3 \cdot (\text{COMP} + \text{DEC} + \text{INC} + \text{COMPARE} + \text{ADDS} + \text{STOREI} + \text{LOAD}))^\prime$. This extremely long input, is then used in the state transition table, which follows the same methodology as we have used multiple times before. We can also reuse the outputs of the multiplexers, once we do our minterms.
+            \medskip
+
+            Finally, we can start working on the output logic. However, there are 28 combinatorial circuits that we will need, each having 17 inputs. This is not feasible to do with Karnaugh maps. We can define the clock signals for when registers have to be updated by referencing the table. For example, we're updating MAR on the following stages; $F_1$, and certain cases for $E_1$, and $E_2$, hence we can say the gate logic for $C_\text{MAR} = F_1 + E_1 \cdot (\text{LOAD} + \text{STORE}) + E_2 \cdot (\text{LOADI} + \text{STOREI})$ - the same is done for the other registers. Sometimes, we don't care about the content of the register, for example - because we only need the MAR to be accurate when we load the MDR, we can simplify the gate logic to $C_\text{MAR}=F_1 + E_1 + E_2$. This is combined with a NAND gate with the system clock, so that the state changes happen on a different edge to the loading. However, because we care about the MDR, we will follow the proper procedure, and obtain $C_\text{MDR} = F_2 + E_2 \cdot \text{LOAD} + E_3 \cdot \text{LOADI}$. The same is also done for the function bits, which are gated based on when they are used, depending on the configuration for the instruction.
 \end{document}
