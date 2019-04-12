@@ -1,0 +1,71 @@
+\documentclass[a4paper, 12pt]{article}
+% packages
+\usepackage{amssymb}
+\usepackage[fleqn]{mathtools}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{bussproofs}
+\usepackage{xcolor}
+\usepackage[margin=1.3cm]{geometry}
+\usepackage{logicproof}
+\usepackage{diagbox}
+
+% augmented matrix
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+\hskip -\arraycolsep
+\let\@ifnextchar\new@ifnextchar
+\array{#1}}
+\makeatother
+
+% ceiling / floor
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+% custom commands
+\newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
+\newcommand{\defint}[4]{\int_{#1}^{#2} #3 \, \mathrm{d}#4}
+\newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\limit}[2]{\displaystyle{\lim_{#1 \to #2}}}
+\newcommand{\summation}[3]{\sum\limits_{#1}^{#2} #3}
+\newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
+
+\newcommand{\powerset}[0]{\wp}
+\renewcommand{\emptyset}[0]{\varnothing}
+
+\newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
+\newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
+
+% no indent
+\setlength\parindent{0pt}
+
+% reasoning proofs
+\usepackage{ltablex}
+\usepackage{environ}
+\keepXColumns
+\NewEnviron{reasoning}{
+    \begin{tabularx}{\textwidth}{rlX}
+        \BODY
+    \end{tabularx}
+}
+\newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
+\newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
+
+% actual document
+\begin{document}
+    \section*{Procrastination}
+        \subsection*{tabularx Testing}
+        \begin{reasoning}
+            \prooftext{This is a test comment, here we want to show $\exists m : \mathbb{N}[Q(m) \rightarrow P(m, 0, 0)]$}
+            \prooftext{The goal is to show the following;}
+            \proofline{\alpha}{\forall x \forall y \forall z : \mathbb{N} [P(x, y, z)]}{}
+            \proofline{\beta}{\exists y : \mathbb{N} [Q(x)]}{}
+            \prooftext{Proof:}
+            \proofarbitrary{m_1}
+            \proofarbitrary{m_2}
+            \proofarbitrary{m_3}
+            \proofline{1}{m_1 = m_2}{lorem ipsum}
+            \proofline{2}{Q(m_3)}{assumption}
+        \end{reasoning}
+\end{document}
