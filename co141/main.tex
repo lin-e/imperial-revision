@@ -41,6 +41,7 @@
 
 % reasoning proofs
 \newcommand{\proofline}[3]{(#1)\ & #2 & \text{#3} \\}
+\newcommand{\proofarbitrary}[1]{& \text{take arbitrary } #1 \\}
 \allowdisplaybreaks
 
 % actual document
@@ -94,15 +95,61 @@
                     \item a supervillain is also a person
                 \end{enumerate}
             \subsubsection*{Formal Argument}
-            \vspace{-\baselineskip}
-            \begin{align*}
-                \intertext{Given:}
-                \proofline{1}{\forall x [\text{person}(x) \land \forall y [\text{childof}(y, x) \rightarrow \text{rich}(y)] \rightarrow \text{happy}(x)]}{}
-                \proofline{2}{\forall x [\exists y [\text{childof}(x, y) \land \text{supervillain}(y)] \rightarrow \text{supervillain}(x)]}{}
-                \proofline{3}{\forall x [\text{supervillain}(x) \rightarrow \text{rich}(x)]}{}
-                \proofline{4}{\forall x [\text{supervillain}(x) \rightarrow \text{person}(x)]}{}
-                \intertext{To show:}
-                \proofline{\alpha}{\forall x [\text{supervillain}(x) \rightarrow \text{happy}(x)]}{}
-            \end{align*}
-            While this can be proven fairly easily, and with great confidence, via first-order natural deduction, the proof is often tedious.
+                \vspace{-\baselineskip}
+                \begin{align*}
+                    \intertext{Given:}
+                    \proofline{1}{\forall x [\text{person}(x) \land \forall y [\text{childof}(y, x) \rightarrow \text{rich}(y)] \rightarrow \text{happy}(x)]}{}
+                    \proofline{2}{\forall x [\exists y [\text{childof}(x, y) \land \text{supervillain}(y)] \rightarrow \text{supervillain}(x)]}{}
+                    \proofline{3}{\forall x [\text{supervillain}(x) \rightarrow \text{rich}(x)]}{}
+                    \proofline{4}{\forall x [\text{supervillain}(x) \rightarrow \text{person}(x)]}{}
+                    \intertext{To show:}
+                    \proofline{\alpha}{\forall x [\text{supervillain}(x) \rightarrow \text{happy}(x)]}{}
+                    \intertext{(Stylised) Proof:}
+                    \proofarbitrary{G}
+                    \proofline{\text{a}1}{\text{supervillain}(G)}{}
+                    \proofline{5}{\text{person}(G) \land \forall y [\text{childof}(y, G) \rightarrow \text{rich}(y)] \rightarrow \text{happy}(G)}{from (1)}
+                    \proofline{6}{\text{person}(G)}{from (a1), and (4)}
+                    \proofarbitrary{E}
+                    \proofline{\text{a}2}{\text{childof}(E, G)}{}
+                    \proofline{7}{\text{supervillain}(E)}{from (a1), (a2), and (2)}
+                    \proofline{8}{\text{rich}(E)}{from (3), and (7)}
+                    \proofline{9}{\forall y [\text{childof}(y, G) \rightarrow \text{rich}(y)]}{from (a2), (8), and arbitrary $E$}
+                    \proofline{10}{\text{happy}(G)}{from (5), (6), and (9)}
+                    \proofline{\alpha}{}{from (a1), (10), and arbitrary $G$}
+                \end{align*}
+                While this can be proven fairly easily, and with great confidence, via first-order natural deduction, the proof is often tedious, and the intuition might be lost. On the other hand, stylised proofs have an explicit structure, few errors (compared to free-form) - although errors are still possible.
+                \medskip
+
+                Our goal for our proofs are that they should only prove valid statements, are easy to read / check, and are able to highlight intuition behind arguments. The rules for a stylised proof are as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item write out, and name each given formula
+                    \item write out, and name each goal formula
+                    \item plan out proof, and name intermediate results
+                    \item justify each step
+                    \item size of each step can vary as appropriate
+                \end{enumerate}
+                Planning, and justifying the the steps follow extrmeely similar rules to natural deduction - the rules for proving $P$ are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $P = Q \land R$ \hfill prove both $Q$, and $R$ ($\land$I)
+                    \item $P = Q \lor R$ \hfill prove either $Q$, or $R$ ($\lor$I)
+                    \item $P = Q \rightarrow R$ \hfill prove $R$ from assuming $Q$ ($\rightarrow$I)
+                    \item $P = \neg Q$ \hfill prove $\bot$ from asuming $Q$ ($\neg$I)
+                    \item $P = \forall x [Q(x)]$ \hfill show $Q(c)$ from arbitrary $c$ ($\forall$I)
+                    \item $P = \exists x [Q(x)]$ \hfill find some $c$, and show $Q(c)$ ($\exists$I)
+                    \item $P$ \hfill prove $\bot$ from assuming $\neg P$ (PC)
+                \end{itemize}
+                On the other hand, if we have proven $P$, we can do the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $P = Q \land R$ \hfill both $Q$, and $R$ hold ($\land$E)
+                    \item $P = Q \lor R$ \hfill case analysis ($\lor$I)
+                    \item $P = Q \land (Q \rightarrow R)$ \hfill $R$ holds ($\rightarrow$E)
+                    \item $P = \forall x [Q(x)]$ \hfill $Q(c)$ holds for any $c$ ($\forall$E)
+                    \item $P = \exists x [Q(x)]$ \hfill $Q(c)$ holds for some $c$ ($\exists$E)
+                    \item $P = \bot$ \hfill anything holds ($\bot$E)
+                    \item $P = \neg Q$ \hfill $Q \rightarrow \bot$ holds ($\neg$E)
+                    \item $P$ \hfill use a lemma, or any logical equivalence
+                \end{itemize}
 \end{document}
