@@ -247,22 +247,6 @@
                     \proofmath{}{\frac{(k + 1)(k + 2)}{2}}{by arithmetic}
                     \proofmath{}{\frac{(k + 1)((k + 1) + 1)}{2}}{by arithmetic}
                 \end{reasoning}
-                \begin{align*}
-                    \intertext{\textbf{Base Case}}
-                    \intertext{Our aim here is to show $\summation{i = 0}{0}{i} = \frac{0(0 + 1)}{2}$}
-                    \summation{i = 0}{0}{i} & = 0 & \text{by definition of } \sum \\
-                    & = \frac{0(1)}{2} & \text{by arithmetic} \\
-                    & = \frac{0(0 + 1)}{2} & \text{by arithmetic}
-                    \intertext{\textbf{Inductive Step}}
-                    \intertext{Take an arbitrary $k \in \mathbb{N}$}
-                    \intertext{Inductive hypothesis: $\summation{i = 0}{k}{i} = \frac{k(k + 1)}{2}$}
-                    \intertext{To show: $\summation{i = 0}{k+1}{i} = \frac{(k + 1)((k + 1) + 1)}{2}$}
-                    \summation{i = 0}{k + 1}{i} & = \summation{i = 0}{k}{i} + (k + 1) & \text{by definition of } \sum \\
-                    & = \frac{k(k + 1)}{2} + (k + 1) & \textcolor{blue}{\text{by induction hypothesis}} \\
-                    & = \frac{k^2 + 3k + 2}{2} & \text{by arithmetic} \\
-                    & = \frac{(k + 1)(k + 2)}{2} & \text{by arithmetic} \\
-                    & = \frac{(k + 1)((k + 1) + 1)}{2} & \text{by arithmetic}
-                \end{align*}
             \subsubsection*{Example - $7^n + 5$ is divisible by 3}
                 We want to prove $P(n)$, where $P(n) \triangleq 7^n + 5 \text{ is divisible by 3}$. However, this isn't exactly a very formal defined, so we will rewrite it as $P(n) \triangleq \exists m : \mathbb{N}[7^n + 5 = 3m]$
                 \smallskip
@@ -292,5 +276,17 @@
                     \proofmath{}{3 \cdot [2 \cdot 7^k + m_1]}{by arithmetic}
                     \prooftherefore{\exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]}
                 \end{reasoning}
-            \subsubsection*{}
+            \subsubsection*{New Technique}
+                Consider the Haskell program defined as;
+                \begin{verbatim}
+f :: Int -> Ratio Int
+f 1 = 1/2
+f n = 1/(n * (n + 1)) + f (n - 1)\end{verbatim}
+                And, we want to prove $\forall n \geq 1 [\texttt{f } n = \frac{n}{n + 1}]$. However, we cannot directly apply the mathematic induction principle on this, since the conclusion has a different form, and it's not defined for \texttt{f} 0 - hence we have no base case. Instead, we can do one of the following approaches;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item prove $\forall n : \mathbb{N} [\textcolor{blue}{n \geq 1 \rightarrow} \texttt{ f } n = \frac{n}{n + 1}]$
+                    \item prove $\forall n : \mathbb{N} [\texttt{f } (n \textcolor{blue}{+ 1}) = \frac{n \textcolor{blue}{+ 1}}{n \textcolor{blue}{+ 2}}]$
+                    \item apply the mathematical induction technique
+                \end{enumerate}
 \end{document}
