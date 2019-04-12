@@ -378,4 +378,25 @@ g n = (5 * g (n - 1)) - (6 * g (n - 2))\end{verbatim}
                     \proofmath{}{3^{k + 1} - 2^{k + 1}}{by arithmetic}
                 \end{reasoning}
                 Once again, this principle can be applied for some $m$, and is therefore modified to be $P(m) \land \forall k : \mathbb{Z} [\forall j \in [m..k] [P(j)] \rightarrow P(k + 1)] \rightarrow \forall n \geq m [P(n)]$. The same shorthand we used before applies here.
+        \subsection*{Induction (Structural) over Haskell Data Types}
+            The example we will be working on involves the follow Haskell functions;
+            \begin{verbatim}
+elem :: Eq a => a -> [a] -> Bool
+elem x []     = False
+elem x (y:ys) = x == y || elem x ys
+
+subList :: Eq a => [a] -> [a] -> [a]
+sublist [] ys = []
+sublist (x:xs) ys
+  | elem x ys = sublist xs ys
+  | otherwise = x:(sublist xs ys)\end{verbatim}
+            As well as the specification $\forall xs : \texttt{[a]} \forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList } xs\ ys]$. Note that we use $z \in ys$ as shorthand for $\texttt{elem } z\ ys$. The function \texttt{subList} $xs$ $ys$ removes all elements of $ys$ from $xs$.
+            \medskip
+
+            The goal here is to prove $\forall xs : \texttt{[a]} [Q(xs)]$, where $Q(xs) \triangleq \forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList }xs\ ys]$. Induction doesn't simply work here, as $Q$ isn't defined over a set of numbers, but rather over the lists of \texttt{a}. Once again, we can take multiple approaches to this problem;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item map lists to numbers, by expressing $Q \subseteq \texttt{[a]}$, with an eqiuvalent $P \subseteq \mathbb{N}$
+                \item use structural induction
+            \end{enumerate}
 \end{document}
