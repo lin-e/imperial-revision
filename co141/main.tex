@@ -24,11 +24,11 @@
 
 % custom commands
 \newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
-\newcommand{\defint}[4]{\int_#1^#2 #3 \, \mathrm{d}#4}
+\newcommand{\defint}[4]{\int_{#1}^{#2} #3 \, \mathrm{d}#4}
 \newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
 \newcommand{\limit}[2]{\displaystyle{\lim_{#1 \to #2}}}
-\newcommand{\summation}[3]{\sum\limits_{#1}^#2 #3}
-\newcommand{\intbracket}[3]{\left[#3\right]_#1^#2}
+\newcommand{\summation}[3]{\sum\limits_{#1}^{#2} #3}
+\newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
 
 \newcommand{\powerset}[0]{\wp}
 \renewcommand{\emptyset}[0]{\varnothing}
@@ -203,4 +203,38 @@
                 \end{align*}
                 Note that (7) requires us to prove $\forall u \forall v [R(v, y) \rightarrow Q(u, v)] \land \forall w \forall z [Q(z, w) \land S(z) \rightarrow S(w)] \rightarrow \forall x \forall y [R(x, y) \land S(y)\rightarrow S(x)]$, which isn't actually as difficult as it looks (only 16 lines in steps in ND). On the other hand, the proof for (10) requires $(A \rightarrow B) \land (A \rightarrow C) \rightarrow (A \rightarrow B \land C)$ - assume $A$, and you get both $B$, and $C$ very quickly.
         \subsection*{Induction over Natural Numbers}
+            The notation used here is as follows; $\forall x : S [P(x)]$, where $S$ is an \textbf{enumerable} set and $P \subseteq S$. Note that the notes use $\forall x : S.P(x)$, but I'm choosing to use the same notation as used in \textbf{CO140}, just to maintain consistency. The notation $P \subseteq S$ means that $P$ is a property of elements in the set $S$. $\text{pos} \subset \mathbb{Z}$. The natural numbers, sequences, strings, or recursively defined data structures are enumerable sets, whereas $\mathbb{R}$ is not an enumerable set. These are some examples of enumerable sets;
+            \begin{itemize}
+                \itemsep0em
+                \item $\forall n : \mathbb{N} [7^n + 5 \text{ is divisible by 3}]$
+                \item $\forall \texttt{xs}:\texttt{[a]}\forall \texttt{ys}:\texttt{[a]}[\texttt{length(xs ++ ys)} = \texttt{length(xs)} + \texttt{length(ys)}]$
+            \end{itemize}
+            \subsubsection*{The principle of mathematical induction}
+                For any $P \subseteq \mathbb{N}$: $P(0) \land \forall k : \mathbb{N}[P(k) \rightarrow P(k + 1)] \rightarrow \forall n : \mathbb{N}[P(n)]$
+                \medskip
+
+                This mirrors the definition in \textbf{CO142 - Discrete Structures}, by using Peano's axiom. Given a unary preducate $P$, and $P(0)$ is true, and for all natural numbers $k$, if $P(k)$ is true, then it follows that $P(\text{Succ}(k))$ is true. Then it follows that $P(n)$ is true for every natural number $n \in \mathbb{N}$.
+            \subsubsection*{Example - Sum of Natural Numbers}
+                We want to prove $P(n)$, where $P(n) \triangleq \summation{i = 0}{n}{i} = \frac{n(n + 1)}{2}$ - a formula which we should be used to seeing.
+                \smallskip
+
+                We need to formally write this as;
+                \medskip
+
+                $\textcolor{blue}{\summation{i = 0}{0}{i} = \frac{0(0 + 1)}{2}} \land \textcolor{red}{\forall k : \mathbb{N} [\summation{i = 0}{k}{i} = \frac{k(k + 1)}{2} \rightarrow \summation{i = 0}{k}{i} = \frac{(k + 1)((k + 1) + 1)}{2}]} \rightarrow \textcolor{violet}{\forall n : \mathbb{N} [\summation{i = 0}{n}{i} = \frac{n(n + 1)}{2}]}$
+                \bigskip
+
+                Remember that our aim is to create proofs that can be checked by others. This means justifying each step; writing what we know (givens), and what we aim to prove. All the steps should be explicit, but the granularity can vary depending on the confidence of the step. Intermediate results should be named, so that they can be used later, and variables that we are applying the induction principle on should be stated.
+
+                \begin{align*}
+                    \intertext{\textbf{Base Case}}
+                    \intertext{Our aim here is to show $\summation{i = 0}{0}{i} = \frac{0(0 + 1)}{2}$}
+                    \summation{i = 0}{0}{i} & = 0 & \text{by definition of } \sum \\
+                    & = \frac{0(1)}{2} & \text{by arithmetic} \\
+                    & = \frac{0(0 + 1)}{2} & \text{by arithmetic}
+                    \intertext{\textbf{Inductive Step}}
+                    \intertext{Take an arbitrary $k \in \mathbb{N}$}
+                    \intertext{Inductive hypothesis: $\summation{i = 0}{k}{i} = \frac{k(k + 1)}{2}$}
+                    \intertext{To show: $\summation{i = 0}{k+1}{i} = \frac{(k + 1)((k + 1) + 1)}{2}$}
+                \end{align*}
 \end{document}
