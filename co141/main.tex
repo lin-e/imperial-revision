@@ -242,7 +242,7 @@
                     \prooftext{Inductive hypothesis: $\summation{i = 0}{k}{i} = \frac{k(k + 1)}{2}$}
                     \prooftext{To show: $\summation{i = 0}{k+1}{i} = \frac{(k + 1)((k + 1) + 1)}{2}$}
                     \proofmath{\summation{i = 0}{k + 1}{i}}{\summation{i = 0}{k}{i} + (k + 1)}{by definition of $\sum$}
-                    \proofmath{}{\frac{k(k + 1)}{2} + (k + 1)}{\textcolor{blue}{by induction hypothesis}}
+                    \proofmath{}{\frac{k(k + 1)}{2} + (k + 1)}{\textcolor{blue}{by inductive hypothesis}}
                     \proofmath{}{\frac{k^2 + 3k + 2}{2}}{by arithmetic}
                     \proofmath{}{\frac{(k + 1)(k + 2)}{2}}{by arithmetic}
                     \proofmath{}{\frac{(k + 1)((k + 1) + 1)}{2}}{by arithmetic}
@@ -254,7 +254,7 @@
                 We need to formally write this as;
                 \medskip
 
-                $\textcolor{blue}{\exists m : \mathbb{N}[7^0 + 5 = 3m]} \land \textcolor{red}{\forall k : \mathbb{N} [\exists m : \mathbb{N}[7^k + 5 = 3m] \rightarrow \exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]]} \rightarrow \\ \textcolor{violet}{\forall n : \mathbb{N} [\exists m : \mathbb{N}[7^n + 5 = 3m]]}$
+                $\textcolor{blue}{\exists m : \mathbb{N} [7^0 + 5 = 3m]} \land \textcolor{red}{\forall k : \mathbb{N} [\exists m : \mathbb{N}[7^k + 5 = 3m] \rightarrow \exists m^\prime : \mathbb{N} [7^{k + 1} + 5 = 3m^\prime]]} \rightarrow \\ \textcolor{violet}{\forall n : \mathbb{N} [\exists m : \mathbb{N} [7^n + 5 = 3m]]}$
 
                 \begin{reasoning}
                     \prooftext{\textbf{Base Case}}
@@ -265,16 +265,16 @@
                     \prooftherefore{\exists m : \mathbb{N}[7^0 + 5 = 3m]}
                     \prooftext{\textbf{Inductive Step}}
                     \prooftext{Take an arbitrary $k \in \mathbb{N}$}
-                    \prooftext{Inductive hypothesis: $\exists m : \mathbb{N}[7^k + 5 = 3m]$}
-                    \proofline{1}{7^k + 5 = 3 \cdot m_1}{by induction hypothesis, for some $m_1 : \mathbb{N}$}
-                    \prooftext{To show: $\exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]$}
+                    \prooftext{Inductive hypothesis: $\exists m : \mathbb{N} [7^k + 5 = 3m]$}
+                    \proofline{1}{7^k + 5 = 3 \cdot m_1}{by inductive hypothesis, for some $m_1 : \mathbb{N}$}
+                    \prooftext{To show: $\exists m^\prime : \mathbb{N} [7^{k + 1} + 5 = 3m^\prime]$}
                     \proofmath{7^{k + 1} + 5}{7 \cdot 7^k + 5}{by arithmetic}
                     \proofmath{}{(6 + 1) \cdot 7^k + 5}{by arithmetic}
                     \proofmath{}{(6 \cdot 7^k + 7^k) + 5}{by arithmetic}
                     \proofmath{}{3 \cdot (2 \cdot 7^k) + (7^k + 5)}{by arithmetic}
                     \proofmath{}{3 \cdot (2 \cdot 7^k) + 3 \cdot m_1}{by (1)}
                     \proofmath{}{3 \cdot [2 \cdot 7^k + m_1]}{by arithmetic}
-                    \prooftherefore{\exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]}
+                    \prooftherefore{\exists m^\prime : \mathbb{N} [7^{k + 1} + 5 = 3m^\prime]}
                 \end{reasoning}
             \subsubsection*{New Technique}
                 Consider the Haskell program defined as;
@@ -289,4 +289,55 @@ f n = 1/(n * (n + 1)) + f (n - 1)\end{verbatim}
                     \item prove $\forall n : \mathbb{N} [\texttt{f } (n \textcolor{blue}{+ 1}) = \frac{n \textcolor{blue}{+ 1}}{n \textcolor{blue}{+ 2}}]$
                     \item apply the mathematical induction technique
                 \end{enumerate}
+                For practice, we will do the first approach; first we must formally write this out as;
+                \medskip
+
+                $\textcolor{blue}{0 \geq 1 \rightarrow \texttt{ f } 0 = \frac{0}{0 + 1}} \land \textcolor{red}{\forall k : \mathbb{N} [(k \geq 1 \rightarrow \texttt{ f } k = \frac{k}{k + 1}) \rightarrow ((k + 1) \geq 1 \rightarrow \texttt{ f } (k + 1) = \frac{k + 1}{k + 2})]} \rightarrow \\ \textcolor{violet}{\forall n : \mathbb{N} [n \geq 1 \rightarrow \texttt{ f } n = \frac{n}{n + 1}]}$
+
+                \begin{reasoning}
+                    \prooftext{\textbf{Base Case}}
+                    \prooftext{Our aim here is to show $0 \geq 1 \rightarrow \texttt{ f } 0 = \frac{0}{0 + 1}$}
+                    \prooftext{This holds trivially, as we know $0 \geq 1$ is false, and anything follows from a falsity}
+                    \prooftext{\textbf{Inductive Step}}
+                    \prooftext{Take an arbitrary $k \in \mathbb{N}$}
+                    \prooftext{Inductive hypothesis: $k \geq 1 \rightarrow \texttt{ f } k = \frac{k}{k + 1}$}
+                    \prooftext{To show: $(k + 1) \geq 1 \rightarrow \texttt{ f } (k + 1) = \frac{k + 1}{k + 2}$}
+                    \proofline{1.0}{k = 0}{by case}
+                    \proofline{1.1}{k + 1 = 1}{by arithmetic}
+                    \proofline{1.2}{\texttt{f} (k + 1) = \frac{1}{2}}{by def. of \texttt{f}, and (1.1)}
+                    \proofline{1.3}{\frac{k + 1}{k + 2} = \frac{1}{2}}{by (1.1)}
+                    \prooftherefore{\texttt{f} (k + 1) = \frac{k + 1}{k + 2}$ & \hfill by (1.2), and (1.3)$ }
+                    \proofline{2.0}{k > 0}{by case}
+                    \proofline{2.1}{k \geq 1}{by case}
+                    \proofline{2.2}{k + 1 \geq 2}{by (2.1), and arithmetic}
+                    \proofline{2.3}{\texttt{f } (k + 1) = \frac{1}{(k + 1)(k + 2)} + \texttt{ f } k}{by (2.2), and def. of \texttt{f}}
+                    \proofline{2.4}{\texttt{f } (k + 1) = \frac{1}{(k + 1)(k + 2)} + \frac{k}{k + 1}}{by (2.3), and inductive hypothesis}
+                    \proofline{2.5}{\texttt{f } (k + 1) = \frac{1}{(k + 1)(k + 2)} + \frac{k(k + 2)}{(k + 1)(k + 2)}}{by (2.4), and arithmetic}
+                    \prooftherefore{\texttt{f} (k + 1) = \frac{k + 1}{k + 2}$ & \hfill by (2.5), and arithmetic$ }
+                \end{reasoning}
+                The third approach follows this; for any $P \subseteq \mathbb{Z}$, and any $m : \mathbb{Z}$, we have $P(m) \land \forall k \geq m [P(k) \rightarrow P(k + 1)] \rightarrow \forall n \geq m [P(n)]$. This uses $\forall n \geq m [P(n)]$, as a shorthand for $\forall n : \mathbb{Z} [n \geq m \rightarrow P(n)]$. Note how this isn't any different from the principle; in reality, the principle is a "specific case" of the technique, where $m = 0$. % if you're at king's, and think natural numbers start at 1, you're wrong.
+                \medskip
+
+                Now, using the technique with $m = 1$, we can do the original proof inductively;
+                \medskip
+
+                $\textcolor{blue}{\texttt{f } 1 = \frac{1}{1 + 1}} \land \textcolor{red}{\forall k \geq 1 [\texttt{f } k = \frac{k}{k + 1} \rightarrow \texttt{ f } (k + 1) = \frac{k + 1}{k + 2}]} \rightarrow \textcolor{violet}{\forall n \geq 1 [\texttt{f } n = \frac{n}{n + 1}]}$
+
+                \begin{reasoning}
+                    \prooftext{\textbf{Base Case}}
+                    \prooftext{Our aim here is to show $\texttt{f } 1 = \frac{1}{ 1+ 1}$}
+                    \proofmath{\texttt{f } 1}{\frac{1}{2}}{by def. of \texttt{f}}
+                    \proofmath{}{\frac{1}{1 + 1}}{by arithmetic}
+                    \prooftext{\textbf{Inductive Step}}
+                    \prooftext{Take arbitrary $k : \mathbb{Z}$}
+                    \proofline{\text{a}1}{k \geq 1}{assumption}
+                    \prooftext{Inductive hypothesis: $\texttt{f } k = \frac{k}{k + 1}$}
+                    \prooftext{To show: $\texttt{f } (k + 1) = \frac{k + 1}{k + 2}$}
+                    \proofmath{\texttt{f } (k + 1)}{\frac{1}{(k + 1)(k + 2)} + \texttt{f } k}{by def. of \texttt{f}, and (a1)}
+                    \proofmath{}{\frac{1}{(k + 1)(k + 2)} + \frac{k}{k + 1}}{by inductive hypothesis}
+                    \proofmath{}{\frac{1}{(k + 1)(k + 2)} + \frac{k(k + 2)}{(k + 1)(k + 2)}}{by arithmetic}
+                    \proofmath{}{\frac{k^2 + 2k + 1}{(k + 1)(k + 2)}}{by arithmetic}
+                    \proofmath{}{\frac{(k + 1)^2}{(k + 1)(k + 2)}}{by arithmetic}
+                    \proofmath{}{\frac{k + 1}{k + 2}}{by arithmetic}
+                \end{reasoning}
 \end{document}
