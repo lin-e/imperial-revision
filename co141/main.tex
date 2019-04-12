@@ -53,6 +53,8 @@
 \newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
 \newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
 \newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
+\newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
+\newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
 
 % actual document
 \begin{document}
@@ -232,13 +234,13 @@
                 Remember that our aim is to create proofs that can be checked by others. This means justifying each step; writing what we know (givens), and what we aim to prove. All the steps should be explicit, but the granularity can vary depending on the confidence of the step. Intermediate results should be named, so that they can be used later, and variables that we are applying the induction principle on should be stated.
 
                 \begin{reasoning}
-                    \prooftext{\textbf{Base Case}}
+                    \proofbc
                     \prooftext{Our aim here is to show $\summation{i = 0}{0}{i} = \frac{0(0 + 1)}{2}$}
                     \proofmath{\summation{i = 0}{0}{i}}{0}{by definition of $\sum$}
                     \proofmath{}{\frac{0(1)}{2}}{by arithmetic}
                     \proofmath{}{\frac{0(0 + 1)}{2}}{by arithmetic}
-                    \prooftext{\textbf{Inductive Step}}
-                    \prooftext{Take an arbitrary $k \in \mathbb{N}$}
+                    \proofis
+                    \prooftext{Take arbitrary $k : \mathbb{N}$}
                     \prooftext{Inductive hypothesis: $\summation{i = 0}{k}{i} = \frac{k(k + 1)}{2}$}
                     \prooftext{To show: $\summation{i = 0}{k+1}{i} = \frac{(k + 1)((k + 1) + 1)}{2}$}
                     \proofmath{\summation{i = 0}{k + 1}{i}}{\summation{i = 0}{k}{i} + (k + 1)}{by definition of $\sum$}
@@ -257,14 +259,14 @@
                 $\textcolor{blue}{\exists m : \mathbb{N} [7^0 + 5 = 3m]} \land \textcolor{red}{\forall k : \mathbb{N} [\exists m : \mathbb{N}[7^k + 5 = 3m] \rightarrow \exists m^\prime : \mathbb{N} [7^{k + 1} + 5 = 3m^\prime]]} \rightarrow \\ \textcolor{violet}{\forall n : \mathbb{N} [\exists m : \mathbb{N} [7^n + 5 = 3m]]}$
 
                 \begin{reasoning}
-                    \prooftext{\textbf{Base Case}}
+                    \proofbc
                     \prooftext{Our aim here is to show $\exists m : \mathbb{N}[7^0 + 5 = 3m]$}
                     \proofmath{7^0 + 5}{1 + 5}{by arithmetic}
                     \proofmath{}{6}{by arithmetic}
                     \proofmath{}{3 \cdot 2}{by arithmetic}
                     \prooftherefore{\exists m : \mathbb{N}[7^0 + 5 = 3m]}
-                    \prooftext{\textbf{Inductive Step}}
-                    \prooftext{Take an arbitrary $k \in \mathbb{N}$}
+                    \proofis
+                    \prooftext{Take arbitrary $k : \mathbb{N}$}
                     \prooftext{Inductive hypothesis: $\exists m : \mathbb{N} [7^k + 5 = 3m]$}
                     \proofline{1}{7^k + 5 = 3 \cdot m_1}{by inductive hypothesis, for some $m_1 : \mathbb{N}$}
                     \prooftext{To show: $\exists m^\prime : \mathbb{N} [7^{k + 1} + 5 = 3m^\prime]$}
@@ -295,11 +297,11 @@ f n = 1/(n * (n + 1)) + f (n - 1)\end{verbatim}
                 $\textcolor{blue}{0 \geq 1 \rightarrow \texttt{ f } 0 = \frac{0}{0 + 1}} \land \textcolor{red}{\forall k : \mathbb{N} [(k \geq 1 \rightarrow \texttt{ f } k = \frac{k}{k + 1}) \rightarrow ((k + 1) \geq 1 \rightarrow \texttt{ f } (k + 1) = \frac{k + 1}{k + 2})]} \rightarrow \\ \textcolor{violet}{\forall n : \mathbb{N} [n \geq 1 \rightarrow \texttt{ f } n = \frac{n}{n + 1}]}$
 
                 \begin{reasoning}
-                    \prooftext{\textbf{Base Case}}
+                    \proofbc
                     \prooftext{Our aim here is to show $0 \geq 1 \rightarrow \texttt{ f } 0 = \frac{0}{0 + 1}$}
                     \prooftext{This holds trivially, as we know $0 \geq 1$ is false, and anything follows from a falsity}
-                    \prooftext{\textbf{Inductive Step}}
-                    \prooftext{Take an arbitrary $k \in \mathbb{N}$}
+                    \proofis
+                    \prooftext{Take arbitrary $k : \mathbb{N}$}
                     \prooftext{Inductive hypothesis: $k \geq 1 \rightarrow \texttt{ f } k = \frac{k}{k + 1}$}
                     \prooftext{To show: $(k + 1) \geq 1 \rightarrow \texttt{ f } (k + 1) = \frac{k + 1}{k + 2}$}
                     \proofline{1.0}{k = 0}{by case}
@@ -324,11 +326,11 @@ f n = 1/(n * (n + 1)) + f (n - 1)\end{verbatim}
                 $\textcolor{blue}{\texttt{f } 1 = \frac{1}{1 + 1}} \land \textcolor{red}{\forall k \geq 1 [\texttt{f } k = \frac{k}{k + 1} \rightarrow \texttt{ f } (k + 1) = \frac{k + 1}{k + 2}]} \rightarrow \textcolor{violet}{\forall n \geq 1 [\texttt{f } n = \frac{n}{n + 1}]}$
 
                 \begin{reasoning}
-                    \prooftext{\textbf{Base Case}}
+                    \proofbc
                     \prooftext{Our aim here is to show $\texttt{f } 1 = \frac{1}{ 1+ 1}$}
                     \proofmath{\texttt{f } 1}{\frac{1}{2}}{by def. of \texttt{f}}
                     \proofmath{}{\frac{1}{1 + 1}}{by arithmetic}
-                    \prooftext{\textbf{Inductive Step}}
+                    \proofis
                     \prooftext{Take arbitrary $k : \mathbb{Z}$}
                     \proofline{\text{a}1}{k \geq 1}{assumption}
                     \prooftext{Inductive hypothesis: $\texttt{f } k = \frac{k}{k + 1}$}
@@ -340,4 +342,40 @@ f n = 1/(n * (n + 1)) + f (n - 1)\end{verbatim}
                     \proofmath{}{\frac{(k + 1)^2}{(k + 1)(k + 2)}}{by arithmetic}
                     \proofmath{}{\frac{k + 1}{k + 2}}{by arithmetic}
                 \end{reasoning}
+            \subsubsection*{Strong Induction}
+                While mathematical induction is powerful, it only allows for the inductive step ($k + 1$) to refer to the direct predecessor ($k$). On the other hand, strong induction allows the inductive step to refer to any predecessor, such as $k - 1$, $k - 2$, and so on. For example, if an algorithm was to recurse down by two units, we wouldn't be able to use the inductive hypothesis to replace \texttt{g (k - 1)} from doing the inductive step on $k + 1$. An example of this is this Haskell program, with the property $\forall n : \mathbb{N} [\texttt{g } n = 3^n - 2^n]$;
+                \begin{verbatim}
+g :: Int -> Int
+g 0 = 0
+g 1 = 1
+g n = (5 * g (n - 1)) - (6 * g (n - 2))\end{verbatim}
+                As such, we need the principle of strong induction; $P(0) \land \forall k : \mathbb{N} [\forall j \in [0..k] [P(j)] \rightarrow P(k + 1)] \rightarrow \forall n : \mathbb{N} [P(n)]$. Here we are using the following shorthand; $j \in [m..n]$ means $m \leq j \leq n$, and similarly $j \in [m..n)$ means $m \leq j < n$. Complete induction has the same base case, where we need to verify $P(0)$, however, the inductive step differs as we have to assume that $P(i)$ holds for all $i \leq k$, then show that $P(k + 1)$ holds. If both of those hold, then it follows that $P(n)$ follows for all $n \in \mathbb{N}$ With this, we can now write down the strong induction principle on $\texttt{g } n = 3^n - 2^n$.
+                \medskip
+
+                $\textcolor{blue}{\texttt{g } 0 = 3^0 - 2^0} \land \textcolor{red}{\forall k [\forall j \in [0..k] [\texttt{g } j = 3^j - 2^j] \rightarrow \texttt{g } (k + 1) = 3^{k + 1} - 2^{k + 1}]} \rightarrow \textcolor{violet}{\forall n : \mathbb{N} [\texttt{g }n = 3^n - 2^n]}$
+                \begin{reasoning}
+                    \proofbc
+                    \prooftext{Our aim here is to show $\texttt{g } 0 = 3^0 - 2^0$}
+                    \proofmath{\texttt{g } 0}{0}{by def. of \texttt{g}}
+                    \proofmath{}{1 - 1}{by arithmetic}
+                    \proofmath{}{3^0 - 2^0}{by arithmetic}
+                    \proofis
+                    \prooftext{Take arbitrary $k : \mathbb{N}\ (k \neq 0)$}
+                    \prooftext{Case 1: $k = 0$}
+                    \prooftext{To show: $\texttt{g } 1 = 3^1 - 2^1$}
+                    \proofmath{\texttt{g } 1}{1}{by def. of \text{g}}
+                    \proofmath{}{3 - 2}{by arithmetic}
+                    \proofmath{}{3^1 - 2^1}{by arithmetic}
+                    \prooftext{Case 2: $k \neq 0$}
+                    \proofline{1}{k \geq 1}{because $k : \mathbb{N}$, and $k \neq 0$ by case}
+                    \proofline{2}{k, k - 1 \in [0..k]}{from (1)}
+                    \prooftext{Inductive hypothesis: $\forall j \in [0..k] [\texttt{g } j = 3^j - 2^j]$}
+                    \prooftext{To show: $\texttt{g } (k + 1) = 3^{k + 1} - 2^{k + 1}$}
+                    \proofmath{\texttt{g } (k + 1)}{5 \cdot \texttt{g } k - 6 \cdot \texttt{g } (k - 1)}{by (1), and def. of \text{g}}
+                    \proofmath{}{5 \cdot (3^k - 2^k) - 6 \cdot (3^{k - 1} - 2^{k - 1})}{by (2), and inductive hypothesis}
+                    \proofmath{}{5 \cdot 3 \cdot 3^{k - 1} - 5 \cdot 2 \cdot 2^{k - 1} - 6 \cdot 3^{k - 1} + 6 \cdot 2^{k - 1}}{by arithmetic}
+                    \proofmath{}{9 \cdot 3^{k - 1} - 4 \cdot 2^{k - 1}}{by arithmetic}
+                    \proofmath{}{3^{k + 1} - 2^{k + 1}}{by arithmetic}
+                \end{reasoning}
+                Once again, this principle can be applied for some $m$, and is therefore modified to be $P(m) \land \forall k : \mathbb{Z} [\forall j \in [m..k] [P(j)] \rightarrow P(k + 1)] \rightarrow \forall n \geq m [P(n)]$. The same shorthand we used before applies here.
 \end{document}
