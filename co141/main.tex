@@ -69,5 +69,40 @@
                 \item \textit{Case Studies - Dutch Flag Problem (full notes).pdf}
                 \item \textit{Quicksort (full notes).pdf}
             \end{enumerate}
+        \subsection*{Introduction}
+            This module will cover Proof by Induction from first principles, and shows how a recursive definition can implicitly introduce an inductive principle, how the inductive principle introduces a proof schema, and how the schema can be used to prove a property of a inductively defined set, relation or function. This will go into more detail regarding valid uses of quantifiers, when we're able to use the induction hypothesis, how auxiliary lemmas can help, as well as what cases we will need to strengthen properties to prove weaker ones.
+        \subsection*{Binding Conventions}
+            The binding conventions in this module are the same as the ones used in \textbf{CO140 - Logic}; with the addition of $\forall x$, and $\exists x$ before $\neg$.
+        \subsection*{Formalising a Proof}
+            For this section, we'll work on one example proof, with the given facts;
+            \begin{enumerate}[(1)]
+                \itemsep0em
+                \item a person is happy if all their children are rich
+                \item someone is a supervillain if at least one of their parents is a supervillain
+                \item all supervillains are rich
+            \end{enumerate}
+            We want to show that "all supervillains are happy".
+            \subsubsection*{Proof in Natural Language}
+                The given argument is that "All of a supervillain's children must therefore also be supervillains; and as all supervillains are rich, all the children of a supervillain are rich. Therefore, any supervillain is happy". However; we've made a few assumptions in this proof - we assume that a supervillain is always a person, and that a supervillain has children (as well as the fact that parent, and child aren't formally defined to be related concepts).
+                \medskip
 
+                Therefore, we need to generalise statement (1) OR add an additional assumption (4);
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item \textbf{someone} is happy if all their children are happy
+                    \setcounter{enumi}{3}
+                    \item a supervillain is also a person
+                \end{enumerate}
+            \subsubsection*{Formal Argument}
+            \vspace{-\baselineskip}
+            \begin{align*}
+                \intertext{Given:}
+                \proofline{1}{\forall x [\text{person}(x) \land \forall y [\text{childof}(y, x) \rightarrow \text{rich}(y)] \rightarrow \text{happy}(x)]}{}
+                \proofline{2}{\forall x [\exists y [\text{childof}(x, y) \land \text{supervillain}(y)] \rightarrow \text{supervillain}(x)]}{}
+                \proofline{3}{\forall x [\text{supervillain}(x) \rightarrow \text{rich}(x)]}{}
+                \proofline{4}{\forall x [\text{supervillain}(x) \rightarrow \text{person}(x)]}{}
+                \intertext{To show:}
+                \proofline{\alpha}{\forall x [\text{supervillain}(x) \rightarrow \text{happy}(x)]}{}
+            \end{align*}
+            While this can be proven fairly easily, and with great confidence, via first-order natural deduction, the proof is often tedious.
 \end{document}
