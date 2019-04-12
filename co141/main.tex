@@ -221,7 +221,7 @@
                 We need to formally write this as;
                 \medskip
 
-                $\textcolor{blue}{\summation{i = 0}{0}{i} = \frac{0(0 + 1)}{2}} \land \textcolor{red}{\forall k : \mathbb{N} [\summation{i = 0}{k}{i} = \frac{k(k + 1)}{2} \rightarrow \summation{i = 0}{k}{i} = \frac{(k + 1)((k + 1) + 1)}{2}]} \rightarrow \textcolor{violet}{\forall n : \mathbb{N} [\summation{i = 0}{n}{i} = \frac{n(n + 1)}{2}]}$
+                $\textcolor{blue}{\summation{i = 0}{0}{i} = \frac{0(0 + 1)}{2}} \land \textcolor{red}{\forall k : \mathbb{N} [\summation{i = 0}{k}{i} = \frac{k(k + 1)}{2} \rightarrow \summation{i = 0}{k + 1}{i} = \frac{(k + 1)((k + 1) + 1)}{2}]} \rightarrow \textcolor{violet}{\forall n : \mathbb{N} [\summation{i = 0}{n}{i} = \frac{n(n + 1)}{2}]}$
                 \bigskip
 
                 Remember that our aim is to create proofs that can be checked by others. This means justifying each step; writing what we know (givens), and what we aim to prove. All the steps should be explicit, but the granularity can vary depending on the confidence of the step. Intermediate results should be named, so that they can be used later, and variables that we are applying the induction principle on should be stated.
@@ -236,5 +236,39 @@
                     \intertext{Take an arbitrary $k \in \mathbb{N}$}
                     \intertext{Inductive hypothesis: $\summation{i = 0}{k}{i} = \frac{k(k + 1)}{2}$}
                     \intertext{To show: $\summation{i = 0}{k+1}{i} = \frac{(k + 1)((k + 1) + 1)}{2}$}
+                    \summation{i = 0}{k + 1}{i} & = \summation{i = 0}{k}{i} + (k + 1) & \text{by definition of } \sum \\
+                    & = \frac{k(k + 1)}{2} + (k + 1) & \textcolor{blue}{\text{by induction hypothesis}} \\
+                    & = \frac{k^2 + 3k + 2}{2} & \text{by arithmetic} \\
+                    & = \frac{(k + 1)(k + 2)}{2} & \text{by arithmetic} \\
+                    & = \frac{(k + 1)((k + 1) + 1)}{2} & \text{by arithmetic}
+                \end{align*}
+            \subsubsection*{Example - $7^n + 5$ is divisible by 3}
+                We want to prove $P(n)$, where $P(n) \triangleq 7^n + 5 \text{ is divisible by 3}$. However, this isn't exactly a very formal defined, so we will rewrite it as $P(n) \triangleq \exists m : \mathbb{N}[7^n + 5 = 3m]$
+                \smallskip
+
+                We need to formally write this as;
+                \medskip
+
+                $\textcolor{blue}{\exists m : \mathbb{N}[7^0 + 5 = 3m]} \land \textcolor{red}{\forall k : \mathbb{N} [\exists m : \mathbb{N}[7^k + 5 = 3m] \rightarrow \exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]]} \rightarrow \\ \textcolor{violet}{\forall n : \mathbb{N} [\exists m : \mathbb{N}[7^n + 5 = 3m]]}$
+
+                \begin{align*}
+                    \intertext{\textbf{Base Case}}
+                    \intertext{Our aim here is to show $\exists m : \mathbb{N}[7^0 + 5 = 3m]$}
+                    7^0 + 5 & = 1 + 5 & \text{by arithmetic} \\
+                    & = 6 & \text{by arithmetic} \\
+                    & = 3 \cdot 2 & \text{by arithmetic} \\
+                    & \therefore \exists m : \mathbb{N}[7^0 + 5 = 3m]
+                    \intertext{\textbf{Inductive Step}}
+                    \intertext{Take an arbitrary $k \in \mathbb{N}$}
+                    \intertext{Inductive hypothesis: $\exists m : \mathbb{N}[7^k + 5 = 3m]$}
+                    \intertext{To show: $\exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]$}
+                    \intertext{(1) $7^k + 5 = 3 \cdot m_1$ by induction hypothesis, for some $m_1 : \mathbb{N}$}
+                    7^{k + 1} + 5 & = 7 \cdot 7^k + 5 & \text{by arithmetic} \\
+                    & = (6 + 1) \cdot 7^k + 5 & \text{by arithmetic} \\
+                    & = (6 \cdot 7^k + 7^k) + 5 & \text{by arithmetic} \\
+                    & = 3 \cdot (2 \cdot 7^k) + (7^k + 5) & \text{by arithmetic} \\
+                    & = 3 \cdot (2 \cdot 7^k) + 3 \cdot m_1 & \text{by (1)} \\
+                    & = 3 \cdot [2 \cdot 7^k + m_1] & \text{by arithmetic} \\
+                    & \therefore \exists m : \mathbb{N}[7^{k + 1} + 5 = 3m]
                 \end{align*}
 \end{document}
