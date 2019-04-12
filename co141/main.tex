@@ -40,10 +40,19 @@
 \setlength\parindent{0pt}
 
 % reasoning proofs
-\newcommand{\proofline}[3]{(#1)\ & #2 & \text{#3} \\}
-\newcommand{\proofarbitrary}[1]{& \text{take arbitrary } #1 \\}
-\allowdisplaybreaks
-\setlength{\mathindent}{0pt}
+\usepackage{ltablex}
+\usepackage{environ}
+\keepXColumns
+\NewEnviron{reasoning}{
+    \begin{tabularx}{\textwidth}{rlX}
+        \BODY
+    \end{tabularx}
+}
+\newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
+\newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
+\newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
 
 % actual document
 \begin{document}
@@ -100,15 +109,15 @@
                     \item a supervillain is also a person
                 \end{enumerate}
             \subsubsection*{Formal Argument}
-                \begin{align*}
-                    \intertext{Given:}
+                \begin{reasoning}
+                    \prooftext{Given:}
                     \proofline{1}{\forall x [\text{person}(x) \land \forall y [\text{childof}(y, x) \rightarrow \text{rich}(y)] \rightarrow \text{happy}(x)]}{}
                     \proofline{2}{\forall x [\exists y [\text{childof}(x, y) \land \text{supervillain}(y)] \rightarrow \text{supervillain}(x)]}{}
                     \proofline{3}{\forall x [\text{supervillain}(x) \rightarrow \text{rich}(x)]}{}
                     \proofline{4}{\forall x [\text{supervillain}(x) \rightarrow \text{person}(x)]}{}
-                    \intertext{To show:}
+                    \prooftext{To show:}
                     \proofline{\alpha}{\forall x [\text{supervillain}(x) \rightarrow \text{happy}(x)]}{}
-                    \intertext{(Stylised) Proof:}
+                    \prooftext{(Stylised) Proof:}
                     \proofarbitrary{G}
                     \proofline{\text{a}1}{\text{supervillain}(G)}{}
                     \proofline{5}{\text{person}(G) \land \forall y [\text{childof}(y, G) \rightarrow \text{rich}(y)] \rightarrow \text{happy}(G)}{from (1)}
@@ -119,8 +128,8 @@
                     \proofline{8}{\text{rich}(E)}{from (3), and (7)}
                     \proofline{9}{\forall y [\text{childof}(y, G) \rightarrow \text{rich}(y)]}{from (a2), (8), and arbitrary $E$}
                     \proofline{10}{\text{happy}(G)}{from (5), (6), and (9)}
-                    \proofline{\alpha}{}{from (a1), (10), and arbitrary $G$}
-                \end{align*}
+                    \proofline{\alpha}{}{from (a1), (10), and arb. $G$}
+                \end{reasoning}
                 While this can be proven fairly easily, and with great confidence, via first-order natural deduction, the proof is often tedious, and the intuition might be lost. On the other hand, stylised proofs have an explicit structure, few errors (compared to free-form) - although errors are still possible.
                 \medskip
 
@@ -157,23 +166,23 @@
                     \item $P$ \hfill use a lemma, or any logical equivalence
                 \end{itemize}
             \subsubsection*{Another Example}
-                \begin{align*}
-                    \intertext{Facts in Natural Language:}
+                \begin{reasoning}
+                    \prooftext{Facts in Natural Language:}
                     \proofline{\text{i}}{\text{a dragon is happy if all of its children can fly}}{}
                     \proofline{\text{ii}}{\text{all green dragons can fly}}{}
                     \proofline{\text{iii}}{\text{something is green if at least one of its parents is green}}{}
                     \proofline{\text{iv}}{\text{all the children of a dragon are also dragons}}{}
                     \proofline{\text{v}}{\text{if $y$ is a child of $x$, then $x$ is a parent of $y$}}{}
-                    \intertext{Given:}
+                    \prooftext{Given:}
                     \proofline{1}{\forall x [\text{dragon}(x) \land \forall y [\text{childof}(x, y) \rightarrow \text{fly}(y)] \rightarrow \text{happy(x)}]}{from (i)}
                     \proofline{2}{\forall x [\text{green}(x) \land \text{dragon}(x) \rightarrow \text{fly}(x)]}{from (ii)}
                     \proofline{3}{\forall x [\exists y [\text{parentof}(y, x) \land \text{green}(y)] \rightarrow \text{green}(y)]}{from (iii)}
                     \proofline{4}{\forall x [\forall y [\text{childof}(x, y) \land \text{dragon}(y) \rightarrow \text{dragon}(x)]]}{from (iv)}
                     \proofline{5}{\forall x [\forall y [\text{childof}(y, x) \rightarrow \text{parentof}(x, y)]]}{from (v)}
-                    \intertext{To show:}
+                    \prooftext{To show:}
                     \proofline{\alpha}{\forall x [\text{dragon}(x) \rightarrow (\text{green}(x) \rightarrow \text{happy}(x))]}{}
                     \proofline{\times}{\forall x [\text{dragon}(x) \land \text{green}(x) \rightarrow \text{happy}(x)]}{(note - equivalent)}
-                    \intertext{Proof:}
+                    \prooftext{Proof:}
                     \proofarbitrary{S}
                     \proofline{\text{a}1}{\text{dragon}(S)}{}
                     \proofline{\text{a}2}{\text{green}(S)}{}
@@ -184,15 +193,15 @@
                     \proofline{10}{\forall x [\text{childof}(x, S) \rightarrow \text{green}(x) \land \text{dragon}(x)]}{from (8), and (9)}
                     \proofline{11}{\forall x [\text{childof}(x, S) \rightarrow \text{fly}(x)]}{from (2), and (10)}
                     \proofline{12}{\text{happy}(S)}{from (a1), (1), and (11)}
-                    \proofline{\alpha}{}{from (a1), (a2), (12), and arbitrary $S$}
-                \end{align*}
+                    \proofline{\alpha}{}{from (a1), (a2), (12), and arb. $S$}
+                \end{reasoning}
                 Steps (6), (7), and (10) in particular require more justification; the justification of (7) requires us to prove something else, which can be done trivially with ND. Therefore only (6) will be proven;
-                \begin{align*}
-                    \intertext{Given:}
+                \begin{reasoning}
+                    \prooftext{Given:}
                     \proofline{1}{\forall x [\exists y [P(x, y)] \rightarrow Q(x)]}{}
-                    \intertext{To show:}
+                    \prooftext{To show:}
                     \proofline{\alpha}{\forall x \forall y [P(x, y) \rightarrow Q(x)]}{}
-                    \intertext{Proof:}
+                    \prooftext{Proof:}
                     \proofarbitrary{c_1}
                     \proofarbitrary{c_2}
                     \proofline{\text{a}1}{P(c_1, c_2)}{}
@@ -200,7 +209,7 @@
                     \proofline{3}{\exists y [P(c_1, y)]}{from (a1), where $c_2 = y$}
                     \proofline{4}{Q(c_1)}{from (2), and (3)}
                     \proofline{\alpha}{}{from (a1), (4), and arbitrary $c_1$, $c_2$}
-                \end{align*}
+                \end{reasoning}
                 Note that (7) requires us to prove $\forall u \forall v [R(v, y) \rightarrow Q(u, v)] \land \forall w \forall z [Q(z, w) \land S(z) \rightarrow S(w)] \rightarrow \forall x \forall y [R(x, y) \land S(y)\rightarrow S(x)]$, which isn't actually as difficult as it looks (only 16 lines in steps in ND). On the other hand, the proof for (10) requires $(A \rightarrow B) \land (A \rightarrow C) \rightarrow (A \rightarrow B \land C)$ - assume $A$, and you get both $B$, and $C$ very quickly.
         \subsection*{Induction over Natural Numbers}
             The notation used here is as follows; $\forall x : S [P(x)]$, where $S$ is an \textbf{enumerable} set and $P \subseteq S$. Note that the notes use $\forall x : S.P(x)$, but I'm choosing to use the same notation as used in \textbf{CO140}, just to maintain consistency. The notation $P \subseteq S$ means that $P$ is a property of elements in the set $S$. $\text{pos} \subset \mathbb{Z}$. The natural numbers, sequences, strings, or recursively defined data structures are enumerable sets, whereas $\mathbb{R}$ is not an enumerable set. These are some examples of enumerable sets;
@@ -251,25 +260,25 @@
 
                 $\textcolor{blue}{\exists m : \mathbb{N}[7^0 + 5 = 3m]} \land \textcolor{red}{\forall k : \mathbb{N} [\exists m : \mathbb{N}[7^k + 5 = 3m] \rightarrow \exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]]} \rightarrow \\ \textcolor{violet}{\forall n : \mathbb{N} [\exists m : \mathbb{N}[7^n + 5 = 3m]]}$
 
-                \begin{align*}
-                    \intertext{\textbf{Base Case}}
-                    \intertext{Our aim here is to show $\exists m : \mathbb{N}[7^0 + 5 = 3m]$}
-                    7^0 + 5 & = 1 + 5 & \text{by arithmetic} \\
-                    & = 6 & \text{by arithmetic} \\
-                    & = 3 \cdot 2 & \text{by arithmetic} \\
-                    & \therefore \exists m : \mathbb{N}[7^0 + 5 = 3m]
-                    \intertext{\textbf{Inductive Step}}
-                    \intertext{Take an arbitrary $k \in \mathbb{N}$}
-                    \intertext{Inductive hypothesis: $\exists m : \mathbb{N}[7^k + 5 = 3m]$}
-                    \intertext{To show: $\exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]$}
-                    \intertext{(1) $7^k + 5 = 3 \cdot m_1$ by induction hypothesis, for some $m_1 : \mathbb{N}$}
-                    7^{k + 1} + 5 & = 7 \cdot 7^k + 5 & \text{by arithmetic} \\
-                    & = (6 + 1) \cdot 7^k + 5 & \text{by arithmetic} \\
-                    & = (6 \cdot 7^k + 7^k) + 5 & \text{by arithmetic} \\
-                    & = 3 \cdot (2 \cdot 7^k) + (7^k + 5) & \text{by arithmetic} \\
-                    & = 3 \cdot (2 \cdot 7^k) + 3 \cdot m_1 & \text{by (1)} \\
-                    & = 3 \cdot [2 \cdot 7^k + m_1] & \text{by arithmetic} \\
-                    & \therefore \exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]
-                \end{align*}
+                \begin{reasoning}
+                    \prooftext{\textbf{Base Case}}
+                    \prooftext{Our aim here is to show $\exists m : \mathbb{N}[7^0 + 5 = 3m]$}
+                    \proofmath{7^0 + 5}{1 + 5}{by arithmetic}
+                    \proofmath{}{6}{by arithmetic}
+                    \proofmath{}{3 \cdot 2}{by arithmetic}
+                    \prooftherefore{\exists m : \mathbb{N}[7^0 + 5 = 3m]}
+                    \prooftext{\textbf{Inductive Step}}
+                    \prooftext{Take an arbitrary $k \in \mathbb{N}$}
+                    \prooftext{Inductive hypothesis: $\exists m : \mathbb{N}[7^k + 5 = 3m]$}
+                    \proofline{1}{7^k + 5 = 3 \cdot m_1}{by induction hypothesis, for some $m_1 : \mathbb{N}$}
+                    \prooftext{To show: $\exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]$}
+                    \proofmath{7^{k + 1} + 5}{7 \cdot 7^k + 5}{by arithmetic}
+                    \proofmath{}{(6 + 1) \cdot 7^k + 5}{by arithmetic}
+                    \proofmath{}{(6 \cdot 7^k + 7^k) + 5}{by arithmetic}
+                    \proofmath{}{3 \cdot (2 \cdot 7^k) + (7^k + 5)}{by arithmetic}
+                    \proofmath{}{3 \cdot (2 \cdot 7^k) + 3 \cdot m_1}{by (1)}
+                    \proofmath{}{3 \cdot [2 \cdot 7^k + m_1]}{by arithmetic}
+                    \prooftherefore{\exists m^\prime : \mathbb{N}[7^{k + 1} + 5 = 3m^\prime]}
+                \end{reasoning}
             \subsubsection*{}
 \end{document}
