@@ -43,9 +43,14 @@
 \newcommand{\proofline}[3]{(#1)\ & #2 & \text{#3} \\}
 \newcommand{\proofarbitrary}[1]{& \text{take arbitrary } #1 \\}
 \allowdisplaybreaks
+\setlength{\mathindent}{0pt}
 
 % actual document
 \begin{document}
+    \setlength{\abovedisplayskip}{2pt}
+    \setlength{\belowdisplayskip}{5pt}
+    \setlength{\abovedisplayshortskip}{0pt}
+    \setlength{\belowdisplayshortskip}{0pt}
     \section*{CO141 - Reasoning About Programs}
         \subsection*{Prelude}
             The content discussed here is part of CO141 - Reasoning About Programs (Computing MEng); taught by Sophia Drossopoulou, and Mark Wheelhouse, in Imperial College London during the academic year 2018/19. The notes are written for my personal use, and have no guarantee of being correct (although I hope it is, for my own sake). This should be used in conjunction with the (extremely detailed) notes.
@@ -95,7 +100,6 @@
                     \item a supervillain is also a person
                 \end{enumerate}
             \subsubsection*{Formal Argument}
-                \vspace{-\baselineskip}
                 \begin{align*}
                     \intertext{Given:}
                     \proofline{1}{\forall x [\text{person}(x) \land \forall y [\text{childof}(y, x) \rightarrow \text{rich}(y)] \rightarrow \text{happy}(x)]}{}
@@ -152,4 +156,51 @@
                     \item $P = \neg Q$ \hfill $Q \rightarrow \bot$ holds ($\neg$E)
                     \item $P$ \hfill use a lemma, or any logical equivalence
                 \end{itemize}
+            \subsubsection*{Another Example}
+                \begin{align*}
+                    \intertext{Facts in Natural Language:}
+                    \proofline{\text{i}}{\text{a dragon is happy if all of its children can fly}}{}
+                    \proofline{\text{ii}}{\text{all green dragons can fly}}{}
+                    \proofline{\text{iii}}{\text{something is green if at least one of its parents is green}}{}
+                    \proofline{\text{iv}}{\text{all the children of a dragon are also dragons}}{}
+                    \proofline{\text{v}}{\text{if $y$ is a child of $x$, then $x$ is a parent of $y$}}{}
+                    \intertext{Given:}
+                    \proofline{1}{\forall x [\text{dragon}(x) \land \forall y [\text{childof}(x, y) \rightarrow \text{fly}(y)] \rightarrow \text{happy(x)}]}{from (i)}
+                    \proofline{2}{\forall x [\text{green}(x) \land \text{dragon}(x) \rightarrow \text{fly}(x)]}{from (ii)}
+                    \proofline{3}{\forall x [\exists y [\text{parentof}(y, x) \land \text{green}(y)] \rightarrow \text{green}(y)]}{from (iii)}
+                    \proofline{4}{\forall x [\forall y [\text{childof}(x, y) \land \text{dragon}(y) \rightarrow \text{dragon}(x)]]}{from (iv)}
+                    \proofline{5}{\forall x [\forall y [\text{childof}(y, x) \rightarrow \text{parentof}(x, y)]]}{from (v)}
+                    \intertext{To show:}
+                    \proofline{\alpha}{\forall x [\text{dragon}(x) \rightarrow (\text{green}(x) \rightarrow \text{happy}(x))]}{}
+                    \proofline{\times}{\forall x [\text{dragon}(x) \land \text{green}(x) \rightarrow \text{happy}(x)]}{(note - equivalent)}
+                    \intertext{Proof:}
+                    \proofarbitrary{S}
+                    \proofline{\text{a}1}{\text{dragon}(S)}{}
+                    \proofline{\text{a}2}{\text{green}(S)}{}
+                    \proofline{6}{\forall x \forall y [\text{parentof}(y, x) \land \text{green}(y) \rightarrow \text{green}(x)]}{from (3)}
+                    \proofline{7}{\forall x \forall y [\text{childof}(x, y) \land \text{green(y)} \rightarrow \text{green}(x)]}{from (5), and (6)}
+                    \proofline{8}{\forall x [\text{childof}(x, S) \rightarrow \text{green}(x)]}{from (a2), and (7)}
+                    \proofline{9}{\forall x [\text{childof}(x, S) \rightarrow \text{dragon}(x)]}{from (a1), and (4)}
+                    \proofline{10}{\forall x [\text{childof}(x, S) \rightarrow \text{green}(x) \land \text{dragon}(x)]}{from (8), and (9)}
+                    \proofline{11}{\forall x [\text{childof}(x, S) \rightarrow \text{fly}(x)]}{from (2), and (10)}
+                    \proofline{12}{\text{happy}(S)}{from (a1), (1), and (11)}
+                    \proofline{\alpha}{}{from (a1), (a2), (12), and arbitrary $S$}
+                \end{align*}
+                Steps (6), (7), and (10) in particular require more justification; the justification of (7) requires us to prove something else, which can be done trivially with ND. Therefore only (6) will be proven;
+                \begin{align*}
+                    \intertext{Given:}
+                    \proofline{1}{\forall x [\exists y [P(x, y)] \rightarrow Q(x)]}{}
+                    \intertext{To show:}
+                    \proofline{\alpha}{\forall x \forall y [P(x, y) \rightarrow Q(x)]}{}
+                    \intertext{Proof:}
+                    \proofarbitrary{c_1}
+                    \proofarbitrary{c_2}
+                    \proofline{\text{a}1}{P(c_1, c_2)}{}
+                    \proofline{2}{\exists y [P(c_1, y)] \rightarrow Q(c_1)}{from (1), where $x = c_1$}
+                    \proofline{3}{\exists y [P(c_1, y)]}{from (a1), where $c_2 = y$}
+                    \proofline{4}{Q(c_1)}{from (2), and (3)}
+                    \proofline{\alpha}{}{from (a1), (4), and arbitrary $c_1$, $c_2$}
+                \end{align*}
+                Note that (7) requires us to prove $\forall u \forall v [R(v, y) \rightarrow Q(u, v)] \land \forall w \forall z [Q(z, w) \land S(z) \rightarrow S(w)] \rightarrow \forall x \forall y [R(x, y) \land S(y)\rightarrow S(x)]$, which isn't actually as difficult as it looks (only 16 lines in steps in ND). On the other hand, the proof for (10) requires $(A \rightarrow B) \land (A \rightarrow C) \rightarrow (A \rightarrow B \land C)$ - assume $A$, and you get both $B$, and $C$ very quickly.
+        \subsection*{Induction over Natural Numbers}
 \end{document}
