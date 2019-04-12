@@ -56,10 +56,6 @@
 
 % actual document
 \begin{document}
-    \setlength{\abovedisplayskip}{2pt}
-    \setlength{\belowdisplayskip}{5pt}
-    \setlength{\abovedisplayshortskip}{0pt}
-    \setlength{\belowdisplayshortskip}{0pt}
     \section*{CO141 - Reasoning About Programs}
         \subsection*{Prelude}
             The content discussed here is part of CO141 - Reasoning About Programs (Computing MEng); taught by Sophia Drossopoulou, and Mark Wheelhouse, in Imperial College London during the academic year 2018/19. The notes are written for my personal use, and have no guarantee of being correct (although I hope it is, for my own sake). This should be used in conjunction with the (extremely detailed) notes.
@@ -235,6 +231,22 @@
 
                 Remember that our aim is to create proofs that can be checked by others. This means justifying each step; writing what we know (givens), and what we aim to prove. All the steps should be explicit, but the granularity can vary depending on the confidence of the step. Intermediate results should be named, so that they can be used later, and variables that we are applying the induction principle on should be stated.
 
+                \begin{reasoning}
+                    \prooftext{\textbf{Base Case}}
+                    \prooftext{Our aim here is to show $\summation{i = 0}{0}{i} = \frac{0(0 + 1)}{2}$}
+                    \proofmath{\summation{i = 0}{0}{i}}{0}{by definition of $\sum$}
+                    \proofmath{}{\frac{0(1)}{2}}{by arithmetic}
+                    \proofmath{}{\frac{0(0 + 1)}{2}}{by arithmetic}
+                    \prooftext{\textbf{Inductive Step}}
+                    \prooftext{Take an arbitrary $k \in \mathbb{N}$}
+                    \prooftext{Inductive hypothesis: $\summation{i = 0}{k}{i} = \frac{k(k + 1)}{2}$}
+                    \prooftext{To show: $\summation{i = 0}{k+1}{i} = \frac{(k + 1)((k + 1) + 1)}{2}$}
+                    \proofmath{\summation{i = 0}{k + 1}{i}}{\summation{i = 0}{k}{i} + (k + 1)}{by definition of $\sum$}
+                    \proofmath{}{\frac{k(k + 1)}{2} + (k + 1)}{\textcolor{blue}{by induction hypothesis}}
+                    \proofmath{}{\frac{k^2 + 3k + 2}{2}}{by arithmetic}
+                    \proofmath{}{\frac{(k + 1)(k + 2)}{2}}{by arithmetic}
+                    \proofmath{}{\frac{(k + 1)((k + 1) + 1)}{2}}{by arithmetic}
+                \end{reasoning}
                 \begin{align*}
                     \intertext{\textbf{Base Case}}
                     \intertext{Our aim here is to show $\summation{i = 0}{0}{i} = \frac{0(0 + 1)}{2}$}
