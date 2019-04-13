@@ -491,5 +491,60 @@ sum_tr (i:is) k = sum_tr is (i+k)\end{verbatim}
                 \prooftext{Take arbitrary $i : \texttt{Int}$, and $is : \texttt{[Int]}$}
                 \prooftext{Inductive hypothesis: $\texttt{sum } is = \texttt{sum\_tr } is\ 0$}
                 \prooftext{To show: $\texttt{sum } (i : is) = \texttt{sum\_tr } (i : is)\ 0$}
+                \proofeq{\texttt{sum } (i : is)}{i + \texttt{sum } is}{by def. of \texttt{sum}}
+                \proofeq{}{i + \texttt{sum\_tr } is\ 0}{by inductive hypothesis}
+                \proofeq{}{???}{???}
+                \proofeq{}{\texttt{sum\_tr } is\ i}{???}
+                \proofeq{}{\texttt{sum\_tr } (i:is)\ 0}{by def. of \texttt{sum\_tr}}
             \end{reasoning}
+            As we cannot prove this directly by induction, we need to use one of the following approaches;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item invent an auxiliary lemma
+                    \subitem the lemma in this case would be as follows; $\forall i : \texttt{Int} \forall k : \texttt{Int} \forall is : \texttt{[Int]} [i + (\texttt{sum\_tr } is\ k) = \texttt{sum\_tr } is\ (i + k)]$, which would be the justification for the penultimate line in the proof (skipping the i + 0 step).
+                \item strengthen original property
+                    \subitem instead of proving the original property, we will prove $\textcolor{blue}{\forall k : \texttt{Int}}\forall is : \texttt{[Int]} [\textcolor{blue}{k} + (\texttt{sum } is) = \texttt{sum\_tr } is\ \textcolor{blue}{k}]$
+                    \subitem note that the stronger property is a general form of the original property (which is a specific case, where $k = 0$)
+            \end{enumerate}
+            \begin{reasoning}
+                \proofbc
+                \prooftext{Our aim here is to show $\forall k : \texttt{Int} [k + (\texttt{sum []}) = \texttt{sum\_tr [] } k]$}
+                \prooftext{Take arbitrary $k : \texttt{Int}$}
+                \proofeq{k + (\texttt{sum []})}{k + 0}{by def. of \texttt{sum}}
+                \proofeq{}{k}{by arithmetic}
+                \proofeq{}{\texttt{sum\_tr [] } k}{by def. of \texttt{sum\_tr}}
+                \proofis
+                \prooftext{Take arbitrary $i : \texttt{Int}$, and $is : \texttt{[Int]}$}
+                \prooftext{Inductive hypothesis: $\forall m : \texttt{Int} [m + (\texttt{sum } is) = \texttt{sum\_tr } is\ m]$}
+                \prooftext{To show: $\forall n : \texttt{Int} [k + (\texttt{sum } (i : is)) = \texttt{sum\_tr } (i : is)\ n]$}
+                \prooftext{Take arbitrary $n : \texttt{Int}$}
+                \proofeq{n + \texttt{sum } (i : is)}{n + i + \texttt{sum } is}{by def. of \texttt{sum}, and arithmetic}
+                \proofeq{}{\texttt{sum\_tr } is\ (n + i)}{by inductive hypothesis, and $m = n + i$}
+                \proofeq{}{\texttt{sum\_tr } (i : is)\ n}{by def. of \texttt{sum\_tr}}
+            \end{reasoning}
+            There are also induction principles for more complex cases;
+            \begin{itemize}
+                \itemsep0em
+                \item \texttt{data T = C1 [Int] | C2 Int T}
+                    \subitem $\forall is : \texttt{[Int]} [P(\texttt{C1 } is)] \land \forall i : \texttt{Int} \forall t : \texttt{T} [P(t) \rightarrow P(\texttt{C2 } i\ t)] \rightarrow \forall t : \texttt{T} [P(t)]$
+                \item \texttt{data Reds = BaseR | Red Greens \\ data Greens = BaseG | Green Reds}
+                    \subitem $P(\texttt{BaseR} \land \forall g : \texttt{Greens} [Q(g) \rightarrow P(\texttt{Red } g)]) \land Q(\texttt{BaseG}) \land \forall r : \texttt{Reds} [P(r) \rightarrow Q(\texttt{Green } r)] \rightarrow \forall r : \texttt{Red} [P(r)] \land \forall g : \texttt{Green} [Q(g)]$
+                    \subitem $P(\texttt{BaseR}) \land P(\texttt{Red BaseG}) \land \forall r : \texttt{Reds} [P(r) \rightarrow P(\texttt{Red Green } r)] \rightarrow \forall r : \texttt{Reds} [P(r)]$
+            \end{itemize}
+            Going back to the cactus problem; we can express the cactus as a set of data types;
+            \begin{verbatim}
+data Cactus = Root Tree
+data Tree   = Leaf | Node Trees
+data Trees  = Empty | Cons Tree Trees\end{verbatim}
+            This (\texttt{Tree}) then has the inductive principle $P(\text{Leaf}) \land \forall ts : \texttt{Trees} [Q(ts) \rightarrow P(\texttt{Node }ts)] \land Q(\texttt{Empty}) \land \forall t : \texttt{Tree} \forall ts : \texttt{Trees} [P(\texttt{t}) \land Q(\texttt{ts}) \rightarrow Q(\texttt{Cons }t\ ts)] \rightarrow \forall t : \texttt{Tree} [P(t)] \land \forall ts : \texttt{Trees} [Q(ts)]$.
+            \smallskip
+
+            However, it's trivial to see that \texttt{Trees} is essentially equivalent to \texttt{[Tree]} - therefore we can simplify the data types to;
+            \begin{verbatim}
+data Cactus = Root Tree
+data Tree   = Leaf | Node [Tree]\end{verbatim}
+            Now; the new \texttt{Tree} structure has the inductive principle; $P(\texttt{Leaf}) \land \forall ts : \texttt{Trees} [\forall t : \texttt{Tree}, \forall ts_1, ts_2 : \texttt{Trees} [\textcolor{violet}{ts = ts_1 ++ [t] ++ ts_2 \rightarrow P(t)}] \rightarrow P(\texttt{Node } ts)] \rightarrow \forall t : \texttt{Tree} [P(t)]$. The meaning of the part in \textcolor{violet}{violet} is that every item in $ts$ satisfies the property $P$, I think.
+            \medskip
+
+            In summary, by having a recursively defined data type, it allows us to construct an induction principle, which then leads to a proof schema. We are able to use first-order equivalences to swap quantifers, which may allow for a proof on an easier equivalent property. Occasionally, lemmas will need to be strengthened, or we will need to create auxiliary lemmas.
 \end{document}
