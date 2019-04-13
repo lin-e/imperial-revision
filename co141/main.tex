@@ -51,7 +51,7 @@
 \newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \smallskip \\}
 \newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
 \newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
-\newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\proofeq}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
 \newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
 \newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
 \newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
@@ -236,18 +236,18 @@
                 \begin{reasoning}
                     \proofbc
                     \prooftext{Our aim here is to show $\summation{i = 0}{0}{i} = \frac{0(0 + 1)}{2}$}
-                    \proofmath{\summation{i = 0}{0}{i}}{0}{by definition of $\sum$}
-                    \proofmath{}{\frac{0(1)}{2}}{by arithmetic}
-                    \proofmath{}{\frac{0(0 + 1)}{2}}{by arithmetic}
+                    \proofeq{\summation{i = 0}{0}{i}}{0}{by definition of $\sum$}
+                    \proofeq{}{\frac{0(1)}{2}}{by arithmetic}
+                    \proofeq{}{\frac{0(0 + 1)}{2}}{by arithmetic}
                     \proofis
                     \prooftext{Take arbitrary $k : \mathbb{N}$}
                     \prooftext{Inductive hypothesis: $\summation{i = 0}{k}{i} = \frac{k(k + 1)}{2}$}
                     \prooftext{To show: $\summation{i = 0}{k+1}{i} = \frac{(k + 1)((k + 1) + 1)}{2}$}
-                    \proofmath{\summation{i = 0}{k + 1}{i}}{\summation{i = 0}{k}{i} + (k + 1)}{by definition of $\sum$}
-                    \proofmath{}{\frac{k(k + 1)}{2} + (k + 1)}{\textcolor{blue}{by inductive hypothesis}}
-                    \proofmath{}{\frac{k^2 + 3k + 2}{2}}{by arithmetic}
-                    \proofmath{}{\frac{(k + 1)(k + 2)}{2}}{by arithmetic}
-                    \proofmath{}{\frac{(k + 1)((k + 1) + 1)}{2}}{by arithmetic}
+                    \proofeq{\summation{i = 0}{k + 1}{i}}{\summation{i = 0}{k}{i} + (k + 1)}{by definition of $\sum$}
+                    \proofeq{}{\frac{k(k + 1)}{2} + (k + 1)}{\textcolor{blue}{by inductive hypothesis}}
+                    \proofeq{}{\frac{k^2 + 3k + 2}{2}}{by arithmetic}
+                    \proofeq{}{\frac{(k + 1)(k + 2)}{2}}{by arithmetic}
+                    \proofeq{}{\frac{(k + 1)((k + 1) + 1)}{2}}{by arithmetic}
                 \end{reasoning}
             \subsubsection*{Example - $7^n + 5$ is divisible by 3}
                 We want to prove $P(n)$, where $P(n) \triangleq 7^n + 5 \text{ is divisible by 3}$. However, this isn't exactly a very formal defined, so we will rewrite it as $P(n) \triangleq \exists m : \mathbb{N}[7^n + 5 = 3m]$
@@ -261,21 +261,21 @@
                 \begin{reasoning}
                     \proofbc
                     \prooftext{Our aim here is to show $\exists m : \mathbb{N}[7^0 + 5 = 3m]$}
-                    \proofmath{7^0 + 5}{1 + 5}{by arithmetic}
-                    \proofmath{}{6}{by arithmetic}
-                    \proofmath{}{3 \cdot 2}{by arithmetic}
+                    \proofeq{7^0 + 5}{1 + 5}{by arithmetic}
+                    \proofeq{}{6}{by arithmetic}
+                    \proofeq{}{3 \cdot 2}{by arithmetic}
                     \prooftherefore{\exists m : \mathbb{N}[7^0 + 5 = 3m]}
                     \proofis
                     \prooftext{Take arbitrary $k : \mathbb{N}$}
                     \prooftext{Inductive hypothesis: $\exists m : \mathbb{N} [7^k + 5 = 3m]$}
                     \proofline{1}{7^k + 5 = 3 \cdot m_1}{by inductive hypothesis, for some $m_1 : \mathbb{N}$}
                     \prooftext{To show: $\exists m^\prime : \mathbb{N} [7^{k + 1} + 5 = 3m^\prime]$}
-                    \proofmath{7^{k + 1} + 5}{7 \cdot 7^k + 5}{by arithmetic}
-                    \proofmath{}{(6 + 1) \cdot 7^k + 5}{by arithmetic}
-                    \proofmath{}{(6 \cdot 7^k + 7^k) + 5}{by arithmetic}
-                    \proofmath{}{3 \cdot (2 \cdot 7^k) + (7^k + 5)}{by arithmetic}
-                    \proofmath{}{3 \cdot (2 \cdot 7^k) + 3 \cdot m_1}{by (1)}
-                    \proofmath{}{3 \cdot [2 \cdot 7^k + m_1]}{by arithmetic}
+                    \proofeq{7^{k + 1} + 5}{7 \cdot 7^k + 5}{by arithmetic}
+                    \proofeq{}{(6 + 1) \cdot 7^k + 5}{by arithmetic}
+                    \proofeq{}{(6 \cdot 7^k + 7^k) + 5}{by arithmetic}
+                    \proofeq{}{3 \cdot (2 \cdot 7^k) + (7^k + 5)}{by arithmetic}
+                    \proofeq{}{3 \cdot (2 \cdot 7^k) + 3 \cdot m_1}{by (1)}
+                    \proofeq{}{3 \cdot [2 \cdot 7^k + m_1]}{by arithmetic}
                     \prooftherefore{\exists m^\prime : \mathbb{N} [7^{k + 1} + 5 = 3m^\prime]}
                 \end{reasoning}
             \subsubsection*{New Technique}
@@ -328,19 +328,19 @@ f n = 1/(n * (n + 1)) + f (n - 1)\end{verbatim}
                 \begin{reasoning}
                     \proofbc
                     \prooftext{Our aim here is to show $\texttt{f } 1 = \frac{1}{ 1+ 1}$}
-                    \proofmath{\texttt{f } 1}{\frac{1}{2}}{by def. of \texttt{f}}
-                    \proofmath{}{\frac{1}{1 + 1}}{by arithmetic}
+                    \proofeq{\texttt{f } 1}{\frac{1}{2}}{by def. of \texttt{f}}
+                    \proofeq{}{\frac{1}{1 + 1}}{by arithmetic}
                     \proofis
                     \prooftext{Take arbitrary $k : \mathbb{Z}$}
                     \proofline{\text{a}1}{k \geq 1}{assumption}
                     \prooftext{Inductive hypothesis: $\texttt{f } k = \frac{k}{k + 1}$}
                     \prooftext{To show: $\texttt{f } (k + 1) = \frac{k + 1}{k + 2}$}
-                    \proofmath{\texttt{f } (k + 1)}{\frac{1}{(k + 1)(k + 2)} + \texttt{f } k}{by def. of \texttt{f}, and (a1)}
-                    \proofmath{}{\frac{1}{(k + 1)(k + 2)} + \frac{k}{k + 1}}{by inductive hypothesis}
-                    \proofmath{}{\frac{1}{(k + 1)(k + 2)} + \frac{k(k + 2)}{(k + 1)(k + 2)}}{by arithmetic}
-                    \proofmath{}{\frac{k^2 + 2k + 1}{(k + 1)(k + 2)}}{by arithmetic}
-                    \proofmath{}{\frac{(k + 1)^2}{(k + 1)(k + 2)}}{by arithmetic}
-                    \proofmath{}{\frac{k + 1}{k + 2}}{by arithmetic}
+                    \proofeq{\texttt{f } (k + 1)}{\frac{1}{(k + 1)(k + 2)} + \texttt{f } k}{by def. of \texttt{f}, and (a1)}
+                    \proofeq{}{\frac{1}{(k + 1)(k + 2)} + \frac{k}{k + 1}}{by inductive hypothesis}
+                    \proofeq{}{\frac{1}{(k + 1)(k + 2)} + \frac{k(k + 2)}{(k + 1)(k + 2)}}{by arithmetic}
+                    \proofeq{}{\frac{k^2 + 2k + 1}{(k + 1)(k + 2)}}{by arithmetic}
+                    \proofeq{}{\frac{(k + 1)^2}{(k + 1)(k + 2)}}{by arithmetic}
+                    \proofeq{}{\frac{k + 1}{k + 2}}{by arithmetic}
                 \end{reasoning}
             \subsubsection*{Strong Induction}
                 While mathematical induction is powerful, it only allows for the inductive step ($k + 1$) to refer to the direct predecessor ($k$). On the other hand, strong induction allows the inductive step to refer to any predecessor, such as $k - 1$, $k - 2$, and so on. For example, if an algorithm was to recurse down by two units, we wouldn't be able to use the inductive hypothesis to replace \texttt{g (k - 1)} from doing the inductive step on $k + 1$. An example of this is this Haskell program, with the property $\forall n : \mathbb{N} [\texttt{g } n = 3^n - 2^n]$;
@@ -356,26 +356,26 @@ g n = (5 * g (n - 1)) - (6 * g (n - 2))\end{verbatim}
                 \begin{reasoning}
                     \proofbc
                     \prooftext{Our aim here is to show $\texttt{g } 0 = 3^0 - 2^0$}
-                    \proofmath{\texttt{g } 0}{0}{by def. of \texttt{g}}
-                    \proofmath{}{1 - 1}{by arithmetic}
-                    \proofmath{}{3^0 - 2^0}{by arithmetic}
+                    \proofeq{\texttt{g } 0}{0}{by def. of \texttt{g}}
+                    \proofeq{}{1 - 1}{by arithmetic}
+                    \proofeq{}{3^0 - 2^0}{by arithmetic}
                     \proofis
                     \prooftext{Take arbitrary $k : \mathbb{N}\ (k \neq 0)$}
                     \prooftext{Case 1: $k = 0$}
                     \prooftext{To show: $\texttt{g } 1 = 3^1 - 2^1$}
-                    \proofmath{\texttt{g } 1}{1}{by def. of \text{g}}
-                    \proofmath{}{3 - 2}{by arithmetic}
-                    \proofmath{}{3^1 - 2^1}{by arithmetic}
+                    \proofeq{\texttt{g } 1}{1}{by def. of \text{g}}
+                    \proofeq{}{3 - 2}{by arithmetic}
+                    \proofeq{}{3^1 - 2^1}{by arithmetic}
                     \prooftext{Case 2: $k \neq 0$}
                     \proofline{1}{k \geq 1}{because $k : \mathbb{N}$, and $k \neq 0$ by case}
                     \proofline{2}{k, k - 1 \in [0..k]}{from (1)}
                     \prooftext{Inductive hypothesis: $\forall j \in [0..k] [\texttt{g } j = 3^j - 2^j]$}
                     \prooftext{To show: $\texttt{g } (k + 1) = 3^{k + 1} - 2^{k + 1}$}
-                    \proofmath{\texttt{g } (k + 1)}{5 \cdot \texttt{g } k - 6 \cdot \texttt{g } (k - 1)}{by (1), and def. of \text{g}}
-                    \proofmath{}{5 \cdot (3^k - 2^k) - 6 \cdot (3^{k - 1} - 2^{k - 1})}{by (2), and inductive hypothesis}
-                    \proofmath{}{5 \cdot 3 \cdot 3^{k - 1} - 5 \cdot 2 \cdot 2^{k - 1} - 6 \cdot 3^{k - 1} + 6 \cdot 2^{k - 1}}{by arithmetic}
-                    \proofmath{}{9 \cdot 3^{k - 1} - 4 \cdot 2^{k - 1}}{by arithmetic}
-                    \proofmath{}{3^{k + 1} - 2^{k + 1}}{by arithmetic}
+                    \proofeq{\texttt{g } (k + 1)}{5 \cdot \texttt{g } k - 6 \cdot \texttt{g } (k - 1)}{by (1), and def. of \text{g}}
+                    \proofeq{}{5 \cdot (3^k - 2^k) - 6 \cdot (3^{k - 1} - 2^{k - 1})}{by (2), and inductive hypothesis}
+                    \proofeq{}{5 \cdot 3 \cdot 3^{k - 1} - 5 \cdot 2 \cdot 2^{k - 1} - 6 \cdot 3^{k - 1} + 6 \cdot 2^{k - 1}}{by arithmetic}
+                    \proofeq{}{9 \cdot 3^{k - 1} - 4 \cdot 2^{k - 1}}{by arithmetic}
+                    \proofeq{}{3^{k + 1} - 2^{k + 1}}{by arithmetic}
                 \end{reasoning}
                 Once again, this principle can be applied for some $m$, and is therefore modified to be $P(m) \land \forall k : \mathbb{Z} [\forall j \in [m..k] [P(j)] \rightarrow P(k + 1)] \rightarrow \forall n \geq m [P(n)]$. The same shorthand we used before applies here.
         \subsection*{Induction (Structural) over Haskell Data Types}
@@ -386,10 +386,10 @@ elem x []     = False
 elem x (y:ys) = x == y || elem x ys
 
 subList :: Eq a => [a] -> [a] -> [a]
-sublist [] ys = []
-sublist (x:xs) ys
-  | elem x ys = sublist xs ys
-  | otherwise = x:(sublist xs ys)\end{verbatim}
+subList [] ys = []
+subList (x:xs) ys
+  | elem x ys = subList xs ys
+  | otherwise = x:(subList xs ys)\end{verbatim}
             As well as the specification $\forall xs : \texttt{[a]} \forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList } xs\ ys]$. Note that we use $z \in ys$ as shorthand for $\texttt{elem } z\ ys$. The function \texttt{subList} $xs$ $ys$ removes all elements of $ys$ from $xs$.
             \medskip
 
@@ -409,14 +409,57 @@ sublist (x:xs) ys
 
                 Now, we can apply the structural induction principle to $xs$ for \texttt{subList};
 
-                $\phantom{\forall vs : \texttt{[a]} \forall v : \texttt{a}[(} \textcolor{red}{\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList [] } ys]} \land \\ \textcolor{blue}{\forall vs : \texttt{[a]} \forall v : \texttt{a} [(\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList }vs\ ys]) \rightarrow} \\ \phantom{\forall vs : \texttt{[a]} \forall v : \texttt{a}[} \textcolor{blue}{ (\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList }(v : vs)\ ys])]} \rightarrow \\ \phantom{\forall v : \texttt{a}(} \textcolor{violet}{\forall xs : \texttt{[a]}[\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList } xs\ ys]]}$ % i should really learn how to align things properly.
+                $\phantom{\forall vs : \texttt{[a]} \forall v : \texttt{a}[(} \textcolor{red}{\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList [] } ys]} \land \\ \textcolor{blue}{\forall vs : \texttt{[a]} \forall v : \texttt{a} [(\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList }vs\ ys]) \rightarrow} \\ \phantom{\forall vs : \texttt{[a]} \forall v : \texttt{a}[} \textcolor{blue}{(\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList }(v : vs)\ ys])]} \rightarrow \\ \phantom{\forall v : \texttt{a}(} \textcolor{violet}{\forall xs : \texttt{[a]}[\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList } xs\ ys]]}$ % i should really learn how to align things properly.
                 \begin{reasoning}
                     \proofbc
                     \prooftext{Our aim here is to show $\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList [] } ys]$}
-                    %%
+                    \proofline{\text{a}1}{z \in ys}{otherwise, it's trivial to prove}
+                    \proofline{1}{\texttt{subList [] } ys}{by def. of \texttt{subList}}
+                    \proofline{2}{z \not\in \texttt{subList []} ys}{by (1), and def. of \texttt{elem}}
                     \proofis
                     \prooftext{Take arbitrary $v : \texttt{a}$, and $vs : \texttt{[a]}$}
                     \prooftext{Inductive hypothesis: $\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList } vs\ ys]$}
                     \prooftext{To show: $\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList } (v : vs)\ ys]$}
+                    \proofline{\text{a}1}{z \in ys}{otherwise, it's trivial to prove}
+                    \proofline{0.1}{z \not\in \texttt{subList } vs\ ys}{by (a1), and inductive hypothesis}
+                    \proofline{1.0}{v \in ys}{by case}
+                    \proofline{1.1}{\texttt{subList } (v : vs)\ ys = \texttt{subList }vs\ ys}{by (1.0), and def. of \texttt{subList}}
+                    \proofline{1.2}{z \not\in \texttt{subList } (v : vs)\ ys}{by (0.1), and (1.1)}
+                    \proofline{2.0}{v \not\in ys}{by case}
+                    \proofline{2.1}{\texttt{subList } (v : vs)\ ys = v : (\texttt{subList }vs\ ys)}{by (2.0), and def. of \texttt{subList}}
+                    \proofline{2.2}{z \neq v}{by (a1), and (2.0)}
+                    \proofline{2.3}{z \not\in \texttt{subList } (v : vs)\ ys}{by (0.1), (2.2), (2.3), and def. of \texttt{elem}}
+                \end{reasoning}
+            \subsubsection*{Lemmas for Lists}
+                The following lemmas apply for arbitrary \texttt{u:a}, and \texttt{us,vs,ws:[a]}
+                \begin{enumerate}[(A)]
+                    \item \texttt{us++[] = us}
+                    \item \texttt{[]++us = us}
+                    \item \texttt{(u:us)++vs = u:(us++vs)}
+                    \item \texttt{(us++vs)++ws = us++(vs++ws)}
+                \end{enumerate}
+                We will be using these lemmas on to prove $\forall xs : \texttt{[a]} \forall ys : \texttt{[a]} [\texttt{rev } (xs ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev } xs)]$, on the following Haskell function;
+                \begin{verbatim}
+rev :: [a] -> [a]
+rev []     = []
+rev (x:xs) = (rev xs) ++ [x]\end{verbatim}
+                \medskip
+
+                $\phantom{\forall vs : \texttt{[a]} \forall v : \texttt{a}[(} \textcolor{red}{\forall ys : \texttt{[a]} [\texttt{rev } (\texttt{[]} ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev []})]} \land \\ \textcolor{blue}{\forall vs : \texttt{[a]} \forall v : \texttt{a} [(\forall ys : \texttt{[a]} [\texttt{rev } (vs ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev } vs)]) \rightarrow} \\ \phantom{\forall vs : \texttt{[a]} \forall v : \texttt{a}[} \textcolor{blue}{(\forall ys : \texttt{[a]} [\texttt{rev } ((v : vs) ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev } (v : vs))])]} \rightarrow \\ \phantom{\forall v : \texttt{a}(} \textcolor{violet}{\forall xs : \texttt{[a]}[\forall ys : \texttt{[a]} [\texttt{rev } (xs ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev } xs)]]}$ % i should really learn how to align things properly.
+                \begin{reasoning}
+                    \proofbc
+                    \prooftext{Our aim here is to show $\forall ys : \texttt{[a]} [\texttt{rev } (\texttt{[]} ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev []})]$}
+                    \proofeq{\texttt{rev }(\texttt{[]} ++ ys)}{\texttt{rev } ys}{by (B)}
+                    \proofeq{}{(\texttt{rev } ys) ++ \texttt{[]}}{by (A)}
+                    \proofeq{}{(\texttt{rev } ys) ++ (\texttt{rev []})}{by def. of \texttt{rev}}
+                    \proofis
+                    \prooftext{Take arbitrary $z : \texttt{a}$, and $zs : \texttt{[a]}$}
+                    \prooftext{Inductive hypothesis: $\forall ys : \texttt{[a]} [\texttt{rev } (zs ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev } zs)]$}
+                    \prooftext{To show: $\forall ys : \texttt{[a]} [\texttt{rev } ((z : zs) ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev } (z : zs))]$}
+                    \proofeq{\texttt{rev } ((z : zs) ++ ys)}{\texttt{rev } (z : (zs ++ ys))}{by (C)}
+                    \proofeq{}{\texttt{rev } (zs ++ ys) ++ [z]}{by def. of \texttt{rev}}
+                    \proofeq{}{((\texttt{rev } ys) ++ (\texttt{rev } zs)) ++ [z]}{by inductive hypothesis}
+                    \proofeq{}{(\texttt{rev } ys) ++ ((\texttt{rev } zs) ++ [z])}{by (D)}
+                    \proofeq{}{(\texttt{rev } ys) ++ (\texttt{rev } (z : zs))}{by def. of \texttt{rev}}
                 \end{reasoning}
 \end{document}
