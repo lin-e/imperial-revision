@@ -216,7 +216,7 @@
                 \item $\forall n : \mathbb{N} [7^n + 5 \text{ is divisible by 3}]$
                 \item $\forall \texttt{xs}:\texttt{[a]}\forall \texttt{ys}:\texttt{[a]}[\texttt{length(xs ++ ys)} = \texttt{length(xs)} + \texttt{length(ys)}]$
             \end{itemize}
-            \subsubsection*{The principle of mathematical induction}
+            \subsubsection*{Mathematical Induction Principle}
                 For any $P \subseteq \mathbb{N}$: $P(0) \land \forall k : \mathbb{N}[P(k) \rightarrow P(k + 1)] \rightarrow \forall n : \mathbb{N}[P(n)]$
                 \medskip
 
@@ -378,7 +378,7 @@ g n = (5 * g (n - 1)) - (6 * g (n - 2))\end{verbatim}
                     \proofeq{}{3^{k + 1} - 2^{k + 1}}{by arithmetic}
                 \end{reasoning}
                 Once again, this principle can be applied for some $m$, and is therefore modified to be $P(m) \land \forall k : \mathbb{Z} [\forall j \in [m..k] [P(j)] \rightarrow P(k + 1)] \rightarrow \forall n \geq m [P(n)]$. The same shorthand we used before applies here.
-        \subsection*{Induction (Structural) over Haskell Data Types}
+        \subsection*{Induction over Haskell Lists}
             The example we will be working on involves the follow Haskell functions;
             \begin{verbatim}
 elem :: Eq a => a -> [a] -> Bool
@@ -462,4 +462,34 @@ rev (x:xs) = (rev xs) ++ [x]\end{verbatim}
                     \proofeq{}{(\texttt{rev } ys) ++ ((\texttt{rev } zs) ++ [z])}{by (D)}
                     \proofeq{}{(\texttt{rev } ys) ++ (\texttt{rev } (z : zs))}{by def. of \texttt{rev}}
                 \end{reasoning}
+                Unlike in induction over natural numbers, each list has an infinite number of successors (for example, both \texttt{3:[]}, and \text{877:[]} are successors of \texttt{[]}), which is why it's important for us to consider arbitrary values. Intuitively, assuming the base case of $P(\texttt{[]})$ holds, we have $P(\texttt{[]}) \rightarrow (P(\texttt{x:[]}) \rightarrow (P(\texttt{y:x:[]}) \rightarrow P(\texttt{z:y:x[]})))$, and so on, hence it holds for all lists.
+        \subsection*{Induction over Haskell Data Structures}
+            While we can now perform induction over the natural numbers, as well as lists of arbitrary type, we cannot yet perform induction over arbitrary data strucutres, which are recursively defined. Consider the following data structures;
+            \begin{itemize}
+                \itemsep0em
+                \item \texttt{data Nat = Zero | Succ Nat}
+                    \subitem $P(\texttt{Zero}) \land \forall n : \texttt{Nat} [P(n) \rightarrow P(\texttt{Succ } n)] \rightarrow \forall n : \texttt{Nat} [P(n)]$
+                \item \texttt{data Tree a = Empty | Node (Tree a) a (Tree a)}
+                    \subitem $P(\texttt{Empty}) \land \forall t_1, t_2 : \texttt{Tree T} \forall x \texttt{T} [P(t_1) \land P(t_2) \rightarrow P(\texttt{Node }t_1\ x\ t_2)] \rightarrow \forall t : \texttt{Tree T} [P(t)]$
+                \item \texttt{data BExp = T | F | BNt BExp | BAnd BExp BExp}
+                    \subitem $P(\texttt{T}) \land P(\texttt{F}) \land \forall b : \texttt{BExp} [P(b) \rightarrow P(\texttt{BNt } b)] \land \forall b_1, b_2 : \texttt{BExp} [P(b_1) \land P(b_2) \rightarrow P(\texttt{BAnd } b_1 b_2)] \rightarrow \forall b : \texttt{BExp} [P(b)]$
+            \end{itemize}
+        \subsection*{Proof Strategies}
+            A situation may arise where a statement cannot be proven directly from induction; for example $\forall is \texttt{[Int]} [\texttt{sum } is = \texttt{sum\_tr } is\ 0]$, on the following functions;
+            \begin{verbatim}
+sum :: [Int] -> Int
+sum []     = 0
+sum (i:is) = i + sum is
+
+sum_tr :: [Int] -> Int -> Int
+sum_tr [] k     = k
+sum_tr (i:is) k = sum_tr is (i+k)\end{verbatim}
+            \begin{reasoning}
+                \proofbc
+                \prooftext{This is trivial to prove, also I'm tired}
+                \proofis
+                \prooftext{Take arbitrary $i : \texttt{Int}$, and $is : \texttt{[Int]}$}
+                \prooftext{Inductive hypothesis: $\texttt{sum } is = \texttt{sum\_tr } is\ 0$}
+                \prooftext{To show: $\texttt{sum } (i : is) = \texttt{sum\_tr } (i : is)\ 0$}
+            \end{reasoning}
 \end{document}
