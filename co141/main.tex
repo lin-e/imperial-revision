@@ -140,13 +140,13 @@
                     \item justify each step
                     \item size of each step can vary as appropriate
                 \end{enumerate}
-                Planning, and justifying the the steps follow extrmeely similar rules to natural deduction - the rules for proving $P$ are as follows;
+                Planning, and justifying the the steps follow extremely similar rules to natural deduction - the rules for proving $P$ are as follows;
                 \begin{itemize}
                     \itemsep0em
                     \item $P = Q \land R$ \hfill prove both $Q$, and $R$ ($\land$I)
                     \item $P = Q \lor R$ \hfill prove either $Q$, or $R$ ($\lor$I)
                     \item $P = Q \rightarrow R$ \hfill prove $R$ from assuming $Q$ ($\rightarrow$I)
-                    \item $P = \neg Q$ \hfill prove $\bot$ from asuming $Q$ ($\neg$I)
+                    \item $P = \neg Q$ \hfill prove $\bot$ from assuming $Q$ ($\neg$I)
                     \item $P = \forall x [Q(x)]$ \hfill show $Q(c)$ from arbitrary $c$ ($\forall$I)
                     \item $P = \exists x [Q(x)]$ \hfill find some $c$, and show $Q(c)$ ($\exists$I)
                     \item $P$ \hfill prove $\bot$ from assuming $\neg P$ (PC)
@@ -174,7 +174,7 @@
                     \prooftext{Given:}
                     \proofline{1}{\forall x [\text{dragon}(x) \land \forall y [\text{childof}(x, y) \rightarrow \text{fly}(y)] \rightarrow \text{happy(x)}]}{from (i)}
                     \proofline{2}{\forall x [\text{green}(x) \land \text{dragon}(x) \rightarrow \text{fly}(x)]}{from (ii)}
-                    \proofline{3}{\forall x [\exists y [\text{parentof}(y, x) \land \text{green}(y)] \rightarrow \text{green}(y)]}{from (iii)}
+                    \proofline{3}{\forall x [\exists y [\text{parent of}(y, x) \land \text{green}(y)] \rightarrow \text{green}(y)]}{from (iii)}
                     \proofline{4}{\forall x [\forall y [\text{childof}(x, y) \land \text{dragon}(y) \rightarrow \text{dragon}(x)]]}{from (iv)}
                     \proofline{5}{\forall x [\forall y [\text{childof}(y, x) \rightarrow \text{parentof}(x, y)]]}{from (v)}
                     \prooftext{To show:}
@@ -220,7 +220,7 @@
                 For any $P \subseteq \mathbb{N}$: $P(0) \land \forall k : \mathbb{N}[P(k) \rightarrow P(k + 1)] \rightarrow \forall n : \mathbb{N}[P(n)]$
                 \medskip
 
-                This mirrors the definition in \textbf{CO142 - Discrete Structures}, by using Peano's axiom. Given a unary preducate $P$, and $P(0)$ is true, and for all natural numbers $k$, if $P(k)$ is true, then it follows that $P(\text{Succ}(k))$ is true. Then it follows that $P(n)$ is true for every natural number $n \in \mathbb{N}$.
+                This mirrors the definition in \textbf{CO142 - Discrete Structures}, by using Peano's axiom. Given a unary predicate $P$, and $P(0)$ is true, and for all natural numbers $k$, if $P(k)$ is true, then it follows that $P(\text{Succ}(k))$ is true. Then it follows that $P(n)$ is true for every natural number $n \in \mathbb{N}$.
             \subsubsection*{Example - Sum of Natural Numbers}
                 We want to prove $P(n)$, where $P(n) \triangleq \summation{i = 0}{n}{i} = \frac{n(n + 1)}{2}$ - a formula which we should be used to seeing.
                 \smallskip
@@ -396,7 +396,7 @@ subList (x:xs) ys
             The goal here is to prove $\forall xs : \texttt{[a]} [Q(xs)]$, where $Q(xs) \triangleq \forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList }xs\ ys]$. Induction doesn't simply work here, as $Q$ isn't defined over a set of numbers, but rather over the lists of \texttt{a}. Once again, we can take multiple approaches to this problem;
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item map lists to numbers, by expressing $Q \subseteq \texttt{[a]}$, with an eqiuvalent $P \subseteq \mathbb{N}$
+                \item map lists to numbers, by expressing $Q \subseteq \texttt{[a]}$, with an equivalent $P \subseteq \mathbb{N}$
                     \subitem there's a proof of this in \textit{Induction over Haskell data structures (full notes).pdf} - the point is that it's a bad idea, and structural induction should be used instead.
                     \subitem this method of reasoning is indirect - the property \texttt{length} is unrelated to $P$
                 \item use structural induction
@@ -464,7 +464,7 @@ rev (x:xs) = (rev xs) ++ [x]\end{verbatim}
                 \end{reasoning}
                 Unlike in induction over natural numbers, each list has an infinite number of successors (for example, both \texttt{3:[]}, and \text{877:[]} are successors of \texttt{[]}), which is why it's important for us to consider arbitrary values. Intuitively, assuming the base case of $P(\texttt{[]})$ holds, we have $P(\texttt{[]}) \rightarrow (P(\texttt{x:[]}) \rightarrow (P(\texttt{y:x:[]}) \rightarrow P(\texttt{z:y:x[]})))$, and so on, hence it holds for all lists.
         \subsection*{Induction over Haskell Data Structures}
-            While we can now perform induction over the natural numbers, as well as lists of arbitrary type, we cannot yet perform induction over arbitrary data strucutres, which are recursively defined. Consider the following data structures;
+            While we can now perform induction over the natural numbers, as well as lists of arbitrary type, we cannot yet perform induction over arbitrary data structures, which are recursively defined. Consider the following data structures;
             \begin{itemize}
                 \itemsep0em
                 \item \texttt{data Nat = Zero | Succ Nat}
@@ -546,5 +546,5 @@ data Tree   = Leaf | Node [Tree]\end{verbatim}
             Now; the new \texttt{Tree} structure has the inductive principle; $P(\texttt{Leaf}) \land \forall ts : \texttt{Trees} [\forall t : \texttt{Tree}, \forall ts_1, ts_2 : \texttt{Trees} [\textcolor{violet}{ts = ts_1 ++ [t] ++ ts_2 \rightarrow P(t)}] \rightarrow P(\texttt{Node } ts)] \rightarrow \forall t : \texttt{Tree} [P(t)]$. The meaning of the part in \textcolor{violet}{violet} is that every item in $ts$ satisfies the property $P$, I think.
             \medskip
 
-            In summary, by having a recursively defined data type, it allows us to construct an induction principle, which then leads to a proof schema. We are able to use first-order equivalences to swap quantifers, which may allow for a proof on an easier equivalent property. Occasionally, lemmas will need to be strengthened, or we will need to create auxiliary lemmas.
+            In summary, by having a recursively defined data type, it allows us to construct an induction principle, which then leads to a proof schema. We are able to use first-order equivalences to swap quantifiers, which may allow for a proof on an easier equivalent property. Occasionally, lemmas will need to be strengthened, or we will need to create auxiliary lemmas.
 \end{document}
