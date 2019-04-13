@@ -397,6 +397,26 @@ sublist (x:xs) ys
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item map lists to numbers, by expressing $Q \subseteq \texttt{[a]}$, with an eqiuvalent $P \subseteq \mathbb{N}$
+                    \subitem there's a proof of this in \textit{Induction over Haskell data structures (full notes).pdf} - the point is that it's a bad idea, and structural induction should be used instead.
+                    \subitem this method of reasoning is indirect - the property \texttt{length} is unrelated to $P$
                 \item use structural induction
+                    \subitem in a step of mathematical induction, we need to argue a property is inherited by the \textbf{predecessor} to its \textbf{successor}, such that 4 succeeds 3
+                    \subitem this concept needs to be generalised to other data structures, for example; can we say \texttt{1:2:3:[]} is a successor to \texttt{2:3:[]}?
             \end{enumerate}
+            \subsubsection*{Structural Induction Principle (Lists)}
+                For any type $\texttt{T}$, and $P \subseteq \texttt{[T]}$; we can say $P(\texttt{[]}) \land \forall vs : \texttt{[T]} \forall v : \texttt{T} [P(vs) \rightarrow P(v : vs)] \rightarrow \forall xs : \texttt{[T]} [P(xs)]$
+                \medskip
+
+                Now, we can apply the structural induction principle to $xs$ for \texttt{subList};
+
+                $\phantom{\forall vs : \texttt{[a]} \forall v : \texttt{a}[(} \textcolor{red}{\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList [] } ys]} \land \\ \textcolor{blue}{\forall vs : \texttt{[a]} \forall v : \texttt{a} [(\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList }vs\ ys]) \rightarrow} \\ \phantom{\forall vs : \texttt{[a]} \forall v : \texttt{a}[} \textcolor{blue}{ (\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList }(v : vs)\ ys])]} \rightarrow \\ \phantom{\forall v : \texttt{a}(} \textcolor{violet}{\forall xs : \texttt{[a]}[\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList } xs\ ys]]}$ % i should really learn how to align things properly.
+                \begin{reasoning}
+                    \proofbc
+                    \prooftext{Our aim here is to show $\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList [] } ys]$}
+                    %%
+                    \proofis
+                    \prooftext{Take arbitrary $v : \texttt{a}$, and $vs : \texttt{[a]}$}
+                    \prooftext{Inductive hypothesis: $\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList } vs\ ys]$}
+                    \prooftext{To show: $\forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList } (v : vs)\ ys]$}
+                \end{reasoning}
 \end{document}
