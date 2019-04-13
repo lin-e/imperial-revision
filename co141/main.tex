@@ -547,4 +547,50 @@ data Tree   = Leaf | Node [Tree]\end{verbatim}
             \medskip
 
             In summary, by having a recursively defined data type, it allows us to construct an induction principle, which then leads to a proof schema. We are able to use first-order equivalences to swap quantifiers, which may allow for a proof on an easier equivalent property. Occasionally, lemmas will need to be strengthened, or we will need to create auxiliary lemmas.
+        \subsection*{Induction over Recursive Relations and Functions}
+            As every inductively defined set creates a successor relation (+1 for $\mathbb{N}$, or \texttt{Node} for \texttt{Tree}), all inductively defined relations, and functions give rise to successor relations, therefore all inductively defined sets, relations, and functions give rise to an induction induction principle. Generalizing the principle of induction from sets to functions, and relations, follows from the idea that relations, and functions, can both be represented through sets. Consider the "mystery" function \texttt{M};
+            \begin{verbatim}
+M :: Int -> Int
+M m = M'(m, 0, 1)
+
+M' :: (Int, Int, Int) -> Int
+M' (i, cnt, acc)
+  | i == cnt  = acc
+  | otherwise = M'(i, cnt+1, 2*acc)\end{verbatim}
+            We can then evaluate the value of \texttt{M}($n$), let $n = 4$;
+            \begin{reasoning}
+                \proofeq{\texttt{M}(4)}{\texttt{M'}(4, 0, 1)}{by def. of \texttt{M}}
+                \proofeq{}{\texttt{M'}(4, 0, 1)}{by def. of \texttt{M'}}
+                \proofeq{}{\texttt{M'}(4, 1, 2)}{by def. of \texttt{M'}}
+                \proofeq{}{\texttt{M'}(4, 2, 4)}{by def. of \texttt{M'}}
+                \proofeq{}{\texttt{M'}(4, 3, 8)}{by def. of \texttt{M'}}
+                \proofeq{}{\texttt{M'}(4, 4, 16)}{by def. of \texttt{M'}}
+                \proofeq{}{16}{by def. of \texttt{M'}}
+            \end{reasoning}
+            In general, let it be \textbf{Assrt\_1}, $\forall m : \mathbb{N} [\texttt{M}(m) = 2^m]$. While the definition for \texttt{M'} might feel forced, or deliberately implemented due to the increasing argument size, we care about it for a few reasons. Firstly, it's a tail-recursive function, and also once translated to an imperative language, it acts as a loop. For example, we can represent it in Java in a similar way;
+            \begin{verbatim}
+cnt = 0;
+acc = 0;
+while !(m == cnt) {
+  cnt = cnt + 1;
+  acc = 2*acc;
+}
+return acc;\end{verbatim}
+            We want to establish \textbf{Assrt\_2}: $\forall m, cnt, acc, p : \mathbb{N} [\texttt{M'}(m, cnt, acc) = p \rightarrow p = 2^{m - cnt} \cdot acc]$. The challenge with this is how it's recursively defined with increasing arguments. Due to this, we have to take one of the following approaches;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item find some measure which decreases, rather than increases, with each level of recursion
+                \item count the number of recursive calls in \texttt{M'}
+                \item a new induction principle
+            \end{enumerate}
+            In the first approach, we show that if $m < cnt$, then the function does not terminate ($m < cnt \rightarrow m \neq cnt$, as the termination condition is $m = cnt$). Hence \textbf{Assrt\_2} can be shown as \textbf{Assrt\_2'} = $\forall m, cnt, acc, p : \mathbb{N} [m \geq cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]$. However, in order to be able tp prove \textbf{Assrt\_2'}, we need to prove \textbf{Assrt\_3}: $\forall k, m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]$. We also need to prove that $\textbf{Assrt\_3} \rightarrow \textbf{Assrt\_2'}$.
+            \medskip
+
+            In order to prove \textbf{Assrt\_3}, we need to apply mathematical induction over $k$, and formally apply the principle as;
+            \smallskip
+
+            $\phantom{\forall k : \mathbb{N}[} \textcolor{blue}{\forall m, cnt, acc : \mathbb{N} [0 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) \rightarrow 2^{m - cnt} \cdot acc]} \land \\ \textcolor{red}{\forall k : \mathbb{N} [\forall m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc] \rightarrow } \\ \phantom{\forall k : \mathbb{N} [} \textcolor{red}{\forall m, cnt, acc : \mathbb{N} [k + 1 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]]} \rightarrow \\ \phantom{\ : \mathbb{N}[} \textcolor{violet}{\forall k, m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]}$
+            \begin{reasoning}
+                
+            \end{reasoning}
 \end{document}
