@@ -712,4 +712,36 @@ return acc;\end{verbatim}
 F :: Int -> Int
 F 0 = 0
 F i = 1 + (i - 3)\end{verbatim}
+            Thus, this can be described in the following rules;
+            \begin{enumerate}[R1]
+                \itemsep0em
+                \item $\forall i : \mathbb{Z} [i = 0 \rightarrow \texttt{F } i = 0]$
+                \item $\forall i, j : \mathbb{Z} [i \neq 0 \land \texttt{F } (i - 3) = j \rightarrow \texttt{F } i = 1 + j]$
+            \end{enumerate}
+            Given a predicate $Q \subseteq \mathbb{Z} \times \mathbb{Z}$, we have the following inductive principle, used to prove $\forall i, j : \mathbb{Z} [\texttt{F } i = j \rightarrow Q(i, j)]$;
+            \medskip
+
+            $\textcolor{blue}{Q(0, 0)} \land \textcolor{red}{\forall i, j : \mathbb{Z} [i \neq 0 \land \texttt{F } (i - 3) = k \land Q(i - 3, j) \rightarrow Q(i, 1 + j)]} \rightarrow \textcolor{violet}{\forall i, j : \mathbb{Z} [\texttt{F } i = j \rightarrow Q(i, j)]}$
+            \medskip
+
+            It's important to note that the function doesn't say that $\forall i : \mathbb{Z} [Q(i, \texttt{F } i)]$, since we have no guarantee of function termination. The property established is that \textbf{if} the function terminates ($\texttt{F } i = j$), then $Q(i, \texttt{F } i)$ is satisfied.
+            \medskip
+
+            The next example works on the function \texttt{G}, defined in Haskell as;
+            \begin{verbatim}
+G :: (Nat, Nat) -> Nat
+G (i, j) = G' (i, j, 0, 0)
+
+G' :: (Nat, Nat, Nat, Nat) -> Nat
+G' (i, j, cnt, acc)
+  | i == cnt  = acc
+  | otherwise = G' (i, j, cnt + 1, acc + j)\end{verbatim}
+            Like one of our previous induction over recursive functions questions, the arguments continue to increase in size, but also the number of execution steps decreases. Once again we can define a set of rules for the aforementioned function;
+            \begin{enumerate}[R1]
+                \itemsep0em
+                \item $\forall i, j : \mathbb{N} [\texttt{G } (i, j) = \texttt{G' } (i, j, 0, 0)]$
+                \item $\forall i, j, acc : \mathbb{N} [\texttt{G' } (i, j, i, acc) = acc]$
+                \item $\forall i, j, cnt, acc, r : \mathbb{N} [i \neq cnt \land \texttt{G' } (i, j, cnt + 1, acc + j) = r \rightarrow \texttt{G' } (i, j, cnt, acc) = r]$
+            \end{enumerate}
+            
 \end{document}
