@@ -743,5 +743,14 @@ G' (i, j, cnt, acc)
                 \item $\forall i, j, acc : \mathbb{N} [\texttt{G' } (i, j, i, acc) = acc]$
                 \item $\forall i, j, cnt, acc, r : \mathbb{N} [i \neq cnt \land \texttt{G' } (i, j, cnt + 1, acc + j) = r \rightarrow \texttt{G' } (i, j, cnt, acc) = r]$
             \end{enumerate}
-            
+            The first rule establishes that $\texttt{G' } (i, j, 0, 0)$ terminates, and it has an equivalent value to $\texttt{G } (i, j)$. This can also be expressed as $\forall i, k : \mathbb{N} \exists k : \mathbb{N} [\texttt{G' } (i, j, 0, 0) = k \land \texttt{G } (i, j) = k]$
+            \medskip
+
+            If we apply the inductive principle to the predicate $Q \subseteq \mathbb{N} \times \mathbb{N} \times \mathbb{N} \times \mathbb{N} \times \mathbb{N}$, we get;
+            \medskip
+
+            $\textcolor{blue}{\forall i, j, acc : \mathbb{N} [Q(i, j, i, acc, acc)]} \land \textcolor{red}{\forall i, j, acc, cnt, r : \mathbb{N} [i \neq cnt \land } \\ \textcolor{red}{\texttt{G' } (i, j, cnt + 1, acc + j) = r \land Q(i, j, cnt + 1, acc + j, r) \rightarrow Q(i, j, cnt, acc, r)]} \rightarrow \\ \textcolor{violet}{\forall i, j, acc, cnt, r : \mathbb{N} [\texttt{G' }(i, j, cnt, acc) = r \rightarrow Q(i, j, cnt, acc, r)]}$
+            \medskip
+
+            The goal here is to prove $\forall i, j : \mathbb{N} [\texttt{G } (i, j) = i \cdot j]$. In order to prove this, we have to show $\forall i, j : \mathbb{N} \exists r : \mathbb{N} [\texttt{G' } (i, j, 0, 0) = r \land r = i \cdot j]$. However, to show this we need to show $\forall i, j : \mathbb{N} \exists r : \mathbb{N} [\texttt{G' } (i, j, 0, 0) = r]$, as well as $\forall i, j, r \in \mathbb{N} [\texttt{G' } (i, j, 0, 0) = r \rightarrow r = i \cdot j]$. In order to show this, we can show $\forall i, j, cnt, acc, n : \mathbb{N} [i - cnt = n \rightarrow \exists r : \mathbb{N} [\texttt{G' } (i, j, cnt, acc) = r]]$, and $\forall i, j, cnt, acc, r : \mathbb{N} [\texttt{G' } (i, j, cnt, acc) = r \rightarrow r = (i - cnt) \cdot j + acc]$, respectively. I have no idea why.
 \end{document}
