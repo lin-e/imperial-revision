@@ -679,5 +679,37 @@ return acc;\end{verbatim}
                     \proofline{4}{(\texttt{Node } 'b'\ (\texttt{Leaf } 9)\ (\texttt{Leaf } 3))}{by (R2), (1), (2), and $'b' \in \texttt{Char}$}
                     \proofline{5}{(\texttt{Node } 'a'\ (\texttt{Leaf } 5)\ (\texttt{Node } 'b'\ (\texttt{Leaf } 9)\ (\texttt{Leaf } 3))) \in \texttt{Tree}}{by (R2), (3), (4), and $'a' \in \texttt{Char}$}
                 \end{reasoning}
-                Once again, for some property $Q \subseteq \texttt{Tree}$, we have the inductive principle; $\textcolor{blue}{\forall i \in \mathbb{N} [Q(\texttt{Leaf } i)]} \land \textcolor{red}{\forall t_1, t_2 \in \texttt{Tree} \forall c \in \texttt{Char} [Q(t_1) \land Q(t_2) \rightarrow Q(\texttt{Node } c\ t_1\ t_2)]} \rightarrow \textcolor{violet}{\forall t \in \texttt{Tree} [Q(t)]}$
+                Once again, for some property $Q \subseteq \texttt{Tree}$, we have the inductive principle; $\textcolor{blue}{\forall i \in \mathbb{N} [Q(\texttt{Leaf } i)]} \land \textcolor{red}{\forall t_1, t_2 \in \texttt{Tree} \forall c \in \texttt{Char} [Q(t_1) \land Q(t_2) \rightarrow Q(\texttt{Node } c\ t_1\ t_2)]} \rightarrow \textcolor{violet}{\forall t \in \texttt{Tree} [Q(t)]}$.
+            \subsubsection*{Example 3 - Ordered List}
+                Considered the set $OL \subseteq N^*$, defined with the rules;
+                \begin{enumerate}[R1]
+                    \itemsep0em
+                    \item $[] \in OL$
+                    \item $\forall i \in \mathbb{N} [i : [] \in OL]$
+                    \item $\forall i, j \in \mathbb{N}, js \in \mathbb{N}^* [i \leq j \land (j : js) \in OL \rightarrow i : j : js \in OL]$
+                \end{enumerate}
+                For some property $Q \subseteq \mathbb{N}^*$, we get the inductive principle $\textcolor{blue}{Q([])} \land \textcolor{blue}{\forall i \in \mathbb{N} [Q(i : [])]} \land \\ \textcolor{red}{\forall i, j \in \mathbb{N}, js \in \mathbb{N}^* [i \leq j \land (j : js) \in OL \land Q(j : js) \rightarrow Q(i : j : js)]} \rightarrow \textcolor{violet}{\forall ns \in OL [Q(ns)]}$.
+        \subsection*{Inductively Defined Relations, and Predicates}
+            \subsubsection*{Example 1 - "Strictly Less Than"}
+                The predicate $SL \subseteq \mathbb{N} \times \mathbb{N}$, is defined by the rules;
+                \begin{enumerate}[R1]
+                    \itemsep0em
+                    \item $\forall k \in \mathbb{N} [SL(0, k + 1)]$
+                    \item $\forall m, n \in \mathbb{N} [SL(m, n) \rightarrow SL(m + 1, n + 1)]$
+                \end{enumerate}
+                For some property $Q \subseteq \mathbb{N} \times \mathbb{N}$, $SL$ gives the following inductive principle; $\textcolor{blue}{\forall k \in \mathbb{N} [Q(0, k + 1)]} \rightarrow \textcolor{red}{\forall m, n \in \mathbb{N} [SL(m, n) \land Q(m, n) \rightarrow Q(m + 1, n + 1)]} \rightarrow \textcolor{violet}{\forall m, n \in \mathbb{N} [SL(m, n) \rightarrow Q(m, n)]}$
+            \subsubsection*{Example 2 - Even}
+                Consider the predicate $E \subseteq S_\mathbb{N}$, which is defined by;
+                \begin{enumerate}[R1]
+                    \itemsep0em
+                    \item $E(\texttt{Zero})$
+                    \item $\forall n \in S_\mathbb{N} [E(n) \rightarrow E(\texttt{Succ Succ Zero})]$
+                \end{enumerate}
+                If we wanted to establish the property $Q \subseteq S_\mathbb{N}$, we're able to use the definition of $E$ to obtain the inductive principle; $\textcolor{blue}{Q(\texttt{Zero})} \land \textcolor{red}{\forall n \in S_\mathbb{N} [E(n) \land Q(n) \rightarrow Q(\texttt{Succ Succ } n)]} \rightarrow \textcolor{violet}{\forall n \in S_\mathbb{N} [E(n) \rightarrow Q(n)]}$.
+        \subsection*{Inductively Defined Functions}
+            Consider the function \texttt{F}, defined in Haskell as
+            \begin{verbatim}
+F :: Int -> Int
+F 0 = 0
+F i = 1 + (i - 3)\end{verbatim}
 \end{document}
