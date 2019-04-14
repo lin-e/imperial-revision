@@ -609,10 +609,10 @@ return acc;\end{verbatim}
                 \proofeq{}{2^0 \cdot acc}{by arithmetic}
                 \proofeq{}{2^{m - cnt} \cdot acc}{by (a1)}
                 \proofis
-                \prooftext{Take arbitrary $m, cnt_1, acc_1 : \mathbb{N}$}
-                \prooftext{Inductive hypothesis: $k = m - cnt_1 \rightarrow \texttt{M'}(m, cnt_1, acc_1) = 2^{m - cnt_1} \cdot acc_1$}
+                \prooftext{Take arbitrary $m : \mathbb{N}$}
+                \prooftext{Inductive hypothesis: $\forall acc_1, cnt_1 : \mathbb{N} [k = m - cnt_1 \rightarrow \texttt{M'}(m, cnt_1, acc_1) = 2^{m - cnt_1} \cdot acc_1]$}
                 \prooftext{To show: $k + 1 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc$}
-                \prooftext{Take arbitrary $cnt : \mathbb{N}$}
+                \prooftext{Take arbitrary $cnt, acc : \mathbb{N}$}
                 \proofline{\text{a}1}{k + 1 = m - cnt}{assumption, otherwise the proof is trivial}
                 \proofline{1}{k \geq 0}{by $k : \mathbb{N}$}
                 \proofline{2}{k + 1\geq 1}{by arithmetic}
@@ -625,13 +625,59 @@ return acc;\end{verbatim}
                 \proofeq{}{2^{m - cnt_1} \cdot acc_1}{by inductive hypothesis}
                 \proofeq{}{2^{m - cnt - 1} \cdot 2 \cdot acc}{by substitution}
                 \proofeq{}{2^{m - cnt} \cdot acc}{by arithmetic}
-                % \proofline{1}{k = m - (cnt + 1)}{by arithmetic}
-                % \proofline{2}{k = m - cnt_1}{where $cnt_1 = cnt + 1$}
-                % \proofline{3}{\texttt{M'}(m, cnt_1, acc) = 2^{m - cnt_1} \cdot acc}{by inductive hypothesis}
-                % \proofline{1}{k \geq 0}{by $k : \mathbb{N}$}
-                % \proofline{2}{k + 1\geq 1}{by arithmetic}
-                % \proofline{3}{m - cnt \geq 1}{by (2), and arithmetic}
-                % \proofline{4}{m \geq cnt + 1}{by arithmetic}
-                % \proofline{5}{m > cnt}{by definition of $\geq$, arithmetic, and $m, cnt: \mathbb{N}$}
             \end{reasoning}
+            In the second approach, we can define \texttt{M'} in a new function \texttt{M''} as follows;
+            \begin{enumerate}[M\_1:]
+                \itemsep0em
+                \setcounter{enumi}{3}
+                \item $m = cnt \rightarrow \texttt{M''}(m, cnt, acc) = (0, acc)$
+                \item $m \neq cnt \land \texttt{M''}(m, cnt + 1, 2 \cdot acc) = (k, n) \rightarrow \texttt{M''}(m, cnt, acc) = (k + 1, n)$
+            \end{enumerate}
+            This then leads to the following;
+            \smallskip
+
+            \textbf{Assrt\_4}: $\forall s : \mathbb{N} \forall m, cnt, acc, n : \mathbb{N} [\texttt{M''}(m, cnt, acc) = (s, n) \rightarrow n = 2^{m - cnt} \cdot acc]$ - proven by induction over $s$
+            \smallskip
+
+            \textbf{Assrt\_5}: $\forall m, cnt, acc, n : \mathbb{N} [\texttt{M'}(m, cnt, acc) = n \rightarrow \texttt{M''}(m, cnt, acc) = (m - cnt, n)]$ - proven by induction over $m - cnt$ (basically, do induction over $k$ as in; $\forall k, m, cnt, acc, n : \mathbb{N} [m - cnt = k \land \texttt{M'}(m, cnt, acc) = n \rightarrow \texttt{M''}(m, cnt, acc) = (m - cnt, n)]$)
+            \smallskip
+
+            Once again, we have to then prove that the two assertions implies the original; as in $\textbf{Assrt\_4} \land \textbf{Assrt\_5} \rightarrow \textbf{Assrt\_2}$.
+            \subsubsection*{Generalising the Successor}
+                While it is possible to reason about functions by purely mathematical induction, it's often indirect. For example, having to do induction over $m - cnt$, in the first approach, or counting recursive depth in the second. In both mathematical, and structural induction, we want to argue that properties are inherited from an element to their successor, which means "is constructed from" (hence, \texttt{x:[]} is constructed from \texttt{[]}, or 4 is constructed from 3). If we generalise the concept of a successor to \textbf{recursively defined relations, and functions}, we can say that it means "is defined in terms of", hence, \texttt{M''}(3, 2, 4) succeeds \texttt{M''}(3, 3, 8).
+                \medskip
+
+                Generally, an inductive definition requires a finite set of "primitive" (base) cases, and a finite set of "composite" (inductive) derived cases. This inductive definition will lead to an inductive principle. Sets can be defined inductively, and relations, and functions \textbf{may} be defined inductively. The latter two can be defined in terms of a set (relations defined as the set of elements in the relation, and functions represented as a set of pairs) - if we can apply an induction to reason about elements in the sets, the induction follows for the relation, or function.
+        \subsection*{Inductively Defined Sets}
+            \subsubsection*{Example 1 - Natural Numbers}
+                Consider the set $S_\mathbb{N}$, defined over the alphabet \texttt{Zero}, and \texttt{Succ}, with the rules;
+                \begin{enumerate}[R1]
+                    \itemsep0em
+                    \item $\texttt{Zero} \in S_\mathbb{N}$
+                    \item $\forall n [n \in S_\mathbb{N} \rightarrow \texttt{Succ } n \in S_\mathbb{N}]$
+                \end{enumerate}
+                For example, in order to show that $\texttt{Succ Succ Succ Zero} \in S_\mathbb{N}$, we'd need to do the following;
+                \begin{reasoning}
+                    \proofline{1}{\texttt{Zero} \in S_\mathbb{N}}{by (R1)}
+                    \proofline{2}{\texttt{Succ Zero} \in S_\mathbb{N}}{by (1), and (R2)}
+                    \proofline{3}{\texttt{Succ Succ Zero} \in S_\mathbb{N}}{by (2), and (R2)}
+                    \proofline{4}{\texttt{Succ Succ Succ Zero} \in S_\mathbb{N}}{by (3), and (R2)}
+                \end{reasoning}
+                For some property $Q \subseteq S_\mathbb{N}$, we have the primitive case \texttt{Zero}, and the composite case \texttt{Succ}; therefore it follows that the inductive principle for $Q$ is $\textcolor{blue}{Q(\texttt{Zero})} \land \textcolor{red}{\forall m \in S_\mathbb{N} [Q(m) \rightarrow Q(\texttt{Succ } m)]} \rightarrow \textcolor{violet}{\forall n \in S_\mathbb{N} [Q(n)]}$.
+            \subsubsection*{Example 2 - Tree}
+                Consider the set \texttt{Tree}, defined with the rules;
+                \begin{enumerate}[R1]
+                    \itemsep0em
+                    \item $i \in \mathbb{N} \rightarrow (\texttt{Leaf } i) \in \texttt{Tree}$
+                    \item $\forall t1, t2 \in \texttt{Tree}, c \in \texttt{Char} [(\texttt{Node } c\ t1\ t2) \in \texttt{Tree}]$
+                \end{enumerate}
+                For example, to show that $(\texttt{Node } 'a'\ (\texttt{Leaf } 5)\ (\texttt{Node } 'b'\ (\texttt{Leaf } 9)\ (\texttt{Leaf } 3))) \in \texttt{Tree}$, we'd need to do the following;
+                \begin{reasoning}
+                    \proofline{1}{(\texttt{Leaf } 3) \in \texttt{Tree}}{by (R1), and $3 \in \mathbb{N}$}
+                    \proofline{2}{(\texttt{Leaf } 9) \in \texttt{Tree}}{by (R1), and $9 \in \mathbb{N}$}
+                    \proofline{3}{(\texttt{Leaf } 5) \in \texttt{Tree}}{by (R1), and $5 \in \mathbb{N}$}
+                    \proofline{4}{(\texttt{Node } 'b'\ (\texttt{Leaf } 9)\ (\texttt{Leaf } 3))}{by (R2), (1), (2), and $'b' \in \texttt{Char}$}
+                    \proofline{5}{(\texttt{Node } 'a'\ (\texttt{Leaf } 5)\ (\texttt{Node } 'b'\ (\texttt{Leaf } 9)\ (\texttt{Leaf } 3))) \in \texttt{Tree}}{by (R2), (3), (4), and $'a' \in \texttt{Char}$}
+                \end{reasoning}
+                Once again, for some property $Q \subseteq \texttt{Tree}$, we have the inductive principle; $\textcolor{blue}{\forall i \in \mathbb{N} [Q(\texttt{Leaf } i)]} \land \textcolor{red}{\forall t_1, t_2 \in \texttt{Tree} \forall c \in \texttt{Char} [Q(t_1) \land Q(t_2) \rightarrow Q(\texttt{Node } c\ t_1\ t_2)]} \rightarrow \textcolor{violet}{\forall t \in \texttt{Tree} [Q(t)]}$
 \end{document}
