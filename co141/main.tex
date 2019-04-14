@@ -586,11 +586,39 @@ return acc;\end{verbatim}
             In the first approach, we show that if $m < cnt$, then the function does not terminate ($m < cnt \rightarrow m \neq cnt$, as the termination condition is $m = cnt$). Hence \textbf{Assrt\_2} can be shown as \textbf{Assrt\_2'} = $\forall m, cnt, acc, p : \mathbb{N} [m \geq cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]$. However, in order to be able tp prove \textbf{Assrt\_2'}, we need to prove \textbf{Assrt\_3}: $\forall k, m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]$. We also need to prove that $\textbf{Assrt\_3} \rightarrow \textbf{Assrt\_2'}$.
             \medskip
 
+            Proving the latter is fairly straightforward, if $k = m - cnt$, and $k \geq 0$ (since it's a natural number), then it follows that $m - cnt \geq 0$, therefore $m \geq cnt$.
+            \medskip
+
             In order to prove \textbf{Assrt\_3}, we need to apply mathematical induction over $k$, and formally apply the principle as;
             \smallskip
 
-            $\phantom{\forall k : \mathbb{N}[} \textcolor{blue}{\forall m, cnt, acc : \mathbb{N} [0 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) \rightarrow 2^{m - cnt} \cdot acc]} \land \\ \textcolor{red}{\forall k : \mathbb{N} [\forall m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc] \rightarrow } \\ \phantom{\forall k : \mathbb{N} [} \textcolor{red}{\forall m, cnt, acc : \mathbb{N} [k + 1 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]]} \rightarrow \\ \phantom{\ : \mathbb{N}[} \textcolor{violet}{\forall k, m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]}$
+            \begin{itemize}
+                \itemsep0em
+                \item $\forall m, cnt, acc : \mathbb{N} [m = cnt \rightarrow \texttt{M'}(i, cnt, acc) = acc]$
+                \item $\forall m, cnt, acc : \mathbb{N} [m > cnt \rightarrow ]$
+            \end{itemize}
+
+            $\phantom{\forall k : \mathbb{N}[} \textcolor{blue}{\forall m, cnt, acc : \mathbb{N} [0 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]} \land \\ \textcolor{red}{\forall k : \mathbb{N} [\forall m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc] \rightarrow } \\ \phantom{\forall k : \mathbb{N} [} \textcolor{red}{\forall m, cnt, acc : \mathbb{N} [k + 1 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]]} \rightarrow \\ \phantom{\ : \mathbb{N}[} \textcolor{violet}{\forall k, m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]}$
             \begin{reasoning}
-                
+                \proofbc
+                \prooftext{Our aim here is to show $\forall m, cnt, acc : \mathbb{N} [0 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]$}
+                \prooftext{Take arbitrary $m,cnt,acc : \mathbb{N}$}
+                \proofline{\text{a}1}{0 = m - cnt}{assumption, otherwise the proof is trivial}
+                \proofline{1}{m = cnt}{by (a1), and arithmetic}
+                \proofeq{\texttt{M'}(m, cnt, acc)}{acc}{by (1), and def. of \texttt{M'}}
+                \proofeq{}{2^0 \cdot acc}{by arithmetic}
+                \proofeq{}{2^{m - cnt} \cdot acc}{by (a1)}
+                \proofis
+                \prooftext{Take arbitrary $m,cnt_1,acc : \mathbb{N}$}
+                \prooftext{Inductive hypothesis: $k = m - cnt_1 \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt_1} \cdot acc$}
+                \prooftext{To show: $k + 1 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc$}
+                \prooftext{Take arbitrary $cnt : \mathbb{N}$}
+                \proofline{\text{a}1}{k + 1 = m - cnt}{assumption, otherwise the proof is trivial}
+                \proofline{1}{}{}
+                % \proofline{1}{k \geq 0}{by $k : \mathbb{N}$}
+                % \proofline{2}{k + 1\geq 1}{by arithmetic}
+                % \proofline{3}{m - cnt \geq 1}{by (2), and arithmetic}
+                % \proofline{4}{m \geq cnt + 1}{by arithmetic}
+                % \proofline{5}{m > cnt}{by definition of $\geq$, arithmetic, and $m, cnt: \mathbb{N}$}
             \end{reasoning}
 \end{document}
