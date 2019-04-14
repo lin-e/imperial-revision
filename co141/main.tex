@@ -602,19 +602,32 @@ return acc;\end{verbatim}
             \begin{reasoning}
                 \proofbc
                 \prooftext{Our aim here is to show $\forall m, cnt, acc : \mathbb{N} [0 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]$}
-                \prooftext{Take arbitrary $m,cnt,acc : \mathbb{N}$}
+                \prooftext{Take arbitrary $m, cnt, acc : \mathbb{N}$}
                 \proofline{\text{a}1}{0 = m - cnt}{assumption, otherwise the proof is trivial}
                 \proofline{1}{m = cnt}{by (a1), and arithmetic}
                 \proofeq{\texttt{M'}(m, cnt, acc)}{acc}{by (1), and def. of \texttt{M'}}
                 \proofeq{}{2^0 \cdot acc}{by arithmetic}
                 \proofeq{}{2^{m - cnt} \cdot acc}{by (a1)}
                 \proofis
-                \prooftext{Take arbitrary $m,cnt_1,acc : \mathbb{N}$}
-                \prooftext{Inductive hypothesis: $k = m - cnt_1 \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt_1} \cdot acc$}
+                \prooftext{Take arbitrary $m, cnt_1, acc_1 : \mathbb{N}$}
+                \prooftext{Inductive hypothesis: $k = m - cnt_1 \rightarrow \texttt{M'}(m, cnt_1, acc_1) = 2^{m - cnt_1} \cdot acc_1$}
                 \prooftext{To show: $k + 1 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc$}
                 \prooftext{Take arbitrary $cnt : \mathbb{N}$}
                 \proofline{\text{a}1}{k + 1 = m - cnt}{assumption, otherwise the proof is trivial}
-                \proofline{1}{}{}
+                \proofline{1}{k \geq 0}{by $k : \mathbb{N}$}
+                \proofline{2}{k + 1\geq 1}{by arithmetic}
+                \proofline{3}{m - cnt \geq 1}{by (2), and arithmetic}
+                \proofline{4}{m \geq cnt + 1}{by arithmetic}
+                \proofline{5}{m > cnt}{by definition of $\geq$, arithmetic, and $m, cnt: \mathbb{N}$}
+                \proofline{6}{m \neq cnt}{by (5)}
+                \proofeq{\texttt{M'}(m, cnt, acc)}{\texttt{M'}(m, cnt + 1, 2 \cdot acc)}{by (6), and def. of \texttt{M'}}
+                \proofeq{}{\texttt{M'}(m, cnt_1, acc_1)}{where $cnt_1 = cnt + 1$, $acc_1 = 2 \cdot acc$}
+                \proofeq{}{2^{m - cnt_1} \cdot acc_1}{by inductive hypothesis}
+                \proofeq{}{2^{m - cnt - 1} \cdot 2 \cdot acc}{by substitution}
+                \proofeq{}{2^{m - cnt} \cdot acc}{by arithmetic}
+                % \proofline{1}{k = m - (cnt + 1)}{by arithmetic}
+                % \proofline{2}{k = m - cnt_1}{where $cnt_1 = cnt + 1$}
+                % \proofline{3}{\texttt{M'}(m, cnt_1, acc) = 2^{m - cnt_1} \cdot acc}{by inductive hypothesis}
                 % \proofline{1}{k \geq 0}{by $k : \mathbb{N}$}
                 % \proofline{2}{k + 1\geq 1}{by arithmetic}
                 % \proofline{3}{m - cnt \geq 1}{by (2), and arithmetic}
