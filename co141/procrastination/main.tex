@@ -9,6 +9,25 @@
 \usepackage[margin=1.3cm]{geometry}
 \usepackage{logicproof}
 \usepackage{diagbox}
+\usepackage{listings}
+\usepackage{lstautogobble}
+
+% codelisting
+\lstdefinestyle{main}{
+    numberstyle=\tiny,
+    breaklines=true,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=2,
+    numbers=left,
+    basicstyle=\ttfamily,
+    columns=fixed,
+    fontadjust=true,
+    basewidth=0.5em,
+    autogobble,
+    mathescape=true
+}
+\lstset{style=main}
 
 % augmented matrix
 \makeatletter
@@ -72,4 +91,10 @@
             \proofline{1}{m_1 = m_2}{lorem ipsum}
             \proofline{2}{Q(m_3)}{assumption}
         \end{reasoning}
+        \begin{lstlisting}
+    hello world
+        \end{lstlisting}
+        \begin{verbatim}
+hello world
+        \end{verbatim}
 \end{document}

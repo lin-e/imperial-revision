@@ -9,6 +9,25 @@
 \usepackage[margin=1.3cm]{geometry}
 \usepackage{logicproof}
 \usepackage{diagbox}
+\usepackage{listings}
+\usepackage{lstautogobble}
+
+% code listing
+\lstdefinestyle{main}{
+    numberstyle=\tiny,
+    breaklines=true,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=2,
+    numbers=left,
+    basicstyle=\ttfamily,
+    columns=fixed,
+    fontadjust=true,
+    basewidth=0.5em,
+    autogobble,
+    mathescape=true
+}
+\lstset{style=main}
 
 % augmented matrix
 \makeatletter
@@ -280,10 +299,11 @@
                 \end{reasoning}
             \subsubsection*{New Technique}
                 Consider the Haskell program defined as;
-                \begin{verbatim}
-f :: Int -> Ratio Int
-f 1 = 1/2
-f n = 1/(n * (n + 1)) + f (n - 1)\end{verbatim}
+                \begin{lstlisting}
+                    f :: Int -> Ratio Int
+                    f 1 = 1/2
+                    f n = 1/(n * (n + 1)) + f (n - 1)
+                \end{lstlisting}
                 And, we want to prove $\forall n \geq 1 [\texttt{f } n = \frac{n}{n + 1}]$. However, we cannot directly apply the mathematic induction principle on this, since the conclusion has a different form, and it's not defined for \texttt{f} 0 - hence we have no base case. Instead, we can do one of the following approaches;
                 \begin{enumerate}[1.]
                     \itemsep0em
@@ -344,11 +364,12 @@ f n = 1/(n * (n + 1)) + f (n - 1)\end{verbatim}
                 \end{reasoning}
             \subsubsection*{Strong Induction}
                 While mathematical induction is powerful, it only allows for the inductive step ($k + 1$) to refer to the direct predecessor ($k$). On the other hand, strong induction allows the inductive step to refer to any predecessor, such as $k - 1$, $k - 2$, and so on. For example, if an algorithm was to recurse down by two units, we wouldn't be able to use the inductive hypothesis to replace \texttt{g (k - 1)} from doing the inductive step on $k + 1$. An example of this is this Haskell program, with the property $\forall n : \mathbb{N} [\texttt{g } n = 3^n - 2^n]$;
-                \begin{verbatim}
-g :: Int -> Int
-g 0 = 0
-g 1 = 1
-g n = (5 * g (n - 1)) - (6 * g (n - 2))\end{verbatim}
+                \begin{lstlisting}
+                    g :: Int -> Int
+                    g 0 = 0
+                    g 1 = 1
+                    g n = (5 * g (n - 1)) - (6 * g (n - 2))
+                \end{lstlisting}
                 As such, we need the principle of strong induction; $P(0) \land \forall k : \mathbb{N} [\forall j \in [0..k] [P(j)] \rightarrow P(k + 1)] \rightarrow \forall n : \mathbb{N} [P(n)]$. Here we are using the following shorthand; $j \in [m..n]$ means $m \leq j \leq n$, and similarly $j \in [m..n)$ means $m \leq j < n$. Complete induction has the same base case, where we need to verify $P(0)$, however, the inductive step differs as we have to assume that $P(i)$ holds for all $i \leq k$, then show that $P(k + 1)$ holds. If both of those hold, then it follows that $P(n)$ follows for all $n \in \mathbb{N}$ With this, we can now write down the strong induction principle on $\texttt{g } n = 3^n - 2^n$.
                 \medskip
 
@@ -380,16 +401,17 @@ g n = (5 * g (n - 1)) - (6 * g (n - 2))\end{verbatim}
                 Once again, this principle can be applied for some $m$, and is therefore modified to be $P(m) \land \forall k : \mathbb{Z} [\forall j \in [m..k] [P(j)] \rightarrow P(k + 1)] \rightarrow \forall n \geq m [P(n)]$. The same shorthand we used before applies here.
         \subsection*{Induction over Haskell Lists}
             The example we will be working on involves the follow Haskell functions;
-            \begin{verbatim}
-elem :: Eq a => a -> [a] -> Bool
-elem x []     = False
-elem x (y:ys) = x == y || elem x ys
+            \begin{lstlisting}
+                elem :: Eq a => a -> [a] -> Bool
+                elem x []     = False
+                elem x (y:ys) = x == y || elem x ys
 
-subList :: Eq a => [a] -> [a] -> [a]
-subList [] ys = []
-subList (x:xs) ys
-  | elem x ys = subList xs ys
-  | otherwise = x:(subList xs ys)\end{verbatim}
+                subList :: Eq a => [a] -> [a] -> [a]
+                subList [] ys = []
+                subList (x:xs) ys
+                  | elem x ys = subList xs ys
+                  | otherwise = x:(subList xs ys)
+            \end{lstlisting}
             As well as the specification $\forall xs : \texttt{[a]} \forall ys : \texttt{[a]} \forall z : \texttt{a} [z \in ys \rightarrow z \not\in \texttt{subList } xs\ ys]$. Note that we use $z \in ys$ as shorthand for $\texttt{elem } z\ ys$. The function \texttt{subList} $xs$ $ys$ removes all elements of $ys$ from $xs$.
             \medskip
 
@@ -439,10 +461,11 @@ subList (x:xs) ys
                     \item \texttt{(us++vs)++ws = us++(vs++ws)}
                 \end{enumerate}
                 We will be using these lemmas on to prove $\forall xs : \texttt{[a]} \forall ys : \texttt{[a]} [\texttt{rev } (xs ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev } xs)]$, on the following Haskell function;
-                \begin{verbatim}
-rev :: [a] -> [a]
-rev []     = []
-rev (x:xs) = (rev xs) ++ [x]\end{verbatim}
+                \begin{lstlisting}
+                    rev :: [a] -> [a]
+                    rev []     = []
+                    rev (x:xs) = (rev xs) ++ [x]
+                \end{lstlisting}
                 \medskip
 
                 $\phantom{\forall vs : \texttt{[a]} \forall v : \texttt{a}[(} \textcolor{red}{\forall ys : \texttt{[a]} [\texttt{rev } (\texttt{[]} ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev []})]} \land \\ \textcolor{blue}{\forall vs : \texttt{[a]} \forall v : \texttt{a} [(\forall ys : \texttt{[a]} [\texttt{rev } (vs ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev } vs)]) \rightarrow} \\ \phantom{\forall vs : \texttt{[a]} \forall v : \texttt{a}[} \textcolor{blue}{(\forall ys : \texttt{[a]} [\texttt{rev } ((v : vs) ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev } (v : vs))])]} \rightarrow \\ \phantom{\forall v : \texttt{a}(} \textcolor{violet}{\forall xs : \texttt{[a]}[\forall ys : \texttt{[a]} [\texttt{rev } (xs ++ ys) = (\texttt{rev } ys) ++ (\texttt{rev } xs)]]}$ % i should really learn how to align things properly.
@@ -476,14 +499,15 @@ rev (x:xs) = (rev xs) ++ [x]\end{verbatim}
             \end{itemize}
         \subsection*{Proof Strategies}
             A situation may arise where a statement cannot be proven directly from induction; for example $\forall is \texttt{[Int]} [\texttt{sum } is = \texttt{sum\_tr } is\ 0]$, on the following functions;
-            \begin{verbatim}
-sum :: [Int] -> Int
-sum []     = 0
-sum (i:is) = i + sum is
+            \begin{lstlisting}
+                sum :: [Int] -> Int
+                sum []     = 0
+                sum (i:is) = i + sum is
 
-sum_tr :: [Int] -> Int -> Int
-sum_tr [] k     = k
-sum_tr (i:is) k = sum_tr is (i+k)\end{verbatim}
+                sum_tr :: [Int] -> Int -> Int
+                sum_tr [] k     = k
+                sum_tr (i:is) k = sum_tr is (i+k)
+            \end{lstlisting}
             \begin{reasoning}
                 \proofbc
                 \prooftext{This is trivial to prove, also I'm tired}
@@ -532,31 +556,34 @@ sum_tr (i:is) k = sum_tr is (i+k)\end{verbatim}
                     \subitem $P(\texttt{BaseR}) \land P(\texttt{Red BaseG}) \land \forall r : \texttt{Reds} [P(r) \rightarrow P(\texttt{Red Green } r)] \rightarrow \forall r : \texttt{Reds} [P(r)]$
             \end{itemize}
             Going back to the cactus problem; we can express the cactus as a set of data types;
-            \begin{verbatim}
-data Cactus = Root Tree
-data Tree   = Leaf | Node Trees
-data Trees  = Empty | Cons Tree Trees\end{verbatim}
+            \begin{lstlisting}
+                data Cactus = Root Tree
+                data Tree   = Leaf | Node Trees
+                data Trees  = Empty | Cons Tree Trees
+            \end{lstlisting}
             This (\texttt{Tree}) then has the inductive principle $P(\text{Leaf}) \land \forall ts : \texttt{Trees} [Q(ts) \rightarrow P(\texttt{Node }ts)] \land Q(\texttt{Empty}) \land \forall t : \texttt{Tree} \forall ts : \texttt{Trees} [P(\texttt{t}) \land Q(\texttt{ts}) \rightarrow Q(\texttt{Cons }t\ ts)] \rightarrow \forall t : \texttt{Tree} [P(t)] \land \forall ts : \texttt{Trees} [Q(ts)]$.
             \smallskip
 
             However, it's trivial to see that \texttt{Trees} is essentially equivalent to \texttt{[Tree]} - therefore we can simplify the data types to;
-            \begin{verbatim}
-data Cactus = Root Tree
-data Tree   = Leaf | Node [Tree]\end{verbatim}
+            \begin{lstlisting}
+                data Cactus = Root Tree
+                data Tree   = Leaf | Node [Tree]
+            \end{lstlisting}
             Now; the new \texttt{Tree} structure has the inductive principle; $P(\texttt{Leaf}) \land \forall ts : \texttt{Trees} [\forall t : \texttt{Tree}, \forall ts_1, ts_2 : \texttt{Trees} [\textcolor{violet}{ts = ts_1 ++ [t] ++ ts_2 \rightarrow P(t)}] \rightarrow P(\texttt{Node } ts)] \rightarrow \forall t : \texttt{Tree} [P(t)]$. The meaning of the part in \textcolor{violet}{violet} is that every item in $ts$ satisfies the property $P$, I think.
             \medskip
 
             In summary, by having a recursively defined data type, it allows us to construct an induction principle, which then leads to a proof schema. We are able to use first-order equivalences to swap quantifiers, which may allow for a proof on an easier equivalent property. Occasionally, lemmas will need to be strengthened, or we will need to create auxiliary lemmas.
         \subsection*{Induction over Recursive Relations and Functions}
             As every inductively defined set creates a successor relation (+1 for $\mathbb{N}$, or \texttt{Node} for \texttt{Tree}), all inductively defined relations, and functions give rise to successor relations, therefore all inductively defined sets, relations, and functions give rise to an induction induction principle. Generalizing the principle of induction from sets to functions, and relations, follows from the idea that relations, and functions, can both be represented through sets. Consider the "mystery" function \texttt{M};
-            \begin{verbatim}
-M :: Int -> Int
-M m = M'(m, 0, 1)
+            \begin{lstlisting}
+                M :: Int -> Int
+                M m = M'(m, 0, 1)
 
-M' :: (Int, Int, Int) -> Int
-M' (i, cnt, acc)
-  | i == cnt  = acc
-  | otherwise = M'(i, cnt+1, 2*acc)\end{verbatim}
+                M' :: (Int, Int, Int) -> Int
+                M' (i, cnt, acc)
+                  | i == cnt  = acc
+                  | otherwise = M'(i, cnt+1, 2*acc)
+            \end{lstlisting}
             We can then evaluate the value of \texttt{M}($n$), let $n = 4$;
             \begin{reasoning}
                 \proofeq{\texttt{M}(4)}{\texttt{M'}(4, 0, 1)}{by def. of \texttt{M}}
@@ -568,14 +595,15 @@ M' (i, cnt, acc)
                 \proofeq{}{16}{by def. of \texttt{M'}}
             \end{reasoning}
             In general, let it be \textbf{Assrt\_1}, $\forall m : \mathbb{N} [\texttt{M}(m) = 2^m]$. While the definition for \texttt{M'} might feel forced, or deliberately implemented due to the increasing argument size, we care about it for a few reasons. Firstly, it's a tail-recursive function, and also once translated to an imperative language, it acts as a loop. For example, we can represent it in Java in a similar way;
-            \begin{verbatim}
-cnt = 0;
-acc = 0;
-while !(m == cnt) {
-  cnt = cnt + 1;
-  acc = 2*acc;
-}
-return acc;\end{verbatim}
+            \begin{lstlisting}
+                cnt = 0;
+                acc = 0;
+                while !(m == cnt) {
+                  cnt = cnt + 1;
+                  acc = 2*acc;
+                }
+                return acc;
+            \end{lstlisting}
             We want to establish \textbf{Assrt\_2}: $\forall m, cnt, acc, p : \mathbb{N} [\texttt{M'}(m, cnt, acc) = p \rightarrow p = 2^{m - cnt} \cdot acc]$. The challenge with this is how it's recursively defined with increasing arguments. Due to this, we have to take one of the following approaches;
             \begin{enumerate}[1.]
                 \itemsep0em
@@ -709,10 +737,11 @@ return acc;\end{verbatim}
         \subsection*{Inductively Defined Functions}
             \subsubsection*{Example 1}
                 Consider the function \texttt{F}, defined in Haskell as
-                \begin{verbatim}
-F :: Int -> Int
-F 0 = 0
-F i = 1 + (i - 3)\end{verbatim}
+                \begin{lstlisting}
+                    F :: Int -> Int
+                    F 0 = 0
+                    F i = 1 + (i - 3)
+                \end{lstlisting}
                 Thus, this can be described in the following rules;
                 \begin{enumerate}[R1]
                     \itemsep0em
@@ -728,14 +757,15 @@ F i = 1 + (i - 3)\end{verbatim}
                 It's important to note that the function doesn't say that $\forall i : \mathbb{Z} [Q(i, \texttt{F } i)]$, since we have no guarantee of function termination. The property established is that \textbf{if} the function terminates ($\texttt{F } i = j$), then $Q(i, \texttt{F } i)$ is satisfied.
             \subsubsection*{Example 2}
                 The next example works on the function \texttt{G}, defined in Haskell as;
-                \begin{verbatim}
-G :: (Nat, Nat) -> Nat
-G (i, j) = G' (i, j, 0, 0)
+                \begin{lstlisting}
+                    G :: (Nat, Nat) -> Nat
+                    G (i, j) = G' (i, j, 0, 0)
 
-G' :: (Nat, Nat, Nat, Nat) -> Nat
-G' (i, j, cnt, acc)
-  | i == cnt  = acc
-  | otherwise = G' (i, j, cnt + 1, acc + j)\end{verbatim}
+                    G' :: (Nat, Nat, Nat, Nat) -> Nat
+                    G' (i, j, cnt, acc)
+                      | i == cnt  = acc
+                      | otherwise = G' (i, j, cnt + 1, acc + j)
+                \end{lstlisting}
                 Like one of our previous induction over recursive functions questions, the arguments continue to increase in size, but also the number of execution steps decreases. Once again we can define a set of rules for the aforementioned function;
                 \begin{enumerate}[R1]
                     \itemsep0em
@@ -777,14 +807,15 @@ G' (i, j, cnt, acc)
                 \end{reasoning}
             \subsubsection*{Example 3}
                 Consider the DivMod function, defined as $\texttt{DM} : \mathbb{Z} \times \mathbb{Z} \mapsto \mathbb{Z} \times \mathbb{Z}$, and $\texttt{DM'} : \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \mapsto \mathbb{Z} \times \mathbb{Z}$, which is defined in Haskell as;
-                \begin{verbatim}
-DM :: (Int, Int) -> (Int, Int)
-DM (i, j) = DM'(i, j, 0, 0)
+                \begin{lstlisting}
+                    DM :: (Int, Int) -> (Int, Int)
+                    DM (i, j) = DM'(i, j, 0, 0)
 
-DM' :: (Int, Int, Int, Int) -> (Int, Int)
-DM' (i, j, cnt, acc)
-  | acc + j > i = (cnt, i - acc)
-  | otherwise   = DM' (i, j, cnt + 1, acc + j)\end{verbatim}
+                    DM' :: (Int, Int, Int, Int) -> (Int, Int)
+                    DM' (i, j, cnt, acc)
+                      | acc + j > i = (cnt, i - acc)
+                      | otherwise   = DM' (i, j, cnt + 1, acc + j)
+                \end{lstlisting}
                 Once again, we're able to obtain a set of rules for this;
                 \begin{enumerate}[R1]
                     \itemsep0em
@@ -821,5 +852,41 @@ DM' (i, j, cnt, acc)
 
             As the work went mostly into setting up the proof schema, it follows that the proof by induction here is trivial.
     \subsection*{Specifications for Java Programs}
-        As Java isn't a functional language, it therefore has side-effects, and is therefore more difficult to reason about as we need to consider how values change.
+        \subsubsection*{Sequential Specification}
+            As Java isn't a functional language, it therefore has side-effects, and is therefore more difficult to reason about as we need to consider how values change.
+            \medskip
+
+            For example, consider an extremely simple Java program;
+            \begin{lstlisting}
+                // PRE: a = $u$ $\land$ x = $v$
+                int y = a + x
+                // POST: a = $u$ $\land$ x = $v$ $\land$ y = $u + v$
+            \end{lstlisting}
+            This can be translated into the following; for any integers $u$, and $v$, if the start value of \texttt{a} is $u$, and \texttt{x} has value $v$, after executing the code, both \texttt{a}, and \texttt{x} retain their original values, and \texttt{y} now has the value $u + v$. There is an \textbf{implicit universal quantification} of $u$, and $v$ over the whole program specification. It's crucial thast the quantification is over the entire specification, as having the post condition be represented as $\forall u, v [\texttt{a} = u \land \texttt{x} = v \land \texttt{y} = u + v]$ is incorrect, since that suggests \texttt{a}, and \texttt{x} holds all possible values after the code has been executed.
+            \medskip
+
+            Unsurprisingly, not all programs consist of one line, therefore we may need to reason about a sequence of state changes as follows;
+            \begin{lstlisting}
+                // PRE: $P$
+                somecodeblock0
+                // MID: $P_1$
+                somecodeblock
+                // MID: $P_2$
+                somecodeblock2
+                // POST: $Q$
+            \end{lstlisting}
+            We can assume $P$ to show that $P_1$ holds after \texttt{somecodeblock0}, and so on. This can be expressed as a \textbf{Hoare Triple}; which is in the form $\{ P \}\ \texttt{code}\ \{ Q \}$, which means "assuming that some property $P$ holds, show that after \texttt{code} executes, $Q$ will hold". For example, we could have the Hoare triple $\{ 0 \leq \texttt{x} < 10 \}\ \texttt{x++;}\ \{0 \leq \texttt{x} \leq 10\}$.
+            \smallskip
+
+            In order to prove that example, we'd need to show $0 \leq \texttt{x}_\text{old} < 10 \land \texttt{x} = \texttt{x}_\text{old} + 1 \rightarrow 0 \leq \texttt{x} \leq 10$. It's important to note the use of $\texttt{x} = \texttt{x}_\text{old} + 1$, as if we were to naively write $\texttt{x} = \texttt{x} + 1$, we would be able to imply anything from an obvious falsity. In general, for some variable \texttt{x}, we will have \texttt{x} refer to the most recent value (which is \textbf{after} the code execution), $\texttt{x}_\text{old}$ will refer to the value \textbf{before} the code execution, and $\texttt{x}_\text{pre}$ refers to the \textbf{original} value passed in. The convention is that the annotations are only used when variables might be modified by the code.
+            \medskip
+
+            Hoare's assignment axiom is as follows;
+            \unaryproof{$P[\texttt{x} \mapsto \texttt{x}_\text{old}] \land \text{x} = E[\texttt{x} \mapsto \texttt{x}_\text{old}] \rightarrow Q$}{$\{ P \}\ \texttt{x} = E;\ \{ Q \}$}
+            \smallskip
+
+            Note that $[\texttt{x} \mapsto \texttt{x}_\text{old}]$ means any occurence of \texttt{x} is replaced with $\texttt{x}_\text{old}$.
+        \subsubsection*{Method Specification}
+            Consider the general layout of a method as
+
 \end{document}
