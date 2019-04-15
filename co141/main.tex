@@ -1167,6 +1167,23 @@
                         \subitem $\texttt{a} \neq \texttt{null} \land \texttt{a[..)} \approx \texttt{a[..)}_\text{old} \land \textbf{r} = \sum \texttt{a[..)} \land \texttt{a[..)}_\text{old} \approx \texttt{a[..)}_\text{pre} \land \texttt{res} = \textbf{r} \rightarrow \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{res} = \sum \texttt{a[..)}$
                         \subitem any poitential updates to \texttt{a} from \texttt{sumAux} needs to be carefully tracked, which means we need to differntiate between the contents passed in (\texttt{a[..)}$_\text{old}$), from the initial contents (\texttt{a[..)}$_\text{pre}$), and the current ones (\texttt{a[..)})
                         \subitem however, we can see that the contents are not modified before the \texttt{sumAux} call therefore we can write, implicitly, $\texttt{a[..)}_\text{old} \approx \texttt{a[..)}_\text{pre}$
-                    \item 
+                    \item $M_1 \land \textbf{r} = \texttt{res} \rightarrow Q_1$
+                        \subitem $\texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{res} = \sum \texttt{a[..)} \land \textbf{r} = \texttt{res} \rightarrow \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \textbf{r} = \sum \texttt{a[..)}$
+                \end{itemize}
+                However, reasoning about \texttt{sumAux} is slightly more complex due to the requirement of handling the recursive calls. The formal proof obligations are as follows;
+                \begin{itemize}
+                    \item $P_2 \land \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{i} = \texttt{a.length} \rightarrow M_2$
+                        \subitem $\texttt{a} \neq \texttt{null} \land 0 \leq \texttt{i} \leq \texttt{a.length} \land \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{i} = \texttt{a.length} \rightarrow \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{i} = \texttt{a.length}$
+                        \subitem there's no reference to the array contents in $P_2$, and implicitly there is no modification to the array from the code
+                    \item $M_2 \land \textbf{r} = 0 \rightarrow Q_2$
+                        \subitem $\texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{i} = \texttt{a.length} \rightarrow \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \textbf{r} = \sum \texttt{a[i..)}$
+                        \subitem this utilises the property $\forall k [\sum \texttt{a[}k\texttt{..}\texttt{)} = 0]$
+                        \subitem we know that the array exists, since we have a value for the length of it, and proving \textbf{r} is trivial due to the property regarding the sum of an empty range
+                    \item $P_3 \land \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{i} \neq \texttt{a.length} \rightarrow M_3$
+                        \subitem $\texttt{a} \neq \texttt{null} \land 0 \leq \texttt{i} \leq \texttt{a.length} \land \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{i} \neq \texttt{a.length} \rightarrow \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{a} \neq \texttt{null} \land 0 \leq \texttt{i} < \texttt{a.length}$
+                    \item $M_3 \rightarrow P_2[\texttt{i} \mapsto \texttt{i} + 1]$
+                        \subitem $\texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{a} \neq \texttt{null} \land 0 \leq \texttt{i} < \texttt{a.length} \rightarrow \texttt{a} \neq \texttt{null} \land 0 \leq \texttt{i} + 1 \leq \texttt{a.length}$
+                    \item $M_3[\texttt{a[..)} \mapsto \texttt{a[..)}_\text{old}] \land Q_2[\texttt{a[..)}_\text{pre} \mapsto \texttt{a[..)}_\text{old}, \texttt{i} \mapsto \texttt{i} + 1] \land \texttt{val} = \texttt{a[i]}_\text{old} + \textbf{r} \rightarrow M_4$
+                    \item $M_4 \land \textbf{r} = \texttt{val} \rightarrow Q_2$
                 \end{itemize}
 \end{document}
