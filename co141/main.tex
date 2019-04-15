@@ -1119,8 +1119,15 @@
                 \item $M_1 \rightarrow P_1[\texttt{b} \mapsto \texttt{a}]$
                     \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \rightarrow \texttt{a} \neq \texttt{null}$
                     \subitem no code has been executed in this obligation, therefore we don't need to consider the $_\text{old}$ variants - however we do need to substitute \texttt{b} with \texttt{a} in $P_1$
-                \item $M_1[..) \mapsto \texttt{a}[..)_\text{old}] \land Q_1[\texttt{b} \mapsto \texttt{a}, \texttt{b}[..)_\text{pre} \mapsto \texttt{a}[..)_\text{od}] \rightarrow M_2$
+                \item $M_1[\texttt{a}[..) \mapsto \texttt{a}[..)_\text{old}] \land Q_1[\texttt{b} \mapsto \texttt{a}, \texttt{b}[..)_\text{pre} \mapsto \texttt{a}[..)_\text{old}] \rightarrow M_2$
+                    \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \land \texttt{a}[..) \sim \texttt{a}[..)_\text{old} \land \texttt{sorted}(a[..)) \rightarrow \texttt{a}[..) \sim \texttt{a}[..)_\text{pre} \land \texttt{sorted}(a[..)) \land \texttt{a.length} > 0$
+                    \subitem this obligation considers the effect of the \texttt{sort} method, therefore we need to track the state of the input before and after \texttt{sort} is called - once again \texttt{b} is replaced with \texttt{a}, and we use the state \texttt{b}[..)$_\text{pre}$ to represent the state of the array on entry to \texttt{sort}, and \texttt{a}[..)$_\text{old}$ to represent the value just before the method call therefore \texttt{b}[..)$_\text{pre}$ is replaced with \texttt{a}[..)$_\text{old}$ in $Q_2$
                 \item $M_2[\texttt{res} \mapsto \texttt{res}_\text{old}] \land \texttt{res = a[0]} \rightarrow M_3$
+                    \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a.length} > 0 \land \texttt{a}[..) \sim \texttt{a}[..)_\text{old} \land \texttt{sorted}(a[..)) \land \texttt{res = a[0]} \rightarrow \texttt{a}[..)_\text{pre} \land \texttt{res = min(a[..))}$
+                    \subitem because \texttt{res} didn't exist before the previous line, and $M_2$ makes no reference to \texttt{res}, the substitution makes no change to $M_2$
                 \item $M_3 \land \texttt{return res} \rightarrow Q_2$
+                    \subitem $\texttt{a}[..) \sim \texttt{a}[..)_\text{pre} \land \texttt{res = min(a[..))} \land \textbf{r} = \texttt{res} \rightarrow \textbf{r} = \texttt{min(a[..))}$
+                    \subitem no changes are done to any of the variables, since it only tracks the return value, there is no need to track old values in the program's state
             \end{itemize}
+            While we've reasoned about the correctness of \texttt{smallest}, we don't know anything about \texttt{sort}. All we have done regarding it is that it satisfies its given specification. For code to be partially correct, it requires the code to satisfy the post-condition given it starts in a state satisfying its pre-condition, and terminates. Total correctness is the same, but guarantees the termination of the code.
 \end{document}
