@@ -776,5 +776,50 @@ G' (i, j, cnt, acc)
                     \proofeq{}{(i - cnt) \cdot j + acc}{by arithmetic}
                 \end{reasoning}
             \subsubsection*{Example 3}
-                Consider the DivMod function, defined as $\texttt{DM} : \mathbb{Z} \times \mathbb{Z} \mapsto \mathbb{Z} \times \mathbb{Z}$, and $\texttt{DM'} : \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \mapsto \mathbb{Z} \times \mathbb{Z}$
+                Consider the DivMod function, defined as $\texttt{DM} : \mathbb{Z} \times \mathbb{Z} \mapsto \mathbb{Z} \times \mathbb{Z}$, and $\texttt{DM'} : \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \mapsto \mathbb{Z} \times \mathbb{Z}$, which is defined in Haskell as;
+                \begin{verbatim}
+DM :: (Int, Int) -> (Int, Int)
+DM (i, j) = DM'(i, j, 0, 0)
+
+DM' :: (Int, Int, Int, Int) -> (Int, Int)
+DM' (i, j, cnt, acc)
+  | acc + j > i = (cnt, i - acc)
+  | otherwise   = DM' (i, j, cnt + 1, acc + j)\end{verbatim}
+                Once again, we're able to obtain a set of rules for this;
+                \begin{enumerate}[R1]
+                    \itemsep0em
+                    \item $\forall i, j : \mathbb{Z} [\texttt{DM } (i, j) = \texttt{DM' } (i, j, 0, 0)]$
+                    \item $\forall i, j, cnt, acc : \mathbb{Z} [acc + j > i \rightarrow \texttt{DM' } (i, j, cnt, acc) = (cnt, i - acc)]$
+                    \item $\forall i, j, cnt, acc, k1, k2 : \mathbb{Z} [\texttt{DM' } (i, j, cnt + 1, acc + j) = (k1, k2) \rightarrow \texttt{DM' } (i, j, cnt, acc) = (k1, k2)]$
+                \end{enumerate}
+                At this point, we can spot a general pattern for functions with recursively defined helper functions. The first rule tends to establish that the original function calls the helper. The second is the non-recursive case of the helper function, and the third is in the format $\texttt{(recursive condition)} \land \texttt{(function next step)} = (k_1, k_2, ..., k_n) \rightarrow \texttt{(function current step)} = (k_1, k_2, ..., k_n)$. For some predicate $Q \subseteq \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z} \times \mathbb{Z}$, we have the following inductive principle for \texttt{DM'};
+                \medskip
+
+                $\textcolor{blue}{\forall i, j, cnt, acc : \mathbb{Z} [acc + j > i \rightarrow Q(i, j, cnt, acc, cnt, i - acc)]} \land \\ \textcolor{red}{\forall i, j, cnt, acc, k1, k2 : \mathbb{Z} [acc + j \leq i \land \texttt{DM' } (i, j, cnt + 1, acc + j) = (k1, k2) \land } \\ \textcolor{red}{ Q(i, j, cnt + 1, acc + j, k1, k2)] \rightarrow Q(i, j, cnt, acc, k1, k2)]} \rightarrow \\ \textcolor{violet}{\forall i, j, cnt, acc, k1, k2 : \mathbb{Z} [\texttt{DM' } (i, j, cnt, acc) = (k1, k2) \rightarrow Q(i, j, cnt, acc, k1, k2)]}$
+                \medskip
+
+                The goal here is to show $\forall i, j \in \mathbb{Z} [\texttt{DM } (i, j) = (k1, k2) \rightarrow i = k1 \cdot j + k2 \land k2 < j]$
+        \subsection*{Conclusion to Haskell Induction}
+            In conclusion, every inductively defined set, relation, or function has a successor relation. By having this successor relation, it allows for there to be an inductive principle (generic). Once this inductive principle can be specialized for a specific predicate, it gives rise for a proof schema, which can be proven with our rules of logic. By considering our \texttt{M} function, we can say the following;
+            \begin{enumerate}[R1]
+                \itemsep0em
+                \item $\forall m : \mathbb{N} [\texttt{M } m = \texttt{M' } (m, 0, 1)]$
+                \item $\forall m, cnt, acc : \mathbb{N} [m = cnt \rightarrow \texttt{M' } (m, cnt, acc) = acc]$
+                \item $\forall m, cnt, acc, r : \mathbb{N} [m \neq cnt \land \texttt{M' } (m, cnt + 1, 2 \cdot acc) = r \rightarrow \texttt{M' } (m, cnt, acc)]$
+            \end{enumerate}
+            This allows us to derive the general inductive principle as;
+            \medskip
+
+            $\textcolor{blue}{\forall m, acc : \mathbb{N} [Q(m, m, acc, acc)]} \land \\ \textcolor{red}{\forall m, acc, cnt, r : \mathbb{N} [m \neq cnt \land \texttt{M' }(m, cnt + 1, 2 \cdot acc) = r \land Q(m, cnt + 1, 2 \cdot acc, r) \rightarrow Q(m, cnt, acc, r)]} \\ \rightarrow \textcolor{violet}{\forall m, cnt, acc, r : \mathbb{N} [\texttt{M' } (m, cnt, acc) = r \rightarrow Q(m, cnt, acc, r)]}$
+            \medskip
+
+            However, we're defining $Q(m, cnt, acc, r)$ to be $r = 2^{m - cnt} \cdot acc$, therefore we can specialize the principle to be;
+            \medskip
+
+            $\textcolor{blue}{\forall m, acc : \mathbb{N} [acc = 2^{m - m} \cdot acc]} \land \\ \textcolor{red}{\forall m, acc, cnt, r : \mathbb{N} [m \neq cnt \land \texttt{M' }(i, cnt + 1, 2 \cdot acc) = r \land r = 2^{m - (cnt + 1)} \cdot 2 \cdot acc \rightarrow r = 2^{m - cnt} \cdot acc]} \rightarrow \\ \textcolor{violet}{\forall m, cnt, acc, r : \mathbb{N} [\texttt{M' } (m, cnt, acc) = r \rightarrow r = 2^{m - cnt} \cdot acc]}$
+            \medskip
+
+            As the work went mostly into setting up the proof schema, it follows that the proof by induction here is trivial.
+    \subsection*{Specifications for Java Programs}
+        As Java isn't a functional language, it therefore has side-effects, and is therefore more difficult to reason about as we need to consider how values change.
 \end{document}
