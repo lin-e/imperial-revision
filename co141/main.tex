@@ -851,283 +851,284 @@
             \medskip
 
             As the work went mostly into setting up the proof schema, it follows that the proof by induction here is trivial.
-    \subsection*{Specifications for Java Programs}
-        \subsubsection*{Sequential Specification}
-            As Java isn't a functional language, it therefore has side-effects, and is therefore more difficult to reason about as we need to consider how values change.
-            \medskip
+        \subsection*{Specifications for Java Programs}
+            \subsubsection*{Sequential Specification}
+                As Java isn't a functional language, it therefore has side-effects, and is therefore more difficult to reason about as we need to consider how values change.
+                \medskip
 
-            For example, consider an extremely simple Java program;
-            \begin{lstlisting}
-                // PRE: a = $u$ $\land$ x = $v$
-                int y = a + x
-                // POST: a = $u$ $\land$ x = $v$ $\land$ y = $u + v$
-            \end{lstlisting}
-            This can be translated into the following; for any integers $u$, and $v$, if the start value of \texttt{a} is $u$, and \texttt{x} has value $v$, after executing the code, both \texttt{a}, and \texttt{x} retain their original values, and \texttt{y} now has the value $u + v$. There is an \textbf{implicit universal quantification} of $u$, and $v$ over the whole program specification. It's crucial that the quantification is over the entire specification, as having the post condition be represented as $\forall u, v [\texttt{a} = u \land \texttt{x} = v \land \texttt{y} = u + v]$ is incorrect, since that suggests \texttt{a}, and \texttt{x} holds all possible values after the code has been executed.
-            \medskip
+                For example, consider an extremely simple Java program;
+                \begin{lstlisting}
+                    // PRE: a = $u$ $\land$ x = $v$
+                    int y = a + x
+                    // POST: a = $u$ $\land$ x = $v$ $\land$ y = $u + v$
+                \end{lstlisting}
+                This can be translated into the following; for any integers $u$, and $v$, if the start value of \texttt{a} is $u$, and \texttt{x} has value $v$, after executing the code, both \texttt{a}, and \texttt{x} retain their original values, and \texttt{y} now has the value $u + v$. There is an \textbf{implicit universal quantification} of $u$, and $v$ over the whole program specification. It's crucial that the quantification is over the entire specification, as having the post condition be represented as $\forall u, v [\texttt{a} = u \land \texttt{x} = v \land \texttt{y} = u + v]$ is incorrect, since that suggests \texttt{a}, and \texttt{x} holds all possible values after the code has been executed.
+                \medskip
 
-            Unsurprisingly, not all programs consist of one line, therefore we may need to reason about a sequence of state changes as follows;
-            \begin{lstlisting}
-                // PRE: $P$
-                somecodeblock0
-                // MID: $P_1$
-                somecodeblock
-                // MID: $P_2$
-                somecodeblock2
-                // POST: $Q$
-            \end{lstlisting}
-            We can assume $P$ to show that $P_1$ holds after \texttt{somecodeblock0}, and so on. This can be expressed as a \textbf{Hoare Triple}; which is in the form $\{ P \}\ \texttt{code}\ \{ Q \}$, which means "assuming that some property $P$ holds, show that after \texttt{code} executes, $Q$ will hold". For example, we could have the Hoare triple $\{ 0 \leq \texttt{x} < 10 \}\ \texttt{x++;}\ \{0 \leq \texttt{x} \leq 10\}$.
-            \smallskip
+                Unsurprisingly, not all programs consist of one line, therefore we may need to reason about a sequence of state changes as follows;
+                \begin{lstlisting}
+                    // PRE: $P$
+                    somecodeblock0
+                    // MID: $P_1$
+                    somecodeblock
+                    // MID: $P_2$
+                    somecodeblock2
+                    // POST: $Q$
+                \end{lstlisting}
+                We can assume $P$ to show that $P_1$ holds after \texttt{somecodeblock0}, and so on. This can be expressed as a \textbf{Hoare Triple}; which is in the form $\{ P \}\ \texttt{code}\ \{ Q \}$, which means "assuming that some property $P$ holds, show that after \texttt{code} executes, $Q$ will hold". For example, we could have the Hoare triple $\{ 0 \leq \texttt{x} < 10 \}\ \texttt{x++;}\ \{0 \leq \texttt{x} \leq 10\}$.
+                \smallskip
 
-            In order to prove that example, we'd need to show $0 \leq \texttt{x}_\text{old} < 10 \land \texttt{x} = \texttt{x}_\text{old} + 1 \rightarrow 0 \leq \texttt{x} \leq 10$. It's important to note the use of $\texttt{x} = \texttt{x}_\text{old} + 1$, as if we were to naively write $\texttt{x} = \texttt{x} + 1$, we would be able to imply anything from an obvious falsity. In general, for some variable \texttt{x}, we will have \texttt{x} refer to the most recent value (which is \textbf{after} the code execution), $\texttt{x}_\text{old}$ will refer to the value \textbf{before} the code execution, and $\texttt{x}_\text{pre}$ refers to the \textbf{original} value passed in. The convention is that the annotations are only used when variables might be modified by the code.
-            \medskip
+                In order to prove that example, we'd need to show $0 \leq \texttt{x}_\text{old} < 10 \land \texttt{x} = \texttt{x}_\text{old} + 1 \rightarrow 0 \leq \texttt{x} \leq 10$. It's important to note the use of $\texttt{x} = \texttt{x}_\text{old} + 1$, as if we were to naively write $\texttt{x} = \texttt{x} + 1$, we would be able to imply anything from an obvious falsity. In general, for some variable \texttt{x}, we will have \texttt{x} refer to the most recent value (which is \textbf{after} the code execution), $\texttt{x}_\text{old}$ will refer to the value \textbf{before} the code execution, and $\texttt{x}_\text{pre}$ refers to the \textbf{original} value passed in. The convention is that the annotations are only used when variables might be modified by the code.
+                \medskip
 
-            Hoare's assignment axiom is as follows;
-            \unaryproof{$P[\texttt{x} \mapsto \texttt{x}_\text{old}] \land \text{x} = E[\texttt{x} \mapsto \texttt{x}_\text{old}] \rightarrow Q$}{$\{ P \}\ \texttt{x} = E;\ \{ Q \}$}
-            \smallskip
+                Hoare's assignment axiom is as follows;
+                \unaryproof{$P[\texttt{x} \mapsto \texttt{x}_\text{old}] \land \text{x} = E[\texttt{x} \mapsto \texttt{x}_\text{old}] \rightarrow Q$}{$\{ P \}\ \texttt{x} = E;\ \{ Q \}$}
+                \smallskip
 
-            Note that $[\texttt{x} \mapsto \texttt{x}_\text{old}]$ means any occurrence of \texttt{x} is replaced with $\texttt{x}_\text{old}$.
-        \subsubsection*{Method Specification}
-            Consider the general layout of a method as
-            \begin{lstlisting}
-                type someMethod(type x$_1$, ..., type x$_n$)
-                // PRE: $P$
-                // POST: $Q$
-                {
-                   somecodeblock0
-                   // MID: $R$
-                   somecodeblock1
-                   // MID: $S$
-                   somecodeblock2
-                }
-            \end{lstlisting}
-            The following specification suggests that if $P[\texttt{x}_1 \mapsto v_1, ... \texttt{x}_n \mapsto v_n]$ holds before the call to \\ $\texttt{someMethod}(v_1, v_2 ..., v_n)$, then $Q[\texttt{x}_1 \mapsto v_1, ... \texttt{x}_n \mapsto v_n]$ holds on the return. Note that $v_i$ is a value, and $\texttt{x}_i$ is variable. Sometimes, this will be simplified as $\bar{\texttt{x}}$, or $\bar{v}$. The rules for the mid-conditions are the same as before.
-            \medskip
+                Note that $[\texttt{x} \mapsto \texttt{x}_\text{old}]$ means any occurrence of \texttt{x} is replaced with $\texttt{x}_\text{old}$.
+            \subsubsection*{Method Specification}
+                Consider the general layout of a method as
+                \begin{lstlisting}
+                    type someMethod(type x$_1$, ..., type x$_n$)
+                    // PRE: $P$
+                    // POST: $Q$
+                    {
+                    somecodeblock0
+                    // MID: $R$
+                    somecodeblock1
+                    // MID: $S$
+                    somecodeblock2
+                    }
+                \end{lstlisting}
+                The following specification suggests that if $P[\texttt{x}_1 \mapsto v_1, ... \texttt{x}_n \mapsto v_n]$ holds before the call to \\ $\texttt{someMethod}(v_1, v_2 ..., v_n)$, then $Q[\texttt{x}_1 \mapsto v_1, ... \texttt{x}_n \mapsto v_n]$ holds on the return. Note that $v_i$ is a value, and $\texttt{x}_i$ is variable. Sometimes, this will be simplified as $\bar{\texttt{x}}$, or $\bar{v}$. The rules for the mid-conditions are the same as before.
+                \medskip
 
-            For the types of conditions, we have the following rules;
-            \begin{itemize}
-                \itemsep0em
-                \item pre-condition
-                    \begin{itemize}
-                        \itemsep0em
-                        \item required to hold before code execution
-                        \item assumption the code can make
-                    \end{itemize}
-                \item post-condition
-                    \begin{itemize}
-                        \itemsep0em
-                        \item expected to hold after code execution, given it terminates and pre-condition held
-                        \item guarantee the code must make
-                    \end{itemize}
-                \item mid-condition
-                    \begin{itemize}
-                        \itemsep0em
-                        \item acts as a post-condition for preceding lines, and pre-condition for subsequent lines
-                        \item assumption made at specific point in code
-                        \item guaranteed by preceding code
-                        \item assumed by subsequent code
-                        \item "stepping stone" about correctness
-                        \item if it evaluates to false, it means the program cannot reach that point - often it means the mid-condition is incorrect
-                    \end{itemize}
-            \end{itemize}
-            The following shorthands will be used in order to describe number ranges, and arrays;
-            \begin{itemize}
-                \itemsep0em
-                \item $i \in (m..n) \triangleq m < i < n$
-                \item $i \in [m..n) \triangleq m \leq i < n$
-                \item $i \in (m..n] \triangleq m < i \leq n$
-                \item $i \in [m..n] \triangleq m \leq i \leq n$
-                \item $v \in \texttt{a}[m..n) \triangleq \exists i \in [m..n) [0 \leq i < \texttt{a.length} \land \texttt{a}[i] = v]$
-            \end{itemize}
-            $\texttt{a}(m..n)$ is referred to as an \textbf{array slice}, and closed-open intervals for slices is often useful for reasoning. We often simplify our notation by ignoring bounds if they refer to the start, or end, of an array. With some arbitrary index $i$ (existing in the array, presumably), we use the following notation;
-            \begin{itemize}
-                \itemsep0em
-                \item $\texttt{a}[..i)$ \hfill the array slice from 0 up to $i$, but not including $i$
-                \item $\texttt{a}[i..)$ \hfill the array slice from $i$ up to the end
-                \item $\texttt{a}[..)$ \hfill the whole array
-                \item $\texttt{a}_\text{old/pre}[..)$ \hfill refers to the older / previous value of an array's reference
-                \item $\texttt{a}[..)_\text{old/pre}$ \hfill refers to the older / previous value of an array's contents
-                \item $\texttt{a}_\text{old/pre}[..)_\text{old/pre}$ \hfill refers to the older / previous value of both
-                \item $\texttt{a}[..) \sim \texttt{b}[..)$ \hfill \texttt{a} is a permutation of \texttt{b} (and vice versa)
-                \item $\texttt{a}[..) \approx \texttt{b}[..)$ \hfill \texttt{a}, and \texttt{b} have identical contents
-                \item $\sum \texttt{a}[x..y)$ \hfill the sum of elements from index $x$, up to (but not including) index $y$
-                \item $\prod \texttt{a}[x..y)$ \hfill the product of elements from index $x$, up to (but not including) index $y$
-            \end{itemize}
-            In Java, we rarely overwrite an entire array, so referencing a reference is rarely used, but we will often reference the contents of the array, as it is common for methods to be able to update contents. We also often make use of the predicates \texttt{sorted}, \texttt{min}, and \texttt{max}, which do what the name suggests. They are only well-defined for arrays with comparable contents.
-            \medskip
+                For the types of conditions, we have the following rules;
+                \begin{itemize}
+                    \itemsep0em
+                    \item pre-condition
+                        \begin{itemize}
+                            \itemsep0em
+                            \item required to hold before code execution
+                            \item assumption the code can make
+                        \end{itemize}
+                    \item post-condition
+                        \begin{itemize}
+                            \itemsep0em
+                            \item expected to hold after code execution, given it terminates and pre-condition held
+                            \item guarantee the code must make
+                        \end{itemize}
+                    \item mid-condition
+                        \begin{itemize}
+                            \itemsep0em
+                            \item acts as a post-condition for preceding lines, and pre-condition for subsequent lines
+                            \item assumption made at specific point in code
+                            \item guaranteed by preceding code
+                            \item assumed by subsequent code
+                            \item "stepping stone" about correctness
+                            \item if it evaluates to false, it means the program cannot reach that point - often it means the mid-condition is incorrect
+                        \end{itemize}
+                \end{itemize}
+                The following shorthands will be used in order to describe number ranges, and arrays;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $i \in (m..n) \triangleq m < i < n$
+                    \item $i \in [m..n) \triangleq m \leq i < n$
+                    \item $i \in (m..n] \triangleq m < i \leq n$
+                    \item $i \in [m..n] \triangleq m \leq i \leq n$
+                    \item $v \in \texttt{a}[m..n) \triangleq \exists i \in [m..n) [0 \leq i < \texttt{a.length} \land \texttt{a}[i] = v]$
+                \end{itemize}
+                $\texttt{a}(m..n)$ is referred to as an \textbf{array slice}, and closed-open intervals for slices is often useful for reasoning. We often simplify our notation by ignoring bounds if they refer to the start, or end, of an array. With some arbitrary index $i$ (existing in the array, presumably), we use the following notation;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\texttt{a}[..i)$ \hfill the array slice from 0 up to $i$, but not including $i$
+                    \item $\texttt{a}[i..)$ \hfill the array slice from $i$ up to the end
+                    \item $\texttt{a}[..)$ \hfill the whole array
+                    \item $\texttt{a}_\text{old/pre}[..)$ \hfill refers to the older / previous value of an array's reference
+                    \item $\texttt{a}[..)_\text{old/pre}$ \hfill refers to the older / previous value of an array's contents
+                    \item $\texttt{a}_\text{old/pre}[..)_\text{old/pre}$ \hfill refers to the older / previous value of both
+                    \item $\texttt{a}[..) \sim \texttt{b}[..)$ \hfill \texttt{a} is a permutation of \texttt{b} (and vice versa)
+                    \item $\texttt{a}[..) \approx \texttt{b}[..)$ \hfill \texttt{a}, and \texttt{b} have identical contents
+                    \item $\sum \texttt{a}[x..y)$ \hfill the sum of elements from index $x$, up to (but not including) index $y$
+                    \item $\prod \texttt{a}[x..y)$ \hfill the product of elements from index $x$, up to (but not including) index $y$
+                \end{itemize}
+                In Java, we rarely overwrite an entire array, so referencing a reference is rarely used, but we will often reference the contents of the array, as it is common for methods to be able to update contents. We also often make use of the predicates \texttt{sorted}, \texttt{min}, and \texttt{max}, which do what the name suggests. They are only well-defined for arrays with comparable contents.
+                \medskip
 
-            Consider the following function;
-            \begin{lstlisting}
-                int biggest(int x, int y, int z)
-                // PRE ($P$): $\top$
-                // POST ($Q$): r = max{x, y, z}
-                {
-                  int res;
-                  if (x >= y) {
-                    res = x;
-                  } else {
-                    res = y;
-                  }
-                  // MID ($M_1$): res = max{x, y}
-                  if (z >= res) {
-                    res = z;
-                  }
-                  // MID ($M_2$): res = max{z, max{x, y}}
-                  return res;
-                }
-            \end{lstlisting}
-            It's important to note the mid-condition ($M_2$) in line 15, since we are describing a logical assertion, not what the code is doing. For example, writing \texttt{res = max\{res, z\}} is invalid, as it is only true when $\texttt{res} \geq \texttt{z}$, but that isn't guaranteed in the program specification, which doesn't constrain any of the input values (other than type). We also cannot write $\texttt{res = max\{}\texttt{res}_\text{old}\texttt{, z\}}$, since that is only used in our proofs - as a tool to distinguish between values at different points in code execution.
-            \medskip
+                Consider the following function;
+                \begin{lstlisting}
+                    int biggest(int x, int y, int z)
+                    // PRE ($P$): $\top$
+                    // POST ($Q$): r = max{x, y, z}
+                    {
+                    int res;
+                    if (x >= y) {
+                        res = x;
+                    } else {
+                        res = y;
+                    }
+                    // MID ($M_1$): res = max{x, y}
+                    if (z >= res) {
+                        res = z;
+                    }
+                    // MID ($M_2$): res = max{z, max{x, y}}
+                    return res;
+                    }
+                \end{lstlisting}
+                It's important to note the mid-condition ($M_2$) in line 15, since we are describing a logical assertion, not what the code is doing. For example, writing \texttt{res = max\{res, z\}} is invalid, as it is only true when $\texttt{res} \geq \texttt{z}$, but that isn't guaranteed in the program specification, which doesn't constrain any of the input values (other than type). We also cannot write $\texttt{res = max\{}\texttt{res}_\text{old}\texttt{, z\}}$, since that is only used in our proofs - as a tool to distinguish between values at different points in code execution.
+                \medskip
 
-            With that code, we end up with the following proof obligations;
-            \begin{align*}
-                P \land \texttt{if (x >= y) \{ res = x; \} else \{ res = y; \}} & \rightarrow M_1 \\
-                \top \land \texttt{res} = \texttt{max\{x, y\}} & \rightarrow \texttt{res} = \texttt{max\{x, y\}} \\ \\
-                M_1[\texttt{res} \mapsto \texttt{res}_\text{old}] \land \texttt{if (z >= res) \{ res = z; \}} & \rightarrow M_2 \\
-                \texttt{res}_\text{old} = \texttt{max\{x, y\}} \land \texttt{res} = \texttt{max\{z, }\texttt{res}_\text{old}\texttt{\}} & \rightarrow \texttt{res} = \texttt{max\{z, max\{x, y\}\}} \\ \\
-                M_2 \land \texttt{return res;} & \rightarrow Q \\
-                \texttt{res = max\{z, max\{x, y\}\}} \land \textbf{r} = \texttt{res} & \rightarrow \textbf{r} = \texttt{max\{x, y, z\}}
-            \end{align*}
-            Note how $M_2$ doesn't have the mapping applied, since there is no change to any of the values. It's important to note that a piece of code may have multiple pre/post-conditions, and the post-condition(s) depends on the code as well as the pre-condition(s). We can use mid-conditions as "stepping-stones" in our reasoning.
-        \subsubsection*{Conditional Branches}
-            Conditional branching is another construct that we will be using fairly often; as such we need to prove that branching code will still satisfy the given specification. Consider this generic example of a conditional branch;
-            \begin{lstlisting}
-                // PRE: $P$
-                if (cond) {
-                  code1;
-                } else {
-                  code2;
-                }
-                // POST: $Q$
-            \end{lstlisting}
-            We can then express this as \binaryproof{$\{ P \land \texttt{cond} \}$ \texttt{code1} $\{ Q \}$}{$\{ P \land \neg\texttt{cond} \}$ \texttt{code2} $\{ Q \}$}{$\{ P \}\ \texttt{if (cond) \{ code1 \} else \{ code2 \}}\ \{ Q \}$}
-            \begin{lstlisting}
-                // PRE: $P$
-                if (cond) {
-                  // MID: $P \land \texttt{cond}$
-                  code1;
-                  // MID: $R_1$
-                } else {
-                  // MID: $P \land \neg\texttt{cond}$
-                  code2;
-                  // MID: $R_2$
-                }
-                // POST: $Q$
-            \end{lstlisting}
-            Both \texttt{code1}, and \texttt{code2} can assume $P$, as well as their condition, but they \textbf{both} have to establish $Q$, (hence $R_1 \rightarrow Q$, and $R_2 \rightarrow Q$). By doing this, we can reduce the complexity of our proof by doing a case-by-case analysis, instead of having some general condition within both branches. Consider the first half of the \texttt{biggest} function that we defined previously;
-            \begin{lstlisting}
-                int biggest(int x, int y, int z)
-                // PRE ($P$): $\top$
-                ...
-                {
-                  int res;
-                  if (x >= y) {
-                    // MID ($P \land \texttt{cond}$): x $\geq$ y
-                    res = x;
-                    // MID ($R_1$): res = x $\land$ x $\geq$ y
-                  } else {
-                    // MID ($P \land \neg\texttt{cond}$): y $>$ x
-                    res = y;
-                    // MID ($R_2$): res = y $\land$ y $>$ x
-                  }
-                  // MID ($M_1$): res = max{x, y}
-                  ...
-                }
-            \end{lstlisting}
-            \begin{align*}
-                P \land \texttt{cond} \land \texttt{res = x;} & \rightarrow R_1 \\
-                \texttt{x} \geq \texttt{y} \land \texttt{res} = \texttt{x} & \rightarrow \texttt{res} = \texttt{x} \land \texttt{x} \geq \texttt{y} \\ \\
-                P \land \neg\texttt{cond} \land \texttt{res = y;} & \rightarrow R_2 \\
-                \texttt{y} > \texttt{x} \land \texttt{res} = \texttt{y} & \rightarrow \texttt{res} = \texttt{y} \land \texttt{y} > \texttt{x} \\ \\
-                R_1 & \rightarrow M_1 \\
-                \texttt{res} = \texttt{x} \land \texttt{x} \geq \texttt{y} & \rightarrow \texttt{res} = \texttt{max\{x, y\}} \\ \\
-                R_2 & \rightarrow M_1 \\
-                \texttt{res} = \texttt{y} \land \texttt{y} > \texttt{x} & \rightarrow \texttt{res} = \texttt{max\{x, y\}}
-            \end{align*}
-            While this complicates the proof obligations in this case, sometimes the conditional branches may be significantly different from each other.
-        \subsubsection*{Method Calls}
-            Consider the following methods here;
-            \begin{lstlisting}
-                void mainMethod() {
-                  ...
-                  // MID: $P$
-                  someMethod($v_1$, ..., $v_n$);
-                  // MID: $Q$
-                }
-                void someMethod(type x$_1$, ..., type x$_n$)
-                // PRE: $R$
-                // POST: $S$
-                {
-                  code
-                }
-            \end{lstlisting}
-            The first requirement is to show that $P \rightarrow R[\bar{\texttt{x}} \mapsto \bar{v}]$, once that's proven, we can apply the method as;
-            \smallskip
+                With that code, we end up with the following proof obligations;
+                \begin{align*}
+                    P \land \texttt{if (x >= y) \{ res = x; \} else \{ res = y; \}} & \rightarrow M_1 \\
+                    \top \land \texttt{res} = \texttt{max\{x, y\}} & \rightarrow \texttt{res} = \texttt{max\{x, y\}} \\ \\
+                    M_1[\texttt{res} \mapsto \texttt{res}_\text{old}] \land \texttt{if (z >= res) \{ res = z; \}} & \rightarrow M_2 \\
+                    \texttt{res}_\text{old} = \texttt{max\{x, y\}} \land \texttt{res} = \texttt{max\{z, }\texttt{res}_\text{old}\texttt{\}} & \rightarrow \texttt{res} = \texttt{max\{z, max\{x, y\}\}} \\ \\
+                    M_2 \land \texttt{return res;} & \rightarrow Q \\
+                    \texttt{res = max\{z, max\{x, y\}\}} \land \textbf{r} = \texttt{res} & \rightarrow \textbf{r} = \texttt{max\{x, y, z\}}
+                \end{align*}
+                Note how $M_2$ doesn't have the mapping applied, since there is no change to any of the values. It's important to note that a piece of code may have multiple pre/post-conditions, and the post-condition(s) depends on the code as well as the pre-condition(s). We can use mid-conditions as "stepping-stones" in our reasoning.
+            \subsubsection*{Conditional Branches}
+                Conditional branching is another construct that we will be using fairly often; as such we need to prove that branching code will still satisfy the given specification. Consider this generic example of a conditional branch;
+                \begin{lstlisting}
+                    // PRE: $P$
+                    if (cond) {
+                    code1;
+                    } else {
+                    code2;
+                    }
+                    // POST: $Q$
+                \end{lstlisting}
+                We can then express this as \binaryproof{$\{ P \land \texttt{cond} \}$ \texttt{code1} $\{ Q \}$}{$\{ P \land \neg\texttt{cond} \}$ \texttt{code2} $\{ Q \}$}{$\{ P \}\ \texttt{if (cond) \{ code1 \} else \{ code2 \}}\ \{ Q \}$}
+                \begin{lstlisting}
+                    // PRE: $P$
+                    if (cond) {
+                    // MID: $P \land \texttt{cond}$
+                    code1;
+                    // MID: $R_1$
+                    } else {
+                    // MID: $P \land \neg\texttt{cond}$
+                    code2;
+                    // MID: $R_2$
+                    }
+                    // POST: $Q$
+                \end{lstlisting}
+                Both \texttt{code1}, and \texttt{code2} can assume $P$, as well as their condition, but they \textbf{both} have to establish $Q$, (hence $R_1 \rightarrow Q$, and $R_2 \rightarrow Q$). By doing this, we can reduce the complexity of our proof by doing a case-by-case analysis, instead of having some general condition within both branches. Consider the first half of the \texttt{biggest} function that we defined previously;
+                \begin{lstlisting}
+                    int biggest(int x, int y, int z)
+                    // PRE ($P$): $\top$
+                    ...
+                    {
+                    int res;
+                    if (x >= y) {
+                        // MID ($P \land \texttt{cond}$): x $\geq$ y
+                        res = x;
+                        // MID ($R_1$): res = x $\land$ x $\geq$ y
+                    } else {
+                        // MID ($P \land \neg\texttt{cond}$): y $>$ x
+                        res = y;
+                        // MID ($R_2$): res = y $\land$ y $>$ x
+                    }
+                    // MID ($M_1$): res = max{x, y}
+                    ...
+                    }
+                \end{lstlisting}
+                \begin{align*}
+                    P \land \texttt{cond} \land \texttt{res = x;} & \rightarrow R_1 \\
+                    \texttt{x} \geq \texttt{y} \land \texttt{res} = \texttt{x} & \rightarrow \texttt{res} = \texttt{x} \land \texttt{x} \geq \texttt{y} \\ \\
+                    P \land \neg\texttt{cond} \land \texttt{res = y;} & \rightarrow R_2 \\
+                    \texttt{y} > \texttt{x} \land \texttt{res} = \texttt{y} & \rightarrow \texttt{res} = \texttt{y} \land \texttt{y} > \texttt{x} \\ \\
+                    R_1 & \rightarrow M_1 \\
+                    \texttt{res} = \texttt{x} \land \texttt{x} \geq \texttt{y} & \rightarrow \texttt{res} = \texttt{max\{x, y\}} \\ \\
+                    R_2 & \rightarrow M_1 \\
+                    \texttt{res} = \texttt{y} \land \texttt{y} > \texttt{x} & \rightarrow \texttt{res} = \texttt{max\{x, y\}}
+                \end{align*}
+                While this complicates the proof obligations in this case, sometimes the conditional branches may be significantly different from each other.
+            \subsubsection*{Method Calls}
+                Consider the following methods here;
+                \begin{lstlisting}
+                    void mainMethod() {
+                    ...
+                    // MID: $P$
+                    someMethod($v_1$, ..., $v_n$);
+                    // MID: $Q$
+                    }
+                    void someMethod(type x$_1$, ..., type x$_n$)
+                    // PRE: $R$
+                    // POST: $S$
+                    {
+                    code
+                    }
+                \end{lstlisting}
+                The first requirement is to show that $P \rightarrow R[\bar{\texttt{x}} \mapsto \bar{v}]$, once that's proven, we can apply the method as;
+                \smallskip
 
-            \unaryproof{$P[\bar{v}[..) \mapsto \bar{v}[..)_\text{old}] \land S[\bar{\texttt{x}} \mapsto \bar{v}, \bar{\texttt{x}}[..)_\text{pre} \mapsto \bar{v}[..)_\text{old}] \rightarrow Q$}{$\{ P \}\ \texttt{someMethod($v_1$, ..., $v_n$)}\ \{ Q \}$}
-            \medskip
+                \unaryproof{$P[\bar{v}[..) \mapsto \bar{v}[..)_\text{old}] \land S[\bar{\texttt{x}} \mapsto \bar{v}, \bar{\texttt{x}}[..)_\text{pre} \mapsto \bar{v}[..)_\text{old}] \rightarrow Q$}{$\{ P \}\ \texttt{someMethod($v_1$, ..., $v_n$)}\ \{ Q \}$}
+                \medskip
 
-            The substutions done in $R$, and $S$ replace the variables in the method specification with the values used at the call point in our code. The second substitution in $S$, and the substitution in $P$ consider the (possibly) updated program state caused by \texttt{someMethod}. Care should be taken wtih post-condition belonging to \texttt{someMethod}, as a reference to $\texttt{a}[..)_\text{pre}$ would refer to the contents of the array before the method was called. Since Java is a call by value language, variables of primitive type aren't updated by the method call. However, when we pass variables of reference type (such as the array in this context), the contents \textbf{can} be updated.
-            \medskip
+                The substutions done in $R$, and $S$ replace the variables in the method specification with the values used at the call point in our code. The second substitution in $S$, and the substitution in $P$ consider the (possibly) updated program state caused by \texttt{someMethod}. Care should be taken wtih post-condition belonging to \texttt{someMethod}, as a reference to $\texttt{a}[..)_\text{pre}$ would refer to the contents of the array before the method was called. Since Java is a call by value language, variables of primitive type aren't updated by the method call. However, when we pass variables of reference type (such as the array in this context), the contents \textbf{can} be updated.
+                \medskip
 
-            If we consider return values from a method, such that we can change the code to be the following;
-            \begin{lstlisting}
-                void mainMethod() {
-                  ...
-                  // MID: $P$
-                  res = someMethod($v_1$, ..., $v_n$);
-                  // MID: $Q$
-                }
-                type someMethod(type x$_1$, ..., type x$_n$) {
-                ...
-            \end{lstlisting}
-            We need to be careful with the modification of \texttt{res}. Once again, the pre-condition of \texttt{someMethod} still needs to be satisfied in the same way, but we will also need additional substitutions as follows;
-            \smallskip
+                If we consider return values from a method, such that we can change the code to be the following;
+                \begin{lstlisting}
+                    void mainMethod() {
+                    ...
+                    // MID: $P$
+                    res = someMethod($v_1$, ..., $v_n$);
+                    // MID: $Q$
+                    }
+                    type someMethod(type x$_1$, ..., type x$_n$) {
+                    ...
+                \end{lstlisting}
+                We need to be careful with the modification of \texttt{res}. Once again, the pre-condition of \texttt{someMethod} still needs to be satisfied in the same way, but we will also need additional substitutions as follows;
+                \smallskip
 
-            \unaryproof{$P[\bar{v}[..) \mapsto \bar{v}[..)_\text{old}]\textcolor{blue}{[\texttt{res} \mapsto \texttt{res}_\text{old}]} \land \textcolor{blue}{\texttt{res} = \mathbf{r}} \land S[\bar{\texttt{x}} \mapsto \bar{v}, \bar{\texttt{x}}[..)_\text{pre} \mapsto \bar{v}[..)_\text{old}]\textcolor{blue}{[\texttt{res} \mapsto \texttt{res}_\text{old}]} \rightarrow Q$}{$\{ P \}\ \texttt{\textcolor{blue}{res} = someMethod($v_1$, ..., $v_n$)}\ \{ Q \}$}
-            \medskip
+                \unaryproof{$P[\bar{v}[..) \mapsto \bar{v}[..)_\text{old}]\textcolor{blue}{[\texttt{res} \mapsto \texttt{res}_\text{old}]} \land \textcolor{blue}{\texttt{res} = \mathbf{r}} \land S[\bar{\texttt{x}} \mapsto \bar{v}, \bar{\texttt{x}}[..)_\text{pre} \mapsto \bar{v}[..)_\text{old}]\textcolor{blue}{[\texttt{res} \mapsto \texttt{res}_\text{old}]} \rightarrow Q$}{$\{ P \}\ \texttt{\textcolor{blue}{res} = someMethod($v_1$, ..., $v_n$)}\ \{ Q \}$}
+                \medskip
 
-            Note that the substitution is after every other substitution, since it's needed to reflect the order of the code execution. The rest of the rules are the same as before, except the extra conjuncts account for the updating program state due to the assignment of the return value.
-            \medskip
+                Note that the substitution is after every other substitution, since it's needed to reflect the order of the code execution. The rest of the rules are the same as before, except the extra conjuncts account for the updating program state due to the assignment of the return value.
+                \medskip
 
-            Consider an example, where we get the smallest value of a list by taking the first item of the sorted version of the given list, with the code in Java being defined as follows;
-            \begin{lstlisting}
-                void sort(int[] b)
-                // PRE ($P_1$): b $\neq$ null
-                // POST ($Q_1$): b[..) $\sim$ b[..)$_\text{pre}$ $\land$ sorted(b[..))
-                {
-                  ...
-                }
+                Consider an example, where we get the smallest value of a list by taking the first item of the sorted version of the given list, with the code in Java being defined as follows;
+                \begin{lstlisting}
+                    void sort(int[] b)
+                    // PRE ($P_1$): b $\neq$ null
+                    // POST ($Q_1$): b[..) $\sim$ b[..)$_\text{pre}$ $\land$ sorted(b[..))
+                    {
+                    ...
+                    }
 
-                int smallest(int[] a)
-                // PRE ($P_2$): a $\neq$ null $\land$ a.length $>$ 0
-                // POST ($Q_2$): r = min(a[..)$_\text{pre}$)
-                {
-                  // MID ($M_1$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ a $\neq$ null $\land$ a.length $>$ 0
-                  sort(a);
-                  // MID ($M_2$): a[..) $\sim$ a[..)$_\text{pre}$ $\land$ sorted(a[..)) $\land$ a.length $>$ 0
-                  int res = a[0];
-                  // MID ($M_3$): a[..) $\sim$ a[..)$_\text{pre}$ $\land$ res = min(a[..))
-                  return res;
-                }
-            \end{lstlisting}
-            Informally (and formally below), the obligations are as follows;
-            \begin{itemize}
-                \itemsep0em
-                \item $P_2[\texttt{a}[..) \mapsto \texttt{a}[..)_\text{pre}] \land \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \rightarrow M_1$
-                    \subitem $\texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \land \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \rightarrow \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0$
-                    \subitem here we should remember that $P_2$ only describes the variables passed into the initial method call - to use this pre-condition, we need to use the initial $_\text{pre}$ versions of all variables; we also obtain the 3$^\text{rd}$ conjunct implicitly because no code has executed yet
-                \item $M_1 \rightarrow P_1[\texttt{b} \mapsto \texttt{a}]$
-                    \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \rightarrow \texttt{a} \neq \texttt{null}$
-                    \subitem no code has been executed in this obligation, therefore we don't need to consider the $_\text{old}$ variants - however we do need to substitute \texttt{b} with \texttt{a} in $P_1$
-                \item $M_1[\texttt{a}[..) \mapsto \texttt{a}[..)_\text{old}] \land Q_1[\texttt{b} \mapsto \texttt{a}, \texttt{b}[..)_\text{pre} \mapsto \texttt{a}[..)_\text{old}] \rightarrow M_2$
-                    \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \land \texttt{a}[..) \sim \texttt{a}[..)_\text{old} \land \texttt{sorted}(a[..)) \rightarrow \texttt{a}[..) \sim \texttt{a}[..)_\text{pre} \land \texttt{sorted}(a[..)) \land \texttt{a.length} > 0$
-                    \subitem this obligation considers the effect of the \texttt{sort} method, therefore we need to track the state of the input before and after \texttt{sort} is called - once again \texttt{b} is replaced with \texttt{a}, and we use the state \texttt{b}[..)$_\text{pre}$ to represent the state of the array on entry to \texttt{sort}, and \texttt{a}[..)$_\text{old}$ to represent the value just before the method call therefore \texttt{b}[..)$_\text{pre}$ is replaced with \texttt{a}[..)$_\text{old}$ in $Q_2$
-                \item $M_2[\texttt{res} \mapsto \texttt{res}_\text{old}] \land \texttt{res = a[0]} \rightarrow M_3$
-                    \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a.length} > 0 \land \texttt{a}[..) \sim \texttt{a}[..)_\text{old} \land \texttt{sorted}(a[..)) \land \texttt{res = a[0]} \rightarrow \texttt{a}[..)_\text{pre} \land \texttt{res = min(a[..))}$
-                    \subitem because \texttt{res} didn't exist before the previous line, and $M_2$ makes no reference to \texttt{res}, the substitution makes no change to $M_2$
-                \item $M_3 \land \texttt{return res} \rightarrow Q_2$
-                    \subitem $\texttt{a}[..) \sim \texttt{a}[..)_\text{pre} \land \texttt{res = min(a[..))} \land \textbf{r} = \texttt{res} \rightarrow \textbf{r} = \texttt{min(a[..))}$
-                    \subitem no changes are done to any of the variables, since it only tracks the return value, there is no need to track old values in the program's state
-            \end{itemize}
-            While we've reasoned about the correctness of \texttt{smallest}, we don't know anything about \texttt{sort}. All we have done regarding it is that it satisfies its given specification. For code to be partially correct, it requires the code to satisfy the post-condition given it starts in a state satisfying its pre-condition, and terminates. Total correctness is the same, but guarantees the termination of the code.
+                    int smallest(int[] a)
+                    // PRE ($P_2$): a $\neq$ null $\land$ a.length $>$ 0
+                    // POST ($Q_2$): r = min(a[..)$_\text{pre}$)
+                    {
+                    // MID ($M_1$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ a $\neq$ null $\land$ a.length $>$ 0
+                    sort(a);
+                    // MID ($M_2$): a[..) $\sim$ a[..)$_\text{pre}$ $\land$ sorted(a[..)) $\land$ a.length $>$ 0
+                    int res = a[0];
+                    // MID ($M_3$): a[..) $\sim$ a[..)$_\text{pre}$ $\land$ res = min(a[..))
+                    return res;
+                    }
+                \end{lstlisting}
+                Informally (and formally below), the obligations are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $P_2[\texttt{a}[..) \mapsto \texttt{a}[..)_\text{pre}] \land \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \rightarrow M_1$
+                        \subitem $\texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \land \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \rightarrow \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0$
+                        \subitem here we should remember that $P_2$ only describes the variables passed into the initial method call - to use this pre-condition, we need to use the initial $_\text{pre}$ versions of all variables; we also obtain the 3$^\text{rd}$ conjunct implicitly because no code has executed yet
+                    \item $M_1 \rightarrow P_1[\texttt{b} \mapsto \texttt{a}]$
+                        \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \rightarrow \texttt{a} \neq \texttt{null}$
+                        \subitem no code has been executed in this obligation, therefore we don't need to consider the $_\text{old}$ variants - however we do need to substitute \texttt{b} with \texttt{a} in $P_1$
+                    \item $M_1[\texttt{a}[..) \mapsto \texttt{a}[..)_\text{old}] \land Q_1[\texttt{b} \mapsto \texttt{a}, \texttt{b}[..)_\text{pre} \mapsto \texttt{a}[..)_\text{old}] \rightarrow M_2$
+                        \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \land \texttt{a}[..) \sim \texttt{a}[..)_\text{old} \land \texttt{sorted}(a[..)) \rightarrow \texttt{a}[..) \sim \texttt{a}[..)_\text{pre} \land \texttt{sorted}(a[..)) \land \texttt{a.length} > 0$
+                        \subitem this obligation considers the effect of the \texttt{sort} method, therefore we need to track the state of the input before and after \texttt{sort} is called - once again \texttt{b} is replaced with \texttt{a}, and we use the state \texttt{b}[..)$_\text{pre}$ to represent the state of the array on entry to \texttt{sort}, and \texttt{a}[..)$_\text{old}$ to represent the value just before the method call therefore \texttt{b}[..)$_\text{pre}$ is replaced with \texttt{a}[..)$_\text{old}$ in $Q_2$
+                    \item $M_2[\texttt{res} \mapsto \texttt{res}_\text{old}] \land \texttt{res = a[0]} \rightarrow M_3$
+                        \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a.length} > 0 \land \texttt{a}[..) \sim \texttt{a}[..)_\text{old} \land \texttt{sorted}(a[..)) \land \texttt{res = a[0]} \rightarrow \texttt{a}[..)_\text{pre} \land \texttt{res = min(a[..))}$
+                        \subitem because \texttt{res} didn't exist before the previous line, and $M_2$ makes no reference to \texttt{res}, the substitution makes no change to $M_2$
+                    \item $M_3 \land \texttt{return res} \rightarrow Q_2$
+                        \subitem $\texttt{a}[..) \sim \texttt{a}[..)_\text{pre} \land \texttt{res = min(a[..))} \land \textbf{r} = \texttt{res} \rightarrow \textbf{r} = \texttt{min(a[..))}$
+                        \subitem no changes are done to any of the variables, since it only tracks the return value, there is no need to track old values in the program's state
+                \end{itemize}
+                While we've reasoned about the correctness of \texttt{smallest}, we don't know anything about \texttt{sort}. All we have done regarding it is that it satisfies its given specification. For code to be partially correct, it requires the code to satisfy the post-condition given it starts in a state satisfying its pre-condition, and terminates. Total correctness is the same, but guarantees the termination of the code.
+            \subsubsection*{ss}
 \end{document}
