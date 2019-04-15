@@ -574,7 +574,7 @@
 
             In summary, by having a recursively defined data type, it allows us to construct an induction principle, which then leads to a proof schema. We are able to use first-order equivalences to swap quantifiers, which may allow for a proof on an easier equivalent property. Occasionally, lemmas will need to be strengthened, or we will need to create auxiliary lemmas.
         \subsection*{Induction over Recursive Relations and Functions}
-            As every inductively defined set creates a successor relation (+1 for $\mathbb{N}$, or \texttt{Node} for \texttt{Tree}), all inductively defined relations, and functions give rise to successor relations, therefore all inductively defined sets, relations, and functions give rise to an induction induction principle. Generalizing the principle of induction from sets to functions, and relations, follows from the idea that relations, and functions, can both be represented through sets. Consider the "mystery" function \texttt{M};
+            As every inductively defined set creates a successor relation (+1 for $\mathbb{N}$, or \texttt{Node} for \texttt{Tree}), all inductively defined relations, and functions give rise to successor relations, therefore all inductively defined sets, relations, and functions give rise to an induction induction principle. Generalising the principle of induction from sets to functions, and relations, follows from the idea that relations, and functions, can both be represented through sets. Consider the "mystery" function \texttt{M};
             \begin{lstlisting}
                 M :: Int -> Int
                 M m = M'(m, 0, 1)
@@ -611,7 +611,7 @@
                 \item count the number of recursive calls in \texttt{M'}
                 \item a new induction principle
             \end{enumerate}
-            In the first approach, we show that if $m < cnt$, then the function does not terminate ($m < cnt \rightarrow m \neq cnt$, as the termination condition is $m = cnt$). Hence \textbf{Assrt\_2} can be shown as \textbf{Assrt\_2'} = $\forall m, cnt, acc, p : \mathbb{N} [m \geq cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]$. However, in order to be able tp prove \textbf{Assrt\_2'}, we need to prove \textbf{Assrt\_3}: $\forall k, m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]$. We also need to prove that $\textbf{Assrt\_3} \rightarrow \textbf{Assrt\_2'}$.
+            In the first approach, we show that if $m < cnt$, then the function does not terminate ($m < cnt \rightarrow m \neq cnt$, as the termination condition is $m = cnt$). Hence \textbf{Assrt\_2} can be shown as \textbf{Assrt\_2'} = $\forall m, cnt, acc, p : \mathbb{N} [m \geq cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]$. However, in order to be able to prove \textbf{Assrt\_2'}, we need to prove \textbf{Assrt\_3}: $\forall k, m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]$. We also need to prove that $\textbf{Assrt\_3} \rightarrow \textbf{Assrt\_2'}$.
             \medskip
 
             Proving the latter is fairly straightforward, if $k = m - cnt$, and $k \geq 0$ (since it's a natural number), then it follows that $m - cnt \geq 0$, therefore $m \geq cnt$.
@@ -831,7 +831,7 @@
 
                 The goal here is to show $\forall i, j \in \mathbb{Z} [\texttt{DM } (i, j) = (k1, k2) \rightarrow i = k1 \cdot j + k2 \land k2 < j]$
         \subsection*{Conclusion to Haskell Induction}
-            In conclusion, every inductively defined set, relation, or function has a successor relation. By having this successor relation, it allows for there to be an inductive principle (generic). Once this inductive principle can be specialized for a specific predicate, it gives rise for a proof schema, which can be proven with our rules of logic. By considering our \texttt{M} function, we can say the following;
+            In conclusion, every inductively defined set, relation, or function has a successor relation. By having this successor relation, it allows for there to be an inductive principle (generic). Once this inductive principle can be specialised for a specific predicate, it gives rise for a proof schema, which can be proven with our rules of logic. By considering our \texttt{M} function, we can say the following;
             \begin{enumerate}[R1]
                 \itemsep0em
                 \item $\forall m : \mathbb{N} [\texttt{M } m = \texttt{M' } (m, 0, 1)]$
@@ -844,7 +844,7 @@
             $\textcolor{blue}{\forall m, acc : \mathbb{N} [Q(m, m, acc, acc)]} \land \\ \textcolor{red}{\forall m, acc, cnt, r : \mathbb{N} [m \neq cnt \land \texttt{M' }(m, cnt + 1, 2 \cdot acc) = r \land Q(m, cnt + 1, 2 \cdot acc, r) \rightarrow Q(m, cnt, acc, r)]} \\ \rightarrow \textcolor{violet}{\forall m, cnt, acc, r : \mathbb{N} [\texttt{M' } (m, cnt, acc) = r \rightarrow Q(m, cnt, acc, r)]}$
             \medskip
 
-            However, we're defining $Q(m, cnt, acc, r)$ to be $r = 2^{m - cnt} \cdot acc$, therefore we can specialize the principle to be;
+            However, we're defining $Q(m, cnt, acc, r)$ to be $r = 2^{m - cnt} \cdot acc$, therefore we can specialise the principle to be;
             \medskip
 
             $\textcolor{blue}{\forall m, acc : \mathbb{N} [acc = 2^{m - m} \cdot acc]} \land \\ \textcolor{red}{\forall m, acc, cnt, r : \mathbb{N} [m \neq cnt \land \texttt{M' }(i, cnt + 1, 2 \cdot acc) = r \land r = 2^{m - (cnt + 1)} \cdot 2 \cdot acc \rightarrow r = 2^{m - cnt} \cdot acc]} \rightarrow \\ \textcolor{violet}{\forall m, cnt, acc, r : \mathbb{N} [\texttt{M' } (m, cnt, acc) = r \rightarrow r = 2^{m - cnt} \cdot acc]}$
@@ -862,7 +862,7 @@
                 int y = a + x
                 // POST: a = $u$ $\land$ x = $v$ $\land$ y = $u + v$
             \end{lstlisting}
-            This can be translated into the following; for any integers $u$, and $v$, if the start value of \texttt{a} is $u$, and \texttt{x} has value $v$, after executing the code, both \texttt{a}, and \texttt{x} retain their original values, and \texttt{y} now has the value $u + v$. There is an \textbf{implicit universal quantification} of $u$, and $v$ over the whole program specification. It's crucial thast the quantification is over the entire specification, as having the post condition be represented as $\forall u, v [\texttt{a} = u \land \texttt{x} = v \land \texttt{y} = u + v]$ is incorrect, since that suggests \texttt{a}, and \texttt{x} holds all possible values after the code has been executed.
+            This can be translated into the following; for any integers $u$, and $v$, if the start value of \texttt{a} is $u$, and \texttt{x} has value $v$, after executing the code, both \texttt{a}, and \texttt{x} retain their original values, and \texttt{y} now has the value $u + v$. There is an \textbf{implicit universal quantification} of $u$, and $v$ over the whole program specification. It's crucial that the quantification is over the entire specification, as having the post condition be represented as $\forall u, v [\texttt{a} = u \land \texttt{x} = v \land \texttt{y} = u + v]$ is incorrect, since that suggests \texttt{a}, and \texttt{x} holds all possible values after the code has been executed.
             \medskip
 
             Unsurprisingly, not all programs consist of one line, therefore we may need to reason about a sequence of state changes as follows;
@@ -885,8 +885,58 @@
             \unaryproof{$P[\texttt{x} \mapsto \texttt{x}_\text{old}] \land \text{x} = E[\texttt{x} \mapsto \texttt{x}_\text{old}] \rightarrow Q$}{$\{ P \}\ \texttt{x} = E;\ \{ Q \}$}
             \smallskip
 
-            Note that $[\texttt{x} \mapsto \texttt{x}_\text{old}]$ means any occurence of \texttt{x} is replaced with $\texttt{x}_\text{old}$.
+            Note that $[\texttt{x} \mapsto \texttt{x}_\text{old}]$ means any occurrence of \texttt{x} is replaced with $\texttt{x}_\text{old}$.
         \subsubsection*{Method Specification}
             Consider the general layout of a method as
+            \begin{lstlisting}
+                type someMethod(type x$_1$, ..., type x$_n$)
+                // PRE: $P$
+                // POST: $Q$
+                {
+                   somecodeblock0
+                   // MID: $R$
+                   somecodeblock1
+                   // MID: $S$
+                   somecodeblock2
+                }
+            \end{lstlisting}
+            The following specification suggests that if $P[\texttt{x}_1 \mapsto v_1, ... \texttt{x}_n \mapsto v_n]$ holds before the call to \\ $\texttt{someMethod}(v_1, v_2 ..., v_n)$, then $Q[\texttt{x}_1 \mapsto v_1, ... \texttt{x}_n \mapsto v_n]$ holds on the return. Note that $v_i$ is a value, and $\texttt{x}_i$ is variable. Sometimes, this will be simplified as $\bar{\texttt{x}}$, or $\bar{v}$. The rules for the mid-conditions are the same as before.
+            \medskip
 
+            For the types of conditions, we have the following rules;
+            \begin{itemize}
+                \itemsep0em
+                \item pre-condition
+                    \begin{itemize}
+                        \itemsep0em
+                        \item required to hold before code execution
+                        \item assumption the code can make
+                    \end{itemize}
+                \item post-condition
+                    \begin{itemize}
+                        \itemsep0em
+                        \item expected to hold after code execution, given it terminates and pre-condition held
+                        \item guarantee the code must make
+                    \end{itemize}
+                \item mid-condition
+                    \begin{itemize}
+                        \itemsep0em
+                        \item acts as a post-condition for preceding lines, and pre-condition for subsequent lines
+                        \item assumption made at specific point in code
+                        \item guaranteed by preceding code
+                        \item assumed by subsequent code
+                        \item "stepping stone" about correctness
+                        \item if it evaluates to false, it means the program cannot reach that point - often it means the mid-condition is incorrect
+                    \end{itemize}
+            \end{itemize}
+            The following shorthands will be used in order to describe number ranges, and arrays;
+            \begin{itemize}
+                \itemsep0em
+                \item $i \in (m..n) \triangleq m < i < n$
+                \item $i \in [m..n) \triangleq m \leq i < n$
+                \item $i \in (m..n] \triangleq m < i \leq n$
+                \item $i \in [m..n] \triangleq m \leq i \leq n$
+                \item $v \in \texttt{a}[m..n) \triangleq \exists i \in [m..n) [0 \leq i < \texttt{a.length} \land \texttt{a}[i] = v]$
+            \end{itemize}
+            $\texttt{a}(m..n)$ is referred to as an \textbf{array slice}, and closed-open intervals for slices is often useful for reasoning.
 \end{document}
