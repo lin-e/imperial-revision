@@ -1044,4 +1044,83 @@
                 \texttt{res} = \texttt{y} \land \texttt{y} > \texttt{x} & \rightarrow \texttt{res} = \texttt{max\{x, y\}}
             \end{align*}
             While this complicates the proof obligations in this case, sometimes the conditional branches may be significantly different from each other.
+        \subsubsection*{Method Calls}
+            Consider the following methods here;
+            \begin{lstlisting}
+                void mainMethod() {
+                  ...
+                  // MID: $P$
+                  someMethod($v_1$, ..., $v_n$);
+                  // MID: $Q$
+                }
+                void someMethod(type x$_1$, ..., type x$_n$)
+                // PRE: $R$
+                // POST: $S$
+                {
+                  code
+                }
+            \end{lstlisting}
+            The first requirement is to show that $P \rightarrow R[\bar{\texttt{x}} \mapsto \bar{v}]$, once that's proven, we can apply the method as;
+            \smallskip
+
+            \unaryproof{$P[\bar{v}[..) \mapsto \bar{v}[..)_\text{old}] \land S[\bar{\texttt{x}} \mapsto \bar{v}, \bar{\texttt{x}}[..)_\text{pre} \mapsto \bar{v}[..)_\text{old}] \rightarrow Q$}{$\{ P \}\ \texttt{someMethod($v_1$, ..., $v_n$)}\ \{ Q \}$}
+            \medskip
+
+            The substutions done in $R$, and $S$ replace the variables in the method specification with the values used at the call point in our code. The second substitution in $S$, and the substitution in $P$ consider the (possibly) updated program state caused by \texttt{someMethod}. Care should be taken wtih post-condition belonging to \texttt{someMethod}, as a reference to $\texttt{a}[..)_\text{pre}$ would refer to the contents of the array before the method was called. Since Java is a call by value language, variables of primitive type aren't updated by the method call. However, when we pass variables of reference type (such as the array in this context), the contents \textbf{can} be updated.
+            \medskip
+
+            If we consider return values from a method, such that we can change the code to be the following;
+            \begin{lstlisting}
+                void mainMethod() {
+                  ...
+                  // MID: $P$
+                  res = someMethod($v_1$, ..., $v_n$);
+                  // MID: $Q$
+                }
+                type someMethod(type x$_1$, ..., type x$_n$) {
+                ...
+            \end{lstlisting}
+            We need to be careful with the modification of \texttt{res}. Once again, the pre-condition of \texttt{someMethod} still needs to be satisfied in the same way, but we will also need additional substitutions as follows;
+            \smallskip
+
+            \unaryproof{$P[\bar{v}[..) \mapsto \bar{v}[..)_\text{old}]\textcolor{blue}{[\texttt{res} \mapsto \texttt{res}_\text{old}]} \land \textcolor{blue}{\texttt{res} = \mathbf{r}} \land S[\bar{\texttt{x}} \mapsto \bar{v}, \bar{\texttt{x}}[..)_\text{pre} \mapsto \bar{v}[..)_\text{old}]\textcolor{blue}{[\texttt{res} \mapsto \texttt{res}_\text{old}]} \rightarrow Q$}{$\{ P \}\ \texttt{\textcolor{blue}{res} = someMethod($v_1$, ..., $v_n$)}\ \{ Q \}$}
+            \medskip
+
+            Note that the substitution is after every other substitution, since it's needed to reflect the order of the code execution. The rest of the rules are the same as before, except the extra conjuncts account for the updating program state due to the assignment of the return value.
+            \medskip
+
+            Consider an example, where we get the smallest value of a list by taking the first item of the sorted version of the given list, with the code in Java being defined as follows;
+            \begin{lstlisting}
+                void sort(int[] b)
+                // PRE ($P_1$): b $\neq$ null
+                // POST ($Q_1$): b[..) $\sim$ b[..)$_\text{pre}$ $\land$ sorted(b[..))
+                {
+                  ...
+                }
+
+                int smallest(int[] a)
+                // PRE ($P_2$): a $\neq$ null $\land$ a.length $>$ 0
+                // POST ($Q_2$): r = min(a[..)$_\text{pre}$)
+                {
+                  // MID ($M_1$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ a $\neq$ null $\land$ a.length $>$ 0
+                  sort(a);
+                  // MID ($M_2$): a[..) $\sim$ a[..)$_\text{pre}$ $\land$ sorted(a[..)) $\land$ a.length $>$ 0
+                  int res = a[0];
+                  // MID ($M_3$): a[..) $\sim$ a[..)$_\text{pre}$ $\land$ res = min(a[..))
+                  return res;
+                }
+            \end{lstlisting}
+            Informally (and formally below), the obligations are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item $P_2[\texttt{a}[..) \mapsto \texttt{a}[..)_\text{pre}] \land \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \rightarrow M_1$
+                    \subitem $\texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \land \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \rightarrow \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0$
+                    \subitem here we should remember that $P_2$ only describes the variables passed into the initial method call - to use this pre-condition, we need to use the initial $_\text{pre}$ versions of all variables; we also obtain the 3$^\text{rd}$ conjunct implicitly because no code has executed yet
+                \item $M_1 \rightarrow P_1[\texttt{b} \mapsto \texttt{a}]$
+                    \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \rightarrow \texttt{a} \neq \texttt{null}$
+                    \subitem no code has been executed in this obligation, therefore we don't need to consider the $_\text{old}$ variants - however we do need to substitute \texttt{b} with \texttt{a} in $P_1$
+                \item $M_1[..) \mapsto \texttt{a}[..)_\text{old}] \land Q_1[\texttt{b} \mapsto \texttt{a}, \texttt{b}[..)_\text{pre} \mapsto \texttt{a}[..)_\text{od}] \rightarrow M_2$
+                \item $M_2[\texttt{res} \mapsto \texttt{res}_\text{old}] \land \texttt{res = a[0]} \rightarrow M_3$
+                \item $M_3 \land \texttt{return res} \rightarrow Q_2$
+            \end{itemize}
 \end{document}
