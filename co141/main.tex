@@ -938,5 +938,110 @@
                 \item $i \in [m..n] \triangleq m \leq i \leq n$
                 \item $v \in \texttt{a}[m..n) \triangleq \exists i \in [m..n) [0 \leq i < \texttt{a.length} \land \texttt{a}[i] = v]$
             \end{itemize}
-            $\texttt{a}(m..n)$ is referred to as an \textbf{array slice}, and closed-open intervals for slices is often useful for reasoning.
+            $\texttt{a}(m..n)$ is referred to as an \textbf{array slice}, and closed-open intervals for slices is often useful for reasoning. We often simplify our notation by ignoring bounds if they refer to the start, or end, of an array. With some arbitrary index $i$ (existing in the array, presumably), we use the following notation;
+            \begin{itemize}
+                \itemsep0em
+                \item $\texttt{a}[..i)$ \hfill the array slice from 0 up to $i$, but not including $i$
+                \item $\texttt{a}[i..)$ \hfill the array slice from $i$ up to the end
+                \item $\texttt{a}[..)$ \hfill the whole array
+                \item $\texttt{a}_\text{old/pre}[..)$ \hfill refers to the older / previous value of an array's reference
+                \item $\texttt{a}[..)_\text{old/pre}$ \hfill refers to the older / previous value of an array's contents
+                \item $\texttt{a}_\text{old/pre}[..)_\text{old/pre}$ \hfill refers to the older / previous value of both
+                \item $\texttt{a}[..) \sim \texttt{b}[..)$ \hfill \texttt{a} is a permutation of \texttt{b} (and vice versa)
+                \item $\texttt{a}[..) \approx \texttt{b}[..)$ \hfill \texttt{a}, and \texttt{b} have identical contents
+                \item $\sum \texttt{a}[x..y)$ \hfill the sum of elements from index $x$, up to (but not including) index $y$
+                \item $\prod \texttt{a}[x..y)$ \hfill the product of elements from index $x$, up to (but not including) index $y$
+            \end{itemize}
+            In Java, we rarely overwrite an entire array, so referencing a reference is rarely used, but we will often reference the contents of the array, as it is common for methods to be able to update contents. We also often make use of the predicates \texttt{sorted}, \texttt{min}, and \texttt{max}, which do what the name suggests. They are only well-defined for arrays with comparable contents.
+            \medskip
+
+            Consider the following function;
+            \begin{lstlisting}
+                int biggest(int x, int y, int z)
+                // PRE ($P$): $\top$
+                // POST ($Q$): r = max{x, y, z}
+                {
+                  int res;
+                  if (x >= y) {
+                    res = x;
+                  } else {
+                    res = y;
+                  }
+                  // MID ($M_1$): res = max{x, y}
+                  if (z >= res) {
+                    res = z;
+                  }
+                  // MID ($M_2$): res = max{z, max{x, y}}
+                  return res;
+                }
+            \end{lstlisting}
+            It's important to note the mid-condition ($M_2$) in line 15, since we are describing a logical assertion, not what the code is doing. For example, writing \texttt{res = max\{res, z\}} is invalid, as it is only true when $\texttt{res} \geq \texttt{z}$, but that isn't guaranteed in the program specification, which doesn't constrain any of the input values (other than type). We also cannot write $\texttt{res = max\{}\texttt{res}_\text{old}\texttt{, z\}}$, since that is only used in our proofs - as a tool to distinguish between values at different points in code execution.
+            \medskip
+
+            With that code, we end up with the following proof obligations;
+            \begin{align*}
+                P \land \texttt{if (x >= y) \{ res = x; \} else \{ res = y; \}} & \rightarrow M_1 \\
+                \top \land \texttt{res} = \texttt{max\{x, y\}} & \rightarrow \texttt{res} = \texttt{max\{x, y\}} \\ \\
+                M_1[\texttt{res} \mapsto \texttt{res}_\text{old}] \land \texttt{if (z >= res) \{ res = z; \}} & \rightarrow M_2 \\
+                \texttt{res}_\text{old} = \texttt{max\{x, y\}} \land \texttt{res} = \texttt{max\{z, }\texttt{res}_\text{old}\texttt{\}} & \rightarrow \texttt{res} = \texttt{max\{z, max\{x, y\}\}} \\ \\
+                M_2 \land \texttt{return res;} & \rightarrow Q \\
+                \texttt{res = max\{z, max\{x, y\}\}} \land \textbf{r} = \texttt{res} & \rightarrow \textbf{r} = \texttt{max\{x, y, z\}}
+            \end{align*}
+            Note how $M_2$ doesn't have the mapping applied, since there is no change to any of the values. It's important to note that a piece of code may have multiple pre/post-conditions, and the post-condition(s) depends on the code as well as the pre-condition(s). We can use mid-conditions as "stepping-stones" in our reasoning.
+        \subsubsection*{Conditional Branches}
+            Conditional branching is another construct that we will be using fairly often; as such we need to prove that branching code will still satisfy the given specification. Consider this generic example of a conditional branch;
+            \begin{lstlisting}
+                // PRE: $P$
+                if (cond) {
+                  code1;
+                } else {
+                  code2;
+                }
+                // POST: $Q$
+            \end{lstlisting}
+            We can then express this as \binaryproof{$\{ P \land \texttt{cond} \}$ \texttt{code1} $\{ Q \}$}{$\{ P \land \neg\texttt{cond} \}$ \texttt{code2} $\{ Q \}$}{$\{ P \}\ \texttt{if (cond) \{ code1 \} else \{ code2 \}}\ \{ Q \}$}
+            \begin{lstlisting}
+                // PRE: $P$
+                if (cond) {
+                  // MID: $P \land \texttt{cond}$
+                  code1;
+                  // MID: $R_1$
+                } else {
+                  // MID: $P \land \neg\texttt{cond}$
+                  code2;
+                  // MID: $R_2$
+                }
+                // POST: $Q$
+            \end{lstlisting}
+            Both \texttt{code1}, and \texttt{code2} can assume $P$, as well as their condition, but they \textbf{both} have to establish $Q$, (hence $R_1 \rightarrow Q$, and $R_2 \rightarrow Q$). By doing this, we can reduce the complexity of our proof by doing a case-by-case analysis, instead of having some general condition within both branches. Consider the first half of the \texttt{biggest} function that we defined previously;
+            \begin{lstlisting}
+                int biggest(int x, int y, int z)
+                // PRE ($P$): $\top$
+                ...
+                {
+                  int res;
+                  if (x >= y) {
+                    // MID ($P \land \texttt{cond}$): x $\geq$ y
+                    res = x;
+                    // MID ($R_1$): res = x $\land$ x $\geq$ y
+                  } else {
+                    // MID ($P \land \neg\texttt{cond}$): y $>$ x
+                    res = y;
+                    // MID ($R_2$): res = y $\land$ y $>$ x
+                  }
+                  // MID ($M_1$): res = max{x, y}
+                  ...
+                }
+            \end{lstlisting}
+            \begin{align*}
+                P \land \texttt{cond} \land \texttt{res = x;} & \rightarrow R_1 \\
+                \texttt{x} \geq \texttt{y} \land \texttt{res} = \texttt{x} & \rightarrow \texttt{res} = \texttt{x} \land \texttt{x} \geq \texttt{y} \\ \\
+                P \land \neg\texttt{cond} \land \texttt{res = y;} & \rightarrow R_2 \\
+                \texttt{y} > \texttt{x} \land \texttt{res} = \texttt{y} & \rightarrow \texttt{res} = \texttt{y} \land \texttt{y} > \texttt{x} \\ \\
+                R_1 & \rightarrow M_1 \\
+                \texttt{res} = \texttt{x} \land \texttt{x} \geq \texttt{y} & \rightarrow \texttt{res} = \texttt{max\{x, y\}} \\ \\
+                R_2 & \rightarrow M_1 \\
+                \texttt{res} = \texttt{y} \land \texttt{y} > \texttt{x} & \rightarrow \texttt{res} = \texttt{max\{x, y\}}
+            \end{align*}
+            While this complicates the proof obligations in this case, sometimes the conditional branches may be significantly different from each other.
 \end{document}
