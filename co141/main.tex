@@ -936,21 +936,21 @@
                     \item $i \in [m..n) \triangleq m \leq i < n$
                     \item $i \in (m..n] \triangleq m < i \leq n$
                     \item $i \in [m..n] \triangleq m \leq i \leq n$
-                    \item $v \in \texttt{a}[m..n) \triangleq \exists i \in [m..n) [0 \leq i < \texttt{a.length} \land \texttt{a}[i] = v]$
+                    \item $v \in \texttt{a[m..n)} \triangleq \exists i \in [m..n) [0 \leq i < \texttt{a.length} \land \texttt{a}[i] = v]$
                 \end{itemize}
                 $\texttt{a}(m..n)$ is referred to as an \textbf{array slice}, and closed-open intervals for slices is often useful for reasoning. We often simplify our notation by ignoring bounds if they refer to the start, or end, of an array. With some arbitrary index $i$ (existing in the array, presumably), we use the following notation;
                 \begin{itemize}
                     \itemsep0em
-                    \item $\texttt{a}[..i)$ \hfill the array slice from 0 up to $i$, but not including $i$
-                    \item $\texttt{a}[i..)$ \hfill the array slice from $i$ up to the end
-                    \item $\texttt{a}[..)$ \hfill the whole array
-                    \item $\texttt{a}_\text{old/pre}[..)$ \hfill refers to the older / previous value of an array's reference
-                    \item $\texttt{a}[..)_\text{old/pre}$ \hfill refers to the older / previous value of an array's contents
-                    \item $\texttt{a}_\text{old/pre}[..)_\text{old/pre}$ \hfill refers to the older / previous value of both
-                    \item $\texttt{a}[..) \sim \texttt{b}[..)$ \hfill \texttt{a} is a permutation of \texttt{b} (and vice versa)
-                    \item $\texttt{a}[..) \approx \texttt{b}[..)$ \hfill \texttt{a}, and \texttt{b} have identical contents
-                    \item $\sum \texttt{a}[x..y)$ \hfill the sum of elements from index $x$, up to (but not including) index $y$
-                    \item $\prod \texttt{a}[x..y)$ \hfill the product of elements from index $x$, up to (but not including) index $y$
+                    \item $\texttt{a[..i)}$ \hfill the array slice from 0 up to $i$, but not including $i$
+                    \item $\texttt{a[i..)}$ \hfill the array slice from $i$ up to the end
+                    \item $\texttt{a[..)}$ \hfill the whole array
+                    \item $\texttt{a}_\text{old/pre}\texttt{[..)}$ \hfill refers to the older / previous value of an array's reference
+                    \item $\texttt{a[..)}_\text{old/pre}$ \hfill refers to the older / previous value of an array's contents
+                    \item $\texttt{a}_\text{old/pre}\texttt{[..)}_\text{old/pre}$ \hfill refers to the older / previous value of both
+                    \item $\texttt{a[..)} \sim \texttt{b[..)}$ \hfill \texttt{a} is a permutation of \texttt{b} (and vice versa)
+                    \item $\texttt{a[..)} \approx \texttt{b[..)}$ \hfill \texttt{a}, and \texttt{b} have identical contents
+                    \item $\sum \texttt{a[x..y)}$ \hfill the sum of elements from index $x$, up to (but not including) index $y$
+                    \item $\prod \texttt{a[x..y)}$ \hfill the product of elements from index $x$, up to (but not including) index $y$
                 \end{itemize}
                 In Java, we rarely overwrite an entire array, so referencing a reference is rarely used, but we will often reference the contents of the array, as it is common for methods to be able to update contents. We also often make use of the predicates \texttt{sorted}, \texttt{min}, and \texttt{max}, which do what the name suggests. They are only well-defined for arrays with comparable contents.
                 \medskip
@@ -1063,10 +1063,10 @@
                 The first requirement is to show that $P \rightarrow R[\bar{\texttt{x}} \mapsto \bar{v}]$, once that's proven, we can apply the method as;
                 \smallskip
 
-                \unaryproof{$P[\bar{v}[..) \mapsto \bar{v}[..)_\text{old}] \land S[\bar{\texttt{x}} \mapsto \bar{v}, \bar{\texttt{x}}[..)_\text{pre} \mapsto \bar{v}[..)_\text{old}] \rightarrow Q$}{$\{ P \}\ \texttt{someMethod($v_1$, ..., $v_n$)}\ \{ Q \}$}
+                \unaryproof{$P[\bar{v}[..) \mapsto \bar{v}[..)_\text{old}] \land S[\bar{\texttt{x}} \mapsto \bar{v}, \bar{\texttt{x}}\texttt{[..)}_\text{pre} \mapsto \bar{v}[..)_\text{old}] \rightarrow Q$}{$\{ P \}\ \texttt{someMethod($v_1$, ..., $v_n$)}\ \{ Q \}$}
                 \medskip
 
-                The substutions done in $R$, and $S$ replace the variables in the method specification with the values used at the call point in our code. The second substitution in $S$, and the substitution in $P$ consider the (possibly) updated program state caused by \texttt{someMethod}. Care should be taken wtih post-condition belonging to \texttt{someMethod}, as a reference to $\texttt{a}[..)_\text{pre}$ would refer to the contents of the array before the method was called. Since Java is a call by value language, variables of primitive type aren't updated by the method call. However, when we pass variables of reference type (such as the array in this context), the contents \textbf{can} be updated.
+                The substutions done in $R$, and $S$ replace the variables in the method specification with the values used at the call point in our code. The second substitution in $S$, and the substitution in $P$ consider the (possibly) updated program state caused by \texttt{someMethod}. Care should be taken wtih post-condition belonging to \texttt{someMethod}, as a reference to $\texttt{a[..)}_\text{pre}$ would refer to the contents of the array before the method was called. Since Java is a call by value language, variables of primitive type aren't updated by the method call. However, when we pass variables of reference type (such as the array in this context), the contents \textbf{can} be updated.
                 \medskip
 
                 If we consider return values from a method, such that we can change the code to be the following;
@@ -1083,7 +1083,7 @@
                 We need to be careful with the modification of \texttt{res}. Once again, the pre-condition of \texttt{someMethod} still needs to be satisfied in the same way, but we will also need additional substitutions as follows;
                 \smallskip
 
-                \unaryproof{$P[\bar{v}[..) \mapsto \bar{v}[..)_\text{old}]\textcolor{blue}{[\texttt{res} \mapsto \texttt{res}_\text{old}]} \land \textcolor{blue}{\texttt{res} = \mathbf{r}} \land S[\bar{\texttt{x}} \mapsto \bar{v}, \bar{\texttt{x}}[..)_\text{pre} \mapsto \bar{v}[..)_\text{old}]\textcolor{blue}{[\texttt{res} \mapsto \texttt{res}_\text{old}]} \rightarrow Q$}{$\{ P \}\ \texttt{\textcolor{blue}{res} = someMethod($v_1$, ..., $v_n$)}\ \{ Q \}$}
+                \unaryproof{$P[\bar{v}[..) \mapsto \bar{v}[..)_\text{old}]\textcolor{blue}{[\texttt{res} \mapsto \texttt{res}_\text{old}]} \land \textcolor{blue}{\texttt{res} = \mathbf{r}} \land S[\bar{\texttt{x}} \mapsto \bar{v}, \bar{\texttt{x}}\texttt{[..)}_\text{pre} \mapsto \bar{v}[..)_\text{old}]\textcolor{blue}{[\texttt{res} \mapsto \texttt{res}_\text{old}]} \rightarrow Q$}{$\{ P \}\ \texttt{\textcolor{blue}{res} = someMethod($v_1$, ..., $v_n$)}\ \{ Q \}$}
                 \medskip
 
                 Note that the substitution is after every other substitution, since it's needed to reflect the order of the code execution. The rest of the rules are the same as before, except the extra conjuncts account for the updating program state due to the assignment of the return value.
@@ -1113,22 +1113,60 @@
                 Informally (and formally below), the obligations are as follows;
                 \begin{itemize}
                     \itemsep0em
-                    \item $P_2[\texttt{a}[..) \mapsto \texttt{a}[..)_\text{pre}] \land \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \rightarrow M_1$
-                        \subitem $\texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \land \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \rightarrow \texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0$
+                    \item $P_2[\texttt{a[..)} \mapsto \texttt{a[..)}_\text{pre}] \land \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \rightarrow M_1$
+                        \subitem $\texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \land \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \rightarrow \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0$
                         \subitem here we should remember that $P_2$ only describes the variables passed into the initial method call - to use this pre-condition, we need to use the initial $_\text{pre}$ versions of all variables; we also obtain the 3$^\text{rd}$ conjunct implicitly because no code has executed yet
                     \item $M_1 \rightarrow P_1[\texttt{b} \mapsto \texttt{a}]$
-                        \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \rightarrow \texttt{a} \neq \texttt{null}$
+                        \subitem $\texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \rightarrow \texttt{a} \neq \texttt{null}$
                         \subitem no code has been executed in this obligation, therefore we don't need to consider the $_\text{old}$ variants - however we do need to substitute \texttt{b} with \texttt{a} in $P_1$
-                    \item $M_1[\texttt{a}[..) \mapsto \texttt{a}[..)_\text{old}] \land Q_1[\texttt{b} \mapsto \texttt{a}, \texttt{b}[..)_\text{pre} \mapsto \texttt{a}[..)_\text{old}] \rightarrow M_2$
-                        \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \land \texttt{a}[..) \sim \texttt{a}[..)_\text{old} \land \texttt{sorted}(a[..)) \rightarrow \texttt{a}[..) \sim \texttt{a}[..)_\text{pre} \land \texttt{sorted}(a[..)) \land \texttt{a.length} > 0$
-                        \subitem this obligation considers the effect of the \texttt{sort} method, therefore we need to track the state of the input before and after \texttt{sort} is called - once again \texttt{b} is replaced with \texttt{a}, and we use the state \texttt{b}[..)$_\text{pre}$ to represent the state of the array on entry to \texttt{sort}, and \texttt{a}[..)$_\text{old}$ to represent the value just before the method call therefore \texttt{b}[..)$_\text{pre}$ is replaced with \texttt{a}[..)$_\text{old}$ in $Q_2$
+                    \item $M_1[\texttt{a[..)} \mapsto \texttt{a[..)}_\text{old}] \land Q_1[\texttt{b} \mapsto \texttt{a}, \texttt{b[..)}_\text{pre} \mapsto \texttt{a[..)}_\text{old}] \rightarrow M_2$
+                        \subitem $\texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{a} \neq \texttt{null} \land \texttt{a.length} > 0 \land \texttt{a[..)} \sim \texttt{a[..)}_\text{old} \land \texttt{sorted(a[..))} \rightarrow \texttt{a[..)} \sim \texttt{a[..)}_\text{pre} \land \texttt{sorted(a[..))} \land \texttt{a.length} > 0$
+                        \subitem this obligation considers the effect of the \texttt{sort} method, therefore we need to track the state of the input before and after \texttt{sort} is called - once again \texttt{b} is replaced with \texttt{a}, and we use the state \texttt{b[..)}$_\text{pre}$ to represent the state of the array on entry to \texttt{sort}, and \texttt{a[..)}$_\text{old}$ to represent the value just before the method call therefore \texttt{b[..)}$_\text{pre}$ is replaced with \texttt{a[..)}$_\text{old}$ in $Q_2$
                     \item $M_2[\texttt{res} \mapsto \texttt{res}_\text{old}] \land \texttt{res = a[0]} \rightarrow M_3$
-                        \subitem $\texttt{a}[..) \approx \texttt{a}[..)_\text{pre} \land \texttt{a.length} > 0 \land \texttt{a}[..) \sim \texttt{a}[..)_\text{old} \land \texttt{sorted}(a[..)) \land \texttt{res = a[0]} \rightarrow \texttt{a}[..)_\text{pre} \land \texttt{res = min(a[..))}$
+                        \subitem $\texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{a.length} > 0 \land \texttt{a[..)} \sim \texttt{a[..)}_\text{old} \land \texttt{sorted(a[..))} \land \texttt{res = a[0]} \rightarrow \texttt{a[..)}_\text{pre} \land \texttt{res = min(a[..))}$
                         \subitem because \texttt{res} didn't exist before the previous line, and $M_2$ makes no reference to \texttt{res}, the substitution makes no change to $M_2$
                     \item $M_3 \land \texttt{return res} \rightarrow Q_2$
-                        \subitem $\texttt{a}[..) \sim \texttt{a}[..)_\text{pre} \land \texttt{res = min(a[..))} \land \textbf{r} = \texttt{res} \rightarrow \textbf{r} = \texttt{min(a[..))}$
+                        \subitem $\texttt{a[..)} \sim \texttt{a[..)}_\text{pre} \land \texttt{res = min(a[..))} \land \textbf{r} = \texttt{res} \rightarrow \textbf{r} = \texttt{min(a[..))}$
                         \subitem no changes are done to any of the variables, since it only tracks the return value, there is no need to track old values in the program's state
                 \end{itemize}
                 While we've reasoned about the correctness of \texttt{smallest}, we don't know anything about \texttt{sort}. All we have done regarding it is that it satisfies its given specification. For code to be partially correct, it requires the code to satisfy the post-condition given it starts in a state satisfying its pre-condition, and terminates. Total correctness is the same, but guarantees the termination of the code.
-            \subsubsection*{ss}
+            \subsubsection*{Recursion}
+                The techniques required for recursion are the same as the ones we've already visited for reasoning regarding method calls. Like we did in reasoning, we assume that the method specifications hold for anything called within the body (even if we haven't proven it). The example this works on is a recursive method for summing an array;
+                \begin{lstlisting}
+                    int sum(int[] a)
+                    // PRE ($P_1$): a $\neq$ null
+                    // POST ($Q_1$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ r = $\sum$a[..)
+                    {
+                      int res = sumAux(a, 0);
+                      // MID ($M_1$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ res = $\sum$a[..)
+                      return res;
+                    }
+
+                    int sumAux(int[] a, int i)
+                    // PRE ($P_2$): a $\neq$ null $\land$ 0 $\leq$ i $\leq$ a.length
+                    // POST ($Q_2$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ r = $\sum$a[i..)
+                    {
+                      if (i == a.length) {
+                        // MID ($M_2$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ i = a.length
+                        return 0;
+                      } else {
+                        // MID ($M_3$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ a $\neq$ null $\land$ 0 $\leq$ i $<$ a.length
+                        int val = a[i] + sumAux(a, i + 1);
+                        // MID ($M_4$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ val = $\sum$a[i..)
+                        return val;
+                      }
+                    }
+                \end{lstlisting}
+                Once again, due to modular verification, we can verify the correctness of \texttt{sum}, and \texttt{sumAux} independently of each other. The reasoning for \texttt{sum} is much simpler, since we're treating \texttt{sumAux} as a black-box that just works;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $P_1 \rightarrow P_2[\texttt{i} \mapsto 0]$
+                        \subitem $\texttt{a} \neq \texttt{null} \rightarrow \texttt{a} \neq \texttt{null} \land 0 \leq 0 \leq \texttt{a.length}$
+                        \subitem since there's no reference to the contents of the array in either of the preconditions, and no code has actually run, all that is required in this step is to substitute the call value for \texttt{sumAux}
+                    \item $P_1 \land Q_2[\texttt{a[..)}_\text{pre} \mapsto \texttt{a[..)}_\text{old}, \texttt{i} \mapsto 0] \land \texttt{a[..)}_\text{old} \approx \texttt{a[..)}_\text{pre} \land \texttt{res} = \textbf{r} \rightarrow M_1$
+                        \subitem $\texttt{a} \neq \texttt{null} \land \texttt{a[..)} \approx \texttt{a[..)}_\text{old} \land \textbf{r} = \sum \texttt{a[..)} \land \texttt{a[..)}_\text{old} \approx \texttt{a[..)}_\text{pre} \land \texttt{res} = \textbf{r} \rightarrow \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{res} = \sum \texttt{a[..)}$
+                        \subitem any poitential updates to \texttt{a} from \texttt{sumAux} needs to be carefully tracked, which means we need to differntiate between the contents passed in (\texttt{a[..)}$_\text{old}$), from the initial contents (\texttt{a[..)}$_\text{pre}$), and the current ones (\texttt{a[..)})
+                        \subitem however, we can see that the contents are not modified before the \texttt{sumAux} call therefore we can write, implicitly, $\texttt{a[..)}_\text{old} \approx \texttt{a[..)}_\text{pre}$
+                    \item 
+                \end{itemize}
 \end{document}
