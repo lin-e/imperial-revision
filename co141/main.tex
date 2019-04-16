@@ -1361,5 +1361,63 @@
                     \proofline{\gamma}{\texttt{a[i..)} \approx \texttt{a[i..)}_\text{pre}}{$I$}
                     \proofline{\delta}{\texttt{res} = \sum \texttt{a[..i)}_\text{pre}}{$I$}
                     \proofline{\epsilon}{\forall \texttt{k} \in [0..\texttt{i}) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]}{$I$}
+                    \prooftext{Proof:}
+                    \proofline{\alpha}{}{follows immediately from (1)}
+                    \proofline{11}{0 \leq \texttt{i}_\text{old} < \text{a.length}}{from (2), and (6)}
+                    \proofline{12}{0 \leq \texttt{i}_\text{old} + 1 \leq \text{a.length}}{from (11)}
+                    \proofline{\beta}{}{follows from (9), and (12)}
+                    \proofline{13}{\texttt{a[i}_\text{old}\texttt{+1..)} \approx \texttt{a[i}_\text{old}\texttt{+1..)}_\text{old}}{from (10)}
+                    \proofline{14}{\texttt{a[i}_\text{old}\texttt{+1..)} \approx \texttt{a[i}_\text{old}\texttt{+1..)}_\text{pre}}{from (3), and (13)}
+                    \proofline{\gamma}{}{follows from (9), and (14)}
+                    \proofline{15}{\texttt{res} = \sum  \texttt{a[..i}_\text{old}\texttt{)}_\text{pre} + \texttt{a[i}_\text{old}\texttt{]}_\text{old}}{from (4), and (7)}
+                    \proofline{16}{\texttt{res} = \sum  \texttt{a[..i}_\text{old}\texttt{)}_\text{pre} + \texttt{a[i}_\text{old}\texttt{]}_\text{pre}}{from (3), and (15)}
+                    \proofline{17}{\texttt{res} = \sum  \texttt{a[..i}_\text{old}\texttt{+1)}_\text{pre}}{from (16), and def. of $\sum$}
+                    \proofline{\delta}{}{follows from (9), and (17)}
+                    \proofline{18}{\forall \texttt{k} \in [0..\texttt{i}_\text{old}) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]}{from (5), and (10)}
+                    \proofline{19}{\texttt{a[i}_\text{old}\texttt{]} = \sum \texttt{a[..i}_\text{old}\texttt{+1)}_\text{pre}}{from (8), and (17)}
+                    \proofline{20}{\forall \texttt{k} \in [0..\texttt{i}_\text{old} + 1) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]}{from (18), and (19)}
+                    \proofline{\epsilon}{}{follows from (9), and (20)}
+                    \prooftext{\textbf{Mid-condition holds after loop}}
+                    \prooftext{Given:}
+                    \proofline{1}{\texttt{a} \neq \texttt{null}}{$I$}
+                    \proofline{2}{0 \leq \texttt{i} \leq \texttt{a.length}}{$I$}
+                    \proofline{3}{\texttt{a[i..)} \approx \texttt{a[i..)}_\text{pre}}{$I$}
+                    \proofline{4}{\texttt{res} = \sum \texttt{a[..i)}_\text{pre}}{$I$}
+                    \proofline{5}{\forall \texttt{k} \in [0..\texttt{i}) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]}{$I$}
+                    \proofline{6}{\texttt{i} \geq \texttt{a.length}}{$\neg$\texttt{cond}}
+                    \prooftext{To show:}
+                    %  // MID ($M$): res = $\sum$a[..)$_\text{pre}$ $\land$ $\forall \texttt{k} \in [0..\texttt{a.length}) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]$
+                    \proofline{\alpha}{\texttt{res} = \sum \texttt{a[..)}_\text{pre}}{$M$}
+                    \proofline{\beta}{\forall \texttt{k} \in [0..\texttt{a.length}) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]}{$M$}
+                    \prooftext{Proof:}
+                    \proofline{7}{\texttt{i} = \texttt{a.length}}{from (2), and (6)}
+                    \proofline{8}{\texttt{res} = \sum \texttt{a[..a.length)}_\text{pre}}{from (4), and (7)}
+                    \proofline{\alpha}{}{follows from (8), and def. of \texttt{a[..)}}
+                    \proofline{\beta}{}{folllows from (5), and (7)}
+                    \prooftext{\textbf{Show the iteration terminates}}
+                    \prooftext{Given:}
+                    \proofline{1}{\texttt{a} \neq \texttt{null}}{$I$}
+                    \proofline{2}{0 \leq \texttt{i}_\text{old} \leq \texttt{a.length}}{$I$}
+                    \proofline{3}{\texttt{a[i}_\text{old}\texttt{..)}_\text{old} \approx \texttt{a[i}_\text{old}\texttt{..)}_\text{pre}}{$I$}
+                    \proofline{4}{\texttt{res} = \sum  \texttt{a[..i}_\text{old}\texttt{)}_\text{pre}}{$I$}
+                    \proofline{5}{\forall \texttt{k} \in [0..\texttt{i}_\text{old}) [\texttt{a[k]}_\text{old} = \sum \texttt{a[..k+1)}_\text{pre}]}{$I$}
+                    \proofline{6}{\texttt{i}_\text{old} < \texttt{a.length}}{\texttt{cond}}
+                    \proofline{7}{\texttt{res} = \texttt{res}_\text{old} + \texttt{a[i}_\text{old}\texttt{]}_\text{old}}{code line 12}
+                    \proofline{8}{\texttt{a[i}_\text{old}\texttt{]} = \texttt{res}}{code line 13}
+                    \proofline{9}{\texttt{i} = \texttt{i}_\text{old} + 1}{code line 14}
+                    \proofline{10}{\texttt{a[..)} \approx \texttt{a[..i}_\text{old}\texttt{)}_\text{old} ++ \texttt{a[i}_\text{old}\texttt{]} ++ \texttt{a[i}_\text{old}\texttt{+1..)}_\text{old}}{implciit from code}
+                    \prooftext{To show:}
+                    \proofline{\alpha}{\texttt{a.length - i} \geq 0}{$V \geq 0$}
+                    \proofline{\beta}{\texttt{a.length - i}_\text{old} > \texttt{a.length - i}}{$V[\texttt{i} \mapsto \texttt{i}_\text{old}] > V$}
+                    \prooftext{Proof:}
+                    \proofline{11}{\texttt{i}_\text{old} + 1 \leq \texttt{a.length}}{from (6)}
+                    \proofline{12}{\texttt{i} \leq \texttt{a.length}}{from (9), and (11)}
+                    \proofline{13}{0 \leq \texttt{a.length - i}}{from (12), and arithmetic}
+                    \proofline{\alpha}{}{follows from (13)}
+                    \proofline{14}{\texttt{i}_\text{old} < \texttt{i}}{from (9)}
+                    \proofline{15}{-\texttt{i}_\text{old} > -\texttt{i}}{from (14), and by arithmetic}
+                    \proofline{16}{\texttt{a.length - i}_\text{old} > \texttt{a.length - i}}{from (15), and by arithmetic}
+                    \proofline{\beta}{}{follows directly from (16)}
                 \end{reasoning}
+                We will also need to prove legal array accesses, and the post-condition, but both of those proofs are trivial. For this course, we assume the system can represent any integer, hence we don't consider any overflow issues (which may be problematic in the real world).
 \end{document}
