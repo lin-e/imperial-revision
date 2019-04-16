@@ -1190,4 +1190,68 @@
                         \subitem $\texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{val} = \sum \texttt{a[..)} \land \textbf{r} = \texttt{val} \rightarrow \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \textbf{r} = \sum \texttt{a[..)}$
                 \end{itemize}
                 For obvious reasons, reasoning regarding recursive functions in Java resembles reasoning about recursively defined functions in Haskell. Reasoning about the when the function terminates corresponds to proving the bases cases in Haskell, and the inductive steps are reasoning about when the function calls itself. Establishing the inductive hypothesis holds corresponds to the point where we establish the pre-condition of the callee holds, and the point where we establish the post-condition implying the mid-condition mirrors the conclusion of the inductive step.
+            \subsubsection*{Iteration (Informal)}
+                The final programming construct we'll be reasoning about in this course is iteration. Since the common loop blocks; \texttt{while}, \texttt{for}, and \texttt{repeat-until} can all be expressed as \texttt{while} loops, it follows that we can focus solely on that. For example, the following \texttt{for} loop can be expressed as a \texttt{while} loop;
+                \begin{lstlisting}
+                    // FOR LOOP
+                    for (int i = 0; i < a.length; i++) {
+                      res = res + a[i];
+                    }
+
+                    // WHILE LOOP
+                    int i = 0;
+                    while (i < a.length) {
+                      res = res + a[i];
+                      i++;
+                    }
+                \end{lstlisting}
+                In general, we can summrise the structure of a \texttt{while} loop as follows;
+                \begin{lstlisting}
+                    while (cond) { // condition
+                      somecode // loop body
+                    }
+                    // MID: $M$ - summarises effect of a loop
+                \end{lstlisting}
+                For example, consider the \texttt{sum} function we created earlier, but define it with iteration instead of recursion;
+                \begin{lstlisting}
+                    int sum(int[] a)
+                    // PRE ($P$): a $\neq$ null
+                    // POST ($Q$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ r = $\sum$a[..)
+                    {
+                      int res = 0;
+                      int i = 0;
+                      // INV ($I$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ a $\neq$ null $\land$ 0 $\leq$ i $\leq$ a.length $\land$ res = $\sum$a[..i)
+                      while (i < a.length) { (cond)
+                        res = res + a[i];
+                        i++;
+                        // MID: $\rightarrow I$
+                      }
+                      // MID ($M$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ res = $\sum$a[..)
+                      return res;
+                    }
+                \end{lstlisting}
+                Consider a property $P$, which satisfies the following conditions; $\forall n \in \mathbb{N} [P \text{ holds after } n \text{ iterations}]$, and $P \land \neg\texttt{cond} \rightarrow M$ (such that if $P$ holds, and the loop condition doesn't, it reaches the mid-condition directly \textbf{outside} the loop). This property is called the invariant. This invariant generalises the effect of the loop, on some arbitrary number of iterations. Therefore we no longer need to track the mid-condtions before, after, or during the loop. However, we will still write a mid-condition after the loop, as it's more convenient to do so, and then use that to construct our invariant.
+                \medskip
+
+                There's a similarity between the first requirement of the loop invariant, and the induction principle. In order to show that $P$ holds after $n$ iterations, where $n$ is an arbitrary natural number, we need to show that $P$ holds after no iterations ($n = 0$), hence $P$ holds before the loop, as well as showing that if $P$ holds after $k$ iterations, it implies that it holds after $k + 1$ iterations. The latter means that if both $P$, and \texttt{cond} hold, and after the execution of the loop body, $P$ will still hold. Note that normally line 11 wouldn't be written, but it's there to show that the invariant is reestablished after the execution of the loop body. The following predicates are defined as follows;
+                \begin{align*}
+                    I & \triangleq \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{a} \neq \texttt{null} \land 0 \leq \texttt{i} \leq \texttt{a.length} \land \texttt{res} = \sum \texttt{a[..i)} \\
+                    \texttt{cond} & \triangleq \texttt{i} < \texttt{a.length} \\
+                    M & \triangleq \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \land \texttt{res} = \sum \texttt{a[..)}
+                \end{align*}
+                This therefore comes with the following proof obligations - the code right before the loop must establish $I$, the body of the loop must show that $I$ holds, as long as \texttt{cond} holds, and finally $I \land \neg \texttt{cond} \rightarrow M$, immediately after the loop. For us to be able to reason about the behaviour of the loop, we need the invariant to hold at the start, and end, of every iteration (including the before we run the loop body for the first time, and after we run it for the final time). As such, these are the proofs we have to do;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $P \land \texttt{res} = 0 \land \texttt{i} = 0 \land \texttt{a[..)} \approx \texttt{a[..)}_\text{pre} \rightarrow I$
+                        \subitem here, we can assume the pre-condition, and list the explicit effects of the code (the variable declaration), as well as the implicit effects (the array not being modified)
+                    \item $I[\texttt{a[..)} \mapsto \texttt{a[..)}_\text{old}, \texttt{i} \mapsto \texttt{i}_\text{old}, \texttt{res} \mapsto \texttt{res}_\text{old}] \land \texttt{i}_\text{old} < \texttt{a.length} \land \texttt{res} = \texttt{res}_\text{old} + \texttt{a[i]}_\text{old} \land \texttt{i} = \texttt{i}_\text{old} + 1 \land \texttt{a[..)} \approx \texttt{a[..)}_\text{old} \rightarrow I$
+                        \subitem since the loop body potentially changes the states, all of the program variables are tracked in our invariant
+                    \item $I \land \texttt{i} \geq \texttt{a.length} \rightarrow M$
+                        \subitem since no code is being executed, there's no need to differentiate between the current, and older values of our program state
+                \end{itemize}
+                However, we currently have no way of tracking the progress of our iteration. This means we need to find some integer expression, called the \textbf{variant}, which is larger than some value after the loop body is executed, and decreases in every iteration. If this holds, then the loop will terminate, in our case, the variant would be \texttt{a.length - i}. The invariant lets us know that the program execution is going as planned, as long as the loop body maintains its validtiy. However, the variant measures the progress of the iteration, therfore by proving the variant is bounded, and decreasing every iteration, we can use the invariant to prove the mid-condition.
+                \medskip
+
+                In general, to help us design an invariant, we should represent the state of the program at the beginning of each loop iteration as a diagram. The post-condition should be used to find a mid-condition after the loop, and this mid-condition (along with the loop condition) should be used to help find the invariant.
+            \subsubsection*{Iteration (Formal)}
 \end{document}
