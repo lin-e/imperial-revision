@@ -25,6 +25,7 @@
     fontadjust=true,
     basewidth=0.5em,
     autogobble,
+    xleftmargin=3.0ex,
     mathescape=true
 }
 \lstset{style=main}
@@ -1292,4 +1293,73 @@
                         \subitem note that $V_\text{old}$ here is the value of $V$ before running \texttt{body}
                         \subitem this obligation requires us to prove the variant decreases towards $c$ on \textbf{every} iteration
                 \end{enumerate}
+                In order to prove $\{ I \land \texttt{cond} \}\ \texttt{body}\ \{ I \}$, we are required to show $I[\overline{\texttt{mod}} \mapsto \overline{\texttt{mod}}_\text{old}] \land \texttt{cond}[\overline{\texttt{mod}} \mapsto \overline{\texttt{mod}}_\text{old}] \land \texttt{body-effect} \rightarrow I$. Note that here, $\overline{\texttt{mod}}$ represents all the variables that ae modified by \texttt{body}.
+                \medskip
+
+                Consider the following example, represented by the code below;
+                \begin{lstlisting}
+                    int culSum(int[] a)
+                    // PRE ($P$): a $\neq$ null
+                    // POST ($Q$): r = $\sum$a[..)$_\text{pre}$ $\land$ $\forall \texttt{k} \in [0..\texttt{a.length}) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]$
+                    {
+                      // MID ($M_0$): a $\neq$ null $\land$ a[..) $\approx$ a[..)$_\text{pre}$
+                      int res = 0;
+                      int i = 0;
+                      // INV ($I$): a $\neq$ null $\land$ 0 $\leq$ i $\leq$ a.length $\land$ a[i..) $\approx$ a[i..)$_\text{pre}$ $\land$ res = $\sum$a[..i)$_\text{pre}$ $\land$ $\forall \texttt{k} \in [0..\texttt{i}) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]$
+                      // VAR ($V$): a.length - i
+                      while (i < a.length) {
+                        res = res + a[i];
+                        a[i] = res;
+                        i++;
+                      }
+                      // MID ($M$): res = $\sum$a[..)$_\text{pre}$ $\land$ $\forall \texttt{k} \in [0..\texttt{a.length}) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]$
+                      return res;
+                    }
+                \end{lstlisting}
+                This function also calculates the sum of an array, however it replaces each element of an array with the cumulative sum up to that point. Since this doesn't modify \texttt{a}, as Java is call by value, we don't need to track changes to \texttt{a}, or \texttt{a.length}. The entire proof is as follows;
+                \begin{reasoning}
+                    \prooftext{\textbf{Invariant holds before loop entry}}
+                    \prooftext{Given:}
+                    \proofline{1}{\texttt{a} \neq \texttt{null}}{from $M_0$}
+                    \proofline{2}{\texttt{a[..)} _\text{old} \approx \texttt{a[..)}_\text{pre}}{from $M_0$}
+                    \proofline{3}{\texttt{res} = 0}{code line 6}
+                    \proofline{4}{\texttt{i} = 0}{code line 7}
+                    \proofline{5}{\texttt{a[..)} \approx \texttt{a[..)}_\text{old}}{implciit from code}
+                    \prooftext{To show:}
+                    \proofline{\alpha}{\texttt{a} \neq \texttt{null}}{$I$}
+                    \proofline{\beta}{0 \leq \texttt{i} \leq \texttt{a.length}}{$I$}
+                    \proofline{\gamma}{\texttt{a[i..)} \approx \texttt{a[i..)}_\text{pre}}{$I$}
+                    \proofline{\delta}{\texttt{res} = \sum \texttt{a[..i)}_\text{pre}}{$I$}
+                    \proofline{\epsilon}{\forall \texttt{k} \in [0..\texttt{i}) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]}{$I$}
+                    \prooftext{Proof:}
+                    \proofline{\alpha}{}{follows immediately from (1)}
+                    \proofline{6}{0 \leq 0 \leq \texttt{a.length}}{from (1)}
+                    \proofline{\beta}{}{follows from (4), and (6)}
+                    \proofline{7}{\texttt{a[..)} \approx \texttt{a[..)}_\text{pre}}{from (2), and (5)}
+                    \proofline{8}{\texttt{a[0..)} \approx \texttt{a[0..)}_\text{pre}}{from (7), and def. of \texttt{a[..)}}
+                    \proofline{\gamma}{}{follows from (4), and (8)}
+                    \proofline{9}{\sum \texttt{a[..0)}_\text{pre} = 0}{from def. of $\sum$}
+                    \proofline{10}{\sum \texttt{a[..i)}_\text{pre} = 0}{from (4), and (9)}
+                    \proofline{\delta}{}{follows from (3), and (10)}
+                    \proofline{11}{\forall \texttt{k} \in [0..0) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]}{from empty range}
+                    \proofline{\epsilon}{}{follows from (4), and (11)}
+                    \prooftext{\textbf{Loop body re-establishes invariant}}
+                    \prooftext{Given:}
+                    \proofline{1}{\texttt{a} \neq \texttt{null}}{$I$}
+                    \proofline{2}{0 \leq \texttt{i}_\text{old} \leq \texttt{a.length}}{$I$}
+                    \proofline{3}{\texttt{a[i}_\text{old}\texttt{..)}_\text{old} \approx \texttt{a[i}_\text{old}\texttt{..)}_\text{pre}}{$I$}
+                    \proofline{4}{\texttt{res} = \sum  \texttt{a[..i}_\text{old}\texttt{)}_\text{pre}}{$I$}
+                    \proofline{5}{\forall \texttt{k} \in [0..\texttt{i}_\text{old}) [\texttt{a[k]}_\text{old} = \sum \texttt{a[..k+1)}_\text{pre}]}{$I$}
+                    \proofline{6}{\texttt{i}_\text{old} < \texttt{a.length}}{\texttt{cond}}
+                    \proofline{7}{\texttt{res} = \texttt{res}_\text{old} + \texttt{a[i}_\text{old}\texttt{]}_\text{old}}{code line 12}
+                    \proofline{8}{\texttt{a[i}_\text{old}\texttt{]} = \texttt{res}}{code line 13}
+                    \proofline{9}{\texttt{i} = \texttt{i}_\text{old} + 1}{code line 14}
+                    \proofline{10}{\texttt{a[..)} \approx \texttt{a[..i}_\text{old}\texttt{)}_\text{old} ++ \texttt{a[i}_\text{old}\texttt{]} ++ \texttt{a[i}_\text{old}\texttt{+1..)}_\text{old}}{implciit from code}
+                    \prooftext{To show:}
+                    \proofline{\alpha}{\texttt{a} \neq \texttt{null}}{$I$}
+                    \proofline{\beta}{0 \leq \texttt{i} \leq \texttt{a.length}}{$I$}
+                    \proofline{\gamma}{\texttt{a[i..)} \approx \texttt{a[i..)}_\text{pre}}{$I$}
+                    \proofline{\delta}{\texttt{res} = \sum \texttt{a[..i)}_\text{pre}}{$I$}
+                    \proofline{\epsilon}{\forall \texttt{k} \in [0..\texttt{i}) [\texttt{a[k]} = \sum \texttt{a[..k+1)}_\text{pre}]}{$I$}
+                \end{reasoning}
 \end{document}
