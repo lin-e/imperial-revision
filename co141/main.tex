@@ -54,6 +54,7 @@
 
 \newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
 \newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
+\newcommand{\trinaryproof}[4]{\AxiomC{#1} \AxiomC{#2} \AxiomC{#3} \TrinaryInfC{#4} \DisplayProof}
 
 % no indent
 \setlength\parindent{0pt}
@@ -1254,4 +1255,41 @@
 
                 In general, to help us design an invariant, we should represent the state of the program at the beginning of each loop iteration as a diagram. The post-condition should be used to find a mid-condition after the loop, and this mid-condition (along with the loop condition) should be used to help find the invariant.
             \subsubsection*{Iteration (Formal)}
+                Consider the general form of a loop as;
+                \begin{lstlisting}
+                    // PRE: $P$
+                    // INV: $I$
+                    // VAR: $V$
+                    while (cond) {
+                      body
+                    }
+                    // MID: $M$
+                    // POST: $Q$
+                \end{lstlisting}
+                The Hoare logic rule displayed below captures \textbf{partial} correctness, and imposes the three proof obligations on the top line.
+                \smallskip
+
+                \trinaryproof{$P \rightarrow I$}{$\{ I \land \texttt{cond} \}\ \texttt{body}\ \{ I \}$}{$I \land \neg \texttt{cond} \rightarrow Q$}{$\{ P \}\ \texttt{while (cond) \{ body \}}\ \{ Q \}$}
+                \smallskip
+
+                In order for partial correctness to hold, we need the following;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item $I$ holds before the loop is entered
+                    \item the loop body re-establishes $I$, if the condition holds
+                    \item termination of the loop, and $I$, imply the mid-condition $M$
+                \end{enumerate}
+                Total correctness needs the above, as well as;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \setcounter{enumi}{3}
+                    \item $V$ is bounded
+                        \subitem $\exists c \in \mathbb{Z} [\{I \land \texttt{cond}\}\ \texttt{body}\ \{V \geq c\}]$
+                        \subitem note that $c$ represents a lower-bound for $V$, since it is decreasing
+                        \subitem generally any well-founded ordering with a limit works, but we will mainly look for an integer expression with a fixed lower bound (normally 0 in our cases)
+                    \item $V$ decreases with each iteration
+                        \subitem $\{I \land \texttt{cond}\}\ \texttt{body}\ \{V_\text{old} > V\}$
+                        \subitem note that $V_\text{old}$ here is the value of $V$ before running \texttt{body}
+                        \subitem this obligation requires us to prove the variant decreases towards $c$ on \textbf{every} iteration
+                \end{enumerate}
 \end{document}
