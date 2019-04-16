@@ -95,4 +95,16 @@
                 \item Reduced Instruction Set Computers (RISC)
                     \subitem On the other hand, the programs running on this instruction set are closer to machine code, due to the smaller range of instructions. A more powerful, better optimised, compiler will be required. Additionally, the programs here are faster, since they have simpler instructions - but they may require more instructions to achieve what a CISC can do in one, thus there may be a trade-off. It's also easier to build a chip with less instructions, which leads to lower development costs. Due to the smaller physical size of the chips, we can not only fit multiple chips together, but also use the space for memory, since accessing memory outside of the chip is very slow (compared to the high-speed registers nearby).
             \end{itemize}
+            In this course, we will be working mostly on a MIPS processor. Generally, the instructions consist of an opcode, which is what it does, and an operand (which includes the registers, memory locations, and data). This should be fairly similar to the very end of \textbf{CO112 - Hardware}. The design principle for RISCs is that the processor should have good performance, and be relatively simple to implement. In MIPS, there are 3 main types of instructions; R (register), I (immediate), and J (jump), all of which have a fixed size of 32 bits.
+            \medskip
+
+            MIPS is representative of modern RISC architectures, and has 32 registers, each being able to store 32-bit data. The registers are named \$0..\$31, with \$0 being typically wired to ground (logic 0), and the others being used for general-purpose storage. MIPS is known as a register-register, or load-store architecture, which means that there are two different sets of instructions; one that is extremely fast, and works between registers, and another set working with memory access, which tends to be slower. The goal is to minimise memory access, as accessing data from memory tends to be much slower than accessing memory located in the registers on the chip. Here are some examples of these instructions;
+            \begin{itemize}
+                \itemsep0em
+                \item register-register
+                    \subitem \texttt{add \$1, \$2, \$3} \hfill reg1 = reg2 + reg3
+                \item load-store
+                    \subitem \texttt{lw \$8, Astart(\$19)} \hfill reg8 = M[Astart + reg19]
+            \end{itemize}
+            The format of an R-type instruction is as follows;
 \end{document}
