@@ -29,6 +29,7 @@
     xleftmargin=3.0ex,
     mathescape=true
 }
+\newcommand{\dollar}{\mbox{\textdollar}} %
 \lstset{style=main}
 
 % augmented matrix
@@ -86,7 +87,7 @@
             \medskip
 
             The second part of the course, seems to be covered in sufficient detail by the YouTube playlist, which is where the majority of the information in these notes will come from.
-        \subsection*{Lecture 1}
+        \subsection*{Lecture 1 \hfill P\&H 62-120}
             Computer architecture is a combination of ISA (instruction set architecture), and machine organisation. We can see the ISA as an interface between the high level software, and the capabilities of the physical hardware components.The benefit of having the ISA is that a piece of software can be compiled into an instruction set, and then be reused on different hardware. For example, near identical versions of the x86 instruction set are used in Intel, and AMD chips despite the two having drastically different internal designs. On the other hand, microarchitecture, or computer organisation, is the the way a given ISA is implemented in a particular processor. This comes with the additional benefit that code doesn't need to be reimplemented even if there is a drastic change in the future for the microarchitecture / machine organisation.
             \medskip
 
@@ -109,11 +110,115 @@
                 \item load-store
                     \subitem \texttt{lw \$8, Astart(\$19)} \hfill reg8 = M[Astart + reg19]
             \end{itemize}
-            R-type instructions can be used for arithmetic, comparisons, logical operations, etc. and have a general format as follows;
+            R-type instructions can be used for arithmetic, comparisons, logical operations, etc. and have a general format as follows (the example describes \texttt{add \$8, \$17, \$18}). It's important to note that we have an additional 6 bits at the end for the function, since having a 6-bit opcode only leaves us 64 ($2^6$) instructions, which is quite limited even for a RISC instruction set. In addition, the shift amount specifies the amount of bits to shift, if it was a shift instruction, however it's redundant in this case;
             \begin{center}
-                \begin{tabular}{c|c|c|c|c|c}
-                    $I_{31-26}$ (6 bits) & $I_{31-26}$ (6 bits)
-                \end{tabular}
-            \end{center}
+                \begin{tikzpicture}
+                    \draw
+                    (0, 0) -- (16, 0) -- (16, -1) -- (0, -1) -- cycle;
 
+                    \draw
+                    (3, 0) -- (3, -1)
+                    (5.5, 0) -- (5.5, -1)
+                    (8, 0) -- (8, -1)
+                    (10.5, 0) -- (10.5, -1)
+                    (13, 0) -- (13, -1);
+
+                    \node[] () at (1.5, -0.5) {0};
+                    \node[] () at (4.25, -0.5) {17};
+                    \node[] () at (6.75, -0.5) {18};
+                    \node[] () at (9.25, -0.5) {8};
+                    \node[] () at (11.75, -0.5) {0};
+                    \node[] () at (14.5, -0.5) {32};
+
+                    \node[] () at (1.5, 0.5) {6 bits};
+                    \node[] () at (4.25, 0.5) {5 bits};
+                    \node[] () at (6.75, 0.5) {5 bits};
+                    \node[] () at (9.25, 0.5) {5 bits};
+                    \node[] () at (11.75, 0.5) {5 bits};
+                    \node[] () at (14.5, 0.5) {6 bits};
+
+                    \node[] () at (1.5, -1.5) {opcode};
+                    \node[] () at (4.25, -1.5) {source 1};
+                    \node[] () at (6.75, -1.5) {source 2};
+                    \node[] () at (9.25, -1.5) {destination};
+                    \node[] () at (11.75, -1.5) {shift};
+                    \node[] () at (14.5, -1.5) {function};
+                \end{tikzpicture}
+            \end{center}
+            I-type instructions are used for memory access, conditional branching, or arithmetic with constants. An example of doing addition with constants is \texttt{addi \$1, \$2, 100}, which does reg1 = reg2 + 100. The example displayed below is \texttt{lw \$8, Astart(\$19)}, which does reg8 = M[Astart + reg19].
+            \begin{center}
+                \begin{tikzpicture}
+                    \draw
+                    (0, 0) -- (16, 0) -- (16, -1) -- (0, -1) -- cycle;
+
+                    \draw
+                    (3, 0) -- (3, -1)
+                    (5.5, 0) -- (5.5, -1)
+                    (8, 0) -- (8, -1);
+
+                    \node[] () at (1.5, -0.5) {35};
+                    \node[] () at (4.25, -0.5) {19};
+                    \node[] () at (6.75, -0.5) {8};
+                    \node[] () at (12, -0.5) {\texttt{Astart}};
+
+                    \node[] () at (1.5, 0.5) {6 bits};
+                    \node[] () at (4.25, 0.5) {5 bits};
+                    \node[] () at (6.75, 0.5) {5 bits};
+                    \node[] () at (12, 0.5) {16 bits};
+
+                    \node[] () at (1.5, -1.5) {opcode};
+                    \node[] () at (4.25, -1.5) {source};
+                    \node[] () at (6.75, -1.5) {destination};
+                    \node[] () at (12, -1.5) {immediate constant};
+                \end{tikzpicture}
+            \end{center}
+            Finally J-type instructions are jump to instructions in memory, for example, \texttt{j 1236} would be an unconditional jump to the instruction at address 1236. An unconditional jump has the following format;
+            \begin{center}
+                \begin{tikzpicture}
+                    \draw
+                    (0, 0) -- (16, 0) -- (16, -1) -- (0, -1) -- cycle;
+
+                    \draw
+                    (3, 0) -- (3, -1);
+
+                    \node[] () at (1.5, -0.5) {2};
+                    \node[] () at (9.5, -0.5) {1236};
+
+                    \node[] () at (1.5, 0.5) {6 bits};
+                    \node[] () at (9.5, 0.5) {26 bits};
+
+                    \node[] () at (1.5, -1.5) {opcode};
+                    \node[] () at (9.5, -1.5) {memory location};
+                \end{tikzpicture}
+            \end{center}
+            However, we can also have jump instructions, which are I-type, or R-type, for example \texttt{bne \$19, \$20, Label} is an I-type instruction, where the program jumps to \texttt{Label} if registers 19, and 20 aren't equal. An R-type example would be \texttt{jr \$ra}, where it jumps to the address in register ra.
+
+            Consider the following program, and its equivalent in machine code, the registers are labeled in alphabetical order (reg16 = f, reg20 = j, etc);
+            \begin{lstlisting}
+                if (i == j) {
+                  f = g + h;
+                } else {
+                  f = g - h;
+                }
+
+                      bne $\dollar$19, $\dollar$20, Else # if i $\neq$ j goto Else
+                      add $\dollar$16, $\dollar$17, $\dollar$18     # f = g + h
+                      j   Exit           # goto Exit
+                Else: sub $\dollar$16, $\dollar$17, $\dollar$18     # f = g - h
+                Exit:
+            \end{lstlisting}
+            Since we only have two types of conditional branches, \texttt{bne}, and \texttt{beq}, we need \texttt{slt}, which does the following - \texttt{slt \$1, \$16, \$17}, if reg16 $<$ reg17, then it sets reg1 to 1, otherwise it's set to 0. Then, we can use \texttt{bne}, with \texttt{\$0}, since reg0 is always set to logic 0.
+        \subsection*{Lecture 2 \hfill P\&H 28-53}
+            One of the questions raised in this lecture is the following; "Is a 20\% cheaper processor, with the same performance good enough?". While this may seem straightforward, from a consumer's perspective, it's important to note that a consumer has instant gratification from buying a product, but developing one would take time. In this time, competitors are also trying to improve on their product, and as such you can't just know the price, and performance of a competitor's product \textbf{now}, but you also need to predict the improvement.
+            \medskip
+
+            CPI is the \textbf{average} number of clock cycles required per instruction. Note that it's the average, because some instructions may take more cycles to complete. For a given program $P$, we can get the number of cycles required for $P$ by doing the number of instructions in $P$, multiplied by the CPI. The execution time for $P$ is the number of cycles in $P$, multiplied by the clock cycle time (which is $\frac{1}{\text{clock speed}}$). Assuming that for a set of programs $P_1$, ..., $P_n$, the workload is equal, we can calculate the average execution time for the set by taking the mean of the execution times.
+            \subsubsection*{Example}
+                Consider two machines, $M_1$, and $M_2$, which implement the same instruction set that has 2 classes of instructions; $A$, and $B$. The CPI for $M_1$ on class $A$ is $A_1$, $B$, is $B_1$, and the same for $M_2$. The clock speed of $M_1$ is $C_1$ MHz, and similar for $M_2$. If we were to compare their peak and average performance of $N$ instructions, half of which are of class $A$, and the other half of class $B$, we'd need to find the ratio of execution times.
+                \medskip
+
+                In order to find the peak performance of $N$ instructions for $M_1$ (let it be $P_{P1}$), we take the clock cycle time (which is $\frac{1}{C_1}$, multiply it by the number of instructions $N$, miltiply it by the \textbf{minimum} CPI for $M_1$ (which would be min($A_1$, $B_1$)), we'd get $\frac{N(\text{min}(A_1, B_1))}{C_1}$. To compare the two, we take $\frac{P_{P1}}{P_{P2}} = \frac{\text{min}(A_1, B_1) \cdot C_2}{\text{min}(A_2, B_2) \cdot C_1}$.
+                \medskip
+
+                We do a similar process for finding the average performance, let it be $P_{A1}$, but instead of multiplying it by the minimum CPI, we take the average, hence we multiply by $\frac{A_1 + B1}{2}$. To compare the two, we take $\frac{P_{A1}}{P_{A2}} = \frac{(A_1 + B_1) \cdot C_2}{(A_2 + B_2) \cdot C_1}$.
 \end{document}
