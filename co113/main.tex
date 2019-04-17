@@ -83,6 +83,9 @@
     \section*{CO113 - Architecture}
         \subsection*{Prelude}
             The content discussed here is part of CO113 - Architecture (Computing MEng); taught by Wayne Luk, and Jana Giceva, in Imperial College London during the academic year 2018/19. The notes are written for my personal use, and have no guarantee of being correct (although I hope it is, for my own sake). This should be used in conjunction with the lecture slides, \href{https://www.youtube.com/playlist?list=PL0oekSefhQVJdk0hSRu6sZ2teWM740NtL}{\textit{The Hardware/Software Interface Class by Luis Ceze and Gaetano Borriello}} on YouTube, and \textit{Computer Organization and Design : The Hardware / Software Interface (Fifth Edition)} (chapters 1 to 4, and appendices B, and D), by Patterson, D., and Hennessy, J.
+            \medskip
+
+            The second part of the course, seems to be covered in sufficient detail by the YouTube playlist, which is where the majority of the information in these notes will come from.
         \subsection*{Lecture 1}
             Computer architecture is a combination of ISA (instruction set architecture), and machine organisation. We can see the ISA as an interface between the high level software, and the capabilities of the physical hardware components.The benefit of having the ISA is that a piece of software can be compiled into an instruction set, and then be reused on different hardware. For example, near identical versions of the x86 instruction set are used in Intel, and AMD chips despite the two having drastically different internal designs. On the other hand, microarchitecture, or computer organisation, is the the way a given ISA is implemented in a particular processor. This comes with the additional benefit that code doesn't need to be reimplemented even if there is a drastic change in the future for the microarchitecture / machine organisation.
             \medskip
@@ -106,5 +109,11 @@
                 \item load-store
                     \subitem \texttt{lw \$8, Astart(\$19)} \hfill reg8 = M[Astart + reg19]
             \end{itemize}
-            The format of an R-type instruction is as follows;
+            R-type instructions can be used for arithmetic, comparisons, logical operations, etc. and have a general format as follows;
+            \begin{center}
+                \begin{tabular}{c|c|c|c|c|c}
+                    $I_{31-26}$ (6 bits) & $I_{31-26}$ (6 bits)
+                \end{tabular}
+            \end{center}
+
 \end{document}
