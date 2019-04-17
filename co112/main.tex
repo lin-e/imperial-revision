@@ -1019,7 +1019,7 @@
                     \hline
                 \end{tabular}
             \end{center}
-            SUBTRACT, AND, OR, and XOR are done in the same way as ADD, with the appropriate ALU settings. COMPARE is just subtract with a zero check. Since we don't have any hardware for checking ALU, we can the carry bit (0 if $R_\text{src} \leq R_\text{dest}$, 1 otherwise). Other shifts are done in the same way as ASL, but the settings, and carry will change. COMP would flip the bits for the register, and in order to get a number in twos complement, we'd do a COMP followed by INC.
+            SUBTRACT, AND, OR, and XOR are done in the same way as ADD, with the appropriate ALU settings. COMPARE is just subtract with a zero check. Since we don't have any hardware for checking ALU, we can check the carry bit (0 if $R_\text{src} \leq R_\text{dest}$, 1 otherwise). Other shifts are done in the same way as ASL, but the settings, and carry will change. COMP would flip the bits for the register, and in order to get a number in twos complement, we'd do a COMP followed by INC.
             \medskip
 
             There are some limitations to this design, for example - INC, DEC, and COMP, $B$ is loaded from the main bus, but $A$ is loaded from the registers the programmer specified; another multiplexer could be used to allow these to happen simultaneously.

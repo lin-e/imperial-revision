@@ -86,7 +86,7 @@
             The content discussed here is part of CO113 - Architecture (Computing MEng); taught by Wayne Luk, and Jana Giceva, in Imperial College London during the academic year 2018/19. The notes are written for my personal use, and have no guarantee of being correct (although I hope it is, for my own sake). This should be used in conjunction with the lecture slides, \href{https://www.youtube.com/playlist?list=PL0oekSefhQVJdk0hSRu6sZ2teWM740NtL}{\textit{The Hardware/Software Interface Class by Luis Ceze and Gaetano Borriello}} on YouTube, and \textit{Computer Organization and Design : The Hardware / Software Interface (Fifth Edition)} (chapters 1 to 4, and appendices B, and D), by Patterson, D., and Hennessy, J.
             \medskip
 
-            The second part of the course, seems to be covered in sufficient detail by the YouTube playlist, which is where the majority of the information in these notes will come from.
+            The second part of the course seems to be covered in sufficient detail by the YouTube playlist, which is where the majority of the information in these notes will come from.
         \subsection*{Lecture 1 \hfill P\&H 62-120}
             Computer architecture is a combination of ISA (instruction set architecture), and machine organisation. We can see the ISA as an interface between the high level software, and the capabilities of the physical hardware components.The benefit of having the ISA is that a piece of software can be compiled into an instruction set, and then be reused on different hardware. For example, near identical versions of the x86 instruction set are used in Intel, and AMD chips despite the two having drastically different internal designs. On the other hand, microarchitecture, or computer organisation, is the the way a given ISA is implemented in a particular processor. This comes with the additional benefit that code doesn't need to be reimplemented even if there is a drastic change in the future for the microarchitecture / machine organisation.
             \medskip
@@ -221,4 +221,18 @@
                 \medskip
 
                 We do a similar process for finding the average performance, let it be $P_{A1}$, but instead of multiplying it by the minimum CPI, we take the average, hence we multiply by $\frac{A_1 + B1}{2}$. To compare the two, we take $\frac{P_{A1}}{P_{A2}} = \frac{(A_1 + B_1) \cdot C_2}{(A_2 + B_2) \cdot C_1}$.
+                \medskip
+
+                Our goal is to minimize the execution time, which is to minimise $\text{instruction count} \times \text{CPI} \times \text{cycle time}$. Consider this example, comparing SUN 68000, and their newer SUN RISC. In the RISC device, there are 25\% more instructions, and the cycle time is 
+                \begin{center}
+                    \begin{tabular}{l|l|l}
+                        & SUN 68000 & SUN RISC \\
+                        \hline
+                        Instruction Count Ratio & 1.0 & 1.25 \\
+                        Cycle time & 40ns & 60ns \\
+                        CPI & 5.0 - 7.0 & 1.3 - 1.7 \\
+                        Execution Time Ratio & 2 & 1 \\
+                        Price Ratio & 1 & 1.1 - 1.2
+                    \end{tabular}
+                \end{center}
 \end{document}
