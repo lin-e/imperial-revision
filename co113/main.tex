@@ -223,7 +223,7 @@
                 We do a similar process for finding the average performance, let it be $P_{A1}$, but instead of multiplying it by the minimum CPI, we take the average, hence we multiply by $\frac{A_1 + B1}{2}$. To compare the two, we take $\frac{P_{A1}}{P_{A2}} = \frac{(A_1 + B_1) \cdot C_2}{(A_2 + B_2) \cdot C_1}$.
                 \medskip
 
-                Our goal is to minimize the execution time, which is to minimise $\text{instruction count} \times \text{CPI} \times \text{cycle time}$. Consider this example, comparing SUN 68000, and their newer SUN RISC. In the RISC device, there are 25\% more instructions, and the cycle time is 
+                Our goal is to minimize the execution time, which is to minimise $\text{instruction count} \times \text{CPI} \times \text{cycle time}$. Consider this example, comparing SUN 68000, and their newer SUN RISC. In the RISC device, there are 25\% more instructions, and the cycle time is 50\% longer. However, the CPI is much lower, as the instructions are simpler, thus requiring less cycles. The price has increased, but the performance has doubled.
                 \begin{center}
                     \begin{tabular}{l|l|l}
                         & SUN 68000 & SUN RISC \\
@@ -235,4 +235,76 @@
                         Price Ratio & 1 & 1.1 - 1.2
                     \end{tabular}
                 \end{center}
+                The processor time is measured by the seconds per program, which is calculated as follows; $\frac{\text{time}}{\text{program}} = \frac{\text{instructions}}{\text{program}} \cdot \frac{\text{cycles}}{\text{instruction}} \cdot \frac{\text{time}}{\text{cycle}}$.
+            \subsubsection*{RISC}
+                Regarding the principles of RISC instruction set design, the common cases should be optimised, thus reducing the CPI. A small number of general purpose registers (32 in MIPS), simplifies things, and allows the design to be more adaptable to new technologies. The smaller chip size allows for a higher yield, thus reducing the cost of production. On the other hand, the lower number of instructions increases the code size, and smarter compilers are needed, since the instructions are further away from the software level than with a CISC instruction set.
+            \subsubsection*{Performance Trends}
+                In 2004, the trend in power usage hit a peak, due to heat not being able to be removed from the chip at a reasonable rate. The voltage also cannot be reduced further, which is why the trends seemed to have become flat. $P = C \cdot V^2 \cdot F$, where $P$ is power, $C$ is capacitive load, $V$ is voltage, and $F$ is frequency.
+                \medskip
+
+                Other than just increasing clock speed, performance can be increased in other ways; including faster local storage, concurrent execution, and newer technologies. Implementning on-chip caches allows for faster execution due to the faster memory closer to the chip, which would be a significant improvement compared to fetching from RAM. Concurrent execution can be achieved by multiple function units (super scalar), a pipeline execution, or multiple instruction streams (multi-threading). Newer technologies, such as GPUs can also be used for specialised loads.
+            \subsubsection*{Benchmarking}
+                There are a number of ways of benchmarking, each with their benefits, and drawbacks as follows;
+                \begin{center}
+                    \begin{tabular}{l|l|l}
+                        method & pros & cons \\
+                        \hline
+                        actual target workload & representative & very specific, not portable \\
+                        & & difficult to measure \\
+                        & & hard to identify problems \\
+                        \hline
+                        full benchmarks & portable & less representative \\
+                        & widespread usage & \\
+                        \hline
+                        kernel benchmarks & easy to use & peak is not representative \\
+                        & used early in design cycle & \\
+                        & identify peak performance &
+                    \end{tabular}
+                \end{center}
+        \subsection*{Lecture 3}
+            Considering the software side of parallelism; we have parallel requests, parallel threads, parallel instructions, and parallel data. Parallel threads schedule tasks; for example if you have an instruction that takes longer to process since it has to read from main memory, or wait for another resource, another task can be scheduled to run during this time. Since a processor core has multiple functional units, instructions can be arranged in a pipeline, where different stages are processed at the same time. Finally, data can be parallelised, as each item of data can contain multiple chunks of data, each of which can be operated on separately.
+            \medskip
+
+            In MIPS, we have 3 different types of addressing;
+            \begin{itemize}
+                \itemsep0em
+                \item register addressing \hfill accessing the data in registers
+                \item immediate addressing \hfill data is contained within the instruction (I-type)
+                \item base addressing \hfill accessing data in memory with load/store instructions
+                \item PC-relative addressing \hfill replaces the register with the program counter (in the I-type load)
+            \end{itemize}
+            We can classify architectures by how they address temporary storage. Here we cover three main types - all of which are operating on the same code; which is \texttt{C = A + B};
+            \begin{itemize}
+                \itemsep0em
+                \item stack \hfill operands are implicitly specified at the top of the stack
+                    \subitem \texttt{push A; push B; add; pop C}
+                    \subitem this adds the top pair of items on the stack
+                    \subitem pros: it has a simple evaluation model, and the code is dense
+                    \subitem cons: this model is less flexible, has no random access, and is slow if the stack is in memory
+                \item accumulator \hfill one operand in the accumulator
+                    \subitem \texttt{load A; add B; store C}
+                    \subitem this adds the accumulator, and the data in memory
+                    \subitem pros: there is minimal internal storage, and has short instructions
+                    \subitem cons: there is frequent memory access, therefore it is slower
+                \item register \hfill we explicitly state the operands
+                    \subitem \texttt{load R1 A; add R2, R1, B; store C, R2}
+                    \subitem this simply adds two registers
+                    \subitem pros: this is the general model for code generation, and has faster register access
+                    \subitem cons: this requires you to name all the operands, and also has longer instructions
+            \end{itemize}
+            Most modern architectures are register based, as it's still faster, as there is less memory traffic, as well as the code being denser. At the start, the first computers used single accumulators, as memory was still expensive, and therefore registers had to be used sparingly.
+            \subsubsection*{Amdahl's Law}
+                When some instructions are used frequently, and are normally expensive to compute, there are three possible approaches (for example, repeatedly calculating $x^2 + y^2$);
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item add instruciton, accumulator, or load-store
+                    \item add, and square instructions, accumulator, or load-store
+                    \item custom sumsq instruction, with a dedicated circuit
+                \end{enumerate}
+                However, this is not always beneficial (or worth the additional cost, and time). For example, consider a program that takes $T_\text{old}$ time to run, and a fraction of the code $\alpha$ can be sped up $\beta$ times. Now, we can calculate the new runtime of the code as $T_\text{new} = \alpha \frac{T_\text{old}}{\beta} + (1 - \alpha)T_\text{old}$. Let's have an example, wehre 90\% of the code can be sped up 100 times, such that $\alpha = 0.9$, and $\beta = 100$. By running this calculation, we can say that $T_\text{old} \approx 9.17 \cdot T_\text{new}$ - the code is less than 10 times faster.
+        \subsection*{Lecture 4}
+            There are two ways of representing negative numbers in binary, two's complement, and sign-and-magnitude. When we use sign-and-magnitude, it may be more intuitive for us, but for a computer to do addition on it may be problematic as we can easily lose (or gain) the sign bit. On the other hand, two's complement is more complex, but allows for easier operations. For example, you can repeat the most significant bit (e.g. $\texttt{10}_\text{2C} = \texttt{111110}_\text{2C} = -2_\text{Dec}$)
+            \medskip
+
+            The layout of a MIPS ALU is similar to the basic one covered in \textbf{CO112}, as in, it has separate units for bit-wise AND, bit-wise OR, addition, etc. and also does the all the operations, then selects one based on the input.
 \end{document}
