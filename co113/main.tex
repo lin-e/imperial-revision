@@ -554,7 +554,7 @@
                     \end{tikzpicture}
                 \end{center}
             \subsubsection*{Booth's Algorithm}
-                When we have a string of repeated 1s, we can change $n$ additions into 1 addition, and 1 subtraction. As we're summing a geometric series, when we do repeated additions, such that $m + 2m + 2^2m + ... + 2^{k-1}m = -m + 2^km$. This is much easier to compute, as all we have to do is to do an arithmetic shift on $m$, and a subtraction. However, instead of checking only the LSB ($pr_0$), we also check the previous LSB, let it be $pr_{-1}$. We have the following cases, written $pr_0pr_{-1}$; 00 or 11 - we're in the middle of a string of 0s (or 1s, respectively), no action is needed, 01 - we're at the end of a string of 1s, $pr = pr + mc$ (where $mc$ is the shifted multiplicand), and 10 - we're at the start of a string of 1s, $pr = pr - mc$. Note that in my version of the slides (2018 - 2019 academic year), there is a typo on slide 15. The "corrected" version is below (this is working on $\texttt{0010}_2 \times \texttt{0110}_2$), and $mc$is \texttt{0010}. Also note that $\text(pr)$ means the left half of the product register;
+                When we have a string of repeated 1s, we can change $n$ additions into 1 addition, and 1 subtraction. As we're summing a geometric series, when we do repeated additions, such that $m + 2m + 2^2m + ... + 2^{k-1}m = -m + 2^km$. This is much easier to compute, as all we have to do is to do an arithmetic shift on $m$, and a subtraction. However, instead of checking only the LSB ($pr_0$), we also check the previous LSB, let it be $pr_{-1}$. We have the following cases, written $pr_0pr_{-1}$; 00 or 11 - we're in the middle of a string of 0s (or 1s, respectively), no action is needed, 01 - we're at the end of a string of 1s, $pr = pr + mc$ (where $mc$ is the shifted multiplicand), and 10 - we're at the start of a string of 1s, $pr = pr - mc$. Note that in my version of the slides (2018 - 2019 academic year), there is a typo on slide 15. The "corrected" version is below (this is working on $\texttt{0010}_2 \times \texttt{0110}_2$), and $mc$ is \texttt{0010}. Also note that $\text(pr)$ means the left half of the product register;
                 \begin{center}
                     \begin{tabular}{c|lr|lr}
                         iteration & \multicolumn{2}{c|}{original} & \multicolumn{2}{c}{Booth's} \\
@@ -576,7 +576,7 @@
                     \end{tabular}
                 \end{center}
             \subsubsection*{Division}
-                This algorithm was invented by Briggs; dividend = quotient $\times$ divisor + remainder. We can work through an example of the first algorithm as follows; case 2b is when $rem < 0$, and 2a is when $rem \geq 0$. Note that SLL means we are doing a logical left shift on the quotient,and SR means we are shifting the divisor to the right. This is working through $\frac{7}{2}$;
+                This algorithm was invented by Briggs; dividend = quotient $\times$ divisor + remainder. We can work through an example of the first algorithm as follows; case 2b is when $rem < 0$, and 2a is when $rem \geq 0$. Note that SLL means we are doing a logical left shift on the quotient, and SR means we are shifting the divisor to the right. This is working through $\frac{7}{2}$;
                 \begin{center}
                     \begin{tabular}{c|l|c|c|c}
                         iteration & step & quotient & divisor & remainder \\
@@ -604,4 +604,27 @@
                         & c: SR & 0011 & 0000 0001 & 0000 0001
                     \end{tabular}
                 \end{center}
+                Similar to multiplication, we can refine our implementation of division by replacing the divisor shift to the right, with a remainder shift to the left. By doing this, we can reduce the 64-bit ALU to 32 bits. As we are shifting the remainder to the left, and we're doing the same shift to the quotient, we can combine the registers like before.
+        \subsection*{Lecture 6 \hfill P\&H 244-272}
+            Seriously, for this lecture, just look at the slides. There's too many diagrams for me to draw in TikZ.
+            \medskip
+
+            In general, the control unit is just a combinatorial unit, which takes in the 6 bits from the opcode, and has a 9-bit output, which controls the multiplexers, ALU, and the read / write operations. The initial implementation was having separate datapaths for the different types of instructions; register-based, memory-based, and branch. This can then be combined with multiplexors, which allow the right blocks to be conected, and finally the control unit unifies it by activating relavent parts of the combined datapath, based on the instruciton.
+            \medskip
+
+            Note that often the addresses for instructions will increment in 4, since memory is normally byte addressable, and the instructions we are working with are 32-bit. The design in the slides abstract the circuit into a single cycle data path, but it's important to note that it isn't the case, especially due to memory access as that would require more cycles.
+        \subsection*{Lecture 7}
+            The following accesses are needed in the execution cycle;
+            \begin{center}
+                \begin{tabular}{c|ccccc}
+                    type & instruction fetch & read register & ALU operation & load / store data & write to register \\
+                    \hline
+                    R-type & $\checkmark$ & $\checkmark$ & $\checkmark$ & & $\checkmark$ \\ 
+                    load & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\ 
+                    store & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & \\ 
+                    branch & $\checkmark$ & $\checkmark$ & $\checkmark$ & & \\
+                    jump & $\checkmark$ & & & &
+                \end{tabular}
+            \end{center}
+            From the above, you will notice that some operations take multiple stages to do, such as load taking all 5, and jump taking only 1. Due to the single clock cycle data path design, all of them take one cycle to finish, regardless of the number of steps. As clocks have a fixed tick time, jump will still take the same amount of time as load, even though it's a much faster instruciton.
 \end{document}
