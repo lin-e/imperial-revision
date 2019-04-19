@@ -750,9 +750,25 @@
             \end{center}
             Note that we'll still have to define DR1, and DR2, the dispatch ROMs. However, the total size of this is around 0.8Kbits, compared to the 20.5Kbits we had before. We could also perform vertical encoding on the output logic, which would reduce the control logic signals, but this comes with its own drawbacks. Horizontal microencoding (which is what we have now) exploits parallelism, and has very little control overhead, however it requires a larger ROM. On the other hand, vertical encoding can be slow, due to the decoding delay.
         \subsection*{Lecture 9}
-            Note that pipelining is not examined. In order to handle unexpected events, the processor has to implement addtional circuitry. There are two types of unexpected events that can occur;
+            Note that pipelining is not examined. In order to handle unexpected events, the processor has to implement addtional circuitry. There are two types of unexpected events that can occur, which both have to be handled with extreme urgency;
             \begin{itemize}
                 \itemsep0em
-                \item 
+                \item interruptions
+                    \subitem these are external events that disrupt the execution cycle, such as input or output, like the power button being pressed
+                \item exceptions
+                    \subitem these are unexpected events from a program, such as an invalid opcode, or integer overflows
             \end{itemize}
+            In the event of an emergency, the program has to do the following;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item find out the cause
+                    \subitem in order to handle the error, the processor will have to find out the reason
+                    \subitem this is done by having an additional register, the Cause register, which is also 32 bits
+                \item return to normal execution (sometimes)
+                    \subitem in order to retain the program execution point, we need to store the restart address in the exception program counter (EPC)
+                    \subitem the control is then transferred to the OS by executing instructions run at the exception address, which is a constant wired into the PC multiplexer
+            \end{enumerate}
+            To implement this, we also need to modify the finite state machines to have additional states for each error (see the lecture slides for the example).
+        \subsection*{Interlude}
+            As the YouTube playlist covers most of the content, I will be using that as the main point of reference, and not Panopto.
 \end{document}
