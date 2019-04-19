@@ -497,10 +497,111 @@
                     (5.6, -1.25) edge[->] (5.6, -1.5)
                     (5.5, -2) edge[->] (5.5, -2.25)
                     (6, -1.25) edge[->] (6, -2.25);
-
                 \end{tikzpicture}
             \end{center}
+            This design for the ALU has the functions $d_0d_1$, where 00 is AND, 01 is OR, 10 is addition, and 11 is subtraction. Remember that the carry is only set to 1 at the start when we're doing subtraction. The top line is also set to 1 when we're doing subtraction.
             \medskip
 
-            The carry path is often the slowest line, as it needs to go through many gates of logic, which limits the clock rate, since clock rate $\approx \frac{1}{\texttt{delay of slowest path}}$, given we have an edge-triggered design, and a few other factors (from P\&H Appendix B. 11)
+            The carry path is often the slowest line, as it needs to go through many gates of logic, which limits the clock rate, since clock rate $\approx \frac{1}{\text{delay of slowest path}}$, given we have an edge-triggered design, and a few other factors (from P\&H Appendix B. 11)
+        \subsection*{Lecture 5 \hfill P\&H 183-196}
+            \subsubsection*{Multiplication Algorithm}
+                Consider the example $2 \cdot 11 = 22$, we have the multiplicand times the multiplier = product. However, to do this bitwise, we have to do the following (let $c \leftarrow n$ mean $c$ shifted $n$ bits to the left, and $b_i$ mean the $i^\text{th}$ bit of $b$);
+                \begin{center}
+                    \begin{tabular}{cccccccccl}
+                        & & & & & 0 & 0 & 1 & 0 & multiplicand ($c$) \\
+                        $\times$ & & & & & 1 & 0 & 1 & 1 & multiplier ($p$) \\
+                        \hline
+                        & & & & & 0 & 0 & 1 & 0 & $(c \leftarrow 0) \cdot p_0$ \\
+                        & & & & 0 & 0 & 1 & 0 & & $(c \leftarrow 1) \cdot p_1$ \\
+                        & & & 0 & 0 & 0 & 0 & & & $(c \leftarrow 2) \cdot p_2$ \\
+                        + & & 0 & 0 & 1 & 0 & & & & $(c \leftarrow 3) \cdot p_3$ \\
+                        \hline
+                        & & 0 & 0 & 1 & 0 & 1 & 1 & 0 &
+                    \end{tabular}
+                \end{center}
+                Note that the third line is all 0s, because $p_2$ is 0, and multiplication is just AND. The idea is that the product is the miltiplicand shifted succesively by 1 bit relative to the multiplier; CSAA - conditional shift and add. We only really need to shift when the bit isn't 0.
+            \subsubsection*{Another Multiplication Algorithm}
+                However, there are other options for multiplication algorithms, which can save silicon space; we can use a 32-bit ALU, and a 64-bit register, which stores both the product, and the multiplier initially.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=1cm]
+                        \draw
+                        (-1, 0) -- (1, 0) -- (1, -1) -- (-1, -1) -- cycle
+                        (0, -2) -- (1, -3) -- (0, -4) -- (-1, -3) -- cycle
+                        (-3, -5) -- (-1, -5) -- (-1, -6) -- (-3, -6) -- cycle
+                        (-1, -7) -- (1, -7) -- (1, -8) -- (-1, -8) -- cycle
+                        (0, -9) -- (1, -10) -- (0, -11) -- (-1, -10) -- cycle
+                        (-1, -12) -- (1, -12) -- (1, -13) -- (-1, -13) -- cycle;
+
+                        \draw
+                        (0, -1) edge[->] (0, -2)
+                        (-1, -3) -- (-2, -3) edge[->] (-2, -5)
+                        (-2, -6) -- (-2, -7.5) edge[->] (-1, -7.5)
+                        (0, -4) edge[->] (0, -7)
+                        (0, -8) edge[->] (0, -9)
+                        (0, -11) edge[->] (0, -12)
+                        (1, -10) -- (2, -10) -- (2, -1.5) -- (0, -1.5);
+
+                        \node[] () at (0, -0.5) {\shortstack{Start \\ $(pr = mp)$}};
+                        \node[] () at (0, -3) {$pr_0 = 1$};
+                        \node[] () at (-1.5, -2.75) {yes};
+                        \node[] () at (0.5, -5) {no};
+                        \node[] () at (-2, -5.5) {\shortstack{$\text{L}(pr) =$ \\ $\text{L}(pr) + mc$}};
+                        \node[] () at (0, -7.5) {\shortstack{shift $pr$ right \\ $(pr \rightarrow 1)$}};
+                        \node[] () at (0, -10) {\shortstack{last \\ repetition?}};
+                        \node[] () at (0.5, -11.5) {yes};
+                        \node[] () at (1.5, -9.75) {no};
+                        \node[] () at (0, -12.5) {Done};
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Booth's Algorithm}
+                When we have a string of repeated 1s, we can change $n$ additions into 1 addition, and 1 subtraction. As we're summing a geometric series, when we do repeated additions, such that $m + 2m + 2^2m + ... + 2^{k-1}m = -m + 2^km$. This is much easier to compute, as all we have to do is to do an arithmetic shift on $m$, and a subtraction. However, instead of checking only the LSB ($pr_0$), we also check the previous LSB, let it be $pr_{-1}$. We have the following cases, written $pr_0pr_{-1}$; 00 or 11 - we're in the middle of a string of 0s (or 1s, respectively), no action is needed, 01 - we're at the end of a string of 1s, $pr = pr + mc$ (where $mc$ is the shifted multiplicand), and 10 - we're at the start of a string of 1s, $pr = pr - mc$. Note that in my version of the slides (2018 - 2019 academic year), there is a typo on slide 15. The "corrected" version is below (this is working on $\texttt{0010}_2 \times \texttt{0110}_2$), and $mc$is \texttt{0010}. Also note that $\text(pr)$ means the left half of the product register;
+                \begin{center}
+                    \begin{tabular}{c|lr|lr}
+                        iteration & \multicolumn{2}{c|}{original} & \multicolumn{2}{c}{Booth's} \\
+                        & step & product & step & product \\
+                        \hline
+                        0 & initial values & 0000 011\textbf{0} & initial values & 0000 011\textbf{0} \textbf{0} \\
+                        \hline
+                        1 & 1a: 0 - no operation & 0000 0110 & 1a: 00 - no operation & 0000 0110 0 \\
+                        & 2: product shift right & 0000 001\textbf{1} & 2: product shift right & 0000 001\textbf{1} \textbf{0} \\
+                        \hline
+                        2 & 1b: 1 - $\text{L}(pr) = \text{L}(pr) + mc$ & 0010 0011 & 1c: 10 - $\text{L}(pr) = \text{L}(pr) - mc$ & 1110 0011 0 \\
+                        & 2: product shift right & 0001 000\textbf{1} & 2: product shift right & 1111 000\textbf{1} \textbf{1} \\
+                        \hline
+                        3 & 1b: 1 - $\text{L}(pr) = \text{L}(pr) + mc$ & 0011 0001 & 1d: 11 - no operation & 1111 0001 1 \\
+                        & 1: product shift right & 0001 100\textbf{0} & 2: product shift right & 1111 100\textbf{0} \textbf{1} \\
+                        \hline
+                        4 & 1a: 0 - no operation & 0001 1000 & 1b: 01 - $\text{L}(pr) = \text{L}(pr) + mc$ & 0001 1000 1 \\
+                        & 1: product shift right & 0000 1100 & 2: product shift right & 0000 1100 0 \\
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Division}
+                This algorithm was invented by Briggs; dividend = quotient $\times$ divisor + remainder. We can work through an example of the first algorithm as follows; case 2b is when $rem < 0$, and 2a is when $rem \geq 0$. Note that SLL means we are doing a logical left shift on the quotient,and SR means we are shifting the divisor to the right. This is working through $\frac{7}{2}$;
+                \begin{center}
+                    \begin{tabular}{c|l|c|c|c}
+                        iteration & step & quotient & divisor & remainder \\
+                        \hline
+                        0 & initial values & 0000 & 0010 0000 & 0000 0111 \\
+                        \hline
+                        1 & 1: $rem = rem - div$ & 0000 & 0010 0000 & 1110 0111 \\
+                        & 2b: $rem = rem + div$; SLL; $Q_0$ = 0 & 0000 & 0010 0000 & 0000 0111 \\
+                        & c: SR & 0000 & 0001 0000 & 0000 0111 \\
+                        \hline
+                        2 & 1: $rem = rem - div$ & 0000 & 0001 0000 & 1111 0111 \\
+                        & 2b: $rem = rem + div$; SLL; $Q_0$ = 0 & 0000 & 0001 0000 & 0000 0111 \\
+                        & c: SR & 0000 & 0000 1000 & 0000 0111 \\
+                        \hline
+                        3 & 1: $rem = rem - div$ & 0000 & 0000 1000 & 1111 1111 \\
+                        & 2b: $rem = rem + div$; SLL; $Q_0$ = 0 & 0000 & 0000 1000 & 0000 0111 \\
+                        & c: SR & 0000 & 0000 0100 & 0000 0111 \\
+                        \hline
+                        4 & 1: $rem = rem - div$ & 0000 & 0000 0100 & 0000 0011 \\
+                        & 2a: SLL; $Q_0$ = 1 & 0001 & 0000 0100 & 0000 0011 \\
+                        & c: SR & 0001 & 0000 0010 & 0000 0011 \\
+                        \hline
+                        5 & 1: $rem = rem - div$ & 0001 & 0000 0010 & 0000 0001 \\
+                        & 2a: SLL; $Q_0$ = 1 & 0011 & 0000 0010 & 0000 0001 \\
+                        & c: SR & 0011 & 0000 0001 & 0000 0001
+                    \end{tabular}
+                \end{center}
 \end{document}
