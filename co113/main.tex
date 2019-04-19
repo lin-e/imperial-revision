@@ -769,6 +769,15 @@
                     \subitem the control is then transferred to the OS by executing instructions run at the exception address, which is a constant wired into the PC multiplexer
             \end{enumerate}
             To implement this, we also need to modify the finite state machines to have additional states for each error (see the lecture slides for the example).
-        \subsection*{Interlude}
+        \subsection*{Interlude and Introduction}
             As the YouTube playlist covers most of the content, I will be using that as the main point of reference, and not Panopto.
+            \bigskip
+
+            While we'd rather write Java, or C, because it's more human friendly, hardware requires strings of bytes which are voltage highs, and lows. While machine code was fine at the start, when machines became more complex, and we could no longer keep up. At this point, we were able to use assembly, which would have equivalent instructions in machine code, but were still human readable. After this, we have an even higher level of abstraction, where a single line of a high-level language, like C, or Java, can be compiled into many lines of assembly. The current lifetime of a program is having the user written program in a high level language, compiled to assembly, which is then compiled to machine code, and run on the hardware.
+            \medskip
+
+            During the compilation, the compiler can run optimisations on the code, allowing it to be more efficient to some extent, without the programmer having to do so.
+        \subsection*{Memory \& Data}
+            \subsubsection*{Memory, data, and Addressing}
+                Data needs to be moved from memory to registers, in order for the CPU to operate on it (mentioned in the first part of the module). There's also an instruction cache on the CPU that holds recently used instructions, such as loops - all handled by hardware. 
 \end{document}
