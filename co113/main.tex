@@ -10,6 +10,7 @@
 \usepackage{logicproof}
 \usepackage{diagbox}
 \usepackage{listings}
+\usepackage{graphicx}
 \usepackage{lstautogobble}
 \usepackage{hyperref}
 \usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
@@ -469,6 +470,9 @@
                     (d0) edge[->] (1, -1.5)
                     (-0.75, -1.5) -- (-0.75, 0.085) -- (and.input 1)
                     (-0.5, -1) -- (-0.5, -0.085) -- (and.input 2)
+                    (1.5, 1) edge[->] (1.5, 0.25)
+                    (2.5, 1) edge[->] (2.5, 0.25)
+                    (2, -1.75) edge[->] (2, -3)
                     \foreach \x in {0,...,3} {
                         (3, -1.5 + 0.5*\x) edge[->] (3.5, -1.5 + 0.5*\x)
                     };
@@ -477,7 +481,7 @@
                     \node[] () at (5.5, -1.75) {\tiny MX};
                     \node[] () at (5.75, -2.5) {MX};
                     \node[xor gate US, draw, logic gate inputs=nn, rotate=-90] (xor) at (6, 0) {};
-                    \node[] () at (4.25, -0.75) {$\equiv$};
+                    \node[] () at (4.25, -1) {$\equiv$};
                     \draw
                     (5, 0.75) edge[->] (6.5, 0.75)
                     (6 - 0.085, 0.75) edge[->] (xor.input 2)
@@ -496,7 +500,8 @@
                     (5.4, -1.25) edge[->] (5.4, -1.5)
                     (5.6, -1.25) edge[->] (5.6, -1.5)
                     (5.5, -2) edge[->] (5.5, -2.25)
-                    (6, -1.25) edge[->] (6, -2.25);
+                    (6, -1.25) edge[->] (6, -2.25)
+                    (5.75, -2.75) edge[->] (5.75, -3);
                 \end{tikzpicture}
             \end{center}
             This design for the ALU has the functions $d_0d_1$, where 00 is AND, 01 is OR, 10 is addition, and 11 is subtraction. Remember that the carry is only set to 1 at the start when we're doing subtraction. The top line is also set to 1 when we're doing subtraction.
@@ -619,12 +624,135 @@
                 \begin{tabular}{c|ccccc}
                     type & instruction fetch & read register & ALU operation & load / store data & write to register \\
                     \hline
-                    R-type & $\checkmark$ & $\checkmark$ & $\checkmark$ & & $\checkmark$ \\ 
-                    load & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\ 
-                    store & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & \\ 
+                    R-type & $\checkmark$ & $\checkmark$ & $\checkmark$ & & $\checkmark$ \\
+                    load & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+                    store & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & \\
                     branch & $\checkmark$ & $\checkmark$ & $\checkmark$ & & \\
                     jump & $\checkmark$ & & & &
                 \end{tabular}
             \end{center}
-            From the above, you will notice that some operations take multiple stages to do, such as load taking all 5, and jump taking only 1. Due to the single clock cycle data path design, all of them take one cycle to finish, regardless of the number of steps. As clocks have a fixed tick time, jump will still take the same amount of time as load, even though it's a much faster instruciton.
+            From the above, you will notice that some operations take multiple stages to do, such as load taking all 5, and jump taking only 1. Due to the single clock cycle data path design, all of them take one cycle to finish, regardless of the number of steps. As clocks have a fixed tick time, jump will still take the same amount of time as load, even though it's a much faster instruction.
+            \subsubsection*{Multi-cycle datapath}
+                This comes with multiple advantages; we're likely to have shorter cycles, but will need more of them (for example, R-type instructions would need 4 cycles to complete, and jump would only need 1). We can also combine memory together, such that instruction, and data are stored in the same location. The ALU can also be reused, but we'd also need the IR, which stores the instruction. More registers will be needed to save the state, leading to a more complex control unit.
+                \medskip
+
+                In order to build this, we'd need new internal registers; IR, A, B, $\text{ALU}_\text{out}$, MDR.
+                \medskip
+
+                For example, when working on the load instruction, which has the effect;
+                \smallskip
+
+                Reg[$\underbrace{\text{dest}}_\text{IR$_{20-16}$}$] = M[Reg[$\underbrace{\text{source}}_\text{IR$_{25-21}$}$] + sign-ext($\underbrace{\text{addr}}_\text{IR$_{15-0}$}$)]
+                \medskip
+
+                This instruction can be broken down into smaller steps, as follows, which are RTL (Register Transfer Level) descriptions;
+                \begin{enumerate}[{cycle} 1:]
+                    \itemsep0em
+                    \item IR = M[PC], PC = PC + 4
+                    \item A = Reg[source]
+                    \item ALU$_\text{out}$ = A + sign-ext(addr)
+                        \subitem the sign for addr needs to be extended to a 32-bit number, as the ALU is 32-bit
+                    \item MDR = M[ALU$_\text{out}$]
+                    \item Reg[dest] = MDR
+                \end{enumerate}
+                We can tabulate all the execution steps as the following;
+                \begin{center}
+                    \scalebox{0.875}{
+                        \begin{tabular}{c|c|c|c|c}
+                            Step & R-type & memory-reference & branches & jumps \\
+                            \hline
+                            Instruction fetch & \multicolumn{4}{c}{IR = M[PC]} \\
+                            & \multicolumn{4}{c}{PC = PC + 4} \\
+                            & \multicolumn{4}{c}{\textcolor{blue}{$S_0$}} \\
+                            \hline
+                            Instruction decode & \multicolumn{4}{c}{A = Reg[IR$_\text{25-21}$]} \\
+                            or register fetch & \multicolumn{4}{c}{B = Reg[IR$_\text{20-16}$]} \\
+                            & \multicolumn{4}{c}{ALU$_\text{out}$ = PC + (sign-extend(IR$_\text{15-0}$) $<<$ 2)} \\
+                            & \multicolumn{4}{c}{\textcolor{blue}{$S_1$}} \\
+                            \hline
+                            Execution, address & ALU$_\text{out}$ = A op B & ALU$_\text{out}$ = A + & if (A == B) then & PC = PC[IR$_\text{31-28}$] \\
+                            computation, branch & & sign-extend(IR$_\text{15-0}$) & PC = ALU$_\text{out}$ & $||$ (IR$_\text{25-0}$ $<<$ 2) \\
+                            or jump completion & \textcolor{blue}{$S_6$} & \textcolor{blue}{$S_2$} & \textcolor{blue}{$S_8$} & \textcolor{blue}{$S_9$} \\
+                            \hline
+                            Memory access or & Reg[IR$_\text{15-11}$] & load: MDR = M[ALU$_\text{out}$] \textcolor{blue}{$S_3$} & & \\
+                            R-type completion & = ALU$_\text{out}$ \textcolor{blue}{$S_7$} & store: M[ALU$_\text{out}$] = B \textcolor{blue}{$S_5$} & & \\
+                            \hline
+                            Memory read & & load: Reg[IR$_\text{20-16}$] = MDR & & \\
+                            completion & & \textcolor{blue}{$S_4$} & & \\
+                            \hline
+                        \end{tabular}%sign-extend(IR$_\text{15-0}$)
+                    }
+                \end{center}
+                Once again, just like in \textbf{CO112}, this can be modelled as a state transition diagram, with the input being determined by the control unit.
+        \subsection*{Lecture 8 \hfill P\&H C.3-C.6}
+            One of the main issues with our representation of the control unit output logic as a direct FSM is the size, which would have be around $2^10 \cdot 20$, which is roughly 20.5Kbits. Another issue is the readability of it all; while it's very sequential (and we can exploit that later), especially without grouping the outputs. Hence if we were to define fields, we can have each one correspond to one, or more, control signal(s) to acheive a task. For example, if we were to define SRC1 as a field, we could say that SRC1 = A means that ALUSrcA = 1. By assigning values to a field, which represents a control signal assignment, we reach a higher level of abstraction (further than listing the indvidual signals in the state diagram). Another example is having ALU$_\text{control}$ be Add, Fn, or Sub, with the codes 00, 10, or 01 respectively. We can tabulate this as such;
+            \begin{center}
+                \scalebox{0.9}{
+                    \begin{tabular}{cllllllll}
+                        state & label & ALU control & SRC1 & SRC2 & memory & reg. control & PC write control & sequencing \\
+                        \hline
+                        0 & Fetch & Add & PC & 4 & ReadPC & & ALU & Seq \\
+                        1 & & Add & PC & ExtShft & & Read & & Dispatch 1 \\
+                        2 & Mem1 & Add & A & Extend & & & & Dispatch 2 \\
+                        3 & LW2 & & & & ReadALU & & & Seq \\
+                        4 & & & & & & WriteMDR & & Fetch \\
+                        5 & SW2 & & & & WriteALU & & & Fetch \\
+                        6 & Rformat1 & Fn & A & B & & & & Seq \\
+                        7 & & & & & & WriteALU & & Fetch \\
+                        8 & BEQ1 & Sub & A & B & & & ALU outcond & Fetch \\
+                        9 & JUMP1 & & A & B & & & Jump addr & Fetch \\
+                    \end{tabular}
+                }
+            \end{center}
+            \begin{center}
+                \begin{tikzpicture}
+                    \draw
+                    (-1, -1.5) edge[->] (0, -1.5)
+                    (-1, -2.5) edge[->] (0, -2.5)
+                    (-1, -3.5) edge[->] (0, -3.5)
+                    (2, -2) edge[->] (3, -2)
+                    (5, -2) edge[->] (6, -2)
+                    (5.5, -2) -- (5.5, 1.5) edge[->] (2, 1.5)
+                    (0, 1.5) -- (-3, 1.5) -- (-3, -0.5) edge[->] (0, -0.5)
+                    (-4.5, -2) -- (-3.5, -2)
+                    (-3.5, -1.5) -- (-3.5, -2.5)
+                    (-3.5, -1.5) edge[->] (-3, -1.5)
+                    (-3.5, -2.5) edge[->] (-3, -2.5)
+                    (9, -1.5) edge[->] (10, -1.5)
+                    (9, -2.5) -- (10, -2.5) -- (10, -5) -- (1, -5) edge[->] (1, -4);
+
+                    \node[] (p6) at (-4, -2) {};
+                    \node[] (p4) at (5.5, -0.25) {};
+                    \node[] (p16) at (9.5, -1.5) {};
+                    \node[] (p2) at (9.5, -2.5) {};
+                    \node[] () at (-1.25, -3.5) {0};
+                    \node[] () at (1, 1.5) {+1};
+                    \node[] () at (-2, -1.5) {DR2};
+                    \node[] () at (-2, -2.5) {DR1};
+                    \node[] () at (-5.3, -2) {opcode};
+                    \node[] () at (4, -2) {$\mu$PC};
+                    \node[] () at (1, -2) {MX};
+                    \node[] () at (7.5, -2) {\shortstack{combinatorial \\ control logic}};
+
+                    \draw
+                    (0, 0) -- (2, 0) -- (2, -4) -- (0, -4) -- cycle
+                    (3, 0) -- (5, 0) -- (5, -4) -- (3, -4) -- cycle
+                    (6, -1) -- (9, -1) -- (9, -3) -- (6, -3) -- cycle
+                    (0, 2) -- (2, 2) -- (2, 1) -- (0, 1) -- cycle
+                    (-3, -1.1) -- (-1, -1.1) -- (-1, -1.9) -- (-3, -1.9) -- cycle
+                    (-3, -2.1) -- (-1, -2.1) -- (-1, -2.9) -- (-3, -2.9) -- cycle
+                    ($(p6) + (-0.25, -0.15)$) edge[above] node{6} ($(p6) + (0.25, 0.15)$)
+                    ($(p2) + (-0.25, -0.15)$) edge[below] node{2} ($(p2) + (0.25, 0.15)$)
+                    ($(p4) + (-0.25, -0.15)$) edge[right] node{\ \ 4} ($(p4) + (0.25, 0.15)$)
+                    ($(p16) + (-0.25, -0.15)$) edge[above] node{16} ($(p16) + (0.25, 0.15)$);
+                    ;
+                \end{tikzpicture}
+            \end{center}
+            Note that we'll still have to define DR1, and DR2, the dispatch ROMs. However, the total size of this is around 0.8Kbits, compared to the 20.5Kbits we had before. We could also perform vertical encoding on the output logic, which would reduce the control logic signals, but this comes with its own drawbacks. Horizontal microencoding (which is what we have now) exploits parallelism, and has very little control overhead, however it requires a larger ROM. On the other hand, vertical encoding can be slow, due to the decoding delay.
+        \subsection*{Lecture 9}
+            Note that pipelining is not examined. In order to handle unexpected events, the processor has to implement addtional circuitry. There are two types of unexpected events that can occur;
+            \begin{itemize}
+                \itemsep0em
+                \item 
+            \end{itemize}
 \end{document}
