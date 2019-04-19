@@ -12,6 +12,7 @@
 \usepackage{listings}
 \usepackage{lstautogobble}
 \usepackage{hyperref}
+\usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
 
 % code listing
 \lstdefinestyle{main}{
@@ -306,5 +307,97 @@
             There are two ways of representing negative numbers in binary, two's complement, and sign-and-magnitude. When we use sign-and-magnitude, it may be more intuitive for us, but for a computer to do addition on it may be problematic as we can easily lose (or gain) the sign bit. On the other hand, two's complement is more complex, but allows for easier operations. For example, you can repeat the most significant bit (e.g. $\texttt{10}_\text{2C} = \texttt{111110}_\text{2C} = -2_\text{Dec}$)
             \medskip
 
-            The layout of a MIPS ALU is similar to the basic one covered in \textbf{CO112}, as in, it has separate units for bit-wise AND, bit-wise OR, addition, etc. and also does the all the operations, then selects one based on the input.
+            The layout of a MIPS ALU is similar to the basic one covered in \textbf{CO112}, as in, it has separate units for bit-wise AND, bit-wise OR, addition, etc. and also does the all the operations, then selects one based on the input. Similarly, it also uses the same slash notation to denote $n$ lines being connected. On the gate level, it's important to remember the following;
+            \begin{center}
+                \begin{tikzpicture}[x=0.9cm, y=0.9cm]
+                    \node[] (d) at (-0.6, -0.5) {d};
+                    \draw
+                    (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle
+                    (1, 2) edge[->] (1, 0)
+                    (3, 2) edge[->] (3, 0)
+                    (2, -1) edge[->] (2, -2)
+                    (d) edge[->] (0, -0.5);
+
+                    \node[] (i1) at (1, 1) {};
+                    \node[] (i2) at (3, 1) {};
+                    \node[] (o) at (2, -1.5) {};
+
+                    \draw
+                    ($(i1) + (-0.25, -0.15)$) edge[right] node{\ \ 4} ($(i1) + (0.25, 0.15)$)
+                    ($(i2) + (-0.25, -0.15)$) edge[right] node{\ \ 4} ($(i2) + (0.25, 0.15)$)
+                    ($(o) + (-0.25, -0.15)$) edge[right] node{\ \ 4} ($(o) + (0.25, 0.15)$);
+
+                    \node[] (d2) at (5.9, -0.5) {d};
+                    \foreach \x in {0,...,3} {
+                        \draw
+                        (6.5 + 3*\x, 0) -- (8.5 + 3*\x, 0) -- (8.5 + 3*\x, -1) -- (6.5 + 3*\x, -1) -- cycle
+                        (7.5 + 3*\x, -1) edge[->] (7.5 + 3*\x, -2)
+                        (7 + 3*\x, 0) -- (7 + 3*\x, 0.5)
+                        (8 + 3*\x, 0) -- (8 + 3*\x, 0.5);
+
+                        \node[] () at (7.5 + 3*\x, -0.5) {mx};
+
+                        \draw
+                        (7 + 0.5*\x, 2) -- (7 + 0.5*\x, 0.75 + 0.25*\x) -- (7 + 3*\x, 0.5)
+                        (17 - 0.5*\x, 2) -- (17 - 0.5*\x, 0.75 + 0.25*\x) -- (17 - 3*\x, 0.5);
+                    }
+
+                    \draw
+                    (d2) edge[->] (6.5, -0.5)
+                    (8.5, -0.5) edge[->] (9.5, -0.5)
+                    (11.5, -0.5) edge[->] (12.5, -0.5)
+                    (14.5, -0.5) edge[->] (15.5, -0.5);
+
+                    \node[] () at (5, -0.5) {$\equiv$};
+                \end{tikzpicture}
+            \end{center}
+            A similar diagram can also be used for the ripple carry adder, which joins $n$ full adders, to create an $n$-bit ripple adder.
+            \begin{center}
+                \begin{tikzpicture}[x=0.9cm, y=0.9cm]
+                    \node[] (d) at (-0.6, -0.5) {$C_\text{in}$};
+                    \draw
+                    (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle
+                    (1, 2) edge[->] (1, 0)
+                    (3, 2) edge[->] (3, 0)
+                    (2, -1) edge[->] (2, -2)
+                    (d) edge[->] (0, -0.5);
+
+                    \node[] (i1) at (1, 1) {};
+                    \node[] (i2) at (3, 1) {};
+                    \node[] (o) at (2, -1.5) {};
+
+                    \draw
+                    ($(i1) + (-0.25, -0.15)$) edge[right] node{\ \ 4} ($(i1) + (0.25, 0.15)$)
+                    ($(i2) + (-0.25, -0.15)$) edge[right] node{\ \ 4} ($(i2) + (0.25, 0.15)$)
+                    ($(o) + (-0.25, -0.15)$) edge[right] node{\ \ 4} ($(o) + (0.25, 0.15)$);
+
+                    \node[] (d2) at (5.9, -0.5) {$C_\text{in}$};
+                    \foreach \x in {0,...,3} {
+                        \draw
+                        (6.5 + 3*\x, 0) -- (8.5 + 3*\x, 0) -- (8.5 + 3*\x, -1) -- (6.5 + 3*\x, -1) -- cycle
+                        (7.5 + 3*\x, -1) edge[->] (7.5 + 3*\x, -2)
+                        (7 + 3*\x, 0) -- (7 + 3*\x, 0.5)
+                        (8 + 3*\x, 0) -- (8 + 3*\x, 0.5);
+
+                        \node[] () at (7.5 + 3*\x, -0.5) {\shortstack{full\\adder}};
+
+                        \draw
+                        (7 + 0.5*\x, 2) -- (7 + 0.5*\x, 0.75 + 0.25*\x) -- (7 + 3*\x, 0.5)
+                        (17 - 0.5*\x, 2) -- (17 - 0.5*\x, 0.75 + 0.25*\x) -- (17 - 3*\x, 0.5);
+                    }
+
+                    \node[] () at (7.75, 2.5) {LSB ... MSB};
+                    \node[] () at (16.25, 2.5) {LSB ... MSB};
+                    \node[] () at (1, 2.5) {A};
+                    \node[] () at (3, 2.5) {B};
+                    \node[] () at (2, -2.5) {A+B};
+                    \draw
+                    (d2) edge[->] (6.5, -0.5)
+                    (8.5, -0.5) edge[->] (9.5, -0.5)
+                    (11.5, -0.5) edge[->] (12.5, -0.5)
+                    (14.5, -0.5) edge[->] (15.5, -0.5);
+
+                    \node[] () at (5, -0.5) {$\equiv$};
+                \end{tikzpicture}
+            \end{center}
 \end{document}
