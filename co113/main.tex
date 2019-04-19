@@ -388,9 +388,9 @@
 
                     \node[] () at (7.75, 2.5) {LSB ... MSB};
                     \node[] () at (16.25, 2.5) {LSB ... MSB};
-                    \node[] () at (1, 2.5) {A};
-                    \node[] () at (3, 2.5) {B};
-                    \node[] () at (2, -2.5) {A+B};
+                    \node[] () at (1, 2.5) {$A$};
+                    \node[] () at (3, 2.5) {$B$};
+                    \node[] () at (2, -2.5) {$A+B$};
                     \draw
                     (d2) edge[->] (6.5, -0.5)
                     (8.5, -0.5) edge[->] (9.5, -0.5)
@@ -400,4 +400,107 @@
                     \node[] () at (5, -0.5) {$\equiv$};
                 \end{tikzpicture}
             \end{center}
+            With this full adder, we are able to use this as as subtractor. For example, when working with $A - B$; take the ones complement of $B$ (which is inverting $B$ bitwise), and add it to $A$, and setting $C_\text{in}$ to 1. Bitwise inversion is done with an XOR, when the otger input is 1. Other important circuits found in our ALU, are the AOR (which is shown below);
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[] () at (1, 0) {aor};
+                    \node[] () at (3, 0) {$\equiv$};
+
+                    \draw
+                    (0, 0.5) -- (2, 0.5) -- (2, -0.5) -- (0, -0.5) -- cycle
+                    (0.5, 1) edge[->] (0.5, 0.5)
+                    (1.5, 1) edge[->] (1.5, 0.5)
+                    (1, -0.5) edge[->] (1, -0.75);
+
+                    \node[and gate US, draw, logic gate inputs=nn, rotate=-90] (and) at (4, 0) {};
+                    \node[or gate US, draw, logic gate inputs=nn, rotate=-90] (or) at (5, 0) {};
+
+                    \draw
+                    (4 - 0.085, 1) edge[->] (and.input 2)
+                    (5 + 0.085, 1) edge[->] (or.input 1)
+                    (4 - 0.085, 0.5) -- (5 - 0.085, 0.5) edge[->] (or.input 2)
+                    (5 + 0.085, 0.75) -- (4+ 0.085, 0.75) edge[->] (and.input 1)
+                    (and.output) edge[->] (4, -0.75)
+                    (or.output) edge[->] (5, -0.75);
+                \end{tikzpicture}
+            \end{center}
+            This can then be combined with a single full adder block, to create AFA;
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[] () at (1, 0) {AFA};
+                    \node[] () at (3, 0) {$\equiv$};
+
+                    \draw
+                    (0, 0.5) -- (2, 0.5) -- (2, -0.5) -- (0, -0.5) -- cycle
+                    (0.5, 1) edge[->] (0.5, 0.5)
+                    (1.5, 1) edge[->] (1.5, 0.5)
+                    (1, -0.5) edge[->] (1, -1);
+
+                    \node[] () at (4.5, 0.35) {AOR};
+                    \node[] () at (5.5, -0.35) {FA};
+                    \node[] (o) at (4.5, -0.75) {};
+
+                    \draw
+                    (4, 0.6) -- (5, 0.6) -- (5, 0.1) -- (4, 0.1) -- cycle
+                    (5, -0.1) -- (6, -0.1) -- (6, -0.6) -- (5, -0.6) -- cycle
+                    (4.25, 1) edge[->] (4.25, 0.6)
+                    (5.75, 1) edge[->] (5.75, -0.1)
+                    (4.25, 0.9) -- (5.25, 0.9) edge[->] (5.25, -0.1)
+                    (5.75, 0.8) -- (4.75, 0.8) edge[->] (4.75, 0.6)
+                    (4.5, 0.1) edge[->] (4.5, -1)
+                    (5.5, -0.6) edge[->] (5.5, -1)
+                    (4, -0.35) edge[->] (5, -0.35)
+                    (6, -0.35) edge[->] (6.25, -0.35)
+                    ($(o) + (-0.25, -0.15)$) edge[left] node{2\ \ \ } ($(o) + (0.25, 0.15)$);
+                \end{tikzpicture}
+            \end{center}
+            With these components, we can build our first ALU block;
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[and gate US, draw, logic gate inputs=nn] (and) at (0, 0) {};
+                    \node[] () at (2, -0.75) {ALU};
+                    \node[] (d0) at (-1.25, -1.5) {$d_0$};
+                    \node[] (d1) at (-1.25, -1) {$d_1$};
+                    \draw
+                    (1, 0.25) -- (3, 0.25) -- (3, -1.75) -- (1, -1.75) -- cycle
+                    (and.output) edge[->] (1, 0)
+                    (-0.5, -0.5) edge[->] (1, -0.5)
+                    (d1) edge[->] (1, -1)
+                    (d0) edge[->] (1, -1.5)
+                    (-0.75, -1.5) -- (-0.75, 0.085) -- (and.input 1)
+                    (-0.5, -1) -- (-0.5, -0.085) -- (and.input 2)
+                    \foreach \x in {0,...,3} {
+                        (3, -1.5 + 0.5*\x) edge[->] (3.5, -1.5 + 0.5*\x)
+                    };
+
+                    \node[] () at (5.75, -1) {AFA};
+                    \node[] () at (5.5, -1.75) {\tiny MX};
+                    \node[] () at (5.75, -2.5) {MX};
+                    \node[xor gate US, draw, logic gate inputs=nn, rotate=-90] (xor) at (6, 0) {};
+                    \node[] () at (4.25, -0.75) {$\equiv$};
+                    \draw
+                    (5, 0.75) edge[->] (6.5, 0.75)
+                    (6 - 0.085, 0.75) edge[->] (xor.input 2)
+                    (6 + 0.085, 1) edge[->] (xor.input 1)
+                    (5.25, -0.75) -- (6.25, -0.75) -- (6.25, -1.25) -- (5.25, -1.25) -- cycle
+                    (5.25, -1.5) -- (5.75, -1.5) -- (5.75, -2) -- (5.25, -2) -- cycle
+                    (5.25, -2.25) -- (6.25, -2.25) -- (6.25, -2.75) -- (5.25, -2.75) -- cycle
+                    (5, -1) edge[->] (5.25, -1)
+                    (5, -1.75) edge[->] (5.25, -1.75)
+                    (5, -2.5) edge[->] (5.25, -2.5)
+                    (6.25, -1) edge[->] (6.5, -1)
+                    (5.75, -1.75) edge[->] (6.5, -1.75)
+                    (6.25, -2.5) edge[->] (6.5, -2.5)
+                    (xor.output) edge[->] (6, -0.75)
+                    (5.5, 1) edge[->] (5.5, -0.75)
+                    (5.4, -1.25) edge[->] (5.4, -1.5)
+                    (5.6, -1.25) edge[->] (5.6, -1.5)
+                    (5.5, -2) edge[->] (5.5, -2.25)
+                    (6, -1.25) edge[->] (6, -2.25);
+
+                \end{tikzpicture}
+            \end{center}
+            \medskip
+
+            The carry path is often the slowest line, as it needs to go through many gates of logic, which limits the clock rate, since clock rate $\approx \frac{1}{\texttt{delay of slowest path}}$, given we have an edge-triggered design, and a few other factors (from P\&H Appendix B. 11)
 \end{document}
