@@ -15,6 +15,9 @@
 \usepackage{hyperref}
 \usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
 
+\catcode`~=\active
+\def~#1~{\texttt{#1}}
+
 % code listing
 \lstdefinestyle{main}{
     numberstyle=\tiny,
@@ -867,4 +870,134 @@
             \subsubsection*{Integers in C}
                 The limits vary from machine to machine, as a 64-bit machine would have a much higher range. By default, C uses signed integers, so we'd have to add the \texttt{U} suffix to force unsigned. If signed values, and unsigned values are used in the same expression, the signed value will be implictly cast to an unsigned value; therefore \texttt{-1 < 0U} would evaluate to false.
             \subsubsection*{Bit Shifting, and Sign Extension}
+                These are the shift operations on unsigned integers;
+                \begin{center}
+                    \begin{tabular}{c|c|c}
+                        expression & binary & denary \\
+                        \hline
+                        \texttt{x} & \texttt{00000110} & 6 \\
+                        \texttt{x << 3} & \texttt{00110000} & 48 \\
+                        \texttt{x >> 2} & \texttt{00000001} & 1 \\
+                        \texttt{y} & \texttt{11110010} & 242 \\
+                        \texttt{y << 3} & \texttt{10010000} & 144 \\
+                        \texttt{y >> 2} & \texttt{00111100} & 60 \\
+                    \end{tabular}
+                \end{center}
+                On the other hand, with signed (twos complement) integers, we have to deal with the difference between an arithmetic shift, and a logical shift. The arithmetic shift fills with the most significant bit on the left, which maintains the sign, whereas the logical shift just fills with 0s regardless;
+                \begin{center}
+                    \begin{tabular}{c|c|c}
+                        expression & binary & denary \\
+                        \hline
+                        \texttt{x} & \texttt{01100010} & 98 \\
+                        \texttt{x << 3} & \texttt{00010000} & 26 \\
+                        \texttt{x >> 2} (logical)& \texttt{00011000} & 24 \\
+                        \texttt{x >> 2} (arithmetic)& \texttt{00011000} & 24 \\
+                        \texttt{y} & \texttt{10100010} & -94 \\
+                        \texttt{y << 3} & \texttt{00010000} & 16 \\
+                        \texttt{y >> 2} (logical) & \texttt{00101000} & 40 \\
+                        \texttt{y >> 2} (arithmetic) & \texttt{11101000} & -24 \\
+                    \end{tabular}
+                \end{center}
+                We can use this method to get the second most significant byte of an integer as follows;
+                \begin{center}
+                    \begin{tabular}{c|c}
+                        expression & binary \\
+                        \hline
+                        \texttt{x} & \texttt{01100001 01100010 01100011 01100100} \\
+                        \texttt{x >> 16} & \texttt{00000000 00000000 01100001 01100010} \\
+                        \texttt{(x >> 16) \& 0xFF} & \texttt{00000000 00000000 00000000 01100010}
+                    \end{tabular}
+                \end{center}
+                The same method can be used to extract the signed bit of a signed integer as follows; given a 32-bit signed integer \texttt{x}, we can do \texttt{(x >> 31) \& 1}.
+                \medskip
+
+                In order to extend the sign of an integer, we simply repeat the most significant bit, as this maintains the value (and of course, the sign).
+            \subsubsection*{Fractional Binary Numbers}
+                Consider the fractional binary number $\texttt{10111.101}_2$, which is done as;
+                \begin{center}
+                    \begin{tabular}{c|c|c|c|c|c|c|c|c}
+                        16 & 8 & 4 & 2 & 1 & . & $\frac{1}{2}$ & $\frac{1}{4}$ & $\frac{1}{8}$ \\
+                        \hline
+                        \texttt{1} & \texttt{0} & \texttt{1} & \texttt{1} & \texttt{1} & \texttt{.} & \texttt{1} & \texttt{0} & \texttt{1}
+                        % at this point, i got annoyed and defined ~X~ to be \texttt{X}.
+                    \end{tabular}
+                \end{center}
+                This representation of binary numbers is also able to use the shifts for multiplication (and therefore division) by powers of 2. However, this is a fixed point representation. The closer the fixed point is closer to the MSB, the lower the range, but the higher the precision, and on the other hand, if the fixed point is closer to the LSB, we have a higher range but low precision.
+            \subsubsection*{Floating Point}
+                The IEEE floating point standard (754) is analogous to scientific notation, and is supported by all major CPUs today. This standard was driven by the requirement for having standards to handle rounding, and over/underflow. It's hard to make fast in hardwae, but behaves well numerically. Given some value $V$, in base 10, we have $V_{10} = (-1)^s \cdot M \cdot 2^E$, where $s$ is the sign bit, the significand (or mantissa) M, being a fractional value in the range [1.0, 2), and an exponent $E$, which weights the value by a power of 2. In memory, it's represented as a sign bit, an 8-bit (11 in 64-bit) ~exp~ field encoding $E$ (not equal), and a 23-bit (52 in 64-bit) ~frac~ field encoding $M$, also not equal. Single precision is 32-bit, and double is 64-bit. The mantissa has the normalised form ~1.xxxxx~, and we don't need to store the 1, since we know it's already stored. For example, $0.011 \times 2^5$ is equivalent to $1.1 \times 2^3$, but we use the latter as it makes better use of available bits. We also have a number of special cases;
+                \begin{itemize}
+                    \itemsep0em
+                    \item the bit pattern with all ~0~s represents zero
+                    \item if the ~exp~ is all ~1~s, and the ~frac~ is all ~0~s, it represents $\infty$, which can be signed
+                    \item if the ~exp~ is all ~1~s, and the ~frac~ isn't all ~0~s, it represents ~NaN~
+                \end{itemize}
+                Since we can't use all ~0~s, or all ~1~s in our exponent field, because it's reserved as mentioned above, we need to encode it with a bias $B$, such that we have $E = ~exp~ - B$. The bias is $2^{k - 1} - 1$, which is 127 in single precision, and 1023 in double precision. Hence ~exp~ is in the range [1, 254], when the actual value of $E$ is in the range [-126, 127], and the same for double precision [1, 2046], vs [-1022, 1023]. This allows for negative values, which thus allows for very small values. It's important to note how the range of ~exp~ isn't from 0 to 255, as those are reserved. We have an implied leading bit of ~1~, which means that we have a minimum when we have the bit pattern ~000...0~, which is $M = 1.0$, and the bit pattern ~111...1~ represents $M = 2.0 - \epsilon$. This is an example working on ~float f = 12345.0;~
+                \begin{align*}
+                    \textbf{Value:} \\
+                    12345_{10} & = ~11000000111001~_2 \\
+                    & = ~1.1000000111001~_2 \times 2^{13} \text{ \ (normalised)} \\
+                    \textbf{Significand:} \\
+                    M & = ~1.1000000111001~_2 \\
+                    ~frac~ & = ~10000001110010000000000~_2 \text{ \ (drop the leading bit, and pad with ~0~s)} \\
+                    \textbf{Exponent:} \\
+                    E & = ~exp~ - B \\
+                    \Leftrightarrow ~exp~ & = E + B \\
+                    E & = 13 \\
+                    B & = 127 \\
+                    ~exp~ & = 140 \\
+                    & = ~10001100~_2
+                \end{align*}
+                Hence, the number is represented by $\underbrace{~0~}_~s~\underbrace{~10001100~}_~exp~\underbrace{~10000001110010000000000~}_~frac~$
+            \subsubsection*{Floating Point Operations, and Rounding}
+                It's important to remember that floating-point representation isn't exact. Therefore we need to consider it as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~x +$_f$ y~ \hfill ~Round(x + y)~
+                    \item ~x *$_f$ y~ \hfill ~Round(x * y)~
+                \end{itemize}
+                These operations require adjustment. For example, with addition, the exponents can be extremely different, and therefore they need to be aligned before addition is done. The general idea is to compute the exact result, then round the result to fit into the standard. Thre is possible overflow if the exponent is too large, or having to drop precision if it cannot fit into the mantissa.
+                \medskip
+
+                If we were to repeatedly round, we can introduce a significant amount of error into the result. However, if we know the direction in which we are rounding in, we can introduce statistical bias to our results. The round-to-even method (which rounds to the nearest even number if it's at a mid-point (e.g 1.4 goes to 1, 1.5 goes to 2, -1.5 goes to -2 etc.)) can avoid this bias as we round up half the time, and down the other half. Therefore this is the default used in the IEEE standard.
+                \medskip
+
+                If the exponent overflows, we can set the result to $\pm \infty$. Also, it's important to note that floating point operations aren't associative, or disassocitive, due to the rounding. For example, if we were to do ~(3.14 + 1e10) - 1e10~, it would not be the same as ~3.14 + (1e10 - 1e10)~, as the ~3.14~ is insignificant.
+            \subsubsection*{Floating Point in C}
+                In C, we have ~float~, and ~double~, which are 32-bit, and 64-bit respectively. We should also avoid equality, as they can be unpredictable. The best approaches is to check the difference. Converting from a floating point to an integer in C, is simply truncating the fractional part of (and therefore rounds towards 0). It's not possible to overflow from an integer, to floating point representation, as floating points can represent much larger values (however precision may be lost).
+                \medskip
+
+                To summarise; we have the following possible values;
+                \begin{center}
+                    \begin{tabular}{l||c|l|r}
+                        value & ~s~ & ~exp~ & ~frac~ \\
+                        \hline
+                        zero & ~0~ & ~00000000~ & ~00000000000000000000000~ \\
+                        normalized values & ~s~ & [$1, 2^k - 2$] & significand = 1.M \\
+                        infinity & ~s~ & ~11111111~ & ~00000000000000000000000~ \\
+                        NaN & ~s~ & ~11111111~ & non-zero \\
+                        denormalized values & ~s~ & ~00000000~ & significand = 0.M
+                    \end{tabular}
+                \end{center}
+        \subsection*{Architecture}
+            I'm pretty sure this is covered in the first half of the module.
+            \medskip
+
+            The time required to execute a program depends on the following facors;
+            \begin{itemize}
+                \itemsep0em
+                \item The program
+                \item The compiler
+                    \subitem what set of assembler instructions it was translated into
+                \item The ISA
+                    \subitem what set of instructions are available to the compiler
+                \item The hardware
+                    \subitem how much time it takes per instruction
+            \end{itemize}
+            The ISA defines the system's state, such as the registers, memory, and the program counter. It also defines the instructions the CPU is able to execute, as well as the effects these instructions have on the system state. The ISA has to be designed with how memory is addressed, as well as the number of registers, and their widths. x86 processors currently dominate the server, desktop, and laptop markets. It's backwards compatible to 8086, which was introduced in 1978. IA32 is the traditional 32-bit x86 implementation, and the new standard of x86-64, which is 64-bit.
+            \medskip
+
+            The states visible to the programmer are the Program Counter, holding the address of the next instruction (also referred to as "EIP" (extended instruction pointer) in IA32, and "RIP" in x86-64). The registers are also visible to the assembly code, as well as the condition codes which stores information about the most the recent arithmetic operation, this can be used for conditional branching. The memory is byte addressable array, which contains code, user data, and some OS data. Includes a stack to support procedures.
+            \medskip
+
+            
 \end{document}
