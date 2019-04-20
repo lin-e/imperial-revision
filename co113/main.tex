@@ -1434,7 +1434,7 @@
                         \end{lstlisting}
                     \end{minipage}
                 \end{center}
-                In order to think about it in a way closer to machine code, we can use ~goto~, which is something that is generally avoided in programming.
+                In order to think about it in a way closer to machine code, we can use ~goto~, which is something that is generally avoided in programming. This makes it a lot easier to implement, especially when we're dealing with more complex iterations, such as ~for~ loops, which will be discussed later. The use of a ~goto~ equivalent is fairly common in assembly, so understanding how code can be converted from our standard constructs to use it can be beneficial.
                 \begin{center}
                     \vspace{-1.5\baselineskip}
                     \begin{minipage}[t]{0.485\textwidth}
@@ -1502,4 +1502,113 @@
                     \end{minipage}
                 \end{center}
             \subsubsection*{Switch Statement}
+                Consider the following example of a ~switch~ statement, with many possible cases, and demonstrates many of the scenarios in a switch. For example, we have multiple lables, on 5, 6, fall through on 2, and missing cases. On the right is the corresponding jump table. Note that minipages don't break on \LaTeX, therefore I will do most of the writing up here (believe me, I'm not good with \LaTeX). Below those two is the full assembly code (except for the jump table).
+                \medskip
+
+                It's important to note that all of the cases which have a ~break~, have the same ending two lines of assembly.
+                \begin{center}
+                    \begin{minipage}[t]{0.3\textwidth}
+                        \vspace{-1\baselineskip}
+                        \begin{lstlisting}
+                            switch (x) {
+                              case 0:     <code>
+                                          break;
+                              case 10:    <code>
+                                          break;
+                              case 52000: <code>
+                                          break;
+                              default:    <code>
+                                          break;
+                            }
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.65\textwidth}
+                        It's also important for us to consider when it's actually viable to implement a jump table. In the example to the left, we would need a jump table which had 52001 entries, which is far too big. Jump tables should be reserved when we have a small range of dense cases to ~switch~.
+                    \end{minipage}
+                \end{center}
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.61\textwidth}
+                        \begin{lstlisting}
+                            long switch_eg(unsigned long x, long y, long z) {
+                              long w = 1;
+                              switch(x) {
+                                case 1: /* .L56 */
+                                  w = y*z;
+                                  break;
+                                case 2: /* .L57 */
+                                  w = y/z;
+                                  /* fall through */
+                                case 3: /* .L58 */
+                                  w += z;
+                                  break;
+                                case 5:
+                                case 6: /* .L60 */
+                                  w -= z;
+                                default: /* .L61 */
+                                  w = 2;
+                              }
+                              return w;
+                            }
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.375\textwidth}
+                        \begin{lstlisting}
+                            .secton .rodatra
+                                .align 4
+                            .L62:
+                                .long  .L61 # x = 0
+                                .long  .L56 # x = 1
+                                .long  .L57 # x = 2
+                                .long  .L58 # x = 3
+                                .long  .L61 # x = 4
+                                .long  .L60 # x = 5
+                                .long  .L60 # x = 6
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                \vspace{-\baselineskip}
+                \begin{lstlisting}
+                    switch_eq:
+                        pushl %ebp            /* Setup */
+                        movl  %esp, %ebp      /* Setup */
+                        pushl &ebx            /* Setup */
+                        movl $\dollar$1, %ebx          /* w = 1 */
+                        movl 8(%ebp), %edx    /* edx = x */
+                        movl 16(%ebp), %ecx   /* ecx = z */
+                        comp $\dollar$6, %edx          /* x : 6 */
+                        ja   .L61             /* if > goto default */
+                        jmp  *.L62(, %edx, 4) /* goto table[x] */
+                    .L61:                     /* default */
+                        movl $\dollar$2, %eax          /* w = 2 */
+                        movl %ebx, %eax       /* return w */
+                        popl %ebx
+                        leave
+                        ret
+                    .L56:                     /* case 1 */
+                        movl 12(%ebp), %ebx   /* w = y */
+                        imull %ecx, %ebx      /* w *= z */
+                        movl %ebx, %eax       /* return w */
+                        popl %ebx
+                        leave
+                        ret
+                    .L57:                     /* case 2 */
+                        movl 12(%ebp), %eax   /* load y */
+                        ctld                  /* prepare for divide */
+                        idivl %ecx            /* y/x */
+                        movl %eax, %ebx       /* w = y/x */
+                    /* fall through */
+                    .L58:                     /* case 3 */
+                        addl %ecx, %ebx       /* w += z */
+                        movl %ebx, %eax       /* return w */
+                        popl %ebx
+                        leave
+                        ret
+                    .L60:                     /* cases 5&6 */
+                        subl %ecx, %ebx       /* w -= z */
+                        movl %ebx, %eax       /* return w */
+                        popl %ebx
+                        leave
+                        ret
+                \end{lstlisting}
 \end{document}
