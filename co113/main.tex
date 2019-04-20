@@ -1279,4 +1279,22 @@
                     \end{minipage}
                 \end{center}
                 The compiler does optimisations here, and you can see that the order of the assembly code isn't necessarily the same as the order of instructions in the C code. A compiler could also optimise the program by setting constants, instead of recalculating it.
+            \subsubsection*{Conditionals, and Control Flow}
+                In our high level languages, we have different conditional branches, such as ~if~, ~while~, ~do~, ~for~, etc, as well as unconditional branches such as break, and continue. In x86, these are all refered to as jumps, either conditional, or unconditional.
+                \medskip
+
+                The jump instruction can depend on multiple things, but the ones we'll likely be using the most are unconditional jump (~jmp~), jump if equal (~je~), jump if not equal (~jne~), and some comparisons. However, with the signed ones, there's a number of variations. Other than our 8 registers, there is an additional register called the \textbf{instruction pointer} (~\%eip~), as well as four single bit registers storing the condition of recent tests (~CF~, ~ZF~, ~SF~, and ~OF~). These are implictly set, which means they are set whenever instructions are carried out. For example, if we were to run $~addl src, dest~ \leftrightarrow ~t = a + b~$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~CF~ \hfill carry flag (unsigned)
+                        \subitem set if carry out from the most significant bit; hence unsigned overflow
+                    \item ~ZF~ \hfill zero flag
+                        \subitem set if ~t == 0~
+                    \item ~SF~ \hfill sign flag (signed)
+                        \subitem set if ~t < 0~ (as signed)
+                    \item ~OF~ \hfill overflow flag (signed)
+                        \subitem set if two's complement (signed overflow)
+                        \subitem ~(a > 0 \&\& b > 0 \&\& t < 0) || (a < 0 \&\& b < 0 \&\& t >= 0)~
+                \end{itemize}
+                However, this is \textbf{not} set by ~lea~. In addition, we can also explicitly set these flags with ~cmpl~, for example with ~cmpl b, a~, we're doing ~a - b~, without setting a destination;
 \end{document}
