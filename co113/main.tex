@@ -32,7 +32,7 @@
     basewidth=0.5em,
     autogobble,
     xleftmargin=3.0ex,
-    mathescape=true
+    mathescape=true,
 }
 \newcommand{\dollar}{\mbox{\textdollar}} %
 \lstset{style=main}
@@ -994,10 +994,97 @@
                     \subitem how much time it takes per instruction
             \end{itemize}
             The ISA defines the system's state, such as the registers, memory, and the program counter. It also defines the instructions the CPU is able to execute, as well as the effects these instructions have on the system state. The ISA has to be designed with how memory is addressed, as well as the number of registers, and their widths. x86 processors currently dominate the server, desktop, and laptop markets. It's backwards compatible to 8086, which was introduced in 1978. IA32 is the traditional 32-bit x86 implementation, and the new standard of x86-64, which is 64-bit.
-            \medskip
+            \subsubsection*{Compiling, and Assembly}
+                The states visible to the programmer are the Program Counter, holding the address of the next instruction (also referred to as "EIP" (extended instruction pointer) in IA32, and "RIP" in x86-64). The registers are also visible to the assembly code, as well as the condition codes which stores information about the most the recent arithmetic operation, this can be used for conditional branching. The memory is byte addressable array, which contains code, user data, and some OS data. Includes a stack to support procedures.
+                \medskip
 
-            The states visible to the programmer are the Program Counter, holding the address of the next instruction (also referred to as "EIP" (extended instruction pointer) in IA32, and "RIP" in x86-64). The registers are also visible to the assembly code, as well as the condition codes which stores information about the most the recent arithmetic operation, this can be used for conditional branching. The memory is byte addressable array, which contains code, user data, and some OS data. Includes a stack to support procedures.
-            \medskip
+                Given two code files, ~p1.c~, and ~p2.c~, we compile it into (text) assembly, with ~gcc -S~, resulting in ~p1.s~, and ~p2.s~. This is then assembled with ~gcc~, or ~as~, to get binary object programs ~p1.o~, and ~p2.o~. This is then linked with ~gcc~, or ~ld~, with static libraries to create the executable binary ~p~. The compilation command is ~gcc -O1 p1.c p2.c -o p~ (the ~-O1~ is for optimisations). Here is an example of C code, and the IA32 assembly, obtained with ~gcc -O1 -S code.c~;
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* code.c */
+                            int sum (int x, int y) {
+                            int t = x + y;
+                            return t;
+                            }
+                        \end{lstlisting}
+                    \end{minipage}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* code.s */
+                            sum:
+                                pushl %ebp
+                                movl %esp, %ebp
+                                movl 12(%ebp), %eax
+                                addl 8(%ebp), %eax
+                                movl %ebp, %esp
+                                popl %ebp
+                                ret
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                As mentioned in the first part, there are three types of instructions, ones that perform arithmetic functions on register, or memory data, ones that transfer data between the main memory, and register, as well as ones that transfer control.
+                \medskip
 
-            
+                The basic data types are assembly, which are integer data types of 1, 2, or 4 bytes (in IA32), or 8 (in x86-64) bytes. These are data values, or they can be addresses (untyped pointers). There are also floating point data types, of 4, 8, or 10 bytes. Aggregate data types, like arrays and structs, don't exist in assembly. They are just sequentially allocated bytes in memory.
+                \medskip
+
+                In particular, if we look at line 3 in ~code.c~, that is analogous to line 6 in ~code.s~. The C code adds two signed integers, whereas the assembly code is adding two 4-byte integers - it's the same instruction whether it's signed, or unsigned. In this case, we're using ~\%eax~ as both the source register ~x~, and the destination ~t~. We can locate ~y~ in memory by getting ~M[\%ebp + 8]~, which is offsetting two memory locations away from the base pointer.
+                \begin{lstlisting}
+                    /* line 3 similar to */
+                    x += y;
+                    /* precisely */
+                    int eax;
+                    int *ebp;
+                    eax += ebp[2];
+                \end{lstlisting}
+            \subsubsection*{Disassembling Object Code}
+                We'll continue working on the ~sum~ example, which has the code, and can be disassembled into the following (both examples on the right side are equivalent, the first is with ~objdump~, the second with ~gdb~, the latter shows the offset from the initial entry);
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.245\textwidth}
+                        \begin{lstlisting}
+                            0x401040 <sum>:
+                                0x55
+                                0x89
+                                0xe5
+                                0x8b
+                                0x45
+                                0x0c
+                                0x03
+                                0x45
+                                0x08
+                                0x89
+                                0xec
+                                0x5d
+                                0xc3
+                        \end{lstlisting}
+                    \end{minipage}
+                    \begin{minipage}[t]{0.745\textwidth}
+                        \begin{lstlisting}
+                            00401040 <_sum>:
+                               0:     55                push     %ebp
+                               1:     89 e5             mov      %esp, %ebp
+                               3:     8b 45 0c          mov      0xc(%ebp), %eax
+                               6:     03 45 08          add      0x8(%ebp), %eax
+                               9:     89 ec             mov      %ebp, %esp
+                               b:     5d                pop      %ebp
+                               c:     c3                ret
+                        \end{lstlisting}
+                        \begin{lstlisting}
+                            00401040 <sum>:     push     %ebp
+                            00401041 <sum+1>:   mov      %esp, %ebp
+                            00401043 <sum+3>:   mov      0xc(%ebp), %eax
+                            00401046 <sum+6>:   add      0x8(%ebp), %eax
+                            00401049 <sum+9>:   mov      %ebp, %esp
+                            0040104b <sum+11>:  pop      %ebp
+                            0040104c <sum+12>:  ret
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                Anything that can be interepreted as executable code can be disassembled. Registers are at the heart of assembly program - they are a precious commodity in all architecures, but especially in x86. In x86, we have 6 general purpose registers (~\%eax, \%ecx, \%edx, \%ebx, \%esi, \%edi~), originally accumulate, counter, data, base, source index, and destination index (respectively) - but these are obsolete. There are also two special purpose registers (~\%esp, \%ebp~), which act as the stack pointer, and the base pointer (respectively). They are all 32-bit registers. However, for the purposes of backwards compatibility, we can drop the ~e~ from each register to access the right half (bits 15-0) (such that ~\%ax~ refers to the least significant 16 bits of ~\%eax~). The first four general purpose registers listed can also be accessed even specifically, accessing bits 7-0 with ~\%al~, and accessing bits 15-8 with ~\%ah~ - same for the other 3. With x86-64 registers, we once again have backwards compatibility, where you can refer to bits 31-0 of ~\%rax~, by using ~\%eax~. We also have aother 8 additional registers, each accessible in the same way (through 8, 16, 32, or 64) bits. The additional registers ~\%r8~ to ~\%r15~ can be accessed with their least significant 32 bits with ~\%r8d~ to ~\%r15d~ respectively.
+        \subsection*{x86 Assembly}
+            \subsubsection*{Move Operations}
+                
 \end{document}
