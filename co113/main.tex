@@ -839,4 +839,32 @@
                 \end{lstlisting}
                 Bit vectors can be used to represent sets, when we have a $w$-bit vector, representing a set $A = \{0, ..., w - 1\}$, such that bit $a_j == 1 \leftrightarrow j \in A$. This way, we can do bitwise operations, such as doing intersection, union, symmetric difference, and complement.
         \subsection*{Numbers}
+            \subsubsection*{Binary Encoding}
+                Consider a deck of cards; we have four approaches;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item use 52 bits
+                        \subitem this is a one-hot (one bit set to 1)
+                    \item use 4 bits, and 13 bits
+                        \subitem this is a two-hot, where the first four bits represents the suit, and the last 13 represent the card
+                    \item use 6 bits
+                        \subitem this method is done by storing a number in binary, up to 52
+                    \item use 6 bits
+                        \subitem use 2 bits to store suit, and the remaining 4 to store the value
+                        \subitem we can get the suit with a bitwise mask of \texttt{0x30}, and similarly use bitmask \texttt{0x0F} to get the value
+                \end{enumerate}
+            \subsubsection*{Integer Encoding}
+                We can represent an $n$-bit binary digit as $\summation{i = 0}{n - 1}{2^ib_i}$, and therefore the biggest number we can represent in an unsigned $n$-bit binary digit is $2^n - 1$. Binary addition, and subtraction is covered here as well, but we can refer back to \textbf{CO112}.
+                \medskip
+
+                However, this representation doesn't allow us to represent negative numbers. This leads to two possible approaches; sign-and-magnitude, and twos complement. The former has an issue in \texttt{0x80}, which is -0, and \texttt{0x00}, which is 0 (positive), since we're taking the first bit as the sign, and the remaining 7 to represent the magnitude - which also leads to issues with arithmetic. On the other hand, the latter negates the MSB, such that we can represent an $n$-bit twos complement digit as;
+                \medskip
+
+                $(\summation{i = 0}{n - 2}{2^ib_i}) - 2^{n - 1}b_{n-1}$.
+                \medskip
+
+                This has significant benefits, as we can now easily do arithmetic on it, since we have $\texttt{1111}_2 = -1_{10}$, and $\texttt{0000}_2 = 0_{10}$. It also simplifies hardware, as our adders would work for both unsigned, and twos complement integers. In order to negate an unsigned integer, let it be \texttt{x}, we take the complement of \texttt{x}, and add 1 to it. As we still have limits for both signed, and unsigned numbers, the CPU may throw an exception for signed values, but most won't for unsigned values, leading to overflow (or underflow). With a word size $w$, the unsigned values exist within the range $[0, 2^w - 1]$, and twos complement values exist within the range $[-2^{w - 1}, 2^{w - 1} - 1]$
+            \subsubsection*{Integers in C}
+                The limits vary from machine to machine, as a 64-bit machine would have a much higher range. By default, C uses signed integers, so we'd have to add the \texttt{U} suffix to force unsigned. If signed values, and unsigned values are used in the same expression, the signed value will be implictly cast to an unsigned value; therefore \texttt{-1 < 0U} would evaluate to false.
+            \subsubsection*{Bit Shifting, and Sign Extension}
 \end{document}
