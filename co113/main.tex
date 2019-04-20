@@ -1297,4 +1297,209 @@
                         \subitem ~(a > 0 \&\& b > 0 \&\& t < 0) || (a < 0 \&\& b < 0 \&\& t >= 0)~
                 \end{itemize}
                 However, this is \textbf{not} set by ~lea~. In addition, we can also explicitly set these flags with ~cmpl~, for example with ~cmpl b, a~, we're doing ~a - b~, without setting a destination;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~CF~ \hfill set if carry out from the most significant bit; hence unsigned overflow
+                    \item ~ZF~ \hfill set if ~a == b~
+                    \item ~SF~ \hfill set if ~a < b~ (as signed)
+                    \item ~OF~ \hfill set if ~(a > 0 \&\& b < 0 \&\& (a - b) < 0) || (a < 0 \&\& b > 0 \&\& (a - b) > 0)~
+                \end{itemize}
+                Additionally, we can set it with the ~testl~, or ~testq~ instruction, for example, computing ~testl b, a~ is similar to computing ~a \& b~ without setting a destination;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~ZF~ \hfill set if ~a \& b == 0~
+                    \item ~SF~ \hfill set if ~a \& b < 0~
+                \end{itemize}
+                There are also manual instructions that can be used to read the values of these condition bits into a register, which is used in the example below, where ~setX~ sets the a single byte to ~0~ or ~1~ based on the combination of condition codes;
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* gt.c */
+                            int gt(int x, int y) {
+                              return x > y;
+                            }
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* gt.s */
+                            gt:
+                                movl   12(%ebp), %eax
+                                /* eax = y */
+                                cmpl   %eax, 8(%ebp)
+                                /* compare x and y (x - y) */
+                                setg   %al
+                                /* al = x > y */
+                                movzbl %al, %eax
+                                /* zeroes rest of al */
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Conditional Branches}
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* absdiff.c */
+                            int absdiff(int x, int y) {
+                              int result;
+                              if (x > y) {
+                                result = x - y;
+                              } else {
+                                result = y - x;
+                              }
+                              return result;
+                            }
+                        \end{lstlisting}
+                        This example maps ~x~ to ~\%edx~, and ~y~ to ~\%eax~, hence we are doing ~cmpl y x~, which is implicitly doing ~x - y~, if ~jle~ is triggered, hence ~x < y~, we jump to the point where we calculate ~y - x~.
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* absdiff.s */
+                            absdiff:
+                                pushl %ebp
+                                movl  %esp, %ebp
+                                movl  8(%ebp), %edx
+                                movl  12(%ebp), %eax
+                                cmpl  %eax, %edx
+                                jle   .L7
+                                subl  %eax, %edx
+                                movl  %edx, %eax
+                            .L8:
+                                leave
+                                ret
+                            .L7:
+                                subl  %edx, %eax
+                                jmp   .L8
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                However, in x86-64, there is a conditional move instruction. This is more efficient as it has a simpler control flow, and only moves from ~src~ to ~dest~, if condition ~C~ holds (~cmovC src, dest~). This comes with a drawback, where there's more overhead since both branches need to be evaluated.
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* absdiff.c */
+                            int absdiff(int x, int y) {
+                              int result;
+                              if (x > y) {
+                                result = x - y;
+                              } else {
+                                result = y - x;
+                              }
+                              return result;
+                            }
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* absdiff.s */
+                            absdiff:
+                                movl   %edi, %eax /* eax = x */
+                                movl   %esi, %edx /* edx = y */
+                                subl   %esi, %eax /* eax = x-y */
+                                subl   %edi, %edx /* edx = y-x */
+                                cmpl   %esi, %edi /* (x - y) */
+                                cmovle %edx, %eax /* eax = y-x */
+                                /* ^ only if <= */
+                                ret
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                Some jumps are relative to the PC, and are therefore \textbf{relocatable}, but absolute branches aren't.
+            \subsubsection*{Loops}
+                Something that was mentioned briefly in \textbf{CO141 - Reasoning About Programs}, was that most iterations are trivial to implement as a ~while~ loop. For example, we can look at the following code;
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* loop.c */
+                            void loop() {
+                              while (sum != 0) {
+                                <body>
+                              }
+                            }
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* loop.s */
+                            loop:
+                                cmpl $\dollar$0, %eax
+                                je   loopDone
+                                  <body>
+                                jmp  loop
+                            loopDone:
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                In order to think about it in a way closer to machine code, we can use ~goto~, which is something that is generally avoided in programming.
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            int fact_while(int x) {
+                              int result = 1;
+                              while (x > 1) {
+                                result *= x;
+                                x = x - 1;
+                              }
+                              return result;
+                            }
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            int fact_while(int x) {
+                              int result = 1;
+                              goto middle;
+                            loop:
+                              result *= x;
+                              x = x - 1;
+                            middle:
+                              if (x > 1) {
+                                goto loop;
+                              }
+                              return result;
+                            }
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                As previously mentioned, the conversion between a ~for~ loop, and a ~while~ loop is fairly trivial, and since we know how to go from a ~while~ loop to its ~goto~ equivalent, we can do the same for a ~for~ loop. Note that I only have the ~start~ there, since autogobble would remove the first two characters otherwise, and I'm really not bothered with redefining my environment; the flow is ~for~ $\to$ ~while~ $\to$ ~goto~.
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.41\textwidth}
+                        \begin{lstlisting}
+                            for (<init>; <test>; <update>) {
+                              <body>
+                            }
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.28\textwidth}
+                        \begin{lstlisting}
+                            <init>
+                            while (<test>) {
+                              <body>
+                              <update>
+                            }
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.28\textwidth}
+                        \begin{lstlisting}
+                            start:
+                              <init>
+                              goto middle;
+                            loop:
+                              <body>
+                              <update>
+                            middle:
+                              if (<test>) {
+                                goto loop;
+                              }
+                            done:
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Switch Statement}
 \end{document}
