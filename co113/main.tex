@@ -1005,8 +1005,8 @@
                         \begin{lstlisting}
                             /* code.c */
                             int sum (int x, int y) {
-                            int t = x + y;
-                            return t;
+                              int t = x + y;
+                              return t;
                             }
                         \end{lstlisting}
                     \end{minipage}
@@ -1064,13 +1064,13 @@
                     \begin{minipage}[t]{0.745\textwidth}
                         \begin{lstlisting}
                             00401040 <_sum>:
-                               0:     55                push     %ebp
-                               1:     89 e5             mov      %esp, %ebp
-                               3:     8b 45 0c          mov      0xc(%ebp), %eax
-                               6:     03 45 08          add      0x8(%ebp), %eax
-                               9:     89 ec             mov      %ebp, %esp
-                               b:     5d                pop      %ebp
-                               c:     c3                ret
+                               0:     55                 push     %ebp
+                               1:     89 e5              mov      %esp, %ebp
+                               3:     8b 45 0c           mov      0xc(%ebp), %eax
+                               6:     03 45 08           add      0x8(%ebp), %eax
+                               9:     89 ec              mov      %ebp, %esp
+                               b:     5d                 pop      %ebp
+                               c:     c3                 ret
                         \end{lstlisting}
                         \begin{lstlisting}
                             00401040 <sum>:     push     %ebp
@@ -1086,5 +1086,197 @@
                 Anything that can be interepreted as executable code can be disassembled. Registers are at the heart of assembly program - they are a precious commodity in all architecures, but especially in x86. In x86, we have 6 general purpose registers (~\%eax, \%ecx, \%edx, \%ebx, \%esi, \%edi~), originally accumulate, counter, data, base, source index, and destination index (respectively) - but these are obsolete. There are also two special purpose registers (~\%esp, \%ebp~), which act as the stack pointer, and the base pointer (respectively). They are all 32-bit registers. However, for the purposes of backwards compatibility, we can drop the ~e~ from each register to access the right half (bits 15-0) (such that ~\%ax~ refers to the least significant 16 bits of ~\%eax~). The first four general purpose registers listed can also be accessed even specifically, accessing bits 7-0 with ~\%al~, and accessing bits 15-8 with ~\%ah~ - same for the other 3. With x86-64 registers, we once again have backwards compatibility, where you can refer to bits 31-0 of ~\%rax~, by using ~\%eax~. We also have aother 8 additional registers, each accessible in the same way (through 8, 16, 32, or 64) bits. The additional registers ~\%r8~ to ~\%r15~ can be accessed with their least significant 32 bits with ~\%r8d~ to ~\%r15d~ respectively.
         \subsection*{x86 Assembly}
             \subsubsection*{Move Operations}
-                
+                Remember that memory is indexed just like an array. Therefore we can load data from memory into a register as ~\%reg = M[addr]~, and store data into memory as ~M[addr] = \%reg~.
+                \medskip
+
+                The general instruction for moving data is ~movX src dest~, where ~X~ is either ~b~, for a single byte, ~w~, for a 2-byte word, or ~l~, for a 4-byte long word.
+                \smallskip
+
+                The type of operands are as follows (in IA32);
+                \begin{itemize}
+                    \itemsep0em
+                    \item immediate : constant integer data
+                        \subitem this can only be used as a source, not destination
+                        \subitem encoded with either 1, 2, or 4 bytes
+                        \subitem prefixed with ~\$~ (e.g. ~\$0x400~)
+                    \item register : one of 8 integer registers
+                        \subitem prefixed with ~\%~
+                        \subitem ~mov \%eax, \%edx~ copies the contents of register ~\%eax~ into ~\%edx~
+                    \item memory : 4 consecuitive bytes of memory at address given by register
+                        \subitem simplest example is using a register as an address, e.g ~(\%eax)~ finds the data in the memory location specified by ~\%eax~
+                \end{itemize}
+                The possible combinations of ~movl~ are as follows. The heirachy is in the form ~src~, ~dest~, instruction, C analog;
+                \begin{equation*}
+                    ~movl~
+                    \begin{cases}
+                        ~Imm~
+                        \begin{cases}
+                            ~Reg \ \ \ \ \ movl \$0x4, \%eax \ \ \ \ \ \ \ \ var\_a = 0x4;~ \\
+                            ~Mem \ \ \ \ \ movl \$-147, (\%eax) \ \ \ \ \ *p\_a = -147;~
+                        \end{cases} \\
+                        ~Reg~
+                        \begin{cases}
+                            ~Reg \ \ \ \ \ movl \%eax, \%edx \ \ \ \ \ \ \ \ var\_d = var\_a;~ \\
+                            ~Mem \ \ \ \ \ movl \%eax, (\%edx) \ \ \ \ \ \ *p\_d = var\_a;~
+                        \end{cases} \\
+                        ~Mem~ \ \ \ ~Reg \ \ \ \ \ movl (\%eax), \%edx \ \ \ \ \ \ var\_d = *p\_a;~
+                    \end{cases}
+                \end{equation*}
+                Note that you \textbf{cannot} do a memory-memory transfer in a single instruction. With memory access, there are multiple ways of accessing memory;
+                \begin{itemize}
+                    \itemsep0em
+                    \item indirect (R), means Mem[Reg[R]]
+                    \item displacement D(R), means Mem[Reg[R] + D]
+                        \subitem register R specifies a memory address, the constant displacement D is the offset from that address
+                \end{itemize}
+                Consider the following example, a basic function to swap variables between two memory locations;
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* swap.c */
+                            void swap(int *xp, int *yp) {
+                              int t0 = *xp;
+                              int t1 = *yp;
+                              *xp = t1;
+                              *yp = t0;
+                            }
+                        \end{lstlisting}
+                        \medskip
+
+                        The following mappings are decided by the compiler;
+                        \begin{tabularx}{0.95\textwidth}{X|X}
+                            register & value \\
+                            \hline
+                            ~\%ecx~ & ~yp~ \\
+                            ~\%edx~ & ~xp~ \\
+                            ~\%eax~ & ~t1~ \\
+                            ~\%ebx~ & ~t0~
+                        \end{tabularx}
+                        \smallskip
+
+                        The equivalent C actions are in comments below the assembly, to show how the program is executed step by step.
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* swap.s */
+                            swap:
+                                /* setup */
+                                pushl %ebp
+                                movl  %esp, %ebp
+                                pushl %ebx
+
+                                /* body */
+                                movl  12(%ebp), %ecx
+                                /*    ecx = yp */
+                                movl  8(%ecx), %edx
+                                /*    edx = xp */
+                                movl  (%ecx), %eax
+                                /*    eax = *yp (t1) */
+                                movl  (%edx), %ebx
+                                /*    ebx = *xp (t0) */
+                                movl  %eax, (%edx)
+                                /*    *xp = eax */
+                                movl  %ebx, (%ecx)
+                                /*    *yp = ebx */
+
+                                /* restore stack, replace vals */
+                                movl  -4(%ebp), %ebx
+                                movl  %ebp, %esp
+                                popl  %ebp
+                                ret
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{x86-64 Assembly}
+                In x86-64, we have an additional ~q~, which is a quad word (8 bytes). Therefore we now have ~movq~, in addition to ~movl~, as well as the other instructions. You'll notice that the same program is much shorter when optimised, since we're passing arguments in the registers, and this is much faster since we're not using the stack.
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* swap.c */
+                            void swap(long int *xp, long int *yp) {
+                              long int t0 = *xp;
+                              long int t1 = *yp;
+                              *xp = t1;
+                              *yp = t0;
+                            }
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* swap.s */
+                            swap:
+                                movq  (%rdi), %edx
+                                movq  (%rsi), %eax
+                                movq  %eax, (%rdi)
+                                movq  %ebx, (%rsi)
+                                retq
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Addressing}
+                The most general form of addressing memory in x86 is as as follows; ~D(Rb, Ri, S)~, which computes ~M[Reg[Rb] + S*Reg[Ri] + D]~, with the following variables;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~D~ \hfill constant displacement value of 1, 2, or 4 bytes
+                    \item ~Rb~ \hfill base register, which is one of the 8 / 16 integer registers
+                    \item ~Ri~ \hfill index register, any register, except ~\%esp~, or ~\%rsp~ (~\%ebp~ is also unlikely)
+                    \item ~S~ \hfill scale, which is 1, 2, 4, or 8 (depends on array type size)
+                \end{itemize}
+                You can use the instruction ~leal src, dest~, where ~src~ is an expression for the address mode. An example would be ~leal (\%edx, \%ecx, 4), \%eax~, which essentially does ~\%eax = \%eax + 4*\%ecx~
+                \medskip
+
+                Some arithmetic operations we'll see often are the following. Note that there isn't a distinction between signed, and unsigned, as our arithmetic works regardless;
+                \begin{center}
+                    \begin{tabularx}{\textwidth}{l|X}
+                        format & computation \\
+                        \hline
+                        ~addl src, dest~ & ~dest = dest + src~ \\
+                        ~subl src, dest~ & ~dest = dest - src~ \\
+                        ~imull src, dest~ & ~dest = dest * src~ \\
+                        ~sall src, dest~ & ~dest = dest << src~ \\
+                        ~sarl src, dest~ & ~dest = dest >> src~ (arithmetic, preserves sign)\\
+                        ~shrl src, dest~ & ~dest = dest >> src~ (logical) \\
+                        ~xorl src, dest~ & ~dest = dest \^{} src~ \\
+                        ~andl src, dest~ & ~dest = dest \& src~ \\
+                        ~orl src, dest~ & ~dest = dest | src~ \\
+                        ~incl dest~ & ~dest = dest + 1~ \\
+                        ~decl dest~ & ~dest = dest - 1~ \\
+                        ~negl dest~ & ~dest = -dest~ \\
+                        ~notl dest~ & ~dest = $\neg$dest~
+                    \end{tabularx}
+                \end{center}
+                \begin{center}
+                    \vspace{-3\baselineskip}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* arith.c */
+                            int arith(int x, int y, int z) {
+                                $\textcolor{blue}{~int t1 = x + y;~}$
+                                $\textcolor{red}{~int t2 = z + t1;~}$
+                                $\textcolor{teal}{~int t3 = x + 4;~}$
+                                $\textcolor{violet}{~int t4 = y * 48;~}$
+                                $\textcolor{teal}{~int t5 = t3 + t4;~}$
+                                int rval = t2 * t5;
+                                return rval;
+                            }
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            /* arith.s */
+                            arith:
+                                movl  8(%ebp), %eax
+                                movl  12(%ebp), %edx
+                                $\textcolor{blue}{~leal  (\%edx, \%eax), \%ecx~}$
+                                $\textcolor{violet}{~leal  (\%edx, \%edx, 2), \%edx~}$
+                                $\textcolor{violet}{~sall  \$4, \%edx~}$
+                                $\textcolor{red}{~addl  16(\%edp), \%ecx~}$
+                                $\textcolor{teal}{~leal  4(\%edx, \%eax), \%eax~}$
+                                imull %ecx, %eax
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                The compiler does optimisations here, and you can see that the order of the assembly code isn't necessarily the same as the order of instructions in the C code. A compiler could also optimise the program by setting constants, instead of recalculating it.
 \end{document}
