@@ -772,7 +772,7 @@
                     \subitem the control is then transferred to the OS by executing instructions run at the exception address, which is a constant wired into the PC multiplexer
             \end{enumerate}
             To implement this, we also need to modify the finite state machines to have additional states for each error (see the lecture slides for the example).
-        \subsection*{Interlude and Introduction}
+        \subsection*{Interlude, and Introduction}
             As the YouTube playlist covers most of the content, I will be using that as the main point of reference, and not Panopto.
             \bigskip
 
@@ -1671,20 +1671,6 @@
                 This convention is called the \textbf{procedure call linkage}. Given a procedure call instruction ~call label~, we push the return address on the stack (which is the instruction immediately after the call), then we jump to ~label~. On the other hand, when we do a procedure return with ~ret~, we pop the return the address from the stack, and jump to that address.
                 \medskip
 
-                Actions that the \textcolor{blue}{caller} does are highlighted in blue, and actions that the \textcolor{violet}{callee} does are highlighted in violet;
-                \begin{enumerate}[1.]
-                    \itemsep0em
-                    \item \textcolor{blue}{set parameters in order (registers, and stack)}
-                    \item \textcolor{blue}{calls callee}
-                    \item \textcolor{violet}{save registers on stack}
-                    \item \textcolor{violet}{execute the body of method}
-                    \item \textcolor{violet}{copy any results to ~\%eax~/~\%rax~}
-                    \item \textcolor{violet}{restore registers from stack}
-                    \item \textcolor{violet}{return to to caller}
-                    \item \textcolor{blue}{remove parameters from stack}
-                    \item \textcolor{blue}{use returned result}
-                \end{enumerate}
-
                 In this example, we put the address of the next instruction into ~\%eip~, push that value onto the stack, and then increment it by the arguments of ~call~ (we're using relative addressing). Note that ~0x8048590 = 0x8048553 + 0x000063d~. Note that it's an arbitrary number of instructions between ~0x8048590~, and ~0x8048591~, we're just using the latter to denote the ~ret~ instruction.
                 \begin{lstlisting}
                     804854e:    e8 3d 06 00 00    call     8048b90 <main>
@@ -1718,7 +1704,7 @@
                             \hline
                             \\
                             \\
-                            \\
+                            $\cdots$ \\
                             \\
                             \\
                             \hline
@@ -1764,10 +1750,10 @@
                                 \begin{center}
                                     \begin{tabular}{|r|c|}
                                         \hline
-                                        offset from ~\%ebp~ & stack \\
+                                        offset from ~\%ebp~ & resulting stack \\
                                         \hline
                                         & \\
-                                        & \\
+                                        & $\cdots$ \\
                                         & \\
                                         \hline
                                         12 & ~yp~ \\
@@ -1784,6 +1770,152 @@
                                 \end{center}
                             \end{minipage}
                         \end{center}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Registers, and Variables}
+                Consider the following assembly code, where ~func1~ is the caller, and ~func2~ is the callee;
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            func1:
+                                ...
+                                movl $\dollar$12345, %edx
+                                call func2
+                                addl %edx, %eax
+                                ...
+                                ret
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{lstlisting}
+                            func2:
+                                ...
+                                movl 8(%ebp), %edx
+                                addl $\dollar$54321, %edx
+                                ...
+                                ret
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                You'll notice that the register ~\&edx~ is overwritten in ~func2~, despite a value being already set for it in ~func1~. The conventions here are \textbf{caller save}, and \textbf{callee save}, where the caller saves temporary values in its frame before calling, and the callee saves temporary values in its frame before using, respectively. ~\%eax, \%edx, \%ecx~ are caller-save, and ~\%ebx, \%esi, \%edi~ are callee-save. You'll note that ~\%eax~ is also used to save the return value, which is why the caller must save it, since the value will be replaced by the callee on return. ~\%esp, \%ebp~ are special forms of callee-save, and are restored to the original value upon exit.
+                \medskip
+
+                Actions that the \textcolor{blue}{caller} does are highlighted in blue, and actions that the \textcolor{violet}{callee} does are highlighted in violet;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textcolor{blue}{set parameters in order (registers, and stack)}
+                    \item \textcolor{blue}{calls callee}
+                    \item \textcolor{violet}{save registers on stack}
+                    \item \textcolor{violet}{execute the body of method}
+                    \item \textcolor{violet}{copy any results to ~\%eax~/~\%rax~}
+                    \item \textcolor{violet}{restore registers from stack}
+                    \item \textcolor{violet}{return to to caller}
+                    \item \textcolor{blue}{remove parameters from stack}
+                    \item \textcolor{blue}{use returned result}
+                \end{enumerate}
+                In summary, the IA32 procdeures are a combination of instructions, and conventions. The latter prevents functions from disrupting each other's correct execution. The stack is used for the data structure because if ~P~ calls ~Q~, then ~Q~ must return before ~P~ returns. In recursive cases, we can safely store values in local stack frames, and callee-saved registers. Arguments are in the top of the stack, and results are saved in ~\%eax~.
+            \subsubsection*{x86-64 Procedures, and Stacks}
+                As we've doubled the number of general purpose registers, we can reduce the use of the stack. We can now store arguments, as well as temporary variables, in registers. If we run out however, we can default back to the stack. The usage conventions are as follows;
+                \begin{center}
+                    \vspace{-\baselineskip}
+                    \begin{tabularx}{\textwidth}{X|X}
+                        ~\%rax~ \hfill return value & ~\%r8~ \hfill argument \#5 \\
+                        \hline
+                        ~\%rbx~ \hfill callee saved & ~\%r9~ \hfill argument \#6 \\
+                        \hline
+                        ~\%rcx~ \hfill argument \#4 & ~\%r10~ \hfill caller saved \\
+                        \hline
+                        ~\%rdx~ \hfill argument \#3 & ~\%r11~ \hfill caller saved \\
+                        \hline
+                        ~\%rsi~ \hfill argument \#2 & ~\%r12~ \hfill callee saved \\
+                        \hline
+                        ~\%rdi~ \hfill argument \#1 & ~\%r13~ \hfill callee saved \\
+                        \hline
+                        ~\%rsp~ \hfill stack pointer & ~\%r14~ \hfill callee saved \\
+                        \hline
+                        ~\%rbp~ \hfill callee saved & ~\%r15~ \hfill callee saved \\
+                    \end{tabularx}
+                    \vspace{-2\baselineskip}
+                \end{center}
+                Previously, the different implementations of ~swap~ between IA32 versus x86-64 versions were compared. By avoiding the stack entirely (except for ~ret~), we can make execution much faster as we don't have to fetch from main memory, and we have far less instructions.
+                \medskip
+
+                Local variables are also stored in the registers (if there is enough room), and the ~callq~ instruciton stores 64-bit return addresses instead. We also have to decrement ~\%rsp~ by 8, as we are now using 8 bytes. There isn't a frame pointer anymore, as all references are made relative to ~\%rsp~, and therefore both ~\%rbp~ (and therefore ~\%ebp~) is now made available for use as a general purpose register. Functions are able to access memory up to 128 bytes beyond ~\%rsp~, which is referred to as the \textbf{red zone}.
+                \medskip
+
+                Often, the x86-64 functions no longer need a stack frame, and the only use of the stack is just the return address for function calls. However, a function will need the stack frame when it has too many local variables for the registers, has more complex variables such as arrays, or structs. It will also need a stack frame if it uses the address-of oeprator (\&) to compute a local variable's address, or if it calls another function which requires more than 6 arguments, or if it needs to save callee-save registers before modification. Once again, because minipages doesn't really allow me to split the content, I will have to do the majority of the writing up here (imagine the figure is between this paragraph, and the next).
+                \medskip
+
+                It's important to note that the arguments have to be passed in the following order; ~rdi, rsi, rdx, rcx, r8, r9~, and then finally into the stack. Note the penultimate 3 lines of the assembly code (lines 13-15) handle the 2 arguments that don't fit into the registers. The literal 4 is loaded into argument 7, which is where the stack pointer currently is, and the address is computed computed into ~\%rax~), and then moved from ~\%rax~ into the correct location in the stack. Once we run the instruction ~proc~, we push the return address onto the stack, and then run the remaining instructions. There's also the interesting instruction ~movXYZ~, where ~X~ is either ~z~ for zeroes, or ~s~ for sign, ~Y~ is the original type, and ~Z~ is the target type, where it's extended from ~X~ to ~Y~. We also add the literal 32 to the sign pointer to point back to reset the stack frame. The ~cltq~ instruction extends from a ~long~ to a ~quad~.
+                \medskip
+
+                In summary, x86-64 has a heavy use of registers, which is faster than utilizing the stack in memory. If we use the stack, we allocate, and deallocate the entire frame at once. There's also more room for compiler optimizations, as we no longer have to do as much saving for register values.
+                \begin{center}
+                    \vspace{-1.5\baselineskip}
+                    \begin{minipage}[t]{0.4\textwidth}
+                        \begin{lstlisting}
+                            /* code.c */
+                            long int call_proc() {
+                              long x1 = 1;
+                              int x2 = 2;
+                              short x3 = 3;
+                              char x4 = 4;
+                              proc(x1, &x1, x2, &x2, x3,
+                                   &x3, x4, &x4)
+                              return (x1+x2)*(x3-x4);
+                            }
+                        \end{lstlisting}
+                        \begin{tikzpicture}[x=0.875cm, y=0.875cm]
+                            \draw
+                            (0, 0) -- (8, 0) -- (8, -6) -- (0, -6) -- cycle
+                            (0, -1) -- (8, -1)
+                            (0, -2) -- (8, -2)
+                            (0, -3) -- (8, -3)
+                            (0, -4) -- (8, -4)
+                            (0, -5) -- (8, -5)
+                            (1, -1) -- (1, -2)
+                            (2, -1) -- (2, -2)
+                            (4, -1) -- (4, -2);
+
+                            \node[] () at (4, -0.5) {return address to caller of ~call\_proc~};
+                            \node[] () at (0.5, -1.5) {~x4~};
+                            \node[] () at (3, -1.5) {~x3~};
+                            \node[] () at (6, -1.5) {~x2~};
+                            \node[] () at (4, -2.5) {~x1~};
+                            \node[] () at (4, -3.5) {~arg8~};
+                            \node[] () at (4, -4.5) {~arg7~};
+                            \node[] () at (4, -5.5) {return address of line after ~proc~ call};
+                        \end{tikzpicture}
+                    \end{minipage} \
+                    \begin{minipage}[t]{0.585\textwidth}
+                        \begin{lstlisting}
+                            call_proc:
+                                subq   $\dollar$32, %rsp
+                                movq   $\dollar$1, 16(%rsp)
+                                movl   $\dollar$2, 24(%rsp)
+                                movw   $\dollar$3, 28(%rsp)
+                                movb   $\dollar$4, 31(%rsp)
+                                movq   $\dollar$1, %rdi
+                                leaq   16(%rsp), %rsi
+                                movl   $\dollar$2, %edx
+                                leaq   24(%rsp), %rcx
+                                movl   $\dollar$3, %r8d
+                                leaq   28(%rsp), %r9
+                                movl   $\dollar$4, (%rsp)
+                                leaq   31(%rsp), %rax
+                                movq   %rax, 8(%rsp)
+                                call   proc
+                                movswl 28(%rsp), %eax
+                                movsbl 31(%rsp), %edx
+                                subl   %edx, %eax
+                                ctlq
+                                movslq 24(%rsp), %rdx
+                                addq   16(%rsp), %rdx
+                                imulq  %rdx, %rax
+                                addq   $\dollar$32, %rsp
+                                ret
+                        \end{lstlisting}
                     \end{minipage}
                 \end{center}
 \end{document}
