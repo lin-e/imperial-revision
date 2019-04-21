@@ -2181,4 +2181,114 @@
                     \end{tabular}
                 \end{center}
                 Within the structure, each member has to satisfy it's alignment requirement, but the overall structure has alignment requirement $K$, where $K$ is the largest alignment of any element in the structure. The initial address, and the structure length, must be a multiple of $K$. Note that in the example above, we wouldn't need the 4 empty bytes in IA32 Linux, but we would in IA32 Windows, or x86-64. Therefore sizeof(~S1~) is different in both of them, as in Linux it would be 20, whereas in Windows it would be 24. As a programmer, we can save space by putting the larger data types first.
+        \subsection*{Caches}
+            The bus between the process, and main memory is much slower, at least compared to the computer. Small caches located close to the processor allows frequently used data to be stored for reuse. The general idea revolves around either a \textbf{hit}, or a \textbf{miss}. If the requested data is found in the cache, then it's the former, otherwise it is retrieved from main memory, and then stored in the cache.
+            \subsubsection*{Cache Locality}
+                Caches work based on the idea of locality. Temporal locality suggests that recently referenced items are likely to be referenced again in the near future, and spatial locality suggests that items with nearby addresses tend to be referenced close together in time.
+                \medskip
+
+                Caches are able to take advantage of temporal locality by storing recently used data, and takes advantage of spatial location by pulling entire blocks of data, after something is used. For example, consider this simple program that sums an array;
+                \begin{lstlisting}
+                    int i, sum = 0;
+                    for (i = 0; i < n; i++) {
+                      sum += a[i];
+                    }
+                \end{lstlisting}
+                We have locality in the data, as we are accessing ~sum~ in each iteration (temporal), as well as accessing the array ~a[]~ in a stride-1 pattern. In addition, we also have locality in the instructions; we're cycling through the loop repeatedly, and also has spatial instructions as the instructions are typically stored sequentially. Consider this program, which doesn't take advantage of spatial locality;
+                \begin{lstlisting}
+                    int sum_array(int a[M][N]) {
+                      int i, j, sum = 0;
+                      for (j = 0; j < N; j++) {
+                        for (i = 0; i < M; i++) {
+                          sum += a[i][j];
+                        }
+                      }
+                    }
+                \end{lstlisting}
+                Due to how C stores arrays, we're jumping all over memory, which means we cannot take advantage of spatial locality. However, if we were to iterate through ~i~ first, and then iterate through ~j~ inside, we'd essentially be summing a flat array, which takes advantage of spatial locality, like in the first example.
+            \subsubsection*{Memory Hierarchy}
+                Conside that a cache hit time is 1 cycle, whereas a miss would be 100 cycles (Intel Haswell can process 512 bytes / cycle, whereas the bus has a bandwidth of 10 bytes / cycle, and a latency of 100 cycles). With a 99\% hit rate, we have $1 \text{ cycle} + 0.01 \cdot 100 \text{ cycles} = 2 \text{ cycles}$, compared to a 97\% hit rate; $1 \text{ cycle} + 0.03 \cdot 100 \text{ cycles} = 4 \text{ cycles}$. We need to discuss miss rate, instead of hit rate; the miss rate is the fraction of memory references not found in the cache ($\frac{\text{misses}}{\text{accesses}} = 1 - \text{hit rate}$. The typical number is between 3\% to 10\% for L1 cache. The hit time is the time to deliver a line in the cache to the processor, which is typically between 1 to 2 clock cycles for L1, and the penalty is the additional time required due to a miss (typically 50 - 200 cycles).
+                \medskip
+
+                The general idea of memory hierarchy is that faster storage technologies tend to cost more per byte, and also have lower capacity. The gaps between memory technologies are widening, and well-written programs exhibit good locality, which means that slower memory can still give the illusion of speed. These properties complement each other, and suggest an approach for organising memory, and storage systems known as \textbf{memory hierachy}. Each level serves as a cache for the level below it, which tends to be larger, slower, and also cheaper. Memory hierachy is advantage of because programs tend to access data higher up in the hierachy more often than the levels below it, which means that they can easily be slower, and not have a huge impact on performance. This creates the illusion that there is a large pool of memory that is fast.
+                \medskip
+
+                The heirachy goes; registers, on-chip L1 cache (SRAM), off-chip L2 (SRAM), main memory (DRAM), local secondary storage (local disks), and remote secondary storage (distributed file systems, servers). For example, in an \textit{Intel Core i7}, each core has a separate L1 data cache, and L1 instruction cache, which are each 32KB, 8-way, and have a latency of 4 cycles, as well as a unified L2 cache, which is 256KB with an access latency of 11 cycles. Finally there is another L3 cache which is shared by all the cores, which is 8MB, and has an access latency of 30-40 cycles (probably outdated by now).
+            \subsubsection*{Cache Organisation}
+                Consider a cache with a 8 blocks, in a 1-way cache, we'd have 8 sets, each with a block associated with it (direct mapped), a 2-way cache would have 4 sets, each with 2, and so on until 8-way with a single set, containing 8 blocks (fully associative). In a fully associative cache, data can go anywhere in the cache, which is expensive, but on the other hand a direct mapped cache can cause conflicts.
+                \medskip
+
+                Consider a 2-way set associative cache, there are 2 places in a set, where a piece of data could go. Given an $m$-bit address, we have $m-k-n$ bits for the tag, $k$ bits for the index, and $n$-bits for the block offset. This is on a block size of $2^n$ bytes. $k = \text{log}_2(\text{number of sets})$. It's also important to remember that when you do $a \text{ mod } 2^b$, you're taking the $b$ least significant bits.
+                \medskip
+
+                In a more realistic example, consider where the data in address ~0x1833~ would go. We have a block size of 16 bytes. In binary, ~0x1833~ is ~00...0~\textcolor{violet}{~011~}\textcolor{blue}{~0011~}. In an $m$-bit address, the offset is 4-bits, which is \textcolor{blue}{~0011~}, in our case, and the index depends on the associativity we're using. Therefore, for a 1-way associative, we'd use index 3, for 2-way, we'd use index 3, and for 4-way, we'd use index 1 (we're taking the $k$ least significant bits from \textcolor{violet}{011}). Typically, we kick out the least recently used block, as that preserves temporal locality.
+                \medskip
+
+                If we say a set is $2^e$-way associative, it means that there are $2^e$ lines (or blocks) in a set. Each block in the cache has metadata; a validity bit, a tag, and $2^b$ bytes of data per cache line (also known as the data block). The size of the cache is $2^{s + e + b}$ bytes. There are $2^s$ sets. The first thing that needs to be done when a request is made to memory; we need to locate the set in which the data may be located, and then check if any of the lines / blocks in the set has a matching tag. If the tag matches, we can then read from the offset (which is calculated as above).
+                \medskip
+
+                There are three types of cache misses;
+                \begin{itemize}
+                    \itemsep0em
+                    \item cold (compulsory) miss
+                        \subitem occurs on the first access to a block
+                    \item conflict miss
+                        \subitem happens when multiple addresses map to the same set, and one is kicked out by another
+                    \item capacity miss
+                        \subitem the working set (active cache block) is larger than the cache
+                \end{itemize}
+                It's also important for us to consider writing to, and from the cache, not just reading. The main problem with writing is that the data between the heirachies may disagree with each other. On a write-hit, the possible options are to \textbf{write-through} it writes immediately to memory, or to \textbf{write-back}, it writes to the cache, and defers the write until the line is kicked out. This requires a \textbf{dirty bit} to indicate that the line is different from memory.
+                \medskip
+
+                On the other hand, we need to consider what happens when we have a miss on a write. We can either do \textbf{write-allocate}, which loads the address into cache, and updates the line, which is beneficial if there will be more writes to the location, or to do \textbf{no-write-allocate}, which directly writes to memory instead. The typical cache is \textbf{write-back}, and \textbf{write-allocate}, although some machines are occasionally \textbf{write-through}, and \textbf{no-write-allocate}.
+            \subsubsection*{Code Optimisation for Caches}
+                In order to optimise our code, we should write code that takes advantage of locality, which means that we should aim to access data contiguously, and make sure that any repeated data access is close together in time (to avoid it being evicted from the cache). This can be achieved by proper algorithm choices, and loop transformations (consider the example earlier on).
+                \medskip
+
+                The example where this is often applied to is matrix multiplication (square matrix in this point, but is trivial to generalise to other matrices);
+                \begin{lstlisting}
+                    c = (double *) calloc(sizeof(double), n*n);
+
+                    void mmm (double *a, double *b, int n) {
+                      int i, j, k;
+                      for (i = 0; i < n; i++) {
+                        for (j = 0; j < n; j++) {
+                          for (k = 0; k < n; k++) {
+                            c[i*n + j] += a[i*n + k]*b[k*n + j];
+                          }
+                        }
+                      }
+                    }
+                \end{lstlisting}
+                If we do a cache miss analysis, we need to make the following assumptions; matrix elements are doubles, the cache block is 64 bytes (which is 8 doubles), and the cache size is much smaller than ~n~.
+                \smallskip
+
+                On the first iteration, we have $\frac{~n~}{8} + ~n~ = \frac{9~n~}{8}$ misses (given that we store 8 doubles, the first one will miss, but the rest will be saved by spatial locality). We also need to add ~n~, since it will miss on every single one of the second matrix. Now, in our cache, we have the last 8 elements of the first row of matrix $X$ (we're thinking of this as $Z = XY$), and an $8 \times 8$ block at the bottom left corner of $Y$, so the first 8 doubles, of the last 8 rows. Given that this is done $~n~^2$ times, the total miss is $\frac{9~n~^3}{8}$. We can take advantage of the blocks, to create a blocked matrix multiplication algorithm;
+                \begin{lstlisting}
+                    c = (double *) calloc(sizeof(double), n*n);
+
+                    void mmm (double *a, double *b, int n) {
+                      int i, j, k;
+                      for (i = 0; i < n; i+=B) {
+                        for (j = 0; j < n; j+=B) {
+                          for (k = 0; k < n; k+=B) {
+                            for (i1 = i; i1 < i+B; i1++) {
+                              for (j1 = j; j1 < j+B; j1++) {
+                                for (k1 = k; k1 < k+B; k1++) {
+                                  c[i1*n + j1] += a[i1*n + k1]*b[k1*n + j1]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                \end{lstlisting}
+                Now, when we run the same analysis, we're making the same assumptions about the block size, and the cache size, and we also assume that three blocks fit into the cache (such that $3B^2 < C$).
+                \smallskip
+
+                In the first iteration, we get $\frac{B^2}{8}$ misses for each block, and we have $\frac{~n~}{B}$ blocks across on $Y$, therefore our miss is $\frac{2~n~}{B} \cdot \frac{B^2}{8} = \frac{~n~B}{4}$ misses. Our total misses will be $\frac{~n~^3}{4B}$.
+                \medskip
+
+                A programmer can optimise code for cache performance, and we need to consider blocking as a general technique. However, getting absolute optimum performance depends on the platform, as we need to consider how the cache is set up.
 \end{document}
