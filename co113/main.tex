@@ -1611,4 +1611,179 @@
                         leave
                         ret
                 \end{lstlisting}
+        \subsection*{Procedures}
+            \subsection*{Stacks}
+                The general layout of our memory is as follows. It's important to note that it's possible for the stack to meet the heap (as the stack grows downwards, and the heap grows upwards) which would be problematic. This can be caused by going too deep into a procedure, or we're allocating too much memory, causing them to overwrite each other. It's also important to specify which regions are executable, for security purposes;
+                \begin{center}
+                    \begin{minipage}{0.26\textwidth}
+                        \begin{tikzpicture}
+                            \draw
+                            (0, 0) edge[->] (0, 6)
+                            (1, 0) -- (4, 0) -- (4, 6) -- (1, 6) -- cycle
+                            (1, 1) -- (4, 1)
+                            (1, 1.75) -- (4, 1.75)
+                            (1, 3) -- (4, 3)
+                            (1, 4) -- (4, 4)
+                            (1, 5) -- (4, 5)
+                            (3.5, 5.25) edge[->] (3.5, 4.75)
+                            (3.5, 3.75) edge[->] (3.5, 4.25);
+
+                            \node[] () at (0, 6.5) {$2^n - 1$};
+                            \node[] () at (0, -0.5) {0};
+
+                            \node[] () at (2.5, 5.5) {Stack};
+                            \node[] () at (2.5, 3.5) {Heap};
+                            \node[] () at (2.5, 2.375) {Static Data};
+                            \node[] () at (2.5, 1.375) {Literals};
+                            \node[] () at (2.5, 0.5) {Instructions};
+                        \end{tikzpicture}
+                    \end{minipage} \
+                    \begin{minipage}{0.725\textwidth}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item stack \hfill holds local variables, and procedure context
+                                \subitem writable, not executable, and automatically managed by the compiler
+                            \item heap (dynamic data) \hfill holds variables allocated with ~new~, or ~malloc~
+                                \subitem writable, not executable, and managed by the programmer
+                            \item static data \hfill ~static~ (including global) variables
+                                \subitem writable, not executable, and initalized at start
+                            \item literals \hfill such as ~"hello world"~, or ~143~
+                                \subitem read-only, not executable, and initalized at start
+                            \item instructions \hfill fairly self-explanatory
+                                \subitem read-only, executable, and initalized at start
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+                In the IA32 call stack, we have the bottom of the stack at the highest memory address, and the top of the stack at the lowest address. The stack pointer, ~\%esp~ holds the memory address of the top element, which is the lowest stack address. The stack generally grows downwards; therefore as we add things to the stack, the stack pointer gets lower, and as we take things off the stack - it gets higher.
+                \medskip
+
+                When we run the instruction ~pushl src~, we fetch the value from ~src~, decrement ~\%esp~ by 4 (4 bytes for a long), and store the value at the address given by ~\%esp~. On the other hand, when we run the corresponding ~\%popl dest~, we do reverse - we load the value from the address pointed by ~\%esp~, and write that value to ~dest~. ~\%esp~ is then incremented by 4. We should note that the value isn't actually removed - we're just removing the reference to it.
+            \subsubsection*{Call Stacks}
+                In general, a procedure call has a caller, and a callee. The caller first sets up arguments, and then calls the callee (which hands over control). The callee then creates its own local variables, runs some code, and then sets up the return value (to give back to the caller). It then cleans up its own local variables, and then gives control back to the caller. The caller then finds the return value from the callee. The following rules have to be observed;
+                \begin{itemize}
+                    \itemsep0em
+                    \item callee must know where to find the arguments
+                    \item callee must know where to find the return address
+                    \item caller must know where to find the return value (hence know return address)
+                    \item caller and callee need to run on the CPU, as they use the same registers; this also means they need to save some registers if it may be used by the other
+                        \subitem this means that the caller has to save registers before setting up arguments, and then restore the registers after cleaning up the arguments, the same with the callee, but with local variables instead of arguments
+                \end{itemize}
+                This convention is called the \textbf{procedure call linkage}. Given a procedure call instruction ~call label~, we push the return address on the stack (which is the instruction immediately after the call), then we jump to ~label~. On the other hand, when we do a procedure return with ~ret~, we pop the return the address from the stack, and jump to that address.
+                \medskip
+
+                Actions that the \textcolor{blue}{caller} does are highlighted in blue, and actions that the \textcolor{violet}{callee} does are highlighted in violet;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textcolor{blue}{set parameters in order (registers, and stack)}
+                    \item \textcolor{blue}{calls callee}
+                    \item \textcolor{violet}{save registers on stack}
+                    \item \textcolor{violet}{execute the body of method}
+                    \item \textcolor{violet}{copy any results to ~\%eax~/~\%rax~}
+                    \item \textcolor{violet}{restore registers from stack}
+                    \item \textcolor{violet}{return to to caller}
+                    \item \textcolor{blue}{remove parameters from stack}
+                    \item \textcolor{blue}{use returned result}
+                \end{enumerate}
+
+                In this example, we put the address of the next instruction into ~\%eip~, push that value onto the stack, and then increment it by the arguments of ~call~ (we're using relative addressing). Note that ~0x8048590 = 0x8048553 + 0x000063d~. Note that it's an arbitrary number of instructions between ~0x8048590~, and ~0x8048591~, we're just using the latter to denote the ~ret~ instruction.
+                \begin{lstlisting}
+                    804854e:    e8 3d 06 00 00    call     8048b90 <main>
+                    8048553:    50                pushl    %eax
+                    .......
+                    8048591:    c3                ret
+                \end{lstlisting}
+                \begin{center}
+                    \begin{tabular}{r|l|l|l|l}
+                        line & 1 & 2 & 3 & 4 \\
+                        \hline
+                        ~S: 0x110~ & & & & \\
+                        ~S: 0x10c~ & & & & \\
+                        ~S: 0x108~ & ~123~ & ~123~ & ~123~ & ~123~ \\
+                        ~S: 0x104~ & & ~0x8048553~ & ~0x8048553~ &~0x8048553~ \\
+                        ~\%esp~ & ~0x108~ & ~0x104~ & ~0x104~ & ~0x108~ \\
+                        ~\%eip~ & ~0x804854e~ & ~0x8048590~ & ~0x8048591~ & ~8048553~ \\
+                    \end{tabular}
+                \end{center}
+                By convention, we store the return value from a procedure in ~\%eax~. This is part of why it's important for the caller to save ~\%eax~, as this will be overwritten. If it doesn't fit in the 4 bytes, it's conventional just to return a pointer to the location where the return value is stored.
+            \subsubsection*{Stack-based Languages}
+                Languages thast support recursion are stack based languages, which requires code to be \textbf{re-entrant}, meaning that simultaneous instantiations of a single procedure is allowed. We need space to store the state of each instantiation, including arguments, local variables, and return pointers. The states are needed for a limited time, and the callee always returns before the caller does.
+                \medskip
+
+                In order to allow this, we need to create stack frames, which store the data previously mentioned. The space is allocated when the procedure is entered, and then deallocated on return. Stack frames are allocated by moving ~\%ebp~, and ~\%esp~. There's a good graphical example on the corresponding video, which would take me too long to draw out.
+            \subsubsection*{IA32/Linux Stack Frame}
+                We can construct the stack frame as such;
+                \begin{center}
+                    \begin{minipage}[t]{0.19\textwidth}
+                        \begin{tabular}{|c|}
+                            \hline
+                            \\
+                            \\
+                            \\
+                            \\
+                            \\
+                            \hline
+                            \\
+                            Arguments \\
+                            \\
+                            \hline
+                            Return Address \\
+                            \hline
+                            Old ~\%ebp~ \\
+                            \hline
+                            \\
+                            Saved \\
+                            Registers \\
+                            + Local \\
+                            Variables \\
+                            \\
+                            \hline
+                            Argument \\
+                            Build \\
+                            \hline
+                        \end{tabular}
+                    \end{minipage} \
+                    \begin{minipage}{0.795\textwidth}
+                        The initial space at the "bottom" of the stack (top of the diagram), is the memory used by the caller. The arguments are then put onto the stack, in the arguments section, and finally the return address, where the callee should return to, after completion. In the callee's frame, we also save the old pointer to the base of the caller's stack frame. Then there is more space for the callee's memory, and any arguments that might be used to call another function are put on the end.
+                        \medskip
+
+                        Revisiting the previous example for ~swap~, context is now provided for the offsets used.
+                        \begin{center}
+                            \begin{minipage}{0.4\textwidth}
+                                \begin{lstlisting}
+                                    swap:
+                                        pushl %ebp
+                                        movl  %esp, %ebp
+                                        pushl %ebx
+
+                                        movl 12(%ebp), %ecx
+                                        movl 8(%ebp), %edx
+                                        ...
+                                \end{lstlisting}
+                            \end{minipage} \
+                            \begin{minipage}{0.58\textwidth}
+                                \begin{center}
+                                    \begin{tabular}{|r|c|}
+                                        \hline
+                                        offset from ~\%ebp~ & stack \\
+                                        \hline
+                                        & \\
+                                        & \\
+                                        & \\
+                                        \hline
+                                        12 & ~yp~ \\
+                                        \hline
+                                        8 & ~xp~ \\
+                                        \hline
+                                        4 & return addr \\
+                                        \hline
+                                        0 (~\%ebp~) & old ~\%ebp~ \\
+                                        \hline
+                                        -4 (~\%esp~) & old ~\&ebx~ \\
+                                        \hline
+                                    \end{tabular}
+                                \end{center}
+                            \end{minipage}
+                        \end{center}
+                    \end{minipage}
+                \end{center}
 \end{document}
