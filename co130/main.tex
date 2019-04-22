@@ -165,7 +165,7 @@
             A \textbf{Database Management System (DMBS)} creates new databases via a \textbf{Data Definition Language (DDL)}, which specifies the structure (\textbf{schema}). It also queries, and manipulates through a \textbf{Data Manipulation Language (DML)}. Examples of this include \textit{PostgreSQL}, \textit{MySQL}, \textit{SQLite}, and can also fall under \textit{NoSQL}, however SQL remains as the most widespread technology (as of writing this).
             \medskip
 
-            It lets us define, query, and manipulate databases with a high-levle declarative language (\textbf{Structured Query Language}). It's standardised by the ISO, but each DBMS implements its own variation of the standards, which may be costly if it's complex.
+            It lets us define, query, and manipulate databases with a high-level declarative language (\textbf{Structured Query Language}). It's standardised by the ISO, but each DBMS implements its own variation of the standards, which may be costly if it's complex.
             \subsubsection*{Relational Model}
                 Consider the following model, represented as a table;
                 \begin{center}
@@ -185,7 +185,7 @@
                 We have the columns be the attribute, with the top row being the heading, and the rest being the body. The attributes are in the format ~name:type~. The rows (of the body) are referred to as tuples. A relation is the heading as well as the body (the entire table). The heading is an \textbf{unordered set} of attributes, and an attribute is the name as well as the type (typically indivisible types). The body is an unordered set of tuples, and a tuple is the set of attribute values. The schema is for the entire relation is the name of the relation, and the heading, in this case, we'd have; ~movies(title:string, year:int, length:int, genre:string)~, and a database is a collection of relations. A schema for a database is the schemas for all relations.
                 \medskip
 
-                In mathematics, with a set of sets; $S_1, S_2, ..., S_n$, a relation $R$ is a set of tuples $T_1, T_2, ..., T_n$, where $T_k \in S_k$, therefore $R \subset S_1 \times S_2 \times ... \times S_n$. As the idea of relations stems from set theory, it's important to note that the order in which we represent the attributes, and tuples in unimportant. In the Relational model we have \textbf{attributed} tuples, rather than \textbf{ordered}; $R$ is the set of tuples ($A_1:S_1=T_1, ..., A_n:S_n=T_n$), with $T_k \in S_k$. It's important to note that relations aren't 2-dimensional tables, even though it's more convineient to draw it on paper. We should instead consider them as a set of $n$-dimensional values, such that we have (~title:string~=StarWars, ~year:int~=1997, ~length:int~=127, ~genre:string~=ScienceFiction), as a 4-dimensional movie value.
+                In mathematics, with a set of sets; $S_1, S_2, ..., S_n$, a relation $R$ is a set of tuples $T_1, T_2, ..., T_n$, where $T_k \in S_k$, therefore $R \subset S_1 \times S_2 \times ... \times S_n$. As the idea of relations stems from set theory, it's important to note that the order in which we represent the attributes, and tuples in unimportant. In the Relational model we have \textbf{attributed} tuples, rather than \textbf{ordered}; $R$ is the set of tuples ($A_1:S_1=T_1, ..., A_n:S_n=T_n$), with $T_k \in S_k$. It's important to note that relations aren't 2-dimensional tables, even though it's more convenient to draw it on paper. We should instead consider them as a set of $n$-dimensional values, such that we have (~title:string~=StarWars, ~year:int~=1997, ~length:int~=127, ~genre:string~=ScienceFiction), as a 4-dimensional movie value.
         \subsection*{Entity Relationship Modelling}
             When a new database is being developed, it's important to try and model the real-world situation, instead of trying to refine it into an implementation, such as a relational model. In Entity-Relationship modelling, we try to create a diagram which represents the information needed for the database (the Entity Relationship Diagram). As there is no universally accepting notation for ER diagrams, we will use the following notation;
             \begin{center}
@@ -194,7 +194,7 @@
                     type & description & shape \\
                     \hline
                     \hline
-                    entity sets & a set of distinguisable entries that share the same set of properties, can be physical (a room etc.), an event (flight, sale, etc.) - they normally correspond to nouns & rectangle \\
+                    entity sets & a set of distinguishable entries that share the same set of properties, can be physical (a room etc.), an event (flight, sale, etc.) - they normally correspond to nouns & rectangle \\
                     \hline
                     relationship sets & captures how \textbf{two or more} entity sets are related (e.g. owns, tutors), we can also have more than one relationship set between entity sets, and they can also have a relationship set on the same entity - they sometimes correspond to verbs & diamonds \\
                     \hline
@@ -203,7 +203,7 @@
                 \end{tabularx}
                 \vspace{-1.5\baselineskip}
             \end{center}
-            The movie example is represented below. Note that I've also extended it to contain different types of complex attributes. You can see that the address field is subdivided into number, and postcode, we have a multivalued attribute in phones, and a derived attribute in age (can be calculated from date of birth)
+            The movie example is represented below. Note that I've also extended it to contain different types of complex attributes. You can see that the address field is subdivided into number, and postcode, we have a multi-valued attribute in phones, and a derived attribute in age (can be calculated from date of birth)
             \begin{center}
                 \begin{tikzpicture}
                     \entity{actor}{0, 0}{actor}
@@ -287,20 +287,20 @@
                 See the diagrams in \textit{ER Modelling.pdf} for examples.
                 \medskip
 
-                We need to ensure that we do not allow ambigious paths between entities. For example, if we say ~staff~ works for ~faculty~ which operates ~department~, if some member of staff works for Engineering, which operates both Computing, and EE, we can't follow a path from the staff member to their department. This can be solved by having the staff work for the department, which is operated by some faculty.
+                We need to ensure that we do not allow ambiguous paths between entities. For example, if we say ~staff~ works for ~faculty~ which operates ~department~, if some member of staff works for Engineering, which operates both Computing, and EE, we can't follow a path from the staff member to their department. This can be solved by having the staff work for the department, which is operated by some faculty.
                 \medskip
 
                 If we can't follow a path between two entities, we may need to add another relation between them to specify the relationship.
             \subsubsection*{Weak Entities}
-                Entities which cannot be uniquely identified by their own attributes are called \textbf{weak} entities, in contrast to \textbf{strong} entities which have primary keys. A weak entity has to be defined by a string entity. Weak entities are drawn as a double rectangle, and the relatioship to the strong entity is drawn as a double diamond. The key for a weak entity is formed by combining the primary key of the strong entity with attributes of the weak entity (denoted by a dashed underline). For example, a room in a building is a \textbf{weak} entity, with a room number, and can be uniquely identified with the name of the building combined with the room number.
+                Entities which cannot be uniquely identified by their own attributes are called \textbf{weak} entities, in contrast to \textbf{strong} entities which have primary keys. A weak entity has to be defined by a string entity. Weak entities are drawn as a double rectangle, and the relationship to the strong entity is drawn as a double diamond. The key for a weak entity is formed by combining the primary key of the strong entity with attributes of the weak entity (denoted by a dashed underline). For example, a room in a building is a \textbf{weak} entity, with a room number, and can be uniquely identified with the name of the building combined with the room number.
         \subsection*{ER to RM}
-            Keys are used to join information when we do queries. THe primary key is the unique identifier of a tuple, and a foreign key is the primary key of \textbf{another} table.
+            Keys are used to join information when we do queries. The primary key is the unique identifier of a tuple, and a foreign key is the primary key of \textbf{another} table.
             \medskip
 
             Once we have an Entity Relationship Model, we can then map it to a relational schema. The schemas can then be refined with functional dependencies, and implemented with relational languages. A high level data model isn't the only concern for database design (considered a simpler aspect).
             \medskip
 
-            If we consider a strong entity set, with simple attributs, we can easily create a table from it (see the example, ~movie~, drawn above).
+            If we consider a strong entity set, with simple attributes, we can easily create a table from it (see the example, ~movie~, drawn above).
             \begin{lstlisting}
                 movie($\underline{~title~}$, $\underline{~year~}$, length, genre)
 
@@ -313,7 +313,7 @@
                   primary key(title, year)
                 }
             \end{lstlisting}
-            Composite attributes are also fairly easy to represent, since we just flatten it, therefore store each of the sub-attributes as their own field - consider the actor example (note that if the primary key is composite, we mark all the sub-attributes as primary keys). This example also shows how multivalued attributes are stored - we create their own relation, and link back to the entity set with a foreign key constraint;
+            Composite attributes are also fairly easy to represent, since we just flatten it, therefore store each of the sub-attributes as their own field - consider the actor example (note that if the primary key is composite, we mark all the sub-attributes as primary keys). This example also shows how multi-valued attributes are stored - we create their own relation, and link back to the entity set with a foreign key constraint;
             \begin{lstlisting}
                 actor($\underline{~name~}$, number, postcode)
                 actor_phones($\underline{~actorName~}$, $\underline{~phoneID~}$, $\textit{~other attributes~}$)
@@ -352,7 +352,7 @@
                   foreign key (regno) references car.regno on delete cascade
                 }
             \end{lstlisting}
-            However, it's easier to represent a one-to-many relationship, as we can simply include the primary key of the "one" relation as a foreign key in the many (where a car can be driven by 1 person, and a person can drive many cars). The representation for a one-to-one is similar, but the foriegn key can be in either one, which is up to the designer;
+            However, it's easier to represent a one-to-many relationship, as we can simply include the primary key of the "one" relation as a foreign key in the many (where a car can be driven by 1 person, and a person can drive many cars). The representation for a one-to-one is similar, but the foreign key can be in either one, which is up to the designer;
             \begin{lstlisting}
                 person($\underline{~ID~}$, $\textit{~other attributes~}$)
                 car($\underline{~regno~}$, personID, $\textit{~other attributes~}$)
@@ -365,7 +365,7 @@
                     foreign key (personID) references person.ID
                 }
             \end{lstlisting}
-            In a weak entity, we include the primary key of the strong relation as a foriegn key, but also use it as part of the composite primary key for the weak entity. A delete cascade is also used, and finally the we use ~not null~ to ensure total participation;
+            In a weak entity, we include the primary key of the strong relation as a foreign key, but also use it as part of the composite primary key for the weak entity. A delete cascade is also used, and finally the we use ~not null~ to ensure total participation;
             \begin{lstlisting}
                 building($\underline{~name~}$, $\textit{~other attributes~}$)
                 room($\underline{~no~}$, $\underline{~buildingname~}$, $\textit{~other attributes~}$)
@@ -378,7 +378,7 @@
                     foreign key (buildingname) references building.name on delete cascade
                 }
             \end{lstlisting}
-            A multiway relationship can be mapped as several binary relationships, or we can generalise it to have the primary key consist of the relationship be composed of the primary keys of the many entity sets, and have the primary keys of the one entities be attributes. For roles, we map each role as a foriegn key attribute in the entity set;
+            A multiway relationship can be mapped as several binary relationships, or we can generalise it to have the primary key consist of the relationship be composed of the primary keys of the many entity sets, and have the primary keys of the one entities be attributes. For roles, we map each role as a foreign key attribute in the entity set;
             \begin{lstlisting}
                 movie($\underline{~ID~}$, $\textit{~other attributes~}$)
                 sequelof($\underline{~originalID~}$, $\underline{~sequelID~}$, $\textit{~other attributes~}$)
@@ -388,12 +388,12 @@
                     sequelID int,
                     ...
                     primary key (orignalID, sequelID),
-                    foreign key originalID refereces movie.ID,
-                    foreign key sequelID refereces movie.ID
+                    foreign key originalID references movie.ID,
+                    foreign key sequelID references movie.ID
                 }
             \end{lstlisting}
             \subsubsection*{Extended Models}
-                Newer models extend the classic model by supporting features from \textbf{object-oriented design}. We can look at how E-R models handle specialisation, or generalisation with \textbf{is-a heirarchies}. For example, we can specify that a ~cartoon~ \textbf{is-a} ~movie~, which means that it inherits all the attributes of movie, but can have more attributes. and relations. Once this extends on multiple levels, we begin to form a heirarchy.
+                Newer models extend the classic model by supporting features from \textbf{object-oriented design}. We can look at how E-R models handle specialisation, or generalisation with \textbf{is-a hierarchies}. For example, we can specify that a ~cartoon~ \textbf{is-a} ~movie~, which means that it inherits all the attributes of movie, but can have more attributes. and relations. Once this extends on multiple levels, we begin to form a hierarchy.
         \subsection*{Relational Algebra}
             We can use \textbf{relational algebra} to construct new relations from existing ones, the operators include selection, projection, intersection, union, difference, and product. Consider the examples below, ~a~, ~b~, and ~c~ are all integers. Intersection, union, and difference will be omitted, since those are fairly self-explanatory.
             \begin{center}
@@ -410,7 +410,7 @@
                     \hline
                 \end{tabular}
             \end{center}
-            The syntax in use here for projection is $\pi_{~attributes~}(T)$, and likewise for selection it's $\sigma_{~condition~}(T)$. The former returns a relation with only the listed attributes, and the only takes rows which satsify the given condition. Neither will return duplicate rows. Here is an example of a Cartesian product;
+            The syntax in use here for projection is $\pi_{~attributes~}(T)$, and likewise for selection it's $\sigma_{~condition~}(T)$. The former returns a relation with only the listed attributes, and the only takes rows which satisfy the given condition. Neither will return duplicate rows. Here is an example of a Cartesian product;
             \begin{center}
                 \begin{tabular}{|cc|ccc|ccccc|}
                     \hline
@@ -444,7 +444,7 @@
             \end{center}
             Attributes can also be renamed with the notation $\rho_{~new/old~, ...}(R)$ notation, which is fairly self-explanatory.
         \subsection*{Functional Dependencies}
-            Relational database scemas should be normalised, which helps reduce redundanc, and avoids update, and deletion anomalies. The basis for normalisation is the concept of \textbf{functional dependency}, and \textbf{keys}. Consider the following example, which can experience update anomalies;
+            Relational database schemas should be normalised, which helps reduce redundancy, and avoids update, and deletion anomalies. The basis for normalisation is the concept of \textbf{functional dependency}, and \textbf{keys}. Consider the following example, which can experience update anomalies;
             \begin{center}
                 \begin{tabular}{|l|l|l|l|l|}
                     \hline
@@ -510,7 +510,7 @@
                     \end{tabular}
                 \end{minipage}
             \end{center}
-            A functional dependcy is a constraint that if two tuples of a relation $R$ agree on a set of attributes $A_1, A_2, ..., A_n$, then they must also agree on the set of attributes $B_1, B_2, ..., B_m$. This can be written as $A_1, A_2, ..., A_n \rightarrow B_1, B_2, ..., B_m$, and therefore the $B$ set is functionally dependant on the $A$ set, or the $A$ set functionnaly determines the $B$ set. Therefore, for any set of values $A$, then there is only one set of values $B$. The normal forms a designe can use are defined in terms of their functional dependencies. This can be summarised by the following examples;
+            A functional dependency is a constraint that if two tuples of a relation $R$ agree on a set of attributes $A_1, A_2, ..., A_n$, then they must also agree on the set of attributes $B_1, B_2, ..., B_m$. This can be written as $A_1, A_2, ..., A_n \rightarrow B_1, B_2, ..., B_m$, and therefore the $B$ set is functionally dependant on the $A$ set, or the $A$ set functionally determines the $B$ set. Therefore, for any set of values $A$, then there is only one set of values $B$. The normal forms a designer can use are defined in terms of their functional dependencies. This can be summarised by the following examples;
             \begin{center}
                 \begin{tabular}{|c|c|c|}
                     \hline
@@ -529,14 +529,14 @@
                     \hline
                 \end{tabular}
             \end{center}
-            Note that if we have two functional dependcies, $A, B \rightarrow K$, and $A, B \rightarrow L$, it's trivial to combine them as $A, B \rightarrow K, L$ (or to split them). If we have the functional dependency $A, B, C, D, E \rightarrow A, C, X, Y, Z$, we can remove all the attributes on the right hand side, that are on the left hand side, such that the aforementioned FD reduces to $A, B, C, D, E \rightarrow X, Y, Z$. A \textbf{trivial} FD is one where all the attributes on the RHS are on the LHS.
+            Note that if we have two functional dependencies, $A, B \rightarrow K$, and $A, B \rightarrow L$, it's trivial to combine them as $A, B \rightarrow K, L$ (or to split them). If we have the functional dependency $A, B, C, D, E \rightarrow A, C, X, Y, Z$, we can remove all the attributes on the right hand side, that are on the left hand side, such that the aforementioned FD reduces to $A, B, C, D, E \rightarrow X, Y, Z$. A \textbf{trivial} FD is one where all the attributes on the RHS are on the LHS.
             \subsubsection*{Keys}
-                If we have some set of attributes $A_1, A_2, ..., A_n$, functionally determine all the remaining attributes of the relation, then the set $A$ is a \textbf{superkey}. This also implies that two tuples cannot have the same superkey values, due to the uniqueness property. Let there be a set of all attributes in the relation, $K$, and the superkey set $S$. Therefore we can state $S \rightarrow \{ x \in K\ |\ x \notin S \}$. A single relation may have more than one superkey, and superkeys can contain attributes that aren't strictly required. Generally, we are interested in superkeys where there isn't a subset of the superkey (hence the smallest superkey, by the irreducibility property), and this minimal superkey is referred to as the \textbf{canddate key}. If we have more than one candidate key, we can choose one of them to act as the primary key.
+                If we have some set of attributes $A_1, A_2, ..., A_n$, functionally determine all the remaining attributes of the relation, then the set $A$ is a \textbf{superkey}. This also implies that two tuples cannot have the same superkey values, due to the uniqueness property. Let there be a set of all attributes in the relation, $K$, and the superkey set $S$. Therefore we can state $S \rightarrow \{ x \in K\ |\ x \notin S \}$. A single relation may have more than one superkey, and superkeys can contain attributes that aren't strictly required. Generally, we are interested in superkeys where there isn't a subset of the superkey (hence the smallest superkey, by the irreducibility property), and this minimal superkey is referred to as the \textbf{candidate key}. If we have more than one candidate key, we can choose one of them to act as the primary key.
             \subsubsection*{Closure}
                 The set of all attributes functionally determined by a set $L$, under a set of dependencies $F$, the closure of $L$, denoted as $L^+$. If $L^+$ contains all the attributes of $R$, then it follows that $L$ is a superkey of $R$. If $\text{RHS} \subseteq \text{LHS}^+$, then $\text{LHS} \rightarrow \text{RHS}$ holds.
                 \medskip
 
-                In order to compute the closure of a set of attributes, $L$, under a set of FDs given in the form $\text{LHS} \rightarrow \text{RHS}$, we keep adding all the LHSs which exist as a subset of $L$, and add the RHS to $L$. We repeat thsi until we can no longer add anymore RHSs. The final value is referred to as $L^+$. Given the starting value of $L = \{A, B\}$, and the following FD set;
+                In order to compute the closure of a set of attributes, $L$, under a set of FDs given in the form $\text{LHS} \rightarrow \text{RHS}$, we keep adding all the LHSs which exist as a subset of $L$, and add the RHS to $L$. We repeat this until we can no longer add anymore RHSs. The final value is referred to as $L^+$. Given the starting value of $L = \{A, B\}$, and the following FD set;
                 \begin{enumerate}[(1)]
                     \itemsep0em
                     \item $A, B \rightarrow C$
@@ -560,7 +560,7 @@
                 Similar to attributes, we can find the closure of a FD set, which is the set of all FDs that can be inferred, denoted as $F^+$. This can be approached by applying Armstrong's axioms. We start by initialising $F^+$ to the set $F$. By applying reflexivity, and augmentation, we can add new FDs to $F^+$. Transitivity can then be applied to suitable FDs, and adding the derived ones to $F^+$. This is repeated until no more changes occur.
                 \medskip
 
-                We can say two FD sets $F_1$, and $F_2$ are equivalent if they each imply the other - if any relation insance satisfying $F_1$ also satisfies $F_2$, they are said to be covers of each other. A cover is canonical / minimal / irreducible if each LHS is unique, and no FD can be deleted from the cover, and still maintain an equivalent FD set. Additionally, no attributes can be deleted from any FD set, and still have an equivalent set. Therefore, the canonical cover has no redudant dependencies, nor attributes.
+                We can say two FD sets $F_1$, and $F_2$ are equivalent if they each imply the other - if any relation instance satisfying $F_1$ also satisfies $F_2$, they are said to be covers of each other. A cover is canonical / minimal / irreducible if each LHS is unique, and no FD can be deleted from the cover, and still maintain an equivalent FD set. Additionally, no attributes can be deleted from any FD set, and still have an equivalent set. Therefore, the canonical cover has no redundant dependencies, nor attributes.
                 \medskip
 
                 The method for testing whether some attribute, $X$, is extraneous depends on whether it's on the LHS, or RHS. For an attribute $X$ on the LHS, we can say $X$ is extraneous if $\text{RHS} \subseteq \{\text{LHS} - X\}^+$ under the FD set - note that here we are referring to closure on attributes, not FDs. On the other hand (no pun intended, I'm so depressed), an attribute $X$ on the RHS is extraneous if $X \in \text{LHS}^+$ under the FD set, where $X$ is removed from the RHS of all the FDs in the set.
@@ -575,4 +575,64 @@
                     until $F$ doesn't change
                 \end{lstlisting}
         \subsection*{Normalisation}
+            As previously mentioned, in the previous section, normalisation reduces data duplication, and anomalies. One of the approaches taken to develop a normalised schema is to start with a few big relations, and then decompose them into a suitable normal form. The ones we'll look at are \textbf{Boyce-Codd Normal Form (BCNF)}, and \textbf{Third Normal Form (3NF)}. Consider the following example, which is just a "big" relation;
+            \begin{center}
+                \begin{tabular}{|c|c|c|c|c|c|}
+                    \hline
+                    ~title~ & ~year~ & ~length~ & ~genre~ & ~studio~ & ~actor~ \\
+                    \hline
+                    \hline
+                    Star Wars & 1977 & 124 & Science Fiction & Fox & Carrie Fisher \\
+                    \hline
+                    Star Wars & 1977 & 124 & Science Fiction & Fox & Mark Hamill \\
+                    \hline
+                    Star Wars & 1977 & 124 & Science Fiction & Fox & Harrison Ford \\
+                    \hline
+                    Gone with the Wind & 1939 & 231 & Drama & MGM & Vivien Leigh \\
+                    \hline
+                    Wayne's World & 1992 & 95 & Comedy & Paramount & Dana Carvey \\
+                    \hline
+                    Wayne's World & 1992 & 95 & Comedy & Paramount & Mile Myers \\
+                    \hline
+                \end{tabular}
+            \end{center}
+            You'll notice straight away that there is a huge amount of redundant, repeated data, which is present in multiple rows. Updating the ~length~ of Star Wars would require 3 updates (for the relation to remain consistent), which is error prone. Inserting a new actor for a movie would require duplicating a fair bit of data, and would require checks to maintain consistency. Finally, deleting Vivien Leigh would delete the entire row, which deletes information about the movie.
+            \subsubsection*{Decomposition}
+                Given a relation $R(A_1, A_2, ..., A_n)$, we can decompose it into two projected relations $S$, and $T$, such that $\text{attr}(R) = \text{attr}(S) \cup \text{attr}(T)$. This also means that $S = \pi_{\text{attr}(S)}(R)$, and similar for $T$.
+                \medskip
+
+                When we decompose a relation, it's crucial for us to ensure we can recover the original relation by joining the decomposed relations, and also preserve the FDs of the original relation. Note that the latter isn't always possible with BCNF.
+                \medskip
+
+                Given $R$ decomposed into $S$, and $T$, the decomposition is \textbf{lossless} if at least one of the following FDs hold in the closure of FD set of $R$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\text{attr}(S) \cap \text{attr}(T) \rightarrow \text{attr}(S)$
+                    \item $\text{attr}(S) \cap \text{attr}(T) \rightarrow \text{attr}(T)$
+                    \item this means the common attributes of $S$, and $T$ form a superkey of either of the decomposed relations
+                \end{itemize}
+                If we're able to check the FDs of $R$ without joining the decomposed sets, then the decomposition is \textbf{dependency preserving}.
+                \medskip
+
+                Consider the following example, on $R(A, B, C)$, with the FD set $\{A \rightarrow B, B \rightarrow C\}$;
+                \begin{center}
+                    \vspace{-\baselineskip}
+                    \begin{tabularx}{\textwidth}{|l|l|X|}
+                        \hline
+                        decomposition & lossless? & dependency preserving? \\
+                        \hline
+                        $S(A, B)$ & $B \rightarrow A, B$ doesn't hold & yes, $A \rightarrow B$ is checked with $S$, and $B \rightarrow C$ with $T$ \\
+                        $T(B, C)$ & $B \rightarrow B, C$ holds $\therefore$ lossless & \\
+                        \hline
+                        $S(A, B)$ & $A \rightarrow A, B$ holds $\therefore$ lossless & no, $B \rightarrow C$ cannot be checked without joining \\
+                        $T(A, C)$ & $A \rightarrow A, C$ holds also & \\
+                        \hline
+                    \end{tabularx}
+                    \vspace{-2\baselineskip}
+                \end{center}
+            \subsubsection*{Boyce-Codd Normal Form}
+                \textbf{A relation $R$ is in BCNF, if and only if, for all non-trivial FDs (including derived FDs) of the relation, the LHS of every FD is a superkey (i.e. contains a key)}
+                \bigskip
+
+                For example, if we have the FD $~title~, ~year~ \rightarrow ~length~, ~genre~, ~studio~$, it's not in BCNF, as ~title~, ~year~ doesn't functionally determine ~actor~.
 \end{document}
