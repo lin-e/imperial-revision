@@ -533,6 +533,9 @@
             \subsubsection*{Keys}
                 If we have some set of attributes $A_1, A_2, ..., A_n$, functionally determine all the remaining attributes of the relation, then the set $A$ is a \textbf{superkey}. This also implies that two tuples cannot have the same superkey values, due to the uniqueness property. Let there be a set of all attributes in the relation, $K$, and the superkey set $S$. Therefore we can state $S \rightarrow \{ x \in K\ |\ x \notin S \}$. A single relation may have more than one superkey, and superkeys can contain attributes that aren't strictly required. Generally, we are interested in superkeys where there isn't a subset of the superkey (hence the smallest superkey, by the irreducibility property), and this minimal superkey is referred to as the \textbf{canddate key}. If we have more than one candidate key, we can choose one of them to act as the primary key.
             \subsubsection*{Closure}
+                The set of all attributes functionally determined by a set $L$, under a set of dependencies $F$, the closure of $L$, denoted as $L^+$. If $L^+$ contains all the attributes of $R$, then it follows that $L$ is a superkey of $R$. If $\text{RHS} \subseteq \text{LHS}^+$, then $\text{LHS} \rightarrow \text{RHS}$ holds.
+                \medskip
+
                 In order to compute the closure of a set of attributes, $L$, under a set of FDs given in the form $\text{LHS} \rightarrow \text{RHS}$, we keep adding all the LHSs which exist as a subset of $L$, and add the RHS to $L$. We repeat thsi until we can no longer add anymore RHSs. The final value is referred to as $L^+$. Given the starting value of $L = \{A, B\}$, and the following FD set;
                 \begin{enumerate}[(1)]
                     \itemsep0em
@@ -553,6 +556,23 @@
                     \item (derived) decomposition \hfill if $\alpha \rightarrow \beta \gamma$, then $\alpha \rightarrow \beta$, and $\alpha \rightarrow \gamma$
                     \item (derived) pseudotransitivity \hfill if $\alpha \rightarrow \beta$, and $\delta \beta \rightarrow \gamma$, then $\delta \alpha \rightarrow \gamma$
                 \end{itemize}
-            \subsubsection*{Covers}
-                We can say two FD sets $F_1$, and $F_2$ are equivalent if they each imply the other - if any relation insance satisfying $F_1$ also satisfies $F_2$, they are said to be covers of each other.
+            \subsubsection*{Closure, and Covers}
+                Similar to attributes, we can find the closure of a FD set, which is the set of all FDs that can be inferred, denoted as $F^+$. This can be approached by applying Armstrong's axioms. We start by initialising $F^+$ to the set $F$. By applying reflexivity, and augmentation, we can add new FDs to $F^+$. Transitivity can then be applied to suitable FDs, and adding the derived ones to $F^+$. This is repeated until no more changes occur.
+                \medskip
+
+                We can say two FD sets $F_1$, and $F_2$ are equivalent if they each imply the other - if any relation insance satisfying $F_1$ also satisfies $F_2$, they are said to be covers of each other. A cover is canonical / minimal / irreducible if each LHS is unique, and no FD can be deleted from the cover, and still maintain an equivalent FD set. Additionally, no attributes can be deleted from any FD set, and still have an equivalent set. Therefore, the canonical cover has no redudant dependencies, nor attributes.
+                \medskip
+
+                The method for testing whether some attribute, $X$, is extraneous depends on whether it's on the LHS, or RHS. For an attribute $X$ on the LHS, we can say $X$ is extraneous if $\text{RHS} \subseteq \{\text{LHS} - X\}^+$ under the FD set - note that here we are referring to closure on attributes, not FDs. On the other hand (no pun intended, I'm so depressed), an attribute $X$ on the RHS is extraneous if $X \in \text{LHS}^+$ under the FD set, where $X$ is removed from the RHS of all the FDs in the set.
+                \medskip
+
+                To compute a canonical cover $F$ for an FD set, we can use the following algorithm;
+                \begin{lstlisting}
+                    let $F$ := FD set
+                    do
+                        replace dependencies of $\alpha \rightarrow \beta$ and $\alpha \rightarrow \gamma$, with $\alpha \rightarrow \beta \gamma$
+                        remove all extraneous attributes one at a time
+                    until $F$ doesn't change
+                \end{lstlisting}
+        \subsection*{Normalisation}
 \end{document}
