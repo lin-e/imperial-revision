@@ -1950,7 +1950,7 @@
                         ~val~ & ~int*~ & ~x~ \\
                         ~val + 1~ & ~int*~ & ~x + 4~ \\
                         ~\&val[2]~ & ~int*~ & ~x + 8~ \\
-                        ~val[5]~ & ~int~ & ~??~ depends on what is at address ~x+5~\\
+                        ~val[5]~ & ~int~ & ~??~ depends on what is at address ~val+5~\\
                     \end{tabular}
                 \end{center}
                 Consider a slightly more complex example, where we iterate through an array, and its corresponding transformed version which uses pointers instead. We can eliminate the loop variable ~i~, and instead have an ending pointer, increment the array pointer, and run checks in a ~do-while~ form;
