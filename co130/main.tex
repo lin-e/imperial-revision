@@ -305,34 +305,34 @@
             \begin{lstlisting}
                 -- movie($\ulsmash{~title~}$, $\ulsmash{~year~}$, length, genre)
 
-                CREATE TABLE movie {
-                  title VARCHAR(120),
-                  year INT,
-                  length INT,
-                  genre CHAR(20),
+                CREATE TABLE movie (
+                    title VARCHAR(120),
+                    year INT,
+                    length INT,
+                    genre CHAR(20),
 
-                  PRIMARY KEY (title, year)
-                }
+                    PRIMARY KEY (title, year)
+                )
             \end{lstlisting}
             Composite attributes are also fairly easy to represent, since we just flatten it, therefore store each of the sub-attributes as their own field - consider the actor example (note that if the primary key is composite, we mark all the sub-attributes as primary keys). This example also shows how multi-valued attributes are stored - we create their own relation, and link back to the entity set with a foreign key constraint;
             \begin{lstlisting}
                 -- actor($\ulsmash{~name~}$, number, postcode)
                 -- actor_phones($\ulsmash{~actorName~}$, $\ulsmash{~phoneID~}$, $\textit{~other attributes~}$)
 
-                CREATE TABLE actor {
-                  name VARCHAR(60),
-                  number INT,
-                  postcode VARCHAR(10),
-                  PRIMARY KEY (name)
-                }
+                CREATE TABLE actor (
+                    name VARCHAR(60),
+                    number INT,
+                    postcode VARCHAR(10),
+                    PRIMARY KEY (name)
+                )
 
-                CREATE TABLE actor_phones {
-                  actorName VARCHAR(60),
-                  phoneID VARCHAR(10),
-                  ...
-                  PRIMARY KEY (actorName, phoneID),
-                  FORIEGN KEY (actorName) REFERENCES actor.name
-                }
+                CREATE TABLE actor_phones (
+                    actorName VARCHAR(60),
+                    phoneID VARCHAR(10),
+                    ...
+                    PRIMARY KEY (actorName, phoneID),
+                    FORIEGN KEY (actorName) REFERENCES actor.name
+                )
             \end{lstlisting}
             The relational model doesn't allow us to specify derived attributes, and we're therefore expected to calculate them with queries.
             \medskip
@@ -343,54 +343,54 @@
                 -- car($\ulsmash{~regno~}$, $\textit{~other attributes~}$)
                 -- drive($\ulsmash{~personID~}$, $\ulsmash{~regno~}$, $\textit{~other attributes~}$)
 
-                CREATE TABLE drive {
-                  personID VARCHAR(10),
-                  regno VARCHAR(12),
-                  ...
-                  PRIMARY KEY (personID, regno),
-                  FORIEGN KEY (personID) REFERENCES person.ID ON DELETE CASCADE,
-                  FORIEGN KEY (regno) REFERENCES car.regno ON DELETE CASCADE
-                }
+                CREATE TABLE drive (
+                    personID VARCHAR(10),
+                    regno VARCHAR(12),
+                    ...
+                    PRIMARY KEY (personID, regno),
+                    FORIEGN KEY (personID) REFERENCES person.ID ON DELETE CASCADE,
+                    FORIEGN KEY (regno) REFERENCES car.regno ON DELETE CASCADE
+                )
             \end{lstlisting}
             However, it's easier to represent a one-to-many relationship, as we can simply include the primary key of the "one" relation as a foreign key in the many (where a car can be driven by 1 person, and a person can drive many cars). The representation for a one-to-one is similar, but the foreign key can be in either one, which is up to the designer;
             \begin{lstlisting}
                 -- person($\ulsmash{~ID~}$, $\textit{~other attributes~}$)
                 -- car($\ulsmash{~regno~}$, personID, $\textit{~other attributes~}$)
 
-                CREATE TABLE car {
+                CREATE TABLE car (
                     regno VARCHAR(12),
                     personID VARCHAR(10),
                     ...
                     PRIMARY KEY (regno),
                     FORIEGN KEY (personID) REFERENCES person.ID
-                }
+                )
             \end{lstlisting}
             In a weak entity, we include the primary key of the strong relation as a foreign key, but also use it as part of the composite primary key for the weak entity. A delete cascade is also used, and finally the we use ~not null~ to ensure total participation;
             \begin{lstlisting}
                 -- building($\ulsmash{~name~}$, $\textit{~other attributes~}$)
                 -- room($\ulsmash{~no~}$, $\ulsmash{~buildingname~}$, $\textit{~other attributes~}$)
 
-                CREATE TABLE room {
+                CREATE TABLE room (
                     no VARCHAR(120),
                     buildingname VARCHAR(50) NOT NULL,
                     ...
                     PRIMARY KEY (no, buildingname),
                     FOREIGN KEY (buildingname) REFERENCES building.name ON DELETE CASCADE
-                }
+                )
             \end{lstlisting}
             A multiway relationship can be mapped as several binary relationships, or we can generalise it to have the primary key consist of the relationship be composed of the primary keys of the many entity sets, and have the primary keys of the one entities be attributes. For roles, we map each role as a foreign key attribute in the entity set;
             \begin{lstlisting}
                 -- movie($\ulsmash{~ID~}$, $\textit{~other attributes~}$)
                 -- sequelof($\ulsmash{~originalID~}$, $\ulsmash{~sequelID~}$, $\textit{~other attributes~}$)
 
-                CREATE TABLE sequelof {
+                CREATE TABLE sequelof (
                     originalID INT,
                     sequelID int,
                     ...
                     PRIMARY KEY (orignalID, sequelID),
                     FOREIGN KEY originalID REFERENCES movie.ID,
                     FOREIGN KEY sequelID REFERENCES movie.ID
-                }
+                )
             \end{lstlisting}
             \subsubsection*{Extended Models}
                 Newer models extend the classic model by supporting features from \textbf{object-oriented design}. We can look at how E-R models handle specialisation, or generalisation with \textbf{is-a hierarchies}. For example, we can specify that a ~cartoon~ \textbf{is-a} ~movie~, which means that it inherits all the attributes of movie, but can have more attributes. and relations. Once this extends on multiple levels, we begin to form a hierarchy.
@@ -893,7 +893,7 @@
             \subsubsection*{Creating a Relation}
                 Given some relation ~movie(\ulsmash{title}, \ulsmash{year}, length, genre, ISAN)~, the following SQL instruction will create the table;
                 \begin{lstlisting}
-                    CREATE TABLE movie {
+                    CREATE TABLE movie (
                         title VARCHAR(120),
                         year INT DEFAULT 2011,
                         length INT NOT NULL DEFAULT 0,
@@ -901,7 +901,7 @@
                         ISAN CHAR(24) NOT NULL,
                         PRIMARY KEY (title, year),
                         UNIQUE (ISAN)
-                    }
+                    )
                     -- this table can be deleted with 'DROP TABLE movie'
                     -- please sanitise your inputs (https://xkcd.com/327/)
                 \end{lstlisting}
@@ -919,11 +919,128 @@
             \subsubsection*{Check Constraints}
                 In order to prevent the repetition of code, I'll simply leave ~...~ where the original code (from the first declaration of the table) is. While giving types to the attributes, and ensuring that they aren't nulls allow us to limit the values we store, we need ~CHECK~ constraints to define predicates that must be satisfied on the insertion, or update of a tuple. While the first two are probably the most common types of check (where it's a simple expression on a single attribute), we can have arbitrary expressions that may involve other queries;
                 \begin{lstlisting}
-                    CREATE TABLE MOVIE {
+                    CREATE TABLE MOVIE (
                         ...
                         CHECK (year BETWEEN 1900 AND 2020),
                         CHECK (genre IN ('sf', 'comedy', 'drama', 'western')),
-                        CHECK (ISAN in (SELECT no FROM ISANcatalog))
-                    }
+                        CONSTRAINT validISAN CHECK (ISAN in (SELECT no FROM ISANcatalog))
+                    )
+
+                    CREATE ASSERTION nopoorbosses CHECK (
+                        NOT EXISTS (
+                            SELECT s.name
+                            FROM studio s JOIN movieboss m ON (s.boss=m.name)
+                            WHERE m.networth < 314159265 -- some large number
+                        )
+                    )
                 \end{lstlisting}
+                You'll note that we can also name our constraints, which not only allows us to modify them with ~ALTER TABLE~, but also clarfifies errors when they are violated. There's also an assertion, but they are difficult to efficiently implement, despite being a powerful feature.
+            \subsubsection*{Foreign Key Constraints}
+                One method of ensuring referntial integrity is to apply constraints on foreign keys, which specify that the value of some set of attributes in a table must reference (match) primary key values of another relation, in this case, we're dealing with the schema ~casting(title, year, name)~;
+                \begin{lstlisting}
+                    ...
+
+                    CREATE TABLE casting (
+                        title VARCHAR(120),
+                        year INT,
+                        name VARCHAR(60),
+                        FOREIGN KEY (title, year) REFERENCES movie (title, year) ON UPDATE CASCADE ON DELETE CASCADE
+                    )
+                \end{lstlisting}
+                Another important factor in maintaining referential integrity is to cascade updates, whether it being a field update, or a deletion. Any update to the referenced attribute will cascade down to the foriegn key. If the referenced tuple (a ~movie~ in this case) is deleted, then the entry referencing tuple is also deleted (a ~casting~ here). Instead of cascading updates, or deletions, we can set use other policies to update the referencing tuple (although this will lead to unmatched tuples). In our case, if the referenced tuple is deleted, the referencing fields are set to null, and if it's updated, then the fields are set to the default values;
+                \begin{lstlisting}
+                    CREATE TABLE casting (
+                        title VARCHAR(120) DEFAULT '',
+                        year INT DEFAULT 2011,
+                        name VARCHAR(60),
+                        FOREIGN KEY (title, year) REFERENCES movie (title, year) ON UPDATE SET DEFAULT ON DELETE SET NULL
+                    )
+                \end{lstlisting}
+            \subsubsection*{Views}
+                Views are temporary relations that can be defined with a query. For example, given the same schemas previously used, this can then be queried as if it were a stored relation;
+                \begin{lstlisting}
+                    CREATE VIEW comedies AS
+                    SELECT title, year
+                    FROM movie
+                    WHERE genre='comedy';
+
+                    CREATE VIEW actorGenre(actorname, moviegenre) AS
+                    SELECT DISTINCT name, genre
+                    FROM movie JOIN CASTING USING (title, year);
+
+                    SELECT * FROM comedies WHERE year=2010;
+                \end{lstlisting}
+            \subsubsection*{Indexing}
+                If we were to have a large database of movies, it could be quite slow to check. As such, we can make copies, which are automatically updated by the RDBMS. Once again, it leads to a trade-off between space and time.
+                \begin{lstlisting}
+                    CREATE INDEX yearindex ON movies (YEAR);
+                \end{lstlisting}
+        \subsection*{Data Manipulation, and Advanced SQL}
+            \subsubsection*{Insertion}
+                When we run a query to insert items into a table, missing values are set to ~NULL~ (unless the schema doesn't allow that), or are set to a default value (if one is specified). If it fails any constraints, such as uniqueness, then an error is given, and the tuple is not added to the table, and any associated transaction is rolledback. We're also able to insert values using a subquery, for example, the second command adds studios which are present in the movie relation (which aren't present in the studios relation) to the studio relation. An insertion subquery will be fully evaluated before the insertion occurs to prevent any anomalies.
+                \begin{lstlisting}
+                    INSERT INTO movie (title, year, genre)
+                    VALUES ('True Grit', 2010, 'Western'),
+                        ('The Kings Speech', 2010, 'Drama')
+
+                    INSERT INTO studio (name)
+                    SELECT DISTINCT studio FROM movies m
+                    WHERE m.studio NOT IN (SELECT s.name FROM studio s)
+                \end{lstlisting}
+            \subsubsection*{Deletion}
+                We're also able to delete from a relation. It's extremely important to state a ~condition~, otherwise the entire relation will be cleared.
+                \begin{lstlisting}
+                    DELETE FROM movie
+                    WHERE length > 180 OR
+                          (title, year) IN (SELECT title, year
+                                            FROM casting
+                                            WHERE name='Keanu Reeves')
+                \end{lstlisting}
+            \subsubsection*{Updating}
+                We're able to update tuples that satisfy a condition as follows. Similar to insertion, the transaction is aborted if it violates any constraints;
+                \begin{lstlisting}
+                    UPDATE employee
+                    SET salary = CASE
+                        WHEN salary <= 70000 THEN salary * 1.02
+                        WHEN salary <= 80000 THEN salary * 1.03
+                        ELSE salary * 1.04
+                        END,
+                        lastpayincrease = current_date
+                    WHERE position='Professor'
+                \end{lstlisting}
+            \subsubsection*{Advanced Operations}
+                This was its own set of slides, but it's actually not that long, so it's just a list now.
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~LIMIT~ clause \hfill used to specify (limit) the number of records to return
+                        \begin{lstlisting}
+                            SELECT columns
+                            FROM table
+                            LIMIT number;
+
+                            SELECT * FROM persons LIMIT 2; -- only gets the first two rows
+                        \end{lstlisting}
+                    \item ~LIKE~ operator \hfill used in a ~WHERE~ clause to serarch for specific patterns in a column
+                        \begin{lstlisting}
+                            SELECT columns
+                            FROM table
+                            WHERE column LIKE pattern;
+
+                            SELECT * FROM persons WHERE city LIKE 'S%'; -- only gets people from cities starting in 'S'
+                            -- % is used to substitute zero, or more characters
+                            -- _ is used to substitute exactly one character
+                        \end{lstlisting}
+                    \item ~AUTO\_INCREMENT~ \hfill allows a unique number to be generated when new records are added
+                        \begin{lstlisting}
+                            CREATE TABLE persons (
+                                p_id INT NOT NULL AUTO_INCREMENT,
+                                lastName VARCHAR(255) NOT NULL,
+                                firstName VARCHAR(255),
+                                address VARCHAR(255),
+                                city VARCHAR(255),
+                                PRIMARY KEY (P_Id)
+                            )
+                        \end{lstlisting}
+                \end{itemize}
+        \subsection*{Transactions}
 \end{document}
