@@ -713,4 +713,179 @@
                         (r) edge[->] (r5);
                     \end{tikzpicture}
                 \end{center}
+        \subsection*{SQL}
+            \textbf{Structured Query Language} is the most common language for relational databases, with use in more than 99\% of applications. It supports schema creation, modification, data insertion, retrieval, updates, deletion, and a lot more. Translating from the relational algebra we previously done, to SQL, can be done with the table below;
+            \begin{center}
+                \begin{tabularx}{\textwidth}{|c|c|X|}
+                    \hline
+                    relational algebra & SQL & comments\\
+                    \hline
+                    \hline
+                    $R \cup S$ & $R ~ UNION ~ S$ & \\
+                    $R \cap S$ & $R ~ INTERSECT ~ S$ & \\
+                    $R - S$ & $R ~ EXCEPT ~ S$ & \\
+                    $\pi_~attributes~(R)$ & $~SELECT attributes FROM ~ R$ & \\
+                    $\sigma_~condition~(R)$ & $~FROM ~ R ~ WHERE condition~$ & \\
+                    $R \times S$ & $R, S$ or $R ~ CROSS JOIN ~ S$ & \\
+                    $R \bowtie S$ & $R ~ NATURAL JOIN ~ S$ & \\
+                    $R \bowtie_~condition~ S$ & $R ~ JOIN ~ S ~  ON condition~$ & \\
+                    relation & table & persistent relations stored on disk \\
+                    relational expression & views & based on other relations, not normally stored \\
+                    tuple & row & also called a record \\
+                    attribute & column & also called a field \\
+                    domain & type & includes ~char~, ~int~, ~float~, ~date~, ~time~, etc. \\
+                    \hline
+                \end{tabularx}
+                \vspace{-2\baselineskip}
+            \end{center}
+            However, SQL differs from the theory we've studied so far, as it is based on multi-sets, and therefore can contain duplicate rows / tuples. It's still best practice to avoid them. Not all attributes need to be filled in, and therefore can be left ~null~, once again this should be avoided; because of this, booleans are three-valued (true, false, and unknown). Most implementations have a wide range of types, and therefore numbers have multiple types - arithmetic opertors are usually available. Strings can either be a fixed length, and padded with spaces, or varying length. The concatenation operator used in SQL is ~||~, and we can use pattern matching, with ~\_~ denoting any character, and ~\%~ matching zero, or more characters. We can store bits, bytes, and large binary objects (blobs) to hold images, movies, and other files.
+            \medskip
+
+            With booleans, we have additional comparison operators such as ~BETWEEN~, ~NOT BETWEEN~, ~IN~, and ~NOT IN~, all of which should be fairly self-explanatory. The truth values for 3VL (three valued logic) can be computed with the following mapping;
+            \begin{itemize}
+                \itemsep0em
+                \item 1 - true
+                \item $\frac{1}{2}$ - unknown
+                \item 0 - false
+                \item $x$ ~AND~ $y$ = min($x, y$)
+                \item $x$ ~OR~ $y$ = max($x, y$)
+                \item ~NOT~ $x$ = $1 - x$
+            \end{itemize}
+            \medskip
+
+            It's also important to remember that any arithmetic which uses a ~null~, will result in ~null~. Any comparisons that use ~null~ will result in unknown.
+            \subsubsection*{Queries}
+                In order to save space, all comments will be done inline, in the SQL code listing below;
+                \begin{lstlisting}
+                    -- movie(title, year, length, genre, studio, producer)
+                    -- casting(title, year, name)
+
+                    -- note that the results of a selection is still a relation, and therefore we can use it as a subquery in other expressions
+                    SELECT title, length/60 AS hours -- projected attributes (and a rename)
+                    FROM movie -- the relation
+                    WHERE studio='fox' AND year > 1990 -- the condition
+                    ORDER BY year DESC, title ASC -- sorts first by year
+                    -- note that we're using attributes which aren't in the projection, the order of operations is FROM, WHERE, ORDER, SELECT
+                    -- note that we can also prefix the fields, to make it more readable
+                \end{lstlisting}
+                In order to join two relations, we can use a ~JOIN~;
+                \begin{lstlisting}
+                    SELECT title, year, name
+                    FROM movie JOIN casting ON (movie.producer=casting.name)
+                    -- we can do a theta join with an ON, and a condition
+
+                    SELECT title
+                    FROM movie JOIN casting USING (title, year)
+                    -- note that this is the same as ON (movie.title=casting.title AND movie.year=casting.year)
+
+                    SELECT c1.name, c2.name
+                    FROM casting AS c1 JOIN casting c2 -- note how we can omit AS for redability
+                    ON c1.address = c2.address AND
+                       c1.name < c2.name
+                    -- we can do a self join, but we have to name the relation, these are called correlation names
+                \end{lstlisting}
+                We can also consider the different types of joins, either natural (by mathcing attributes), or theta (by condition);
+                \begin{itemize}
+                    \itemsep0em
+                    \item inner join \hfill returns tuples when there is at least one match in both sides
+                    \item left outer join (~LOJ~) \hfill similar to inner join, but will include all tuples from the left relation
+                    \item right outer join (~ROJ~) \hfill similar to inner, but includes all tuples from the right relation
+                    \item full outer join (~FOJ~) \hfill similar to inner, but includes all unmatched tuples
+                \end{itemize}
+                \begin{center}
+                    \begin{tabular}{|c|c|c||c|c|c||c|c|c|c||c|c|c|c||c|c|c|c|}
+                        \hline
+                        \multicolumn{3}{|c||}{$L$} & \multicolumn{3}{c||}{$R$} & \multicolumn{4}{c||}{$L$ ~LOJ~ $R$} & \multicolumn{4}{c||}{$L$ ~ROJ~ $R$} & \multicolumn{4}{c|}{$L$ ~FOJ~ $R$} \\
+                        \hline
+                        ~a~ & ~b~ & ~c~ & ~a~ & ~b~ & ~c~ & ~a~ & ~b~ & ~c~ & ~d~ & ~a~ & ~b~ & ~c~ & ~d~ & ~a~ & ~b~ & ~c~ & ~d~ \\
+                        \hline
+                        \hline
+                        1 & 2 & 3 & 2 & 3 & A & 1 & 2 & 3 & A & 1 & 2 & 3 & A & 1 & 2 & 3 & A \\
+                        \hline
+                        4 & 5 & 6 & 2 & 3 & B & 1 & 2 & 3 & B & 1 & 2 & 3 & B & 1 & 2 & 3 & B \\
+                        \hline
+                        7 & 8 & 9 & 6 & 8 & C & 4 & 5 & 6 & N & N & 6 & 8 & C & 4 & 5 & 6 & N \\
+                        \hline
+                        & & & & & & 7 & 8 & 9 & N & & & & & 7 & 8 & 9 & N \\
+                        \hline
+                        & & & & & & & & & & & & & & N & 6 & 8 & C \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                \begin{lstlisting}
+                    SELECT DISTINCT title, year, name -- selects only unique tuples
+                    FROM movie LEFT OUTER JOIN casting ON
+                        movie.producer=casting.name AND movie.year=casting.year
+                \end{lstlisting}
+                We also have a set of aggregation functions, which can be used to calculate a single value, for example;
+                \begin{lstlisting}
+                    SELECT department
+                           COUNT(*) as professors,
+                           SUM(salary) as totalsalary,
+                           AVG(salary) as averagesalary,
+                           MIN(age) as youngest,
+                           MAX(age) as oldest
+                    FROM employee
+                    WHERE position='Professor'
+                    GROUP BY department
+                    HAVING COUNT(*) >= 10
+                    ORDER BY totalsalary DESC
+                \end{lstlisting}
+                This creates a tuple for each department; the results are then sorted in descending order by total salary. Any non-aggregates used in the projection, or the ~HAVING~ filter \textbf{must} be included in the ~GROUP BY~ list. Only departments with at least 10 professors are listed.
+            \subsubsection*{Subqueries}
+                A powerful feature of ~SELECT~s is that we can also use them as subqueries in expresisons, by wrapping them in brackets. The types supported by SQL are;
+                \begin{itemize}
+                    \itemsep0em
+                    \item scalar subquery
+                        \subitem a subquery that produces a single value, normally uses an aggregate function
+                        \begin{lstlisting}
+                            SELECT title,
+                                (SELECT count(name)
+                                 FROM casting
+                                 WHERE casting.title=movie.title) AS numactors
+                            FROM movie
+                            -- note how the outer query is related to the subquery; this is an example of a correlated subquery that has to be evaulated for each outer tuple
+
+                            SELECT title, count(name) as numactors
+                            FROM movie JOIN casting USING (title)
+                            GROUP BY title
+                            -- this is equivalent, and is clearer
+                        \end{lstlisting}
+                    \item set subquery
+                        \subitem creates a set of distinct values (a single column), typically used for set membership with ~(NOT) IN~, or set comparisons with ~ALL~ or ~SOME~
+                        \begin{lstlisting}
+                            SELECT title
+                            FROM movie
+                            WHERE studio IN (SELECT name
+                                             FROM studio
+                                             WHERE address LIKE 'C%')
+                            SELECT name
+                            FROM casting
+                            WHERE (title, year) NOT IN (SELECT title, year
+                                                        FROM movie
+                                                        WHERE genre='sf')
+                            -- note how we're able to match on tuple values
+                            SELECT title
+                            FROM movie m1
+                            WHERE year < SOME(SELECT year
+                                              FROM movie m2
+                                              WHERE m2.title=m1.title)
+                            -- the keywords ALL, and SOME can be used with any comparator
+
+                            SELECT name
+                            FROM employee
+                            WHERE salary <> ALL(SELECT salary
+                                                FROM employee
+                                                WHERE position='Professor'
+                        \end{lstlisting}
+                    \item relation subquery
+                        \subitem produces a relation, which is typically used as an operand, used with operators ~(NOT) EXISTS~ to check if it's empty, or operators ~(NOT) UNIQUE~ to test for duplicate tuples
+                        \begin{lstlisting}
+                            SELECT title
+                            FROM movie m1
+                            WHERE NOT EXISTS(SELECT *
+                                             FROM movie m2
+                                             WHERE m2.title=m1.title AND m1.year<>m2.year)
+                        \end{lstlisting}
+                \end{itemize}
 \end{document}
