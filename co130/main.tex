@@ -531,7 +531,7 @@
             \end{center}
             Note that if we have two functional dependencies, $A, B \rightarrow K$, and $A, B \rightarrow L$, it's trivial to combine them as $A, B \rightarrow K, L$ (or to split them). If we have the functional dependency $A, B, C, D, E \rightarrow A, C, X, Y, Z$, we can remove all the attributes on the right hand side, that are on the left hand side, such that the aforementioned FD reduces to $A, B, C, D, E \rightarrow X, Y, Z$. A \textbf{trivial} FD is one where all the attributes on the RHS are on the LHS.
             \subsubsection*{Keys}
-                If we have some set of attributes $A_1, A_2, ..., A_n$, functionally determine all the remaining attributes of the relation, then the set $A$ is a \textbf{superkey}. This also implies that two tuples cannot have the same superkey values, due to the uniqueness property. Let there be a set of all attributes in the relation, $K$, and the superkey set $S$. Therefore we can state $S \rightarrow \{ x \in K\ |\ x \notin S \}$. A single relation may have more than one superkey, and superkeys can contain attributes that aren't strictly required. Generally, we are interested in superkeys where there isn't a subset of the superkey (hence the smallest superkey, by the irreducibility property), and this minimal superkey is referred to as the \textbf{candidate key}. If we have more than one candidate key, we can choose one of them to act as the primary key.
+                If we have some set of attributes $A_1, A_2, ..., A_n$, functionally determine all the remaining attributes of the relation, then the set $A$ is a \textbf{superkey}. This also implies that two tuples cannot have the same superkey values, due to the uniqueness property. Let there be a set of all attributes in the relation, $K$, and the superkey set $S$. Therefore we can state $S \rightarrow \{ x \in K\ |\ x \notin S \}$. A single relation may have more than one superkey, and superkeys can contain attributes that aren't strictly required. Generally, we are interested in superkeys where there isn't a subset of the superkey (hence the smallest superkey, by the irreducibility property), and this minimal superkey is referred to as the \textbf{candidate key}. If we have more than one candidate key, we can choose one of them to act as the primary key. A candidate key is also often referred to as just a \textbf{key}.
             \subsubsection*{Closure}
                 The set of all attributes functionally determined by a set $L$, under a set of dependencies $F$, the closure of $L$, denoted as $L^+$. If $L^+$ contains all the attributes of $R$, then it follows that $L$ is a superkey of $R$. If $\text{RHS} \subseteq \text{LHS}^+$, then $\text{LHS} \rightarrow \text{RHS}$ holds.
                 \medskip
@@ -635,4 +635,82 @@
                 \bigskip
 
                 For example, if we have the FD $~title~, ~year~ \rightarrow ~length~, ~genre~, ~studio~$, it's not in BCNF, as ~title~, ~year~ doesn't functionally determine ~actor~.
+                \medskip
+
+                In order to convert something into BCNF, we first initialise a set of relations with just $R$. While the set contains relations that violate the rules of BCNF, take one of them, let it be $V$. Let us take some non-trivial FD for $V$, of the form $\text{LHS} \rightarrow \text{RHS}$; fulfilling the conditions $\text{LHS} \cap \text{RHS} = \emptyset$ (therefore we may need to check a derived FD for decomposed relations), and $\text{LHS} \rightarrow \text{attr}(V)$ does not hold for the FD$^+$ of $R$ (therefore, LHS is not a superkey of $R$). Now remove $V$ from the set of relations. Add a new relation $R_k(\text{LHS} \cup \text{RHS})$, and another relation $R_l(\text{attr}(V) - \text{RHS})$ to the set of decompositions. This process is then recursively applied to the child relations. Consider the following example;
+                \medskip
+
+                $R(A, B, C, D, E, F, G, H, I, J, K)$, and the following FDs;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $A \rightarrow B, C, D$
+                    \item $H, I \rightarrow J$
+                    \item $A, E, F, G \rightarrow H, I, K$
+                \end{itemize}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[draw] (o) at (0, 0) {$R(A, B, C, D, E, F, G, H, I, J, K)$};
+                        \node[draw] (ol) at (-3, -1.75) {$R_1(A, B, C, D)$};
+                        \node[draw] (or) at (3, -1.75) {$R_2(A, E, F, G, H, I, J, K)$};
+                        \node[draw] (orl) at (1, -3.5) {$R_{2A}(H, I, J)$};
+                        \node[draw] (orr) at (5, -3.5) {$R_{2B}(A, E, F, G, H, I, K)$};
+                        \draw
+                        (o) edge[->, left] node{$A \rightarrow B, C, D\ $} (ol)
+                        (o) edge[->] (or)
+                        (or) edge[->, left] node{$H, I \rightarrow J\ $} (orl)
+                        (or) edge[->] (orr);
+                    \end{tikzpicture}
+                \end{center}
+                Honestly, just practice this.
+            \subsubsection*{Recovering Data}
+                When we decompose into BCNF, it's crucial that we're able to recover the original relation by joining the decomposed ones. As long as the FDs hold for the original relation, it will always be possible. However; if the FDs don't hold, we'd end up with false data; as the join would generate tuples that don't exist in the original relation.
+            \subsubsection*{Dependency Preservation}
+                As previosuly mentioned, we know that BCNF doesn't always preserve dependencies, which can be shown here. Let there be a relation $R(A, B, C)$, and the FD set; $\{\{A, B\} \rightarrow C, C \rightarrow B\}$. We wouldn't be able to check $A, B \rightarrow C$ without the RDBMS joining the relations.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[draw] (o) at (0, 0) {$R(A, B, C)$};
+                        \node[draw] (ol) at (-2, -1.75) {$R_1(B, C)$};
+                        \node[draw] (or) at (2, -1.75) {$R_2(A, C)$};
+                        \draw
+                        (o) edge[->, left] node{$C \rightarrow B\ $} (ol)
+                        (o) edge[->] (or);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Third Normal Form}
+                \textbf{A relation $R$ is in 3NF, if and only if, the LHS of every nontrivial FD is a superkey (same as BCNF test), or if every attribute on the RHS of a FD is prime (if it is a member of any key of the relation)}
+                \bigskip
+
+                When a BCNF decomposition doesn't preserve the original FDs, we can either "live with" the violating dependencies, or use a weaker normal form which preserves FDs, but has redundancy. With \textbf{3NF}, there always exists a dependency preserving, lossless decomposition.
+                \medskip
+
+                In order to decompose a relation $R$, and a set of FDs $F$ for $R$, we can generate a set of decomposed relations $D$. We first need to find $C$, a canonical cover for $F$, such that it's a minimal FD set for $R$. Initialise $D$ to be $\emptyset$. For every canonical FD, in the form $\text{LHS} \rightarrow \text{RHS}$, we add a new relation $(\text{LHS} \cup \text{RHS})$ to $D$. Now, for every relation in $D$, if it is a subset of another relation in $D$, we remove it. Finally, if none of the relations in $D$ include a key for $R$, we add a new relation to $D$, which contains a key.
+                \medskip
+
+                Consider the following relation $R(A, B, C, D, E, F, G, H, I)$, a set of keys $\{\{A, B\}, \{A, D\}, \{B, D\}\}$ with the following FD set (and its canonical cover on the right);
+                \begin{itemize}
+                    \itemsep0em
+                    \item $A, B \rightarrow D, E$ \hfill $A, B \rightarrow D$
+                    \item $A \rightarrow I$ \hfill $A \rightarrow I$
+                    \item $B \rightarrow C, F, G, H$ \hfill $B \rightarrow C, F, G$
+                    \item $G \rightarrow H$ \hfill $G \rightarrow H$
+                    \item $A, D \rightarrow B, C, E, F, G, H$ \hfill $A, D \rightarrow B$
+                    \item $B, D \rightarrow A, I, E$ \hfill $B, D \rightarrow A, E$
+                \end{itemize}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[draw] (r) at (0, 0) {$R(A, B, C, D, E, F, G, H, I)$};
+                        \node[draw] (r1) at (-6, -1.75) {$R_1(A, B, D)$};
+                        \node[draw] (r2) at (-3, -1.75) {$R_2(A, I)$};
+                        \node[draw] (r3) at (0, -1.75) {$R_3(B, C, F, G)$};
+                        \node[draw] (r4) at (3, -1.75) {$R_4(G, H)$};
+                        \node[draw] (r5) at (6, -1.75) {$R_5(A, B, D, E)$};
+                        \node[] () at (-6, -2.5) {dropped, as $R_1 \subseteq R_5$};
+                        \draw
+                        (r) edge[->] (r1)
+                        (r) edge[->] (r2)
+                        (r) edge[->] (r3)
+                        (r) edge[->] (r4)
+                        (r) edge[->] (r5);
+                    \end{tikzpicture}
+                \end{center}
 \end{document}
