@@ -58,6 +58,7 @@
 \newcommand{\limit}[2]{\displaystyle{\lim_{#1 \to #2}}}
 \newcommand{\summation}[3]{\sum\limits_{#1}^{#2} #3}
 \newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
+\newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
 
 \newcommand{\powerset}[0]{\wp}
 \renewcommand{\emptyset}[0]{\varnothing}
@@ -211,14 +212,14 @@
                     \relationship{actsin}{4, 0}{acts in}
                     \relationship{owns}{4, -3}{owns}
                     \entity{movie}{8, -1.5}{movie}
-                    \nattribute{nactor}{-2, 0.25}{left}{\underline{name}}
+                    \nattribute{nactor}{-2, 0.25}{left}{\ulsmash{name}}
                     \nattribute{aactor}{-2, -0.25}{left}{address}
                     \mattribute{phones}{-0.75, 1}{above}{phones}
                     \dattribute{age}{0.75, 1}{above}{age}
-                    \nattribute{nstudio}{-2, -2.75}{left}{\underline{name}}
+                    \nattribute{nstudio}{-2, -2.75}{left}{\ulsmash{name}}
                     \nattribute{astudio}{-2, -3.25}{left}{address}
-                    \nattribute{mtitle}{10, -1.25}{right}{\underline{title}}
-                    \nattribute{myear}{10, -1.75}{right}{\underline{year}}
+                    \nattribute{mtitle}{10, -1.25}{right}{\ulsmash{title}}
+                    \nattribute{myear}{10, -1.75}{right}{\ulsmash{year}}
                     \nattribute{mgenre}{7.25, -2.5}{below}{genre}
                     \nattribute{mlength}{8.75, -2.5}{below}{length}
                     \nattribute{anumber}{-5, 0}{left}{number}
@@ -302,7 +303,7 @@
 
             If we consider a strong entity set, with simple attributes, we can easily create a table from it (see the example, ~movie~, drawn above).
             \begin{lstlisting}
-                -- movie($\underline{~title~}$, $\underline{~year~}$, length, genre)
+                -- movie($\ulsmash{~title~}$, $\ulsmash{~year~}$, length, genre)
 
                 CREATE TABLE movie {
                   title VARCHAR(120),
@@ -315,8 +316,8 @@
             \end{lstlisting}
             Composite attributes are also fairly easy to represent, since we just flatten it, therefore store each of the sub-attributes as their own field - consider the actor example (note that if the primary key is composite, we mark all the sub-attributes as primary keys). This example also shows how multi-valued attributes are stored - we create their own relation, and link back to the entity set with a foreign key constraint;
             \begin{lstlisting}
-                -- actor($\underline{~name~}$, number, postcode)
-                -- actor_phones($\underline{~actorName~}$, $\underline{~phoneID~}$, $\textit{~other attributes~}$)
+                -- actor($\ulsmash{~name~}$, number, postcode)
+                -- actor_phones($\ulsmash{~actorName~}$, $\ulsmash{~phoneID~}$, $\textit{~other attributes~}$)
 
                 CREATE TABLE actor {
                   name VARCHAR(60),
@@ -338,9 +339,9 @@
 
             We can also consider how many-to-many relationships can be represented (using the car example again). The first example is when a car can be driven by many people, and a person can drive many cars;
             \begin{lstlisting}
-                -- person($\underline{~ID~}$, $\textit{~other attributes~}$)
-                -- car($\underline{~regno~}$, $\textit{~other attributes~}$)
-                -- drive($\underline{~personID~}$, $\underline{~regno~}$, $\textit{~other attributes~}$)
+                -- person($\ulsmash{~ID~}$, $\textit{~other attributes~}$)
+                -- car($\ulsmash{~regno~}$, $\textit{~other attributes~}$)
+                -- drive($\ulsmash{~personID~}$, $\ulsmash{~regno~}$, $\textit{~other attributes~}$)
 
                 CREATE TABLE drive {
                   personID VARCHAR(10),
@@ -353,8 +354,8 @@
             \end{lstlisting}
             However, it's easier to represent a one-to-many relationship, as we can simply include the primary key of the "one" relation as a foreign key in the many (where a car can be driven by 1 person, and a person can drive many cars). The representation for a one-to-one is similar, but the foreign key can be in either one, which is up to the designer;
             \begin{lstlisting}
-                -- person($\underline{~ID~}$, $\textit{~other attributes~}$)
-                -- car($\underline{~regno~}$, personID, $\textit{~other attributes~}$)
+                -- person($\ulsmash{~ID~}$, $\textit{~other attributes~}$)
+                -- car($\ulsmash{~regno~}$, personID, $\textit{~other attributes~}$)
 
                 CREATE TABLE car {
                     regno VARCHAR(12),
@@ -366,8 +367,8 @@
             \end{lstlisting}
             In a weak entity, we include the primary key of the strong relation as a foreign key, but also use it as part of the composite primary key for the weak entity. A delete cascade is also used, and finally the we use ~not null~ to ensure total participation;
             \begin{lstlisting}
-                -- building($\underline{~name~}$, $\textit{~other attributes~}$)
-                -- room($\underline{~no~}$, $\underline{~buildingname~}$, $\textit{~other attributes~}$)
+                -- building($\ulsmash{~name~}$, $\textit{~other attributes~}$)
+                -- room($\ulsmash{~no~}$, $\ulsmash{~buildingname~}$, $\textit{~other attributes~}$)
 
                 CREATE TABLE room {
                     no VARCHAR(120),
@@ -379,8 +380,8 @@
             \end{lstlisting}
             A multiway relationship can be mapped as several binary relationships, or we can generalise it to have the primary key consist of the relationship be composed of the primary keys of the many entity sets, and have the primary keys of the one entities be attributes. For roles, we map each role as a foreign key attribute in the entity set;
             \begin{lstlisting}
-                -- movie($\underline{~ID~}$, $\textit{~other attributes~}$)
-                -- sequelof($\underline{~originalID~}$, $\underline{~sequelID~}$, $\textit{~other attributes~}$)
+                -- movie($\ulsmash{~ID~}$, $\textit{~other attributes~}$)
+                -- sequelof($\ulsmash{~originalID~}$, $\ulsmash{~sequelID~}$, $\textit{~other attributes~}$)
 
                 CREATE TABLE sequelof {
                     originalID INT,
@@ -890,14 +891,39 @@
         \subsection*{SQL Data Definition}
             SQL's DDL is concerned with schema creation, as well as the specification of any constraints. This course mainly focuses on base relations (which are stored tables), and lightly touches on derived relations (views). The constraints we deal with in SQL include type, primary / foreign key constraints, uniqueness, checking a value exists (not null), check constraints, as well as assertions.
             \subsubsection*{Creating a Relation}
-                Given some relation ~movie(\underline{title}, \underline{year}, length, genre)~, the following SQL instruction will create the table;
+                Given some relation ~movie(\ulsmash{title}, \ulsmash{year}, length, genre, ISAN)~, the following SQL instruction will create the table;
                 \begin{lstlisting}
                     CREATE TABLE movie {
                         title VARCHAR(120),
                         year INT DEFAULT 2011,
-                        length INT DEFAULT 0,
-                        genre CHAR(20),
-                        PRIMARY KEY (title, year)
+                        length INT NOT NULL DEFAULT 0,
+                        genre CHAR(20) NOT NULL,
+                        ISAN CHAR(24) NOT NULL,
+                        PRIMARY KEY (title, year),
+                        UNIQUE (ISAN)
+                    }
+                    -- this table can be deleted with 'DROP TABLE movie'
+                    -- please sanitise your inputs (https://xkcd.com/327/)
+                \end{lstlisting}
+                We can then modify the schema, with the ~ALTER TABLE~ command, for example (leads to the modified schema ~movie(\ulsmash{title}, \ulsmash{year}, genre, studio, ISAN)~);
+                \begin{lstlisting}
+                    ALTER TABLE movie ADD studio CHAR(16) DEFAULT '';
+                    ALTER TABLE movie DROP length;
+                \end{lstlisting}
+                Note that we've also assigned a value that is unique, hence no other tuple can have the same ~ISAN~ value (if a command were to attempt to violate this constraint, such as via ~UPDATE~, or ~INSERT~, it would fail). Adding a constraint to prevent the assignment of nulls is also shown above.
+            \subsubsection*{Primary Key}
+                Each relation should be given a primary (candidate) key, which determines the other attributes, and uniquely identifies each tuple. This is also used to enforce foreign key constraints. The constraints on a primary key are as follows; the ~NULL~ is not permitted in a primary key, and the whole primary key (in the case of composite keys) has to be unique to the tuple. For example, the following would fail, since we haven't given a value to year (hence it's ~NULL~);
+                \begin{lstlisting}
+                    INSERT INTO movie (title, genre) VALUES ('Up', 'cartoon');
+                \end{lstlisting}
+            \subsubsection*{Check Constraints}
+                In order to prevent the repetition of code, I'll simply leave ~...~ where the original code (from the first declaration of the table) is. While giving types to the attributes, and ensuring that they aren't nulls allow us to limit the values we store, we need ~CHECK~ constraints to define predicates that must be satisfied on the insertion, or update of a tuple. While the first two are probably the most common types of check (where it's a simple expression on a single attribute), we can have arbitrary expressions that may involve other queries;
+                \begin{lstlisting}
+                    CREATE TABLE MOVIE {
+                        ...
+                        CHECK (year BETWEEN 1900 AND 2020),
+                        CHECK (genre IN ('sf', 'comedy', 'drama', 'western')),
+                        CHECK (ISAN in (SELECT no FROM ISANcatalog))
                     }
                 \end{lstlisting}
 \end{document}
