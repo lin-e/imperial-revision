@@ -331,7 +331,7 @@
                     phoneID VARCHAR(10),
                     ...
                     PRIMARY KEY (actorName, phoneID),
-                    FORIEGN KEY (actorName) REFERENCES actor.name
+                    FOREIGN KEY (actorName) REFERENCES actor.name
                 )
             \end{lstlisting}
             The relational model doesn't allow us to specify derived attributes, and we're therefore expected to calculate them with queries.
@@ -348,8 +348,8 @@
                     regno VARCHAR(12),
                     ...
                     PRIMARY KEY (personID, regno),
-                    FORIEGN KEY (personID) REFERENCES person.ID ON DELETE CASCADE,
-                    FORIEGN KEY (regno) REFERENCES car.regno ON DELETE CASCADE
+                    FOREIGN KEY (personID) REFERENCES person.ID ON DELETE CASCADE,
+                    FOREIGN KEY (regno) REFERENCES car.regno ON DELETE CASCADE
                 )
             \end{lstlisting}
             However, it's easier to represent a one-to-many relationship, as we can simply include the primary key of the "one" relation as a foreign key in the many (where a car can be driven by 1 person, and a person can drive many cars). The representation for a one-to-one is similar, but the foreign key can be in either one, which is up to the designer;
@@ -362,7 +362,7 @@
                     personID VARCHAR(10),
                     ...
                     PRIMARY KEY (regno),
-                    FORIEGN KEY (personID) REFERENCES person.ID
+                    FOREIGN KEY (personID) REFERENCES person.ID
                 )
             \end{lstlisting}
             In a weak entity, we include the primary key of the strong relation as a foreign key, but also use it as part of the composite primary key for the weak entity. A delete cascade is also used, and finally the we use ~not null~ to ensure total participation;
@@ -665,7 +665,7 @@
             \subsubsection*{Recovering Data}
                 When we decompose into BCNF, it's crucial that we're able to recover the original relation by joining the decomposed ones. As long as the FDs hold for the original relation, it will always be possible. However; if the FDs don't hold, we'd end up with false data; as the join would generate tuples that don't exist in the original relation.
             \subsubsection*{Dependency Preservation}
-                As previosuly mentioned, we know that BCNF doesn't always preserve dependencies, which can be shown here. Let there be a relation $R(A, B, C)$, and the FD set; $\{\{A, B\} \rightarrow C, C \rightarrow B\}$. We wouldn't be able to check $A, B \rightarrow C$ without the RDBMS joining the relations.
+                As previously mentioned, we know that BCNF doesn't always preserve dependencies, which can be shown here. Let there be a relation $R(A, B, C)$, and the FD set; $\{\{A, B\} \rightarrow C, C \rightarrow B\}$. We wouldn't be able to check $A, B \rightarrow C$ without the RDBMS joining the relations.
                 \begin{center}
                     \begin{tikzpicture}
                         \node[draw] (o) at (0, 0) {$R(A, B, C)$};
@@ -738,7 +738,7 @@
                 \end{tabularx}
                 \vspace{-2\baselineskip}
             \end{center}
-            However, SQL differs from the theory we've studied so far, as it is based on multi-sets, and therefore can contain duplicate rows / tuples. It's still best practice to avoid them. Not all attributes need to be filled in, and therefore can be left ~null~, once again this should be avoided; because of this, booleans are three-valued (true, false, and unknown). Most implementations have a wide range of types, and therefore numbers have multiple types - arithmetic opertors are usually available. Strings can either be a fixed length, and padded with spaces, or varying length. The concatenation operator used in SQL is ~||~, and we can use pattern matching, with ~\_~ denoting any character, and ~\%~ matching zero, or more characters. We can store bits, bytes, and large binary objects (blobs) to hold images, movies, and other files.
+            However, SQL differs from the theory we've studied so far, as it is based on multi-sets, and therefore can contain duplicate rows / tuples. It's still best practice to avoid them. Not all attributes need to be filled in, and therefore can be left ~null~, once again this should be avoided; because of this, booleans are three-valued (true, false, and unknown). Most implementations have a wide range of types, and therefore numbers have multiple types - arithmetic operators are usually available. Strings can either be a fixed length, and padded with spaces, or varying length. The concatenation operator used in SQL is ~||~, and we can use pattern matching, with ~\_~ denoting any character, and ~\%~ matching zero, or more characters. We can store bits, bytes, and large binary objects (blobs) to hold images, movies, and other files.
             \medskip
 
             With booleans, we have additional comparison operators such as ~BETWEEN~, ~NOT BETWEEN~, ~IN~, and ~NOT IN~, all of which should be fairly self-explanatory. The truth values for 3VL (three valued logic) can be computed with the following mapping;
@@ -779,12 +779,12 @@
                     -- note that this is the same as ON (movie.title=casting.title AND movie.year=casting.year)
 
                     SELECT c1.name, c2.name
-                    FROM casting AS c1 JOIN casting c2 -- note how we can omit AS for redability
+                    FROM casting AS c1 JOIN casting c2 -- note how we can omit AS for readability
                     ON c1.address = c2.address AND
                        c1.name < c2.name
                     -- we can do a self join, but we have to name the relation, these are called correlation names
                 \end{lstlisting}
-                We can also consider the different types of joins, either natural (by mathcing attributes), or theta (by condition);
+                We can also consider the different types of joins, either natural (by matching attributes), or theta (by condition);
                 \begin{itemize}
                     \itemsep0em
                     \item inner join \hfill returns tuples when there is at least one match in both sides
@@ -833,7 +833,7 @@
                 \end{lstlisting}
                 This creates a tuple for each department; the results are then sorted in descending order by total salary. Any non-aggregates used in the projection, or the ~HAVING~ filter \textbf{must} be included in the ~GROUP BY~ list. Only departments with at least 10 professors are listed.
             \subsubsection*{Subqueries}
-                A powerful feature of ~SELECT~s is that we can also use them as subqueries in expresisons, by wrapping them in brackets. The types supported by SQL are;
+                A powerful feature of ~SELECT~s is that we can also use them as subqueries in expressions, by wrapping them in brackets. The types supported by SQL are;
                 \begin{itemize}
                     \itemsep0em
                     \item scalar subquery
@@ -844,7 +844,7 @@
                                  FROM casting
                                  WHERE casting.title=movie.title) AS numactors
                             FROM movie
-                            -- note how the outer query is related to the subquery; this is an example of a correlated subquery that has to be evaulated for each outer tuple
+                            -- note how the outer query is related to the subquery; this is an example of a correlated subquery that has to be evaluated for each outer tuple
 
                             SELECT title, count(name) as numactors
                             FROM movie JOIN casting USING (title)
@@ -934,9 +934,9 @@
                         )
                     )
                 \end{lstlisting}
-                You'll note that we can also name our constraints, which not only allows us to modify them with ~ALTER TABLE~, but also clarfifies errors when they are violated. There's also an assertion, but they are difficult to efficiently implement, despite being a powerful feature.
+                You'll note that we can also name our constraints, which not only allows us to modify them with ~ALTER TABLE~, but also clarifies errors when they are violated. There's also an assertion, but they are difficult to efficiently implement, despite being a powerful feature.
             \subsubsection*{Foreign Key Constraints}
-                One method of ensuring referntial integrity is to apply constraints on foreign keys, which specify that the value of some set of attributes in a table must reference (match) primary key values of another relation, in this case, we're dealing with the schema ~casting(title, year, name)~;
+                One method of ensuring referential integrity is to apply constraints on foreign keys, which specify that the value of some set of attributes in a table must reference (match) primary key values of another relation, in this case, we're dealing with the schema ~casting(title, year, name)~;
                 \begin{lstlisting}
                     ...
 
@@ -947,7 +947,7 @@
                         FOREIGN KEY (title, year) REFERENCES movie (title, year) ON UPDATE CASCADE ON DELETE CASCADE
                     )
                 \end{lstlisting}
-                Another important factor in maintaining referential integrity is to cascade updates, whether it being a field update, or a deletion. Any update to the referenced attribute will cascade down to the foriegn key. If the referenced tuple (a ~movie~ in this case) is deleted, then the entry referencing tuple is also deleted (a ~casting~ here). Instead of cascading updates, or deletions, we can set use other policies to update the referencing tuple (although this will lead to unmatched tuples). In our case, if the referenced tuple is deleted, the referencing fields are set to null, and if it's updated, then the fields are set to the default values;
+                Another important factor in maintaining referential integrity is to cascade updates, whether it being a field update, or a deletion. Any update to the referenced attribute will cascade down to the foreign key. If the referenced tuple (a ~movie~ in this case) is deleted, then the entry referencing tuple is also deleted (a ~casting~ here). Instead of cascading updates, or deletions, we can set use other policies to update the referencing tuple (although this will lead to unmatched tuples). In our case, if the referenced tuple is deleted, the referencing fields are set to null, and if it's updated, then the fields are set to the default values;
                 \begin{lstlisting}
                     CREATE TABLE casting (
                         title VARCHAR(120) DEFAULT '',
@@ -977,7 +977,7 @@
                 \end{lstlisting}
         \subsection*{Data Manipulation, and Advanced SQL}
             \subsubsection*{Insertion}
-                When we run a query to insert items into a table, missing values are set to ~NULL~ (unless the schema doesn't allow that), or are set to a default value (if one is specified). If it fails any constraints, such as uniqueness, then an error is given, and the tuple is not added to the table, and any associated transaction is rolledback. We're also able to insert values using a subquery, for example, the second command adds studios which are present in the movie relation (which aren't present in the studios relation) to the studio relation. An insertion subquery will be fully evaluated before the insertion occurs to prevent any anomalies.
+                When we run a query to insert items into a table, missing values are set to ~NULL~ (unless the schema doesn't allow that), or are set to a default value (if one is specified). If it fails any constraints, such as uniqueness, then an error is given, and the tuple is not added to the table, and any associated transaction is rolled back. We're also able to insert values using a subquery, for example, the second command adds studios which are present in the movie relation (which aren't present in the studios relation) to the studio relation. An insertion subquery will be fully evaluated before the insertion occurs to prevent any anomalies.
                 \begin{lstlisting}
                     INSERT INTO movie (title, year, genre)
                     VALUES ('True Grit', 2010, 'Western'),
@@ -1020,7 +1020,7 @@
 
                             SELECT * FROM persons LIMIT 2; -- only gets the first two rows
                         \end{lstlisting}
-                    \item ~LIKE~ operator \hfill used in a ~WHERE~ clause to serarch for specific patterns in a column
+                    \item ~LIKE~ operator \hfill used in a ~WHERE~ clause to search for specific patterns in a column
                         \begin{lstlisting}
                             SELECT columns
                             FROM table
@@ -1053,9 +1053,9 @@
             However; the databases 'crashes' between statements 2, and 3. The reason for the crash could be anything; the server being unable to handle the request (powering off, disk crashing), or a failed connection between the client, and server. Now, consider the same scenario; another issue between 2, and 3, but instead of a server crash, it's a constraint violation from the insert. Due to this; we'd have more precise information on the failure, however in terms of consistency, we'd like to have the same semantics in both cases.
             \medskip
 
-            If we were to consider all three statements executed by the client as a single tracnsation, we need to consider its \textbf{atomicity}. It is supposed to guarantee that either the entire transaction executes, or none of it does. If a failure occurs, the whole transaction should be aborted and rolled-back - but the roll-back is handled by the DBMS, not the client.
+            If we were to consider all three statements executed by the client as a single transaction, we need to consider its \textbf{atomicity}. It is supposed to guarantee that either the entire transaction executes, or none of it does. If a failure occurs, the whole transaction should be aborted and rolled-back - but the roll-back is handled by the DBMS, not the client.
             \subsubsection*{Consistency}
-                Once a transaction is successful, also known as \textbf{committed}, it must leave the database in a consistent state (given that the database was consistent before the transaction started). However, this is something the programmer must ensure, while SQL's constraints assist the prgorammer, more complex rules must be checked by the application.
+                Once a transaction is successful, also known as \textbf{committed}, it must leave the database in a consistent state (given that the database was consistent before the transaction started). However, this is something the programmer must ensure, while SQL's constraints assist the programmer, more complex rules must be checked by the application.
             \subsubsection*{Atomicity, and Durability}
                 If transactions are aborted for any reason, the DBMS must revert to the state before the transaction started (including schema modifications). The recovery system of a DBMS maintains a log of all changes, which includes old values (as such, it also handles durability). When a DBMS starts up, the recovery system typically checks logs to ensure all successful transactions were saved to disk, and the rest are rolled back.
                 \medskip
@@ -1070,7 +1070,7 @@
                     COMMIT;
                 \end{lstlisting}
             \subsubsection*{Replicated Servers}
-                In order to guard against disk failures, a common approach is to take a RAID set-up, which improves perforamce by striping, and also improves durability by having redundant mirrored data. In order to cope with server failures, the entire database server could be mirrored, such that if main server were to crash, then a replicated one would take over.
+                In order to guard against disk failures, a common approach is to take a RAID set-up, which improves performance by striping, and also improves durability by having redundant mirrored data. In order to cope with server failures, the entire database server could be mirrored, such that if main server were to crash, then a replicated one would take over.
             \subsubsection*{Isolation}
                 While it would be trivial to have isolation by serialising our transactions, it would slow down a frequently accessed databases, and would waste resources. Therefore, concurrent transactions are essential for real databases, but require techniques to preserver consistency whenever there's concurrent access. Isolation is handled by a DBMS' \textbf{concurrency control system}, that maximises concurrency but still ensures serialisability. The DBMS can easily allow both transactions to run concurrently if it's one of the three following cases;
                 \begin{enumerate}[1.]
@@ -1082,14 +1082,14 @@
                 We therefore have different levels of isolation in SQL;
                 \begin{itemize}
                     \itemsep0em
-                    \item read uncommited
-                        \subitem uncommited data changed by other transactions can be read (dirty reads) - all changes by other transactions are immediately visible (lowest isolation)
+                    \item read uncommitted
+                        \subitem uncommitted data changed by other transactions can be read (dirty reads) - all changes by other transactions are immediately visible (lowest isolation)
                     \item read committed
                         \subitem only data that has been committed by another transaction can be read
                     \item repeatable read
-                        \subitem similar to read commited, but guarantees all rows returned by a query will be included if we repeat the query (however, may return new tuples)
+                        \subitem similar to read committed, but guarantees all rows returned by a query will be included if we repeat the query (however, may return new tuples)
                     \item serialisable
-                        \subitem trades the degree of concurrency for guarnateed isolation
+                        \subitem trades the degree of concurrency for guaranteed isolation
                 \end{itemize}
                 \begin{center}
                     \begin{tabular}{|c|c|c|c|}
@@ -1097,9 +1097,9 @@
                         level & dirty reads & non-repeatable reads & phantom reads \\
                         \hline
                         \hline
-                        read uncommited & possible & possible & possible \\
+                        read uncommitted & possible & possible & possible \\
                         \hline
-                        read commited & prevented & possible & possible \\
+                        read committed & prevented & possible & possible \\
                         \hline
                         repeatable read & prevented & prevented & possible \\
                         \hline
@@ -1107,21 +1107,21 @@
                         \hline
                     \end{tabular}
                 \end{center}
-                At no level are dirty writes allowed, which means we cannot update data that has been modifed, but not yet committed.
+                At no level are dirty writes allowed, which means we cannot update data that has been modified, but not yet committed.
             \subsubsection*{Remarks}
-                Transactions are one of the most important concepts in computing. ACID properties are fulfilled by the following; atomicity, and durability are implemented by a recovery system, consistency requires the programmer's implementation, although the DBMS has features to help, and finall isolation is handled by a concurrency control system which tries to maximise concurrency but maintain serialisability.
+                Transactions are one of the most important concepts in computing. ACID properties are fulfilled by the following; atomicity, and durability are implemented by a recovery system, consistency requires the programmer's implementation, although the DBMS has features to help, and finally isolation is handled by a concurrency control system which tries to maximise concurrency but maintain serialisability.
         \subsection*{Indexing}
             When we create an index (briefly mentioned above), it helps to speed up access to desired data. Another basic concept is the \textbf{search key}, which is an attribute used to look up records in a file. The index file consists of records, referred to as index entries, in the form \begin{tabular}{|c|c|}
                 \hline
                 search-key & pointer \\
                 \hline
-            \end{tabular}. The index files are typically much smalelr than the original files. Indicies are either ordered, where the search keys are stored in a sorted order, or search keys are distributed across "buckets" with a hash function.
+            \end{tabular}. The index files are typically much smaller than the original files. Indices are either ordered, where the search keys are stored in a sorted order, or search keys are distributed across "buckets" with a hash function.
             \subsubsection*{Ordered}
                 In an ordered index, entries are sorted on the search key. In a sequentially ordered file, the primary index is the index whose search key specifies the order of the file (also referred to as a clustering index). This is usually the primary key. On the other hand, a secondary index is one whose search key specifies a different order from the sequential order of the file.
             \subsubsection*{Index Density}
                 In a dense index, there is an index record for every search-key value in the file, as opposed to a sparse index file, where it only contains index records for some search key values. In order to find a record with the value $K$, we need to first find the index record with the largest search key, below $K$, and then search sequentially after that. A sparse index takes less space, and has less maintenance overhead for insertion and deletion, but is slower at locating records.
             \subsubsection*{Multilevel Index}
-                If a primary index cannot fit in memory, access then becomes expensive. We can solve this by treating the primary index as a seqeuntial file, and then creating another sparse index on it, where we have an outer index, which acts as a sparse index of the primary index, and the inner index being the original primary index file. The same process can be applied to the outer index if it's also too large to fit in memory, and so on. All levels must be updated on insertion, or deletion.
+                If a primary index cannot fit in memory, access then becomes expensive. We can solve this by treating the primary index as a sequential file, and then creating another sparse index on it, where we have an outer index, which acts as a sparse index of the primary index, and the inner index being the original primary index file. The same process can be applied to the outer index if it's also too large to fit in memory, and so on. All levels must be updated on insertion, or deletion.
 
                 \begin{center}
                     \begin{tikzpicture}[x=0.75cm, y=0.75cm]
@@ -1163,7 +1163,7 @@
             \subsubsection*{Record Deletion}
                 If a deleted record was the only record in the file with the particular search-key value, the search-key value is deleted from the index (this is propagated across the multi-level index). In a dense index, the search-key deletion is similar to the file record deletion, but in a sparse index, if the value exists in the index, the value is replaced with the next search-key value in the file. If the value already exists in the index, the index record is deleted.
             \subsubsection*{Record Insertion}
-                If the search-key value doesn't exist in the index, add it in (dense indicies), on the other hand, with a sparse index, no change will be made, unless a new block has to be created. If a new block has to be created, the first search-key value in the block is inserted into the index. Multi-level insertion is done with the same process.
+                If the search-key value doesn't exist in the index, add it in (dense indices), on the other hand, with a sparse index, no change will be made, unless a new block has to be created. If a new block has to be created, the first search-key value in the block is inserted into the index. Multi-level insertion is done with the same process.
             \subsubsection*{Secondary Indices}
                 I find it easier to consider this as a multi-level index, with the inner index being dense (therefore the index records points to a bucket that contains pointers to the actual records)
 \end{document}
