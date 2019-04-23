@@ -1166,4 +1166,53 @@
                 If the search-key value doesn't exist in the index, add it in (dense indices), on the other hand, with a sparse index, no change will be made, unless a new block has to be created. If a new block has to be created, the first search-key value in the block is inserted into the index. Multi-level insertion is done with the same process.
             \subsubsection*{Secondary Indices}
                 I find it easier to consider this as a multi-level index, with the inner index being dense (therefore the index records points to a bucket that contains pointers to the actual records)
+            \subsubsection*{B$^+$-Tree Index Files}
+                Indexed-sequential files have some disadvantages in that the performance gets worse as the file gets bigger, since overflow blocks need to be created. Periodically, the entire file will also need to be reorganized. On the other hand, with B$^+$-tree index files, it can automatically reorganise itself with small changes when insertions, and deletions occur. However, there is additional overhead in insertion, deletion, as well as in space - but these disadvantages are outweighed by the advantages. The properties of a B$^+$-tree are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item all paths from the root to leaf are of equal length
+                    \item each node that is not a root, nor a leaf, has between $\ceil{\frac{n}{2}}$, and $n$ children
+                    \item a leaf node has between $\ceil{\frac{n-1}{2}}$, and $n - 1$ values
+                    \item if the root is not a leaf, then it has at least 2 children, otherwise if the root is a leaf (when there are no other nodes in the tree), it can have between 0, and $n - 1$ values
+                \end{itemize}
+                Pictured below is the structure of a typical node. We have $K_i$ as the search values, and $P_i$ are pointers to children (for non-leaf nodes), or pointers to records (or record buckets) when it is a leaf node. The keys are ordered $K_1 < K_2 < ... < K_{n - 1} $.
+                \begin{center}
+                    \begin{tabular}{|c|c|c|c|c|c|c|}
+                        \hline
+                        $P_1$ & $K_1$ & $P_2$ & ... & $P_{n - 1}$ & $K_{n - 1}$ & $P_n$ \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                $\forall i \in [1..n-1]$ the pointer $P_i$ either points to a file record with the search-key value $K_i$, or to a bucket of pointers, where all the pointers in the bucket have a search-key value of $K_i$. The bucket structure is only needed if the search-key doesn't form a primary key. If we have leaf nodes $L_i$, and $L_j$, and $i < j$, it follows that $L_i$'s search-key values are less than $L_j$'s search key values. $P_n$ points to the next leaf node, in the search-key order.
+                \medskip
+
+                On the other hand, non-leaf nodes form a multi-level sparse index on the leaf nodes. For a non-leaf node with $m$ pointers, all the search-keys in the subtree to which $P_1$ points, are less than $K_1$. $\forall i \in [2..n-1]$, all search-keys in the subtree to which $P_i$ points have values in the range $[K_{i-1}, K_i)$. All the search-keys in the subtree to which $P_n$ points to have values $\geq$ $K_{n - 1}$.
+                \medskip
+
+                We can find all records with a search-key value of ~k~ via the following method;
+                \begin{lstlisting}
+                    N = root
+                    do
+                        examine N for the smallest search-key value > k
+                        if value exists
+                            assume it is K$_\text{i}$
+                            N = P$_\text{i}$
+                        else it follows k >= K$_\text{n - 1}$
+                            N = P$_\text{n}$
+                    until N is a leaf node
+                    if for some i, K$_\text{i}$ = k
+                        follow pointer P$_\text{i}$ to record
+                    else
+                        no record with search-key value k exists
+                \end{lstlisting}
+                Note that at some point in the next paragraph I will start using S-K V, because I think this degree is giving me RSI.
+                \medskip
+
+                In order to insert values into the tree, we find the leaf node in which the value would appear. If the search-key value is already present, we add the record to the file, otherwise we add the record to the main file (and generate a bucket if needed). If there's room in the leaf node, insert the (key-value, pointer) pair in the leaf node, otherwise split the node. In order to split a leaf node, we take $n$ (S-K V, P) pairs, in a sorted order (including the pair being inserted). Place the first in the original node, and the rest in a new node. We then create a new pair ($k$, $p$), in the parent of the node being split. This is then propagated upwards if the parent is also full.
+                \medskip
+
+                To delete a record from the tree, we need to find the record and remove it from the main file (as well as from the bucket). Remove the pair from the leaf node, if the bucket becomes empty (or if there wasn't a bucket in the first place). If the node now has too few entries, and it is able to merge with a sibling to fit into a single node, we then merge siblings. This is done by inserting all the S-K Vs in the two nodes into a single node (the left-most one), and deleting the other. The deleted pair is then deleted from the parent, done recursively. However, if it cannot combine with a sibbling, then we need to redistribute the pointers. Distribute it such that the number of pointers in both the current node, and the sibling node have more than the minimum number, and update the corresponding S-K V in the parent of the node.
+                \medskip
+
+                The index file degredation problem is solved by using indices, and the data file degredation problem is solved by the tree file organisation. The leaf nodes in a B$^+$-tree file organisation store records, instead of pointers. Since records are larger than pointers, the maximum number of records that can be stored in a leaf node is smaller than the number of pointers in a non-leaf node.
 \end{document}
