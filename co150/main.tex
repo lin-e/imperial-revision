@@ -9,6 +9,35 @@
 \usepackage[margin=1.3cm]{geometry}
 \usepackage{logicproof}
 \usepackage{diagbox}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{lstautogobble}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
+
+% shorthand for verbatim
+\catcode`~=\active
+\def~#1~{\texttt{#1}}
+
+% code listing
+\lstdefinestyle{main}{
+    numberstyle=\tiny,
+    breaklines=true,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=2,
+    numbers=left,
+    basicstyle=\ttfamily,
+    columns=fixed,
+    fontadjust=true,
+    basewidth=0.5em,
+    autogobble,
+    xleftmargin=3.0ex,
+    mathescape=true
+}
+\newcommand{\dollar}{\mbox{\textdollar}} %
+\lstset{style=main}
 
 % augmented matrix
 \makeatletter
@@ -29,19 +58,63 @@
 \newcommand{\limit}[2]{\displaystyle{\lim_{#1 \to #2}}}
 \newcommand{\summation}[3]{\sum\limits_{#1}^{#2} #3}
 \newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
+\newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
 
 \newcommand{\powerset}[0]{\wp}
 \renewcommand{\emptyset}[0]{\varnothing}
 
 \newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
 \newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
+\newcommand{\trinaryproof}[4]{\AxiomC{#1} \AxiomC{#2} \AxiomC{#3} \TrinaryInfC{#4} \DisplayProof}
 
 % no indent
 \setlength\parindent{0pt}
 
 % reasoning proofs
-\newcommand{\proofline}[3]{(#1)\ & #2 & \text{#3} \\}
-\allowdisplaybreaks
+\usepackage{ltablex}
+\usepackage{environ}
+\keepXColumns
+\NewEnviron{reasoning}{
+    \begin{tabularx}{\textwidth}{rlX}
+        \BODY
+    \end{tabularx}
+}
+\newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
+\newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
+\newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
+\newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
+\newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
+
+% reasoning er diagrams
+\newcommand{\nattribute}[4]{
+    \node[draw, state, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\mattribute}[4]{
+    \node[draw, state, accepting, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\dattribute}[4]{
+    \node[draw, state, dashed, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\entity}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 0.5)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -0.5)$) {};
+    \draw
+    ($(#1-c) + (-1, 0.5)$) -- ($(#1-c) + (1, 0.5)$) -- ($(#1-c) + (1, -0.5)$) -- ($(#1-c) + (-1, -0.5)$) -- cycle;
+}
+\newcommand{\relationship}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 1)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -1)$) {};
+    \draw
+    ($(#1-c) + (-1, 0)$) -- ($(#1-c) + (0, 1)$) -- ($(#1-c) + (1, 0)$) -- ($(#1-c) + (0, -1)$) -- cycle;
+}
 
 % actual document
 \begin{document}
@@ -78,13 +151,13 @@
             Note how all the PCs are directly connected to the printer, but PC2 can only reach the server through PC1. On the other hand, we can create a more general graph to display some features that may be less common;
             \begin{center}
                 \begin{tikzpicture}
-                    \node[circle, fill=black, label=above:A] (a) at (0, 0) {};
-                    \node[circle, fill=black, label=above:B] (b) at (2, 0) {};
-                    \node[circle, fill=black, label=above:C] (c) at (5, 0) {};
-                    \node[circle, fill=black, label=above:D] (d) at (8, 0) {};
-                    \node[circle, fill=black, label=below:E] (e) at (6, -2) {};
-                    \node[circle, fill=black, label=below:F] (f) at (3, -2) {};
-                    \node[circle, fill=black, label=below:G] (g) at (1, -2) {};
+                    \node[circle, fill=black, label=above:A (2)] (a) at (0, 0) {};
+                    \node[circle, fill=black, label=above:B (2)] (b) at (2, 0) {};
+                    \node[circle, fill=black, label=above:C (3)] (c) at (5, 0) {};
+                    \node[circle, fill=black, label=above:D (2)] (d) at (8, 0) {};
+                    \node[circle, fill=black, label=below:E (1)] (e) at (6, -2) {};
+                    \node[circle, fill=black, label=below:F (2)] (f) at (3, -2) {};
+                    \node[circle, fill=black, label=below:G (4)] (g) at (1, -2) {};
 
                     \draw
                     (b) -- (g)
@@ -97,5 +170,216 @@
                     (c) edge[loop, out=230, in=130, distance=1cm] (c);
                 \end{tikzpicture}
             \end{center}
-            Note that this isn't actually two graphs; it's \textbf{disconnected components}. Between A, and G, there are two \textbf{parallel arcs / edges}, and C has \textbf{loop} with itself.
+            Note that this isn't actually two graphs; it's \textbf{disconnected components}. Between A, and G, there are two \textbf{parallel arcs / edges}, and C has \textbf{loop} with itself. I will continue to refer to this graph as the "example", for the remainder of this section, since it displays properties which we may want to analyse later.
+            \medskip
+
+            We can say that the left subgraph is robust, as it will remain connected against a single failure. However, the right subgraph isn't robust, as a failure between C, and D, or between E, and D would cause one of the nodes to become disconnected. We can then remedy this by adding a connection between C, and E.
+            \medskip
+
+            In the graph drawn above, the degrees are also specified - which is the number of arcs connected to it. Note that the degree of C is 3, as we count loops twice for consistency reasons. The sum of the degrees is 16, which is double the number of arcs (8). This is because each arc is counted twice (where it starts, and where it ends), therefore the sum of the degrees is always even. From that, we can then infer that the number of odd nodes (C, and E in our case) must be even. This is trivial to prove with arithmetic.
+            \subsubsection*{Subgraphs}
+                We can say that $G_1$ is a subgraph of $G_2$ if both of the following criteria apply;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\text{nodes}(G_1) \subseteq \text{nodes}(G_2)$
+                    \item $\text{arcs}(G_1) \subseteq \text{arcs}(G_2)$
+                \end{itemize}
+                A full (induced) subgraph occurs when we have a set of nodes, $X$, such that $X \subseteq \text{nodes}(G)$. Every connection between the nodes in $X$, that was present in $G$, exists in $G[X]$. Then $G^\prime$ is a full subgraph of $G$, if $G^\prime = G[X]$ for some $X$. For example, let $X = \{A, B, G\}$, from the example graph, then we have the following induced subgraph;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[circle, fill=black, label=above:A (2)] (a) at (0, 0) {};
+                        \node[circle, fill=black, label=above:B (1)] (b) at (2, 0) {};
+                        \node[circle, fill=black, label=below:G (3)] (g) at (1, -2) {};
+
+                        \draw
+                        (b) -- (g)
+                        (a) edge[bend left=15] node{} (g)
+                        (a) edge[bend right=15] node{} (g);
+                    \end{tikzpicture}
+                \end{center}
+                If we have some subgraph $G^\prime$, and $\text{nodes}(G^\prime) = \text{nodes}(G)$, then it $G^\prime$ spans $G$.
+            \subsubsection*{Adjacency Matrix}
+                For the entry in the matrix $a_{i,j}$, it represents the number of arcs thast connect $i$ to $j$. In an undirected graph, this matrix is symmetric (such that $a^\top = a$). In our example, we're doing the rows, and columns, alphabetically. It's also important to note that we count each loop twice in a diagonal entry. We can determine the degree of a node by taking the sum of its respective row (or column), and find the number of arcs by taking the sum of all the values in the matrix, and then halving it.
+                \begin{center}
+                    $\begin{matrix}
+                        \text{A} \\
+                        \text{B} \\
+                        \text{C} \\
+                        \text{D} \\
+                        \text{E} \\
+                        \text{F} \\
+                        \text{G}
+                    \end{matrix}$$\begin{bmatrix}
+                        0 & 0 & 0 & 0 & 0 & 0 & 2 \\
+                        0 & 0 & 0 & 0 & 0 & 1 & 1 \\
+                        0 & 0 & 2 & 1 & 0 & 0 & 0 \\
+                        0 & 0 & 1 & 0 & 1 & 0 & 0 \\
+                        0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+                        0 & 1 & 0 & 0 & 0 & 0 & 1 \\
+                        2 & 1 & 0 & 0 & 0 & 1 & 0
+                    \end{bmatrix}$
+                \end{center}
+            \subsubsection*{Adjacency Lists}
+                You'll notice that in our graph, we have a lot of 0s, which makes it less efficient to store as an adjacency matrix; especially if we don't require random access to the degrees. We tend to use $n$ to represent the number of nodes (vertices), and $m$ to represent the number of arcs (edges). You'll note that the size of this is $\leq n + 2m$ (as we have $n$ nodes on the left, and each arc is counted twice, except for loops). Therefore, we can say a graph is sparse if $2m \ll n^2$. Since certain algorithms we work with only look at the arcs incident to a given node, a linked list will be better for sparse graphs.
+                \begin{center}
+                    \begin{tabular}{|c|@{ $\rightarrow$ }l|}
+                        \hline
+                        A & G, G \\
+                        \hline
+                        B & F, G \\
+                        \hline
+                        C & C, D \\
+                        \hline
+                        D & C, E \\
+                        \hline
+                        E & D \\
+                        \hline
+                        F & B, G \\
+                        \hline
+                        G & A, A, B, F \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Big-Oh Notation}
+                I'm too lazy to write out the example, but the idea is that we ignore constant factors, and only consider the most significant term; for example, we could summarise some algorithm that takes $3n^4 + 2n - 4631$ to run as $O(n^4)$. This has significant advantages, since it allows us to abstract away from the implementation / hardware specifics, and instead focus on the factors which determine growth.
+            \subsubsection*{Isomorphism}
+                In general, an isomorphism is a bijection that preserves connections. While the two graphs drawn below appear fairly different, they are isomorphic. Mapping from the left, to the right, we know that $3 \mapsto D$, simply because they are the only nodes with degree 2. It's also evident that $1 \mapsto B$, as it's the only node which has two sets of parallel arcs coming out of it. However, it doesn't matter which of 4, or 2, maps to $A$, or $C$. Therefore, we can say $4 \mapsto A, 2 \mapsto C$, or $4 \mapsto C, 2 \mapsto A$.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm, y=1.25cm]
+                        \node[circle, fill=black, label=above:1] (1) at (0, 1) {};
+                        \node[circle, fill=black, label=right:2] (2) at (1, 0) {};
+                        \node[circle, fill=black, label=above:3] (3) at (0, -1) {};
+                        \node[circle, fill=black, label=left:4] (4) at (-1, 0) {};
+                        \draw
+                        (4) -- (2)
+                        (4) -- (1)
+                        (4) -- (3)
+                        (1) -- (2)
+                        (2) -- (3)
+                        (4) edge[bend left=30] (1)
+                        (1) edge[bend left=30] (2);
+
+                        \node[circle, fill=black, label=left:$A$] (A) at (3, 0) {};
+                        \node[circle, fill=black, label=above:$B$] (B) at (4, 0) {};
+                        \node[circle, fill=black, label=right:$C$] (C) at (5, 0) {};
+                        \node[circle, fill=black, label=above:$D$] (D) at (4, -1) {};
+
+                        \draw
+                        (A) -- (B)
+                        (B) -- (C)
+                        (A) edge[bend left=90] (C)
+                        (A) edge[bend right=40] (D)
+                        (D) edge[bend right=40] (C)
+                        (A) edge[bend right=40] (B)
+                        (C) edge[bend right=40] (B);
+                    \end{tikzpicture}
+                \end{center}
+                While we're able to check this fairly easily by simply looking at the graph, a computer would have to rearrange the LHS' adjacency matrix to the RHS' (or vice versa).
+                \medskip
+
+                Given two graphs, $G, G^\prime$, an isomorphism from $G$ to $G^\prime$ consists of two bijections (one-to-one mapping), as well as an additional restriction;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f : \text{nodes}(G) \mapsto \text{nodes}(G^\prime)$
+                    \item $g : \text{arcs}(G) \mapsto \text{arcs}(G^\prime)$
+                    \item if $a \in \text{arcs}(G)$, with endpoints $n_1, n_2$, then the endpoints of $g(a)$ are $f(n_1), f(n_2)$ (see the diagram below for a visual example).
+                \end{itemize}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[circle, fill=black, label=left:$n_1$] (n1) at (0, 0) {};
+                        \node[circle, fill=black, label=left:$n_2$] (n2) at (0, -2) {};
+                        \node[circle, fill=black, label=right:$f(n_1)$] (fn1) at (2, 0) {};
+                        \node[circle, fill=black, label=right:$f(n_2)$] (fn2) at (2, -2) {};
+                        \draw
+                        (n1) edge[left] node{$a$} (n2)
+                        (fn1) edge[right] node{$g(a)$} (fn2)
+                        ($(n1) + (0.5, 0)$) edge[->] ($(fn1) + (-0.5, 0)$)
+                        ($(n2) + (0.5, 0)$) edge[->] ($(fn2) + (-0.5, 0)$);
+                    \end{tikzpicture}
+                \end{center}
+                In order to confirm whether two graphs are isomorphic, the easiest approach is to first check the obvious; whether the number of arcs, nodes, and loops are the same, as well as the degrees of the nodes. If any of these are different, then the graphs cannot be isomorphic. However if they pass all the tests, then we can attempt to find a bijection on the nodes.
+        \subsection*{17th January 2019}
+            \subsubsection*{Complexity}
+                Generally, the process of determining whether two graphs are isomorphic is computationally expensive, hence it has a high complexity. A naive approach would be to check all the permutations, which would then lead to a time complexity of $O(n!)$, which is worse than even exponential ($O(2^n)$).
+            \subsubsection*{Automorphisms}
+                An automorphism on $G$ is an isomorphism from $G$ to itself. Every graph has at least one automorphism (the identity). Consider the following graph;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[circle, fill=black, label=left:$A$] (a) at (0, 0) {};
+                        \node[circle, fill=black, label=right:$B$] (b) at (2, 0) {};
+                        \node[circle, fill=black, label=right:$C$] (c) at (2, -2) {};
+                        \node[circle, fill=black, label=left:$D$] (d) at (0, -2) {};
+                        \draw
+                        (a) -- (b) -- (c) -- (d) -- (a) -- (c);
+                    \end{tikzpicture}
+                \end{center}
+                We can do the following method to find the number of automorphisms;
+                \begin{itemize}
+                    \itemsep0em
+                    \item fix a node, $B$, it can go to where $D$ is, or stay (2 possibilities)
+                    \item take the next node $A$, it can either stay where it is, or go to where $C$ is (2 possibilities), now fix it
+                    \item take the next node $C$, it can only stay where it is, as it can't go to $D$ since $D$ isn't connected to $B$, nor does it have a degree of 3 (1 possibility), now fix it
+                    \item finally $D$ can only stay where it is (1 possibility)
+                    \item multiply all the possibilities, and we have 4 automorphisms
+                \end{itemize}
+            \subsubsection*{Planar Graphs}
+                We can say a graph is planar if it can be drawn such that no arcs cross. Any non-planar graph contains $K_5$, or $K_{3,3}$ as a subgraph homeomorphic. We can say that two graphs are \textbf{homeomorphic} if they can be obtained by a series of operations such that an arc $x - y$, is replaced by two arcs $x - z$, and $z - y$. For example, the two graphs below are homeomorphic.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[circle, fill=black] (a) at (0, 0) {};
+                        \node[circle, fill=black] (b) at (2, 0) {};
+                        \node[circle, fill=black] (c) at (2, -2) {};
+                        \node[circle, fill=black] (d) at (0, -2) {};
+                        \draw
+                        (a) -- (b) -- (c) -- (d) -- (a) -- (c);
+
+                        \node[circle, fill=black] (a) at (3, 0) {};
+                        \node[circle, fill=black] (b) at (5, 0) {};
+                        \node[circle, fill=black] (c) at (5, -2) {};
+                        \node[circle, fill=black] (d) at (3, -2) {};
+                        \node[circle, fill=black] (e) at (3, -1) {};
+                        \draw
+                        (a) -- (b) -- (c) -- (d) -- (a) -- (c);
+                    \end{tikzpicture}
+                \end{center}
+                There is a linear time algorithm to check whether a graph is planar; however in this case linear time means $O(n + m)$, with the previous definitions.
+                \medskip
+
+                Any planar graph splits the plane into regions, which are referred to as faces; the graph below splits it into 6 faces (including the outside region). With a graph $G$ that has $N$ nodes, $A$ arcs, and $F$ faces, Euler's formula states $F = A - N + 2$ for any connected planar graph.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[circle, fill=black] (a) at (0, 0) {};
+                        \node[circle, fill=black] (b) at (2, 0) {};
+                        \node[circle, fill=black] (c) at (2, -2) {};
+                        \node[circle, fill=black] (d) at (0, -2) {};
+                        \node[circle, fill=black] (e) at (-1, 1) {};
+                        \node[circle, fill=black] (f) at (3, 1) {};
+                        \node[circle, fill=black] (g) at (3, -3) {};
+                        \node[circle, fill=black] (h) at (-1, -3) {};
+                        \draw
+                        (a) -- (b) -- (c) -- (d) -- (a) -- (e) -- (f) -- (g) -- (h) -- (e)
+                        (b) -- (f)
+                        (c) -- (g)
+                        (d) -- (h);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Graph Colouring}
+                Any (literal, real-life) map can be convereted into a simple planar graph by letting the countries represent nodes, and joining them if they are neighbours. This newly generated graph is known as the dual graph. We can say some graph $G$ is $k$-colourable, if the nodes of $G$ can be coloured with no more than $k$ colours, therefore every simple planar graph is 4-colourable.
+            \subsubsection*{Bipartite Graphs}
+                We can say a graph is bipartite if we can partition nodes($G$), into two sets $X$, and $Y$, such that no two nodes of $X$ are joined, and likewise for $Y$. A graph is biparite $\Leftrightarrow$ it is 2-colourable.
+            \subsubsection*{Paths, and Connectedness}
+                A path in a graph is a sequence of adjacent arcs, although normally described by the nodes that we pass through. A path is called \textbf{simple} if it doesn't repeat nodes, and a graph is \textbf{connected} if there is a path joining any two nodes.
+                \medskip
+
+                We can define a relation on nodes($G$) by $x \sim y \Leftrightarrow$ there is a path from $x$ to $y$. This is an equivalence relation, as we can prove it's reflexive, symmetric, and transitive.
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\forall x \in \text{nodes}(G) [x \sim x]$, $x$ is trivially connected to itself, hence it is reflexive
+                    \item $\forall x,y \in \text{nodes}(G) [x \sim y \Rightarrow y \sim x]$, as we are working on an undirected graph, this follows trivially
+                    \item $\forall x,y,z \in \text{nodes}(G) [x \sim y \land y \sim z \rightarrow x \sim z]$, follows trivially by definition of paths
+                \end{itemize}
+                A cycle (circuit) is a special type of path that finishes where it starts, has at least one arc, and doesn't reuse an arc. A graph which doesn't have cycles is \textbf{acyclic}.
+        \subsection*{21st January 2019}
+            \subsubsection*{Euler Paths / Circuits}
+                An Euler path is a special type of path where each arc is used exactly once, and an Euler circuit is a cycle which uses each arc exactly once (therefore an EC is an EP which finishes at the start node). A connected graph has an EP $\Leftrightarrow$ there are 0, or 2 odd nodes, and there is an EC $\Leftrightarrow$ there are no odd nodes.
 \end{document}
