@@ -382,4 +382,134 @@
         \subsection*{21st January 2019}
             \subsubsection*{Euler Paths / Circuits}
                 An Euler path is a special type of path where each arc is used exactly once, and an Euler circuit is a cycle which uses each arc exactly once (therefore an EC is an EP which finishes at the start node). A connected graph has an EP $\Leftrightarrow$ there are 0, or 2 odd nodes, and there is an EC $\Leftrightarrow$ there are no odd nodes.
+                \medskip
+
+                We can justify it by saying that any intermediate node (ones which aren't the start node) have to be entered, and exited the same number of times (otherwise it wouldn't be an intermediate) node. Therefore, if 2 nodes of odd degree, then it follows that we start from one, and end on the other.
+                \medskip
+
+                Consider the following nodes; $n$, $n^\prime$ being the start, and end (the odd nodes of the path), and arbitrary intermediate nodes $i$. Start at $n$, and keep going until we can go no further ($n^\prime$). If we've stopped at $n$, then there must be a spare arc, as we've started, and 'ended' at an odd node. If we stop at some arbitrary $i \neq n^\prime$, then we've still got more arcs, since $i$ is even.
+            \subsubsection*{Hamiltonian Path / Circuits}
+                A Hamiltonian path is one that visits each node exactly once, and similarly a Hamiltonian circuit returns to the start node. For this, we will only consider simple graphs, since we won't ever follow a loop, or a parallel arc. In order for there to be a HP, we need a connected graph, and for a HC to exist, each node must have a degree $\geq 2$. To determine whether a circuit exists, we can take a brute force approach, since a circuit is really just a permutation on the set of nodes; such that for $n$ nodes, we have $\pi : \{1, ..., n\} \mapsto \{1, ..., n\}$. However, for this to be a circuit, we need $\pi(i)$ to be adjacent to $\pi(i + 1)$, and so on. As we have $n!$ possible circuits, this is far too slow. There exists a dynamic programming approach that reduces this to $O(n^22^n)$, but that is still exponential. Compared to EPP, which has $O(n^2)$ time. HCP has been shown to be NP-complete, and are therefore not solvable in polynomial time.
+            \subsubsection*{Trees}
+                A tree is an acyclic connected graph (whether we specify it's rooted, or nonrooted, depends on the author). The root of $G$ is a distinguished node. Assuming a rooted graph, the depth of a node $x$ is the distance along the unique path from the root to $x$. If $x$ isn't the root node, the parent of $x$ is the node directly before it in the path from the root to $x$. The depth of tree is the maximum of the depths of all its nodes.
+                \medskip
+
+                A spanning tree of a graph $G$, is a tree, $T$, such that $\text{nodes}(T) = \text{nodes}(G)$, and $\text{arcs}(T) \subseteq \text{arcs}(G)$. The spanning trees are not necessarily unique.
+            \subsubsection*{Directed Graphs}
+                While we generally cover undirected graphs in this course, it makes sense in some applications for the arcs to be directed. For each $a \in \text{arcs}(G)$, it is associated with an \textbf{ordered} pair of nodes. In diagrams, these are shown with arrows. In a path for $a_1, ..., a_n$, the source of $a_{i + 1}$, must match the target of $a_i$. We define the indegree as the number of arcs entering, and likewise the outdegree is the number of args leaving. For any directed graph, the sum of the indegree of all nodes, and the outdegree of all nodes is equal to the number of arcs. We say a directed graph is strongly connected if there exists a path between any two nodes in $G$.
+        \subsection*{24th January 2019}
+            \subsubsection*{Tree Traversal Algorithms}
+                The two types of traversal covered in this course are depth-first search (DFS), and breadth-first search (BFS). While they are similar in many ways, they also have quite a few differences.
+                \medskip
+
+                In depth first search, we choose one of the adjacent nodes to the start; from there, we then spawn another depth first search. This is done recursively until there aren't any more (unvisited) adjacent nodes. At this point, the spawned DFS returns back to the parent node, where it checks the next adjacent node (normally ordered by how the adjaceny list / matrix is stored). It does this until we have visited all of the nodes, and then returns back all the way to the start.
+                \medskip
+
+                In contrast to DFS, breadth-first search goes through all the adjacent nodes, and then goes deeper. This means that we only check the nodes adjacent to the ones adjacent to the start node, after all of the nodes directly adjacent to the start node have been visited.
+                \medskip
+
+                You'll note that the distance between 1, and 8, is 5 in DFS, but only 1 in BFS. In BFS, the depth of any node is its distance from the start. However, both generate spanning trees on $G$.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[] () at (2, -2.75) {full graph};
+                        \node[] () at (7, -2.75) {DFS};
+                        \node[] () at (12, -2.75) {BFS};
+                        \foreach \x in {0, 1, 2} {
+                            \node[circle, fill=black, label=above:1] (1-\x) at (5*\x, 0) {};
+                            \node[circle, fill=black, label=above:2] (2-\x) at (1 + 5*\x, 1) {};
+                            \node[circle, fill=black, label=above:3] (3-\x) at (2 + 5*\x, 2) {};
+                            \node[circle, fill=black, label=above:4] (4-\x) at (2 + 5*\x, 0) {};
+                            \node[circle, fill=black, label=above:5] (5-\x) at (3 + 5*\x, 1) {};
+                            \node[circle, fill=black, label=above:6] (6-\x) at (3 + 5*\x, -1) {};
+                            \node[circle, fill=black, label=above:7] (7-\x) at (2 + 5*\x, -2) {};
+                            \node[circle, fill=black, label=above:8] (8-\x) at (1 + 5*\x, -1) {};
+                        }
+                        \draw
+                        (1-0) -- (2-0) -- (3-0)
+                        (1-0) -- (8-0) -- (7-0) -- (6-0) -- (4-0) -- (5-0)
+                        (8-0) -- (4-0) -- (2-0);
+
+                        \draw
+                        (1-1) edge[->] (2-1)
+                        (2-1) edge[->] (3-1)
+                        (3-1) edge[bend left=15, ->, dashed] (2-1)
+                        (2-1) edge[->] (4-1)
+                        (4-1) edge[->] (5-1)
+                        (5-1) edge[bend left=15, ->, dashed] (4-1)
+                        (4-1) edge[->] (6-1)
+                        (6-1) edge[->] (7-1)
+                        (7-1) edge[->] (8-1);
+
+                        \draw
+                        (1-2) edge[->] (2-2)
+                        (1-2) edge[->] (8-2)
+                        (2-2) edge[->] (3-2)
+                        (2-2) edge[->] (4-2)
+                        (8-2) edge[->] (7-2)
+                        (4-2) edge[->] (5-2)
+                        (4-2) edge[->] (6-2);
+                    \end{tikzpicture}
+                \end{center}
+                In order to formalise this, let us consider the graph to be traversed as an adjaceny list, a boolean array of nodes (which are visited), and the parent is the parent node in the search tree. The output will be the nodes visited in order.
+                \begin{lstlisting}
+                    procedure dfs(x):
+                      visited[x] = true
+                      print x
+                      for y in adj[x]:
+                        if not visited[y]:
+                          parent[y] = x;
+                          dfs(y)
+                          # at this point, control is returned to x
+                          # we don't need the parent in this case, but other applications may use it
+                \end{lstlisting}
+                The running time of DFS is $O(n + m)$, therefore it's linear. However, this implementation may have some overhead due to recursion.
+                \begin{lstlisting}
+                    procedure bfs(x):
+                      visited[x] = true
+                      print[x]
+                      enqueue(x, Q)
+                      while not isempty(Q):
+                        y = front(Q)
+                        for z in adj[y]:
+                          if not visited[z]:
+                            visited[z] = true
+                            print z
+                            parent[z] = y
+                            enqueue(z, Q)
+                        dequeue(Q)
+                \end{lstlisting}
+                The size of the queue represents the breadth of the front. Once again, the time complexity is $O(n + m)$.
+            \subsubsection*{Applications of Traversal}
+                The algorithms used above also work on non-connected graphs. If we analyse the set of visited nodes, and see that it isn't the same as the set of all nodes, then it is clear that the graph is not connected. As such, we have an $O(n + m)$ algorithm for detecting non-connected graphs.
+                \medskip
+
+                We can trivially say that a graph has a cycle if it has $\geq n$ arcs. Alternatively, we can use DFS; if we encounter a node that has already been visited (other than by backtracking), then it has a cycle.
+                \medskip
+
+                It's also trivial to modify BFS to find the distance of each node, by having a running counter. Due to how BFS is implemented, we can also extract the shortest path from ~y~; as ~y, parent[y], parent[parent[y]], ..., start~.
+            \subsubsection*{Weihted Graphs}
+                We can associate a cost with each arc on a network. We can define a weighted graph as a graph, $G$, with a weight function $W : \text{arcs}(G) \mapsto \mathbb{R}^+$. With weights, we're able to consider the following problems; finding an MST (minimum spanning tree), finding shortest paths, and finding a shortest circuit.
+                \medskip
+
+                We're only going to consider simple graphs, as there is no point in taking a loop if we're trying to minimise cost, nor is there any point in taking the more expensive arc in a parallel arc.
+            \subsubsection*{MST Algorithms}
+                We can say that $T$ is a minimum spanning tree for $G$m if $T$ is a spanning tree for $G$, and no other spanning tree for $G$ has a smaller weight. Once again, MSTs do not have to be unique.
+                \medskip
+
+                The main idea in Prim's algorithm is to add the shortest arc that will extend the tree. This is an example of a greedy algorithm, which gives a short-term advantage byt may not be the best overall (it is in this case). At any stage in Prim's algorithm, we have three types of nodes; tree nodes (which are already part of the MST), candidate nodes - which are fringe nodes adjacent to a tree node, and the rest are unseen nodes. At the start, all nodes are unseen.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm, y=1.25cm]
+                        \node[circle, fill=black, label=above:start] () at (2.5, -2) {};
+                        \node[circle, fill=black, label=left:t] (t) at (3, -3) {};
+                        \node[circle, fill=black, label=left:f] (f) at (4, -3.75) {};
+                        \node[] () at (1, -0.375) {fringe};
+                        \node[] () at (2, -1.25) {tree};
+                        \node[] () at (-1, -2) {unseen};
+                        \draw
+                        (0, 0) -- (5, 0) -- (5, -4) -- (0, -4) -- cycle
+                        (0.75, -0.75) -- (4.25, -0.75) -- (4.25, -3.25) -- (0.75, -3.25) -- cycle
+                        (t) -- (f);
+                    \end{tikzpicture}
+                \end{center}
+                The general idea is to pick a random node (doesn't matter which, as all nodes will be in the MST by definition)
 \end{document}
