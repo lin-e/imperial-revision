@@ -1110,6 +1110,64 @@
                 At no level are dirty writes allowed, which means we cannot update data that has been modified, but not yet committed.
             \subsubsection*{Remarks}
                 Transactions are one of the most important concepts in computing. ACID properties are fulfilled by the following; atomicity, and durability are implemented by a recovery system, consistency requires the programmer's implementation, although the DBMS has features to help, and finally isolation is handled by a concurrency control system which tries to maximise concurrency but maintain serialisability.
+        \subsection*{Storage}
+            Requests are specified in SQL, and sent to a query / database server via a remote procedure call mechanism. Standard transaction servers consists of the following processes;
+            \begin{itemize}
+                \itemsep0em
+                \item server \hfill recieve user queries (transactions), executes them, and sends results back
+                \item lock manager
+                \item database writer \hfill outputs the modified buffer to disks
+                \item log writer \hfill server proceses add logs to the buffer, and the writer writes to stable storage
+                \item checkpoint \hfill performs periodic checkpoints
+                \item process monitor \hfill monitors other processes, and takes recovery action on failures
+            \end{itemize}
+            \begin{center}
+                \begin{tikzpicture}
+                    \foreach \x in {0, 3, 6} {
+                        \node[] () at (\x + 1, -0.5) {\shortstack{user\\process}};
+                        \node[] () at (\x + 1, -2.5) {\shortstack{server\\process}};
+                        \draw
+                        (\x, 0) -- (\x + 2, 0) -- (\x + 2, -1) -- (\x, -1) -- cycle
+                        (\x, -2) -- (\x + 2, -2) -- (\x + 2, -3) -- (\x, -3) -- cycle
+                        (\x + 1, -1) -- (\x + 1, -2);
+                    }
+
+                    \node[] () at (4, -4.875) {buffer pool};
+                    \node[] () at (3.374, -6.125) {query plain cache};
+                    \node[] () at (2.25, -7.125) {log buffer};
+                    \node[] () at (4.5, -7.125) {lock table};
+                    \draw
+                    (1, -4) -- (7, -4) -- (7, -7.75) -- (1, -7.75) -- cycle
+                    (1.25, -4.25) -- (6.75, -4.25) -- (6.75, -5.5) -- (1.25, -5.5) -- cycle
+                    (1.25, -5.75) -- (5.5, -5.75) -- (5.5, -6.5) -- (1.25, -6.5) -- cycle
+                    (1.25, -6.75) -- (3.25, -6.75) -- (3.25, -7.5) -- (1.25, -7.5) -- cycle
+                    (3.5, -6.75) -- (5.5, -6.75) -- (5.5, -7.5) -- (3.5, -7.5) -- cycle;
+
+                    \node[] () at (1, -9.25) {\shortstack{log writer\\process}};
+                    \node[] () at (4, -9.25) {\shortstack{checkpoint\\process}};
+                    \node[] () at (7, -9.25) {\shortstack{db writer\\process}};
+                    \foreach \x in {0, 3, 6} {
+                        \draw
+                        (\x, -8.75) -- (\x + 2, -8.75) -- (\x + 2, -9.75) -- (\x, -9.75) -- cycle;
+                    }
+                    \draw
+                    (1, -3) -- (2.5, -4)
+                    (4, -3) -- (4, -4)
+                    (7, -3) -- (5.5, -4)
+                    (6.125, -5.5) -- (6.125, -7.125) -- (7, -8.75)
+                    (2.25, -7.5) -- (1, -8.75)
+                    (2.25, -7.5) -- (4, -8.75);
+
+                    \node[] () at (-0.5, -5.875) {\shortstack{shared\\memory}};
+                    \node[] () at (9, -4.875) {\shortstack{process\\monitor}};
+                    \node[] () at (9, -6.875) {\shortstack{lock\\manager}};
+
+                    \draw
+                    (8, -5.375) -- (10, -5.375) -- (10, -4.375) -- (8, -4.375) -- cycle
+                    (8, -7.375) -- (10, -7.375) -- (10, -6.375) -- (8, -6.375) -- cycle;
+
+                \end{tikzpicture}
+            \end{center}
         \subsection*{Indexing}
             When we create an index (briefly mentioned above), it helps to speed up access to desired data. Another basic concept is the \textbf{search key}, which is an attribute used to look up records in a file. The index file consists of records, referred to as index entries, in the form \begin{tabular}{|c|c|}
                 \hline
@@ -1215,4 +1273,6 @@
                 \medskip
 
                 The index file degredation problem is solved by using indices, and the data file degredation problem is solved by the tree file organisation. The leaf nodes in a B$^+$-tree file organisation store records, instead of pointers. Since records are larger than pointers, the maximum number of records that can be stored in a leaf node is smaller than the number of pointers in a non-leaf node.
+            \subsubsection*{Hashing}
+                We can also use a hash function to obtain the bucket for a record, directly from it's S-K V. Given some hash function $h$, it maps the set of S-K Vs $K$ to the set of bucket addresses $B$. However, records with different S-K Vs can still be mapped to the same bucket, so the bucket will still need to be sequentially searched (however, on a smaller data set, provided the hash function is good). The worst hash function would map all S-K Vs to the same bucket, whereas an ideal function is uniform and assigns the same number to each bucket.
 \end{document}
