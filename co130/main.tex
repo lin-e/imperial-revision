@@ -1114,10 +1114,10 @@
             Requests are specified in SQL, and sent to a query / database server via a remote procedure call mechanism. Standard transaction servers consists of the following processes;
             \begin{itemize}
                 \itemsep0em
-                \item server \hfill recieve user queries (transactions), executes them, and sends results back
+                \item server \hfill receive user queries (transactions), executes them, and sends results back
                 \item lock manager
                 \item database writer \hfill outputs the modified buffer to disks
-                \item log writer \hfill server proceses add logs to the buffer, and the writer writes to stable storage
+                \item log writer \hfill server processes add logs to the buffer, and the writer writes to stable storage
                 \item checkpoint \hfill performs periodic checkpoints
                 \item process monitor \hfill monitors other processes, and takes recovery action on failures
             \end{itemize}
@@ -1165,9 +1165,38 @@
                     \draw
                     (8, -5.375) -- (10, -5.375) -- (10, -4.375) -- (8, -4.375) -- cycle
                     (8, -7.375) -- (10, -7.375) -- (10, -6.375) -- (8, -6.375) -- cycle;
-
                 \end{tikzpicture}
             \end{center}
+            To ensure that multiple processes aren't accessing the same data, systems implement \textbf{mutual exclusion}, with either OS semaphores (controls access), or atomic instructions (test-and-set).
+            \medskip
+
+            We can classify physical storage based on the following factors;
+            \begin{itemize}
+                \itemsep0em
+                \item access speed
+                \item cost per unit of data
+                \item reliability (data loss on system failure, and physical failure of storage)
+            \end{itemize}
+            The common types of physical storage used are as follows (ranked as a hierarchy);
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item cache
+                    \subitem fastest, and most costly - also volatile, and managed by the hardware
+                \item main memory
+                    \subitem fast access, but too small (or expensive) to store entire database - also volatile
+                \item flash memory
+                    \subitem non-volatile, and can survive power failure, data can be rewritten a limited number of times (10K - 1M cycles); fast reads, but slow writes, and erases
+                \item flash memory (NOR)
+                    \subitem fast reads, very slow erase, and low capacity
+                \item flash memory (NAND)
+                    \subitem high capacity
+                \item magnetic disk
+                    \subitem primary medium for long-term storage
+                \item optical storage
+                    \subitem reads, and writes slower than magnetic disk
+                \item tape
+                    \subitem extremely high capacity, primary used for backup (and archival data)
+            \end{enumerate}
         \subsection*{Indexing}
             When we create an index (briefly mentioned above), it helps to speed up access to desired data. Another basic concept is the \textbf{search key}, which is an attribute used to look up records in a file. The index file consists of records, referred to as index entries, in the form \begin{tabular}{|c|c|}
                 \hline
@@ -1225,7 +1254,7 @@
             \subsubsection*{Secondary Indices}
                 I find it easier to consider this as a multi-level index, with the inner index being dense (therefore the index records points to a bucket that contains pointers to the actual records)
             \subsubsection*{B$^+$-Tree Index Files}
-                Indexed-sequential files have some disadvantages in that the performance gets worse as the file gets bigger, since overflow blocks need to be created. Periodically, the entire file will also need to be reorganized. On the other hand, with B$^+$-tree index files, it can automatically reorganise itself with small changes when insertions, and deletions occur. However, there is additional overhead in insertion, deletion, as well as in space - but these disadvantages are outweighed by the advantages. The properties of a B$^+$-tree are as follows;
+                Indexed-sequential files have some disadvantages in that the performance gets worse as the file gets bigger, since overflow blocks need to be created. Periodically, the entire file will also need to be reorganised. On the other hand, with B$^+$-tree index files, it can automatically reorganise itself with small changes when insertions, and deletions occur. However, there is additional overhead in insertion, deletion, as well as in space - but these disadvantages are outweighed by the advantages. The properties of a B$^+$-tree are as follows;
                 \begin{itemize}
                     \itemsep0em
                     \item all paths from the root to leaf are of equal length
@@ -1269,10 +1298,30 @@
                 In order to insert values into the tree, we find the leaf node in which the value would appear. If the search-key value is already present, we add the record to the file, otherwise we add the record to the main file (and generate a bucket if needed). If there's room in the leaf node, insert the (key-value, pointer) pair in the leaf node, otherwise split the node. In order to split a leaf node, we take $n$ (S-K V, P) pairs, in a sorted order (including the pair being inserted). Place the first in the original node, and the rest in a new node. We then create a new pair ($k$, $p$), in the parent of the node being split. This is then propagated upwards if the parent is also full.
                 \medskip
 
-                To delete a record from the tree, we need to find the record and remove it from the main file (as well as from the bucket). Remove the pair from the leaf node, if the bucket becomes empty (or if there wasn't a bucket in the first place). If the node now has too few entries, and it is able to merge with a sibling to fit into a single node, we then merge siblings. This is done by inserting all the S-K Vs in the two nodes into a single node (the left-most one), and deleting the other. The deleted pair is then deleted from the parent, done recursively. However, if it cannot combine with a sibbling, then we need to redistribute the pointers. Distribute it such that the number of pointers in both the current node, and the sibling node have more than the minimum number, and update the corresponding S-K V in the parent of the node.
+                To delete a record from the tree, we need to find the record and remove it from the main file (as well as from the bucket). Remove the pair from the leaf node, if the bucket becomes empty (or if there wasn't a bucket in the first place). If the node now has too few entries, and it is able to merge with a sibling to fit into a single node, we then merge siblings. This is done by inserting all the S-K Vs in the two nodes into a single node (the left-most one), and deleting the other. The deleted pair is then deleted from the parent, done recursively. However, if it cannot combine with a sibling, then we need to redistribute the pointers. Distribute it such that the number of pointers in both the current node, and the sibling node have more than the minimum number, and update the corresponding S-K V in the parent of the node.
                 \medskip
 
-                The index file degredation problem is solved by using indices, and the data file degredation problem is solved by the tree file organisation. The leaf nodes in a B$^+$-tree file organisation store records, instead of pointers. Since records are larger than pointers, the maximum number of records that can be stored in a leaf node is smaller than the number of pointers in a non-leaf node.
+                The index file degradation problem is solved by using indices, and the data file degradation problem is solved by the tree file organisation. The leaf nodes in a B$^+$-tree file organisation store records, instead of pointers. Since records are larger than pointers, the maximum number of records that can be stored in a leaf node is smaller than the number of pointers in a non-leaf node.
             \subsubsection*{Hashing}
                 We can also use a hash function to obtain the bucket for a record, directly from it's S-K V. Given some hash function $h$, it maps the set of S-K Vs $K$ to the set of bucket addresses $B$. However, records with different S-K Vs can still be mapped to the same bucket, so the bucket will still need to be sequentially searched (however, on a smaller data set, provided the hash function is good). The worst hash function would map all S-K Vs to the same bucket, whereas an ideal function is uniform and assigns the same number to each bucket.
+        \subsection*{NoSQL}
+            However, due to the strong consistency needed for ACID transactions, it can be difficult to scale, especially because the idea of transactions was built into the optimisation of relational databases. Changing schema can also be difficult. One of the main objectives of NoSQL is to distribute the state, such that different objects are stored on different servers, by giving up ACID constraints, it can improve performance, we also give up strong consistency for eventual consistency. The key features of Not Only SQL / Not Relational are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item horizontal scaling (more machines, instead of a more powerful machine)
+                \item replicate / distribute data over servers
+                \item simple call level interface
+                \item weaker concurrency than ACID
+                \item efficient use of main memory (and indices)
+                \item flexible schema
+            \end{itemize}
+            NoSQL implementations can be split in to four categories; Key-Value, Graphs, BigTable, and Documents (nested values, like XML, or JSON).
+            \subsubsection*{Key-Value}
+                Think of it more as a file system than a database, and there is only a primary key (hence we lookup by key). Given some table of pairs, where the key $k_i$, has a corresponding value $v_i$, we have a simple API where lookup(key) leads to a value, lookup(key range) leads to a set of values, and so on. Insertion requires the pair, and deletion requires the key.
+            \subsubsection*{Document Store}
+                A pointerless object, and can have secondary indices, in addition to the KV stores.
+            \subsubsection*{Column Family}
+                Most implementations are based on Google's \textbf{BigTable}. It supports semi-structured data, is scalable, and is naturally indexed, however it's poor for interconnected data.
+            \subsubsection*{Graph Databases}
+                Modelled based on nodes, and relationships. Powerful data model, and general like RDBMS, easy to query, and connected data is indexed locally. A graph database has an explicit structure, where each node knows its adjacent nodes. The cost of a local step remains the same, even if the number of nodes increase.
 \end{document}
