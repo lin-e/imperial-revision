@@ -1143,4 +1143,97 @@
                     \item if $a > 2$ \hfill the base cases (leaves of recursion tree) dominate (greatest term is $a^k = a^{\text{log}(n)} = n^{\text{log}(a)}$)
                         \subitem $T(n) = \Theta(n^{\text{log}(a)})$
                 \end{itemize}
+        \subsection*{25th February 2019}
+            \subsubsection*{General Case of the Master Theorem}
+            \begin{center}
+                \begin{tikzpicture}[x=1.75cm]
+                    \node[draw] (o) at (0, 0) {$n|f(n)$};
+                    \node[draw] (ol) at (-2, -1.5) {$\frac{n}{b}|f(\frac{n}{b})$};
+                    \node[draw] (or) at (2, -1.5) {$\frac{n}{b}|f(\frac{n}{b})$};
+                    \node[draw] (oll) at (-3, -3) {$\frac{n}{b^2}|f(\frac{n}{b^2})$};
+                    \node[draw] (olr) at (-1, -3) {$\frac{n}{b^2}|f(\frac{n}{b^2})$};
+                    \node[draw] (orl) at (1, -3) {$\frac{n}{b^2}|f(\frac{n}{b^2})$};
+                    \node[draw] (orr) at (3, -3) {$\frac{n}{b^2}|f(\frac{n}{b^2})$};
+                    \node[draw] (e1) at (-4, -4.5) {$1|T(1)$};
+                    \node[draw] (e2) at (4, -4.5) {$1|T(1)$};
+                    \node[] () at (0, -1.5) {$\cdots$};
+                    \node[] () at (-2, -3) {$\cdots$};
+                    \node[] () at (2, -3) {$\cdots$};
+                    \node[] () at (0, -3.75) {$\vdots$};
+                    \node[] () at (0, -4.5) {$\cdots$};
+                    \node[] () at (-5, 0) {0};
+                    \node[] () at (-5, -1.5) {1};
+                    \node[] () at (-5, -3) {2};
+                    \node[] () at (-5, -4.5) {$\text{log}_b(n)$};
+                    \draw
+                    (o) -- (ol)
+                    (o) -- (or)
+                    (ol) -- (oll)
+                    (ol) -- (olr)
+                    (or) -- (orl)
+                    (or) -- (orr);
+                \end{tikzpicture}
+            \end{center}
+            Therefore in general, it follows that the work at level 0 is $f(n)$, then at level 1 is $af(\frac{n}{b})$, 2 is $a^2f(\frac{n}{b^2})$, and so on, until level $\text{log}_b(n)$, where the work is $\Theta(a^{\text{log}_b(n)})$. All we need to know at the bottom level is the amount of leaf nodes, since we don't care about the constant work.
+            \medskip
+
+            Suppose that $f(n) = n^c$, such that it is just a polynomial function, then it follows that the ratio of the work between the levels is $r = \frac{a}{b^c}$. Let us have some critical exponent $E = \text{log}_b(a) = \frac{\text{log}(a)}{\text{log}(b)}$. We can then argue that $r > 1 \Leftrightarrow a > b^c \Leftrightarrow \text{log}_b(a) > c \Leftrightarrow E > c$. Generalising from the previous section, we can say that;
+            \begin{itemize}
+                \itemsep0em
+                \item $E < c$ \hfill the work is concentrated at the top
+                    \subitem $T(n) = \Theta(f(n))$
+                \item $E = c$ \hfill the work is spread through the tree
+                    \subitem $T(n) = \Theta(f(n)\text{log}_b(n)) = \Theta(f(n)\text{log}(n))$
+                \item $E > c$ \hfill the work is concentrated at the base level
+                    \subitem $T(n) = \Theta(a^{\text{log}_b(n)}) = \Theta(n^{\text{log}_b(a)}) = \Theta(n^E)$
+            \end{itemize}
+            In order to generalise this beyond just a polynomial $f(n)$, we can state the following, as the \textbf{Master Theorem};
+            $T(n) = aT(\frac{n}{b}) + f(n)$ has solutions as follows; where $E = \frac{\text{log}(a)}{\text{log}(b)} = \text{log}_b(a)$:
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item if $n^{E + \epsilon} = O(f(n))$ for some $\epsilon > 0$, then $T(n) = \Theta(f(n))$
+                \item if $f(n) = \Theta(n^E)$ then $T(n) = \Theta(f(n)\text{log}(n))$
+                \item if $f(n) = O(n^{E - \epsilon})$ for some $\epsilon > 0$ then $T(n) = \Theta(n^E)$
+            \end{enumerate}
+            The use of $\epsilon$ suggests that it is bounded, as we can therefore bound it in a way that suggests $n^E < n^{E+\epsilon}$.
+        \subsubsection*{Applying the Master Theorem}
+            Consider the worst case number of comparisons for binary search; $W(n) = W(\frac{n}{2}) + 1$. Here, we're told that $a = 1$, $b = 2$, and $f(n) = \Theta(n^0)$. It's trivial to calculate the critical exponent here, as $E = 0$. This is the second case, as we have $f(n) = \Theta(n^E)$, therefore $W(n) = \Theta(n^0\text{log}(n)) = \Theta(\text{log}(n))$
+            \medskip
+
+            Consider the worst case number of comparisons for merge sort; $W(n) = 2W(\frac{n}{2}) + (n - 1)$, therefore we have $a = 2$, $b = 2$, and $f(n) = \Theta(n^1)$. We can calculate $E$ to be 1, therefore it's once again the second case, hence $W(n) = \Theta(n\text{log}(n))$.
+            \medskip
+
+            Consider the number of arithmetic operations for Strassen's algorithm; $A(n) = 7A(\frac{n}{2}) + 18(\frac{n}{2})^2$. Here we have $a = 7$, $b = 2$, and $f(n) = \Theta(n^2)$. Now, we can calculate $E$ to be $\text{log}_2(7)$, which we can say is greater than 2, as $7 > 4$. Therefore we take the third case, as there is some positive $\epsilon$. As such, we get the worst case as $A(n) = \Theta(n^{\text{log}(7)})$. Note that any improvement to $f(n)$ will not help with the order of the complexity.
+        \subsubsection*{Quicksort}
+            In quicksort, we pick some pivot element (take the first element for simplicity). We then split it into two sublists, where the items on the left side of the pivot are less than it, and the ones on the right are greater than it. The first split clearly takes $n - 1$ comparisons. The pseudocode for the split is as follows;
+            \begin{lstlisting}
+                split(left, right):
+                  d = L[left] # pivot
+                  i = left + 1
+                  j = right
+                  while i <= j:
+                    if L[i] <= d:
+                      i = i + 1
+                    else:
+                      swap(i, j)
+                      j = j - 1
+                  swap(left, j) # swaps the pivot into the middle of the list
+                  return j
+            \end{lstlisting}
+            In the worst case it is when the list is already sorted, and it essentially becomes the worst case of insertion sort. However, we quicksort is still good in practice, since we are unlikely to find the split at either end. Given we split on some position $s$, from a list indexed 1 to $n$ inclusive, then it follows that we are doing the sort on two sublists, of sizes $s - 1$, and $n - s$. Therefore it takes $A(s - 1) + A(n - s)$ comparisons, on the sublists;
+            \smallskip
+
+            $A(n) = n - 1 + \frac{1}{n}\summation{s = 1}{n}{(A(s - 1) + A(n - s))}$
+            \smallskip
+
+            This can be simplified to the to the following recurrence relation;
+            \begin{align*}
+                A(1) & = 0 \\
+                A(n) & = n - 1 + \frac{2}{n}\summation{i = 2}{n - 1}{A(i)}
+            \end{align*}
+            This can be solved such that the average case becomes $\Theta(n\text{log}(n))$. No idea how, but just trust it, I guess.
+            \medskip
+
+            While it sems that merge sort seems to be much better than quicksort, the latter can improve the chances of a good split, whereas merge sort is required to split down the middle, and the latter also requires less memory since it can all be done in place.
+        \subsubsection*{Heapsort}
 \end{document}
