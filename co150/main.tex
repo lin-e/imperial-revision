@@ -958,7 +958,7 @@
 
                 Given that the worst case performance of some search algorithm $A$ is $d + 1$ (where $d$ is the depth, and we can use the inequality for the nodes above). It follows that $d + 1 \geq \text{log}(n + 1)$ by taking logs of both sides. And this can be proven to be $W(n)$.
             \subsubsection*{Orders}
-                Suppose we have some algorithm $W(n) = 7n^3 + 1000n + 32$, as $n$ gets larger, $7n^2$ is the most important term. If we ignore the constant $W(n)$ therefore has order $n^2$. We prefer algorithms of lower order, even if a higher order algorithm may have a lower operation time for small $n$. The constant factor can also be ignored.
+                Suppose we have some algorithm $W(n) = 7n^3 + 1000n + 32$, as $n$ gets larger, $7n^2$ is the most important term. If we ignore the constant, $W(n)$ therefore has order $n^2$. We prefer algorithms of lower order, even if a higher order algorithm may have a lower operation time for small $n$. The constant factor can also be ignored.
                 \medskip
 
                 The main types of orders we encounter are; polynomial, exponential, and logarithmic. The heirachy for logarithmic (with polynomial) is as follows;
@@ -974,4 +974,95 @@
                 \end{itemize}
                 We know that matrix multiplication is a $O(n^3)$ problem, but there exists a lower bound of $\Theta(n^2)$.
         \subsection*{18th February 2019}
+            \subsubsection*{Strassen's Algorithm}
+                Assume that we are trying to multiply two $n \times n$ matrices; $AB = C$. Start with $n = 2$, then it follows that
+                \smallskip
+
+                $C = \begin{bmatrix}
+                    a_{1,1}b_{1,1} + a_{1,2}b_{2,1} & a_{1,1}b_{1,2} + a_{1,2}b_{2,1} \\
+                    a_{2,1}b_{1,1} + a_{2,2}b_{2,1} & a_{2,1}b_{1,2} + a_{2,2}b_{2,2}
+                \end{bmatrix}$
+                \medskip
+
+                This algorithm takes 8 multiplications, and 4 additions. However, Strassen's algorithm does $n = 2$ in 7 multiplications (and 18 additions);
+                \smallskip
+
+                $C = \begin{bmatrix}
+                    x_1 + x_4 - x_5 + x_7 & x_3 + x_5 \\
+                    x_2 + x_4 & x_1 + x_3 - x_2 + x_6
+                \end{bmatrix}$
+                \begin{enumerate}[$x_1=$]
+                    \itemsep0em
+                    \item $(a_{1,1} + a_{2,2}) \cdot (b_{1,1} + b_{2,2})$
+                    \item $(a_{2,1} + a_{2,2}) \cdot b_{1,1}$
+                    \item $a_{1,1} \cdot (b_{1,2} - b_{2,2})$
+                    \item $a_{2,2} \cdot (b_{2,1} - b_{1,1})$
+                    \item $(a_{1,1} + a_{1,2}) \cdot b_{2,2}$
+                    \item $(a_{2,1} - a_{1,1}) \cdot (b_{1,1} + b_{1,2})$
+                    \item $(a_{1,2} - a_{2,2}) \cdot (b_{2,1} + b_{2,2})$
+                \end{enumerate}
+                It's important to note that we don't use the commutativity of multiplication, and therefore it can be applied to matrices.
+                \medskip
+
+                Suppose that we have $n = 2^k$, we can then divide up the matrix into four quadrants, each $\frac{n}{2} \times \frac{n}{2}$, and then compute $C_{i, j}$ recursively, until we finish at $n = 2$;
+                \begin{center}
+                    $\begin{bmatrix}
+                        A_{1,1} & A_{1,2} \\
+                        A_{2,1} & A_{2,2}
+                    \end{bmatrix} \begin{bmatrix}
+                        B_{1,1} & B_{1,2} \\
+                        B_{2,1} & B_{2,2}
+                    \end{bmatrix} =  \begin{bmatrix}
+                        C_{1,1} & C_{1,2} \\
+                        C_{2,1} & C_{2,2}
+                    \end{bmatrix} $
+                \end{center}
+                Now, if we were to consider the number of arithmetic operations $A(k)$, where $n = 2^k$.
+                \begin{align*}
+                    A(0) & = 1 \\
+                    A(k) & = 7A(k - 1) + 18(\frac{n}{2})^2
+                \end{align*}
+            \subsubsection*{Divide, and Conquer Algorithms}
+                Strassen's was an example of a divide, and conquer algorithm, where we divide some problem into $a$ subproblems, of size $\frac{n}{b}$. Now solve each subproblem recursively, and then combine the result at the end.
+            \subsubsection*{Insertion Sort}
+                The general idea of insertion sort is to insert the item $L[i]$ into the sorted sublist $L[0..i-1]$, then it follows that the sorted sublist is now $L[0..i]$. This takes between 1, and $i$ comparisons, getting the latter is when $L[i] < L[0]$. Therefore, it follows that the worst case for a list of size $n$ is;
+                \smallskip
+
+                $W(n) = \summation{i = 1}{n - 1}{i} = \frac{n(n - 1)}{2}$
+                \smallskip
+
+                This worst case is when the entire list is in reverse order, hence $W(n)$ is $\Theta(n^2)$. If we're only allowed to do local swaps, this is an optimal algorithm.
+            \subsubsection*{Lower Bounds for Sorting}
+                In order to clarify some syntax, the internal nodes are comparison pairs, such that the left child of $x, y$, means that $L[x] \leq L[y]$, and the right child means $L[x] > L[y]$. The leaf nodes are the sorted outcomes of the trees (where the indices should map to). We are also indexing from 1, not 0.
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node[draw] (o) at (0, 0) {1, 2};
+                        \node[draw] (ol) at (-2, -1.5) {2, 3};
+                        \node[draw] (or) at (2, -1.5) {2, 3};
+                        \node[] (oll) at (-3, -3) {[1, 2, 3]};
+                        \node[draw] (olr) at (-1, -3) {1, 3};
+                        \node[draw] (orl) at (1, -3) {1, 3};
+                        \node[] (orr) at (3, -3) {[3, 2, 1]};
+                        \node[] (olrl) at (-1.5, -4.5) {[1, 3, 2]};
+                        \node[] (olrr) at (-0.5, -4.5) {[3, 1, 2]};
+                        \node[] (orll) at (0.5, -4.5) {[2, 1, 3]};
+                        \node[] (orlr) at (1.5, -4.5) {[2, 3, 1]};
+                        \draw
+                        (o) -- (ol)
+                        (o) -- (or)
+                        (ol) -- (oll)
+                        (ol) -- (olr)
+                        (or) -- (orl)
+                        (or) -- (orr)
+                        (olr) -- (olrl)
+                        (olr) -- (olrr)
+                        (orl) -- (orll)
+                        (orl) -- (orlr);
+                    \end{tikzpicture}
+                \end{center}
+                You'll notice that each leaf node is a permutation of the list, therefore there are $3!$ leaf nodes. Note that the this is a 3-sort, not insertion sort. If we were to draw this for insertion sort, it would be important to list the state of the list as you make changes, to ensure we keep track of how the elements have moved. We can justify that this is optimal as any decision tree for a list of length 3 must have $3!$ leaves. We cannot have anything with a depth $\leq 2$ as all binary trees of depth $\leq 2$ have $\leq 4$ leaves. Therefore it follows that the minimum bound is a depth of at least 3. In both cases, our worst-case comparsions is 3, and therefore both of these sorting algorithms are optimal for $n = 3$.
+                \medskip
+
+                Consider a general list $n$. We can justify that it therefore has $n!$ permutations. Given some tree with a depth $d$, it follows that it has a maximum of $2^d$ leaves, and therefore $n! \leq 2^d$. Therefore, by arithmetic, we can jutify that $d \geq \text{log}_2(n!)$, which means that $d \geq \ceil{\text{log}_2(n!)}$, since $d \in \mathbb{N}$.
+        \subsection*{21st February 2019}
 \end{document}
