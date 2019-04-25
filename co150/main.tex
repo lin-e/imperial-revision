@@ -1482,5 +1482,15 @@
             We will define a decision problem as being in the complexity class $P$ if it can be decided within polynomial time$p(|x|)$ in some reasonable model of computation. Note that sorting a list is not in this class $P$, as it's not a decision problem.
             \medskip
 
+            An unreasonable model would be something along the lines of being able to carry out more than polynomially many operations in parallel, since we would then be able to solve an exponential problem in p-time (superpolynomial parallelism), see quantum computation. The use of unary numbers is also unreasonable, as it gives us exponentially larger input size, and therefore some exponential time algorithm can appear as p-time, since we've artificially scaled up the input size.
+            \medskip
+
+            It's important to note that the arithmetical operations are all in p-time.
+        \subsubsection*{I/O Size}
+            Suppose that we have $f$, a p-time function. The output size $|f(x)|$ is polynomially bounded in the input size $|x|$, such that $|f(x)| \leq p(|x|)$. This is argued by the fact that any program which computes $f$, is limited by having p-time to build the output.
+        \subsubsection*{Function Composition}
+            Suppose that we have $f$, $g$ both p-time computable functions. Then the composition $g \circ f$ is also p-time computable. Suppose that $f(x)$ is computed by $A$, within $p(n)$, where $n = |x|$, and $g(y)$ by $B$, within $q(m)$, and $m = |y|$.
+            \medskip
             
+            In order to compute the composed function, we'd need to first run $A$ on $x$. By definition it must then run in $\leq p(n)$ steps. And therefore the maximum output it can generate is also polynomial. hence $|f(x)|$ must be polynomially bounded in $n$, such that we can say $|f(x)| \leq p^\prime(n)$ for some polynomial $p^\prime(n)$. Then it follows that $B$ will run within $q(p^\prime(n))$ steps. Hence, the total running time of the function, $A$ followed by $B$, is $p(n) + q(p^\prime(n))$. This result is polynomial in $n$.
 \end{document}
