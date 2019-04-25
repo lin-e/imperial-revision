@@ -1504,4 +1504,84 @@
             \medskip
 
             We can now define a decision problem $D(x)$ as being in NP (non-deterministic polynomial time) if there is a problem $E(x, y)$ in $P$, and a polynomail $p(n)$ such that $D(x) \Leftrightarrow \exists y [E(x, y)]$, and if $E(x, y)$ then $|y| \leq p(|x|)$ (this means that the guess / certificate is polynomially bounded in the input size). The second condition is required, as it would take too long to even guess $y$ if we didn't have that restriction. In general, we can say that $P$ is the class of decision problems, which can be efficiency \textbf{solved}, and NP is the class of decision problems that can be efficiency \textbf{verified}.
+    \subsection*{7th March 2019}
+        \subsubsection*{Satisfiability}
+            A formula $\phi$ is in CNF (from \textbf{CO140}) if it is of the form;
+            \smallskip
+
+            $\bigwedge\limits_{i}(\bigvee\limits_ja_{ij})$
+            \smallskip
+
+            Where each term $a_ij$ is either a variable $x$ or it's negation $\neg x$. The terms $a_{ij}$ are called literals, and the terms $\bigvee\limits_ja_{ij}$ are called clauses. The SAT problem (throwback to Haskell exam), given a formula $\phi$ in CNF, is it satisfiable? Is there some assignment $v$ to the variables of $\phi$, which makes $\phi$ true?
+            \medskip
+
+            It seems that SAT is not something we can solve in p-time, since we'd have to try all possible assignments. Let $n = |\phi|$, where we get the number of symbols in $\phi$, and $|v|$ be $m$, the size of the domain of $v$. Can we test that SAT belongs to the class NP? Let us guess some truth assignment $v$, and we can verify in p-time that it satisfies $\phi$. Let there be $\text{VSAT}(\phi, v) \Leftrightarrow \phi$ is in CNF, and $v$ satisfies $\phi$. Then it follows that $\text{SAT}(\phi) \Leftrightarrow \exists v [\text{VSAT}(\phi, v)]$. If $\text{VSAT}(\phi, v)$, then $|v| \leq |\phi|$.
+        \subsubsection*{P vs. NP}
+            Suppose we have some decision problem $D$, which we know is P. To verify that $D(x)$ holds, we don't need to guess some $y$, we can directly decide it. However, let's define $E(x, y) \Leftrightarrow D(x) \land y = \epsilon$, where the epsilon is just a dummy guess. Then clearly, we can say $D(x) \Leftrightarrow \exists y [E(x, y)]$, and $|y| \leq p|x|$. Hence we've proven that P $\subseteq$ NP.
+            \medskip
+
+            Whether we can say P = NP is still unknown. While the majority of researchers believe P $\neq$ NP, it remains as one of the most important open problems in mathematics, let alone in computer science.
+        \subsubsection*{Problem Reduction (P)}
+            Since we know that P $\subseteq$ NP, showing a problem belongs to NP doesn't necessarily mean it's not tractiable (in P). We want to identify high complexity (hard) problems in NP. Consider two.
+            \medskip
+
+            Suppose that we have two decision problems $D$, and $D^\prime$. We can say that $D$ reduces to $D^\prime$ (such that $D \leq D^\prime$) if there exists some p-time (possibly many-to-one) function $f$, such that $D(x) \Leftrightarrow D^\prime(f(x))$.
+            \medskip
+
+            Suppose there is some algorithm $A^\prime$, which decides $D^\prime$ in time $p^\prime(n)$. Then it follows if $D \leq D^\prime$ via some reduction function $f$ running in $p(n)$, we have some algorithm $A$ which decides $D$. We define $A$ on the input $x$, such that we first compute $f(x)$, and then run $A^\prime(f(x))$, and return that answer. This also runs in p-time, under the same argument we made when composing p-time functions.
+            \medskip
+
+            Suppose $D \leq D^\prime$ and $D^\prime \in$ P, then $D \in$ P.
+        \subsubsection*{Problem Reduction (NP)}
+            Suppose $D \leq D^\prime$ and $D^\prime \in$ P, then $D \in$ NP.
+            \medskip
+
+            Given the first assumption, we can assume that there is some $E^\prime(x, y) \in$ P, and a $p^\prime(n)$ (also p-time) such that $D^\prime(x) \Leftrightarrow \exists y [E^\prime(x, y)]$. And if $E^\prime(x, y)$ then it follows that $|y| \leq p^\prime(|x|)$, also by definition of being reducible, we have $D(x) \Leftrightarrow D^\prime(f(x))$. By combining this, we can say the following;
+            \medskip
+
+            $D(x) \leftrightarrow \exists y [E^\prime(f(x), y)]$, and we can trivially define a polynomial verification function $E(x, y) \Leftrightarrow E^\prime(f(x), y)$. As such, we have $D(x) \Leftrightarrow \exists y [E(x, y)]$. Checking that $E$ is p-balanced is also done under the same argument. Suppose we have $E(x, y)$, then $E^\prime(f(x), y)$ so that $|y| \leq p^\prime(|f(x)|)$ However, we know that $|f(x) \leq q(n)|$, hence it follows that $|y| \leq p^\prime(q(|x|))$, therefore $D \in$ NP.
+            \medskip
+
+            Note that the reduction order is reflexive, and transitive such that $D \leq D$, and if $D \leq D^\prime \leq D^{\prime\prime}$ then $D \leq D^{\prime\prime}$. For the former, we can prove it by letting the reduction function be $f(x) = x$, and the latter is (probably) done with polynomial function composition, as that keeps it closed within the set of polynomial functions. If both $D \leq D^\prime$, and $D^\prime \leq D$, then we can write $D \sim D^\prime$, which states that they are as hard as each other.
+        \subsubsection*{NP-completeness}
+            We identify a decison problem $D$ as being NP-hard if for all problems $D^\prime \in$ NP, we have $D^\prime \leq D$, such that we can reduce $D^\prime$ to $D$. Such an NP-hard problems do not necessarily belong to NP, and that they could be harder. We can state a problem as being NP-complete, if it is an NP problem, and it is NP-hard (such that $D \in$ NP).
+            \medskip
+
+            We take SAT as an NP-complete problem (proved). Instead of proving it directly, we can reduce it as follws. In order to see that $D$ is NPC, we need to show that $D \in$ NP, and that $D^\prime \leq D$ for some NPC complete $D^\prime$. The latter criteria establishes that $D$ is NP-hard, given that $D^\prime$ is also NP-hard.
+            \medskip
+
+            For example, let us show that the Hamiltonian Path problem is NP-complete. We've already verified it being $\in$ NP, as we've done the proofs for the guess, and p-time verification. It's possible to show that SAT $\leq$ HP (long proof), therefore HP is NP-complete.
+        \subsubsection*{Intractability via NP-completeness}
+            Suppose we have P $\neq$ NP, if some problem  $D$ is NP-hard, then $D \notin$ P. The proof is as follows;
+            \medskip
+
+            Assume that P $\neq$ NP, and that $D$ is NP-hard. By contradiction, let us assume $D \in P$. Take another problem $D^\prime \in$ NP, but as we know $D$ is NP-hard, we have $D^\prime \leq D$, therefore it follows that $D^\prime \in $ P. As such, we've shown NP $\subseteq$ P, but given that P $\subseteq$ NP, it follows that P = NP. This contradicts our assumption.
+            \medskip
+
+            This means that if we show a problem is NPC, we know that it is intractable (as long as P $\neq$ NP).
+    \subsection*{14th March 2019}
+        \subsection*{Travelling Salesman Problem}
+            While the problem is fairly well understood, we cannot deal with it since it's an optimisation problem, and not a decision problem. A common method for doing this is to give it some upper bound, such that the problem then becomes "given a weighted graph $(G, W)$, and a bound $B$, is there a tour of $G$ with a total weight $\leq B$?"
+            \medskip
+
+            Now, we can try, and show that TSPD is NP-complete, by fulfulling the two criteria;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item TSPD $\in$ NP
+                    \subitem let us guess some path $\pi$, we can trivially check that $\pi$ is a Hamiltonian circuit of $G$, and that $W(\pi) \leq B$. We know that $\pi$ is obviously bounded, hence $|\pi| \leq |G|$.
+                    \subitem We can formally define $\text{VTSPD}((G, W), B, \pi) \Leftrightarrow \text{VHP}(G, \pi) \land W(\pi) \leq B$ - note that in this case, we are using $\text{VHP}(G, \pi)$ to mean that $\pi$ is a Hamiltonian path of $G$.
+                \item $D^\prime \leq$ TSPD
+                    \subitem see below
+            \end{enumerate}
+        \subsubsection*{HamPath $\leq$ TSPD}
+            We need to then define some p-time function $f$ which is able to transform a graph $G$ into some weighted graph $(G^\prime, W)$, with some bound $B$. To construct the weighted graph $(G^\prime, W)$, we do the following. First let nodes($G^\prime$) = nodes($G$). Given a pair of distinct nodes $x$, $y$ in $G$, if $(x, y) \in \text{arcs}(G)$, then $W(x, y) = 1$. Otherwise $W(x, y) = 2$. Essentially, we're adding in the arcs with higher weight (since we want a connected graph for TSP). Then we set the upper bound $B = n + 1$, where $n$ is the number of nodes in $G$. This reduction is trivial to see as a polynomial time function, $f(G) = ((G^\prime, W), B)$.
+            \medskip
+
+            However, to show that $f$ is a valid reduction, we need to veryify $\text{HP}(G) \Leftrightarrow \text{TSPD}((G^\prime, W), B)$. Suppose that $G$ has a HP $\pi$, with endpoints $x$, and $y$. If we follow that path in $G^\prime$, it has a weight of $n - 1$, as we have $n$ nodes, thus $n - 1$ arcs (we can't really repeat an arc, as we'd end up going back to a node). We get a TS tour by adding in the arc $(x, y)$, with $W(x, y) \leq 2$, by our definition of $f$. Therefore, the tour weight $\leq n + 1 = B$.
+            \medskip
+
+            To prove the other direction of the implicaiton, suppose that we have some weighted graph $(G^\prime, W)$, which has a tour of weight $\leq B = n = 1$. This has $n$ arcs, since we're not revisiting nodes. At most, only one arc can have a weight of 2 (any more would lead to the path being overbudget). Now, if we were to remove that that arc, we'd have a Hamiltonian path in $G$. Since we've proven both sides of the implication, we've then proven that $\text{HP} \leq \text{TSPD}$, thus TSPD is an NP-hard problem, that is also NP, hence it is NP-complete.
+            \medskip
+
+            In order to show that it is intractable (assuming P $\neq$ NP), we prove it by contradiction. Let us suppose that it can be solved by a p-time algorithm, such that the optimal time $O$ can be computed in p-time. Therefore, it follows that TSPD is p-time, since we just need to check whether the path is valid (it would be, with a correct algorithm), and then check that $O \leq B$. However, this wouldn't be possible, since we have just proven that TSPD is NP-complete, and that P $\neq$ NP.
 \end{document}
