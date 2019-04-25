@@ -1383,7 +1383,7 @@
                           return true
                   return false
             \end{lstlisting}
-            We can consider the operation of this as a tree (formatted as ~RECURSIVE CALL : DICT LOOKUP~);
+            By solving a recurrence relation, we can see that the complexity of this is $W(2^n)$. We can consider the operation of this as a tree (formatted as ~RECURSIVE CALL : DICT LOOKUP~). You'll notice that the nodes in red are being recomputed, even though they have already been computed before;
             \begin{center}
                 \begin{tikzpicture}[x=2cm, y=1.5cm]
                     \node[draw] (o) at (0, 0) {~abcd:~};
@@ -1420,4 +1420,67 @@
                     (o432) -- (o4321);
                 \end{tikzpicture}
             \end{center}
+            In order to remove the "red nodes", we can use a memoised recursive solution. We're trading off space for time, since we're storing values we've already computed.
+            \begin{lstlisting}
+                memo = []
+                procedure wb2(s):
+                  if len(s) == 0:
+                    return true
+                  else:
+                    for i = 0 to len(s) - 1:
+                      if indict(s[i:]):
+                        if memo[s:[:i]] undefined:
+                          memo[s:[:i]] = wb2(s[:i])
+                        if memo[s:[:i]]:
+                          return memo
+                  return false
+            \end{lstlisting}
+            We then end up with a recurrence relation here;
+            \begin{align*}
+                W_2(0) & = 0 \\
+                W_2(n) & = n + W_2(n - 1) (n \geq 1) \\
+                & = \frac{n(n + 1)}{2}
+            \end{align*}
+            Another method is to take the non-recursive bottom-up approach, similar to what we did for the Bellman-Held-Karp algorithm, by solving increasing subproblems. Thus we're solving ~s[:0], s[:1], ..., s[:n] = s~. Note that we're storing the result for ~s[:i]~ in ~wb[i]~.
+            \begin{lstlisting}
+                procedure wb3(s):
+                  n = len(s)
+                  wb[0] = true
+                  if n > 0:
+                    for i = 1 to n:
+                      wb[i] = false
+                      for j = 0 to i - 1:
+                        if wb[j] and indict(s[j:i]):
+                          wb[i] = true
+                          break
+                  return wb[n]
+            \end{lstlisting}
+            Comparing ~wb2~, and ~wb3~, they each have their benefits. The former is easier to develop, and might be faster if we don't need to work out the subproblems. On the other hand, the latter has less overhead from the recursive calls.
+            \medskip
+
+            Dynamic programming aims to reduce a problem with an exponentially large solution, and find a path to a solution in polynomial time. We use the term programming to plan an order of computation, and the subproblems we consider depend on our previous results (hence it is dynamic).
+    \subsection*{4th March 2019}
+        \subsubsection*{Tractability}
+            We want to identify which problems are feasible, therefore can be computed in a reasonable amoutn of time. When we do this, we should be focusing on the worst-case, such that $W(n)$ doesn't grow "too large". We've proven that we can solve sorting in polynomial time with multiple different algorithms, but consider more complex graph problems.
+            \medskip
+
+            Given some graph $G$, we want to know whether there exists an Euler path. The input size of $G$, depends on how we represent it; either as an adjacency matrix of size $O(n^2)$, or as a linked list with size $O(n + m)$. From before, we know that $G$ has an EP $\Leftrightarrow$ it has 0, or 2, nodes of odd degree. This is a trivially tractable problem, as counting the number of odd degree nodes is extremely easy.
+            \medskip
+
+            In contrast, checking whether a Hamiltonian path exists within some graph $G$ is not tractable. This is because it requires $O(n^22^n)$ time, which is too slow.
+            \medskip
+
+            In this course, we focus mostly on decision problems, such that a decision problem $D$ is decided by some algorithm $A$, which returns 'yes', or 'no', for any input $x$. $A$ must terminate. A decision problem $D$ is in p-time if there exists some algorithm that solves it in p-time, such that on any input size, $A$ will take $\leq p(n)$ for some polynomial $p$. We will use $D$ to range over decision problems, as $P$ exists as the class of p-time problems. Cook-Karp Thesis states that a problem is tractable $\Leftrightarrow W(n) \leq p(n)$ (can be computed within polynomially many steps in a worst case). While the use of $p$ suggests that we can even have a polynomial of order 1000, realistically most algorithms would run within order 10.
+            \medskip
+
+            We discuss $p(n)$ in terms of some input size $n$, and an arbitrary computation step. In our list sorting examples, we just take $n$ to be the length of the list, and only counted comparisons (thus ignoring other computation steps, such as recursive overhead, memory, swaps etc.). It turns out that all reasonable models give the same results.
+            \medskip
+
+            The polynomial invariance thesis states that if some problem can be solved in $p(n)$ in some reasonable model, changing the model to another reasonable model would mean that the problem can still be solved in $q(n)$, where $q$ is another polynomial.
+            \medskip
+
+            We will define a decision problem as being in the complexity class $P$ if it can be decided within polynomial time$p(|x|)$ in some reasonable model of computation. Note that sorting a list is not in this class $P$, as it's not a decision problem.
+            \medskip
+
+            
 \end{document}
