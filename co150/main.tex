@@ -803,4 +803,62 @@
                 \end{lstlisting}
             \subsubsection*{Dynamic Programming}
                 The previous two algorithms are examples of dynamic programming. In dynamic programming, we break down the problem into sub-problems, and the smaller sub-problems are ordered to culminate in the main problem. We move through the smaller sub-problems in order, and solve each sub-problem with the stored results of the previous one (and then storing this result for use by the next one). The main problem is solved as if it were the final sub-problem (deep really).
+            \subsubsection*{Travelling Salesman Problem}
+                Given some complete weighted graph $(G, W)$, we want to find a way to tour the graph visiting each node exactly once, and travelling the shortest possible distance. We consider complete graphs, as we can construct an 'arc' with an extremely high weight.
+                \medskip
+
+                This problem is related to the Hamiltonian Circuit Problem, and the Shortest Path Problem. TSP is NP-complete, and unlikely have a polynomial solution. An improvement on the factorial approach is the Bellman-Held-Karp algorithm (will be written as BHK), which has a running time of $O(n^22^n$).
+                \medskip
+
+                Once again, we have $(G, W)$ with nodes $\{1, ..., n\}$. We can fix a start node, say 1 as it doesn't matter where you begin, since the problem would require you to visit all of them anyways. For each $x \neq 1$, and each $S \subseteq \text{nodes}\backslash \{1, x\}$, we can find and store the minimum cost of $C(S, x)$ from node 1 to $x$, using the set of intermediate nodes $S$ (you have to use exactly the set of intermediate nodes).
+                \medskip
+
+                We can use this to calculate the solution to TSP as $\text{min}(C(\text{nodes}\backslash \{1, x\}, x)) + W(x, 1)$, by trying each $x \neq 1$. This is done by calculating all $C(S, x)$ in increasing size order, from 0 to $n - 2$ (which is all nodes excluding 1, and $x$). Clearly, with the base case $C(\emptyset, x) = W(1, x)$, as we aren't allowed any intermediate nodes. If we assume that we know $C(S, x)$ for all $S$ of size $k$. Now, consider a set $S^\prime$, with a size of $k + 1$, such that $S^\prime = S \cup \{y\}$, where $y$ is some last node (and $S = S^\prime \backslash \{y\}$), Therefore, it follows that the cost of a path from 1 to $x$ with intermediate nodes $S^\prime$ is $C(S, y) + W(y, x)$, therefore it follows that $C(S^\prime, x) = min(C(S, y)) + W(y, x)$.
+                \begin{lstlisting}
+                    input ($G$, $W$)
+                    choose start $\in$ nodes($G$)
+                    for x in nodes \ {start}:
+                      c[$\emptyset$, x] = $W$(start, x)
+                    # process S in size order
+                    for S $\subseteq$ nodes \ {start} with S $\neq \emptyset$
+                      for x in nodes \ (S $\cup$ {start}):
+                      # find c[S, x]
+                      c[S, x] = $\infty$
+                      for y in S:
+                        c[S, x] = min(c[S \ {y}, y] + $W$(y, x), c[S, x])
+                    opt = $\infty$
+                    for x in nodes \ {start}:
+                      opt = min(c[nodes \ {start, x}, x] + $W$(x, start), opt)
+                    return opt
+                \end{lstlisting}
+                For each subset of ~nodes~, we do $O(n^2)$ the two for loops, with an overall complexity of $O(n^22^n)$.
+        \subsection*{11th February 2019}
+            \subsubsection*{Approximate Methods for TSP}
+                We could easily try a nearest neighbour heuristic for TSP, such that we choose the shortest availabel arc that doesn't violate any rules. This can fail though, since we may fall into a point where we're forced to use an extremely high weight arc.
+            \subsubsection*{Toplogical Sorting}
+                Suppose there is a list of tasks, with prerequisites (therefore some have to be performed others, and these may allow others to be performed). This is seen as an acyclic, directed graph (if it were cyclic, then there would be a sort of circular dependency). Find a total ordering, such that for nodes $x_1, ..., x_n$, for any $i, j \leq n$, if $j > i$, there is no path from $x_j$ to $x_i$.
+                \medskip
+
+                Given a DAG $G$, let $x \leq y \Leftrightarrow$ there is a path from $x$ to $y$, then $\subseteq$ is a (weak) partial ordering, as it's reflexive, transitive, and antisymmetric. If you have a partial ordering $(X, \leq)$, then we can create an acyclic directed graph with nodes $X$, and arcs $\{(x,y) : x \leq y\}$.
+                \medskip
+
+                We can perform a toplogical sorting by using DFS, as it inherently finishes with all the nodes reachable from $x$ before we finish with $x$. We can add a node to the end of a sorted list, once we've finished processing it (by exiting the node). In the example below, our visiting order is 1, 2, 5, 6, 3, 4, 6. However, we want to consider the order we exit them, not the order in which we enter. Thus we get the exit order 5, 7, 2, 1, 4, 3, 6. Therefore we end up with the sort 6, 3, 4, 1, 2, 7, 5.
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node[circle, fill=black, label=left:1] (1) at (0, 0) {};
+                        \node[circle, fill=black, label=above:2] (2) at (1, -0.5) {};
+                        \node[circle, fill=black, label=left:3] (3) at (0, -2) {};
+                        \node[circle, fill=black, label=above:4] (4) at (1, -2) {};
+                        \node[circle, fill=black, label=right:5] (5) at (2, -1) {};
+                        \node[circle, fill=black, label=left:6] (6) at (0, -1) {};
+                        \node[circle, fill=black, label=right:7] (7) at (2, 0) {};
+                        \draw
+                        (1) edge[->] (2)
+                        (2) edge[->] (5)
+                        (2) edge[->] (7)
+                        (3) edge[->] (4)
+                        (4) edge[->, dashed] (5)
+                        (6) edge[->, dashed] (2);
+                    \end{tikzpicture}
+                \end{center}
 \end{document}
