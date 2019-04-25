@@ -1065,4 +1065,82 @@
 
                 Consider a general list $n$. We can justify that it therefore has $n!$ permutations. Given some tree with a depth $d$, it follows that it has a maximum of $2^d$ leaves, and therefore $n! \leq 2^d$. Therefore, by arithmetic, we can jutify that $d \geq \text{log}_2(n!)$, which means that $d \geq \ceil{\text{log}_2(n!)}$, since $d \in \mathbb{N}$.
         \subsection*{21st February 2019}
+            \subsubsection*{Average Case}
+                When we don't know the actual distribution, we can assume that each permutation is equally likely. If we consider our previous 3-sort tree, we take the sum of the path lengths to each leaf, and then divide it by the number of permutations.
+                \medskip
+
+                We can define the total path of a tree is the sum of the path lengths to each leaf. Suppose we have some decsion tree $T$, for sorting a list of length $n$. It therefore has $n!$ leaves, and a total path length $b$. In the general case, we cannot change $n!$, so the average number of comparisons is $\frac{b}{n!}$, hence we want to minimise $b$. This is the case when we have a roughly balanced tree.
+                \medskip
+
+                We can define a tree as being balanced when all the leaves of a tree are at either depth $d$, or $d - 1$. If a tree is unbalanced, we can find a balanced tree without increasing the total path length.
+            \subsubsection*{Merge Sort}
+                If we divide a list roughly in two, we can then sort each half separately, by recursion, and then merge the two halves.
+                \medskip
+
+                We merge the list by comparing the least elements of the two lists, and outputting the lowest. In the worst case, we only get one element for "free", therefore the worst case is $n - 1$ comparisons. If we make it easier for ourselves, by forcing $n$ as a power of 2, we can get an approximation of the growth, which is good enough;
+                \begin{align*}
+                    W(1) & = 0 \\
+                    W(n) & = n - 1 + W(\ceil{\frac{n}{2}}) + W(\floor{\frac{n}{2}})
+                    \intertext{Assume that $n = 2^k$}
+                    W(n) & = n - 1 + 2W(\frac{n}{2}) \\
+                    & = n - 1 + 2(\frac{n}{2} - 1 + 2W(\frac{n}{4})) \\
+                    & = n - 1 + n - 2 + 4W(\frac{n}{4}) \\
+                    & = 2n - 3 + 4W(\frac{n}{4}) \\
+                    & = 3n - 7 + 8W(\frac{n}{8}) \\
+                    & = mn - n + 1 + 2^mW(\frac{n}{2^m}) \\
+                    & = kn - n + 1
+                \end{align*}
+                Thus $\Theta(n\text{log}(n))$. The worst case of merge sort, and the minimum work for sorting are of the same order, therefore it is an optimum algorithm in terms of orders.
+            \subsubsection*{Generalised Divide, and Conquer}
+                The general form for a DaC algorithm, is as follows; given we have work $T(n)$ for some input of size $n$, and we split it into $a$ sub-problems, each of size $\frac{n}{b}$, the non-recursive work we need to do is $f(n)$, it follows that $T(n) = aT(\frac{n}{b}) + f(n)$, as well as some base cases. We will work on the following example;
+                \begin{align*}
+                    T(1) & = 1 \\
+                    T(n) & = aT(\frac{n}{2}) + n
+                \end{align*}
+                We create a recursion tree, where there is an input of size $n$, and each level down we, record the size $\frac{n}{2}$, and also the non-recursive work (same in this case);
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[draw] (o) at (0, 0) {$n|n$};
+                        \node[draw] (ol) at (-2, -1.5) {$\frac{n}{2}|\frac{n}{2}$};
+                        \node[draw] (or) at (2, -1.5) {$\frac{n}{2}|\frac{n}{2}$};
+                        \node[draw] (oll) at (-3, -3) {$\frac{n}{4}|\frac{n}{4}$};
+                        \node[draw] (olr) at (-1, -3) {$\frac{n}{4}|\frac{n}{4}$};
+                        \node[draw] (orl) at (1, -3) {$\frac{n}{4}|\frac{n}{4}$};
+                        \node[draw] (orr) at (3, -3) {$\frac{n}{4}|\frac{n}{4}$};
+                        \node[draw] (e1) at (-4, -4.5) {$1|1$};
+                        \node[draw] (e2) at (4, -4.5) {$1|1$};
+                        \node[] () at (0, -1.5) {$\cdots$};
+                        \node[] () at (-2, -3) {$\cdots$};
+                        \node[] () at (2, -3) {$\cdots$};
+                        \node[] () at (0, -3.75) {$\vdots$};
+                        \node[] () at (0, -4.5) {$\cdots$};
+                        \node[] () at (-5, 0) {0};
+                        \node[] () at (-5, -1.5) {1};
+                        \node[] () at (-5, -3) {2};
+                        \node[] () at (-5, -4.5) {$k$};
+                        \draw
+                        (o) -- (ol)
+                        (o) -- (or)
+                        (ol) -- (oll)
+                        (ol) -- (olr)
+                        (or) -- (orl)
+                        (or) -- (orr);
+                    \end{tikzpicture}
+                \end{center}
+                Then it follows that the total work done is the sum of the work done at each level; $n + a(\frac{n}{2}) + a^2(\frac{n}{2^2}) + ... + a^{k - 1}(\frac{n}{2^{k - 1}}) + a^k$. However, we can easily express this as a geometric series with the ratio being $\frac{a}{2}$, and the starting term $n$. As we know the formula for the sum of a geometric series as follows;
+                \smallskip
+
+                $\summation{i = 0}{k}{ar^i} = \frac{a(r^{k + 1} - 1)}{r - 1}$
+                \smallskip
+
+                We can then say that $t(n)$ is the largest term in the geometric progression $a, ar, ar^2, ..., ar^k$. Now, we can apply that to our geometric series as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item if $a < 2$ \hfill the greatest term is $n$ (non-recursive work at level 0 dominates)
+                        \subitem $T(n) = \Theta(n)$
+                    \item if $a = 2$ \hfill work is roughly evenly spread at all levels
+                        \subitem $T(n) = (k + 1)n = \Theta(n\text{log}(n))$
+                    \item if $a > 2$ \hfill the base cases (leaves of recursion tree) dominate (greatest term is $a^k = a^{\text{log}(n)} = n^{\text{log}(a)}$)
+                        \subitem $T(n) = \Theta(n^{\text{log}(a)})$
+                \end{itemize}
 \end{document}
