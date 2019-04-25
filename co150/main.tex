@@ -757,4 +757,50 @@
                             parent[y] = x
                 \end{lstlisting}
         \subsection*{7th February 2019}
+            \subsubsection*{Transitive Closure}
+                Let there be some binary relation $R \subseteq X^2$. We can use the definition of transitive closure from \textbf{CO142} (whoops, probably should've done Discrete Structures before trying to learn this module), as $R^+ = \bigcup\limits_{\infty}^{k=1} R^k$.
+                \smallskip
+
+                However, instead of using $\infty$, we can use $|X|$ instead, given that $X$ is a finite set. We can interpret $R$ as a directed graph on $G$, where the ordered pairs of $R$ are arcs in $G$, and elements in $X$ are nodes in $G$. Therefore, we can deduce that $R^k(x, y) \Leftrightarrow$ there is a path of length $k$, from $x$ to $y$. Therefore $R^+(x, y) \Leftrightarrow$ there is a path of length $\geq 1$ from $x$ to $y$.
+                \medskip
+
+                Assuming we have the set $X = \{1, ..., n\}$, and $A[i, j] = 1$ if $R(i, j)$, otherwise 0, then we have the adjacency matrix $A$ of $G$. Computing $R^k$ is then trivial with matrix multiplication, such that $R^k(i, j) \Leftrightarrow A^k[i, j] > 0$.
+                \smallskip
+
+                Then we can simply calculate $B = \summation{k = 1}{n}{A^k}$, which means that $R^+(i, j) \Leftrightarrow B[i, j] > 0$
+            \subsubsection*{Warshall's Algorithm}
+                Suppose we have nodes $\{1, ..., n\}$. Considering a path $p = x_1, x_2, ..., x_k$ from $x_1$ to $x_k$, we can say that $x_m$ is an intermediate nodes, $\forall m \in [2,k-1]$. We want to look for paths that use nodes $\leq i$ as intermediate nodes. Defining a matrix $B_k[i, j] = 1 \Leftrightarrow$ if there exists a path from $i$ to $j$ that uses only intermediate nodes $\leq k$ (otherwise the value in the matrix is 0).
+                \medskip
+
+                Therefore, $B_0[i, j] = A[i, j]$ as we only consider paths of length one, since tehre are no intermediate nodes $\leq 0$. Since $B_n$ allows all possible intermediate nodes, we have all possible paths, therefore $R^+(i, j) \Leftrightarrow B_n[i, j]$.
+                \medskip
+
+                Consider how to compute $B_k$ from $B_{k - 1}$. Suppose we have some path $P$ from $i$ to $j$, using intermediate nodes $\leq k$. The path either contains $k$ as an intermediate node, or it doesn't. In the former, $k$ is not an intermediate node, therefore $B_{k - 1}[i, j]$. However, if it is, we only consider when $k$ occurs once (if it repeats, then it's not helpful - we just remove the path between the two $k$s). Then we have some path $i$ to $k$, and another path $k$ to $j$, therefore it follows that $B_{k - 1}[i,  k]$, and also $B_{k - 1}[k, j]$. This has a trivial time complexity of $O(n^3)$, which is much more efficient than the matrix method for closure.
+                \begin{lstlisting}
+                    input A
+                    copy A into B # B = B$_\text{0}$
+                    for k = 1 to n:
+                      # B = B$_\text{k - 1}$
+                      for i = 1 to n:
+                        for j = 1 to n:
+                            B[i, j] = B[i, j] or (B[i, k] and B[k, j])
+                      # B = B$_\text{k}$
+                    #B = B$_\text{n}$
+                    return B
+                \end{lstlisting}
+            \subsubsection*{Floyd's Algorithm}
+                Returning to the all pairs shortest path problem on some weighted directed graph $G$. This can be solved with a modification of Warshall's. Once again, $G$ has nodes $\{1, ..., n\}$, and an adjacency matrix $A$. We now consider $B_k[i, j]$ to be the length of the shortest path between $i$, and $j$ which has intermediate nodes $\leq k$. If there isn't a path, then let the value be $\infty$. Once again, like with Warshall's, we let $B_n[i, j]$ represent the length of the shortest path between $i$, and $j$. Assume that we know $B_{k - 1}$, and we want to get $B_k$. Suppose there eixsts some shortest path $P$ from $i$ to $j$, using intermediate nodes $\leq k$, with $\text{len}(P) = d$. Once again, if we consider the two cases, the case where $k$ is not in $P$, is trivial, and the second where $k$ is in the path, only occuring once. We can then calculate the length between the two as the minimum of $B_{k-1}[i, j]$, and $B_{k-1}[i, k] + B_{k-1}[k, j]$. If there aren't any shortest paths, then we still get $\infty$. Once again, it has the same time complexity of $O(n^3)$.
+                \begin{lstlisting}
+                    input A
+                    (for all i, j <= n) B[i, j] = 0       if i = j
+                                                  A[i, j] if i $\neq$ j and there is an arc (i, j)
+                                                  $\infty$        otherwise
+                    for k = 1 to n:
+                      for i = 1 to n:
+                        for j = 1 to n:
+                            B[i, j] = min(B[i, j], B[i, k] + B[k, j])
+                    return B
+                \end{lstlisting}
+            \subsubsection*{Dynamic Programming}
+                The previous two algorithms are examples of dynamic programming. In dynamic programming, we break down the problem into sub-problems, and the smaller sub-problems are ordered to culminate in the main problem. We move through the smaller sub-problems in order, and solve each sub-problem with the stored results of the previous one (and then storing this result for use by the next one). The main problem is solved as if it were the final sub-problem (deep really).
 \end{document}
