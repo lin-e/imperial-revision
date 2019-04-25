@@ -468,7 +468,7 @@
                       visited[x] = true
                       print[x]
                       enqueue(x, Q)
-                      while not isempty(Q):
+                      while not isEmpty(Q):
                         y = front(Q)
                         for z in adj[y]:
                           if not visited[z]:
@@ -492,7 +492,7 @@
                 \medskip
 
                 We're only going to consider simple graphs, as there is no point in taking a loop if we're trying to minimise cost, nor is there any point in taking the more expensive arc in a parallel arc.
-            \subsubsection*{MST Algorithms}
+            \subsubsection*{Prim's Algorithm}
                 We can say that $T$ is a minimum spanning tree for $G$m if $T$ is a spanning tree for $G$, and no other spanning tree for $G$ has a smaller weight. Once again, MSTs do not have to be unique.
                 \medskip
 
@@ -521,7 +521,7 @@
                       fringe[x] = true
                       parent[x] = start
                       weight[x] = $W$(start, x)
-                    while not isempty(fringe):
+                    while not isEmpty(fringe):
                       select f such that weight[f] is minimum
                       fringe[f] = false
                       tree[f] = true
@@ -539,4 +539,222 @@
                             weight[y] = $W$(f, y)
                             parent[y] = f
                 \end{lstlisting}
+                We're still iterating through the loop $n$ times. During the while loop, we're checking whether the fringe is empty (an $O(n)$ operation), finding the minimum fringe (also an $O(n)$ operation), and updating the candidate arc (if needed), which is constant time. Therefore the inner loop has a time complexity of $O(n)$, hence the overall algoithm has a complexity of $O(n^2)$. In the worst case, $m$ can be as large as $n^2$, which would be problematic in the first implementation.
+                \medskip
+
+                However, we have a greedy algorithm, and therefore need to prove its correctness. Let us represent the trees constructed at each iteration as $T_0, T_1, ..., T_k, T_{k + 1}...$; where $T_0$ is juts the initial start node, and you get $T_{k + 1}$ from $T_k$, by adding some arc $a_{k + 1}$. Hence it follows that $T_k$ has $k + 1$ nodes (by induction, probably). With this algorithm, we will end up with $n$ nodes, by definition of a spanning tree, therefore we end up returning $T_{n - 1}$.
+                \medskip
+
+                The goal here is to now show each $T_k$ is a subgraph of an MST $T^\prime$ of $G$. Trivially, in the base case $T_0$, it has one node, and no arcs, therefore $T_0 \subseteq T^\prime$.
+                \medskip
+
+                Assume that $T_k \subseteq T^\prime$, where $T^\prime$ is an MST of $G$. Let there be some node in the tree $x$, a node in the fringe $y$, and an arc joining them $a_{k + 1}$. We can now consider both cases; if $a_{k + 1} \in \text{arcs}(T^\prime)$, then $T_{k + 1} \subseteq T^\prime$, and is trivial. However, suppose that $a_{k + 1} \notin \text{arcs}(T^\prime)$, there still has to be a path in $T^\prime$ from $x$, to $y$ (by properties of a spanning tree). Therefore, we can form a cycle through some other tree node $x^\prime$, to a fringe node $y^\prime$, through some arc $a$ (such that we can connect $y$, and $y^\prime$). As Prim's chose $a_{k + 1}$, instead of $a$, there we can deduce that $W(a_{k + 1}) \leq W(k)$, and therefore $W(T^{\prime\prime}) \leq W(T^\prime))$. However, since all MSTs have the same weight by definition, we can say that $W(T^{\prime\prime}) = W(T^\prime))$. Also, $T_{k + 1} \subseteq T^{\prime\prime}$, therefore the induction step is complete.
+                \medskip
+
+                We can also implement Prim's with a priority queue. The PQ requires us to have some key of $x$, for each item $x$. In this case, we will likely use the weight of the candidate arc. We have the following operations on PQ;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~Q = PQCreate()~
+                    \item ~isEmpty(Q)~
+                    \item ~insert(Q, x)~
+                    \item ~getMin(Q)~
+                    \item ~deleteMin(Q)~
+                    \item ~decreaseKey(Q, x, newkey)~
+                \end{itemize}
+                The implemenation is as follows;
+                \begin{lstlisting}
+                    Q = PQCreate()
+                    for x in nodes$(G)$:
+                      key[x] = $\infty$ # some arbitrary large number
+                      parent[x] = null
+                      insert(Q, x)
+                    decreaseKey(Q, start, 0)
+                    while not isEmpty(Q):
+                      f = getMin(Q)
+                      deleteMin(Q)
+                      tree[f] = true
+                      for y in adj[f]:
+                        if not tree[y]: # therefore in Q
+                          if $W$(f, y) < key[y]:
+                            decreaseKey(Q, y, $W$(f, y))
+                            parent[y] = f
+                \end{lstlisting}
+                With a priority queue of length $N$, all operations have time complexity log($N$) (other than ~isEmpty~, and ~getMin~, which are constant time), with a good implementation. Overall, we have a time complexity of $O(m \text{log}(n))$, given that $n < m$. In a dense graph, classic Prim is better.
+        \subsection*{28th January 2019}
+            \subsubsection*{Kruskal's Algorithm}
+                An even greedier approach is to take the shortest arc that hasn't been included in the tree, except for ones that would cause a cycle. In intermediate stages, we have a forest (which is an acyclic graph), and not a tree (a connected acyclic graph).
+                \medskip
+
+                In our implementation, we need to do two things; look at each arc in ascending order (we can either sort the arcs right at the start, or use a priority queue). We will also need to use \textbf{dynamic equivalence classes}, which prevents adding arcs that would cause cycles. We can generate equivalence classes if they belong to the same connected tree, and an arc $(x, y)$ can only be added if $x$, and $y$ are in different equivalence classes. If the arc is added, the classes are merged.
+                \medskip
+
+                We can use the \textbf{Union-Find} data type to implement these DECs. Let each set have a leader element, which represents the set. We can \textbf{find} the leader of the equivalence class, and union (merge) two classes (discussion of the implemention is in the next section);
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~sets = UFCreate(n)~ \hfill creates a family of singleton sets, with ~find(sets, x) = x~
+                    \item ~x' = find(sets, x)~ \hfill finds the leader ~x'~ of ~x~ within ~sets~
+                    \item ~union(sets, x, y)~ \hfill merges the sets led by ~x~, and ~y~, and choose one to be the leader
+                \end{itemize}
+                Consider $G$ with $n$ nodes numbered $[1, n]$;
+                \begin{lstlisting}
+                    Q = PQCreate() # arcs of $G$ with the weights as keys
+                    sets = UFCreate(n)
+                    F = $\emptyset$
+                    while not isEmpty(Q):
+                      (x, y) = getMin(Q)
+                      deleteMin(Q)
+                      x' = find(sets, x)
+                      y' = find(sets, y)
+                      if x' != y':
+                        add (x, y) to F
+                        union(sets, x', y')
+                \end{lstlisting}
+                With a weighted union (non-binary tree) implemenation of Union-Find, we have a time complexity of find being $O(\text{log}(n))$, and a union of $O(1)$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $O(m)$ inserts for the PQ, which takes $O(m\text{log}(m))$
+                    \item $O(m)$ ~getMins~, ~deleteMins~, which both take $O(m\text{log}(m))$
+                    \item $O(m)$ ~finds~, which takes $O(m\text{log}(n)$
+                    \item $O(n)$ ~unions~, which takes $O(n)$
+                \end{itemize}
+                Assuming $m \geq n$, as it's normally the case, the overal time is $O(m\text{log}(m))$. However, we know that the number of arcs in a simple graph is bounded by $n^2$, hence the complexity is $O(m\text{log}(n))$ which is the same as a PQ implementation of Prim's.
+        \subsection*{31st January 2019}
+            \subsubsection*{Union-Find Implementations}
+                A naive implemention for the union-find is to store an array of leader nodes, where it initially stores itself as its leader. Finding is $O(1)$, but union will be $O(n)$, which means our implementation of Kruskal's will be $O(n^2)$.
+                \medskip
+
+                Instead of taking the naive approach, we can consider it as a non-binary tree, with the root node being the leader for the equivalence class. When two trees are merged, with leaders ~x~, and ~y~, we either set ~parent[x] = y~, or vice versa. This now makes a merging operation $O(1)$, which is much better. However, finding the parent will now involve traversing up the ~parent~ chain, which would be $O(n)$ in the worst case (on a tree where it's basically a linked list). This still keeps Kruskal's at $O(n^2)$, which isn't an improvement.
+                \medskip
+
+                The goal for us now is to minimise the depth of the tree, by taking a weighted union instead of some arbitrary choice. The rule for a weighted union is to append the tree of lower size (number of nodes, not depth), to the one of greater size. Storing, and updating, size is a very simple operation. By the weighted union, the depth of a tree of size $k$ is $\leq \floor{\text{log}(k)}$.
+            \subsubsection*{Path Compression}
+                We can reduce the union-find complexity for Kruskal's to $O((n + m)\text{log}^*(n))$, where $\text{log}^*(n)$ is an extremely slow-growing function, such that it's $\leq 5$ for any $n$ we might use. The idea is to set the parent of some node we're finding by the root node as follows;
+                \begin{lstlisting}
+                    procedure cfind(x):
+                      y = parent[x]
+                      if y == x:
+                        root = x
+                      else:
+                        root = cfind(y)
+                        if root != y: # path compression
+                          parent[x] = root # path compression
+                      return root
+                \end{lstlisting}
+            \subsubsection*{Comparison}
+                We can refer to the table below to summarise the time complexities of each of the algorithms we're referring to. On dense graphs, where $m$ has order $n^2$ (is large), then Kruskal's gives a complexity of $O(n^2\text{log}(n))$, therefore classic Prim's is better. ON the other hand, where $m$ is small, around the order of $n\text{log}(n)$, then Kruskal's or PQ Prim's is better, as we have $O(n\text{log}^2(n))$.
+                \begin{center}
+                    \begin{tabular}{l|r}
+                        algorithm & time complexity \\
+                        \hline
+                        Kruskal & $O(m\text{log}(n))$ \\
+                        Prim with binary heap PQ & $O(m\text{log}(n))$ \\
+                        Classic Prim & $O(n^2)$
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Fibonacci Heaps}
+                If we implemented a PQ with a Fibonacci heap instead of a binary heap, we have all constant time operations (other than ~deleteMin~, which would have a complexity of $O(\text{log}(n))$. The complexity of Prim's with a Fibonacci heap PQ is $O(m + n\text{log}(n))$, however the memory usage, as well as constant factors, can be higher, therefore a binary heap might still be preferred.
+            \subsubsection*{Shortest Path Problem}
+                Given we have a weighted graph $G$, and nodes $S$, and $F$, representing start, and finish respectively, we have an $O(n^2)$ algorithm to find the shortest path of a single pair developed by Dijkstra. There is also an algorithm by Floyd, which finds all the shortest paths between any pairs, in $O(n^3)$ time.
+                \medskip
+
+                As Dijkstra's is closely related to Prim's, we can use the same diagram from before, with some modifications (not just because I'm too lazy to draw another one with TikZ). Once again, the nodes are classified into ~tree~, ~fringe~, and ~unseen~. However, we modify it by saying that we've already computed the shortest path from the start node, to all the ~tree~ nodes - the path given by the tree. For the ~fringe~ nodes, we know the shortest path using the tree, although this path can be improved as the tree grows (similar to the inductive step in the proof for Prim's). However, instead of choosing the shortest candidate arc, we choose the shortest distance from the staff.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm, y=1.25cm]
+                        \node[circle, fill=black, label=above:start] () at (2.5, -2) {};
+                        \node[circle, fill=black, label=left:t] (t) at (3, -3) {};
+                        \node[circle, fill=black, label=left:f] (f) at (4, -3.75) {};
+                        \node[circle, fill=black, label=right:finish] (fin) at (6, -2.75) {};
+                        \node[] () at (1, -0.375) {~fringe~};
+                        \node[] () at (2, -1.25) {~tree~};
+                        \node[] () at (-1, -2) {~unseen~};
+                        \draw
+                        (0, 0) -- (5, 0) -- (5, -4) -- (0, -4) -- cycle
+                        (0.75, -0.75) -- (4.25, -0.75) -- (4.25, -3.25) -- (0.75, -3.25) -- cycle
+                        (t) -- (f);
+                    \end{tikzpicture}
+                \end{center}
+                The implementation fro this is similar to Prim's algorithm, but we also need to store its parent node, and the distance of the shortest path known. At any stage, the next node to be added is the fringe nede with the smallest distance from the start. The fringe is then updated, possibly improving the shortest path. Once again, we can keep checking parents to obtain the path we'e taken.
+                \begin{lstlisting}
+                    tree[start] = true
+                    for x in adj[start]:
+                      fringe[x] = true
+                      parent[x] = start
+                      distance[x] = $W$(start, x)
+                    while not tree[finish] and not isEmpty(fringe):
+                        select f where distance[f] is minimum
+                        fringe[f] = false
+                        tree[f] = true
+                        for y in adj[f]:
+                          if not tree[y]:
+                            if fringe[y]:
+                              if distance[f] + $W$(f, y) < distance[y]:
+                                # updating distance if we have a better option
+                                distance[y] = distance[f] + $W$(f, y)
+                                parent[y] = f
+                            else:
+                              fringe[y] = true
+                              distance[y] = distance[f] + $W$(f, y)
+                              parent[y] = f
+                    return distance[finish]
+                \end{lstlisting}
+                As it's merely a light modification on Prim's, we can easily justify that the running time is $O(n^2)$. We can prove termination, as we're increasing the tree each iteration. Once again, we can implement this with a PQ as such;
+                \begin{lstlisting}
+                    Q = PQCreate()
+                    for x in nodes($G$):
+                      key[x] = $\infty$
+                      parent[x] = null
+                      insert(Q, x)
+                    decreaseKey(Q, start, 0)
+                    while not tree[finish] and not isEmpty(Q):
+                      f = getMin(Q)
+                      deleteMin(Q)
+                      tree[f] = true
+                      for y in adj[f]:
+                        if not tree[y]:
+                          if key[f] + $W$(f, y) < key[y]:
+                            decreaseKey(Q, y, key[f] + $W$(f, y))
+                            parent[y] = f
+                \end{lstlisting}
+                Once again, the complexity is the same, with either the binary heap, or the Fibonacci heap implementation.
+        \subsection*{4th Febuary 2019}
+            \subsubsection*{A$^*$ Algorithm}
+                Djikstra's algorithm omits any sense of direction, and expands outwards until we reach the finish node. A$^*$ modifies this by allowing for some heuristic function $h(x)$ by underestimating the distance from any node to the finish node. On a map, we could say that $h$ represents the Euclidean distance between any two cities.
+                \medskip
+
+                We can calculate the cost of going to a node as $F(x) = g(x) + h(x)$, where $g(x)$ is what we defined as the distance between the target node, and the start node. Given a start node, we calculate the 'cost' of the node by taking the $F$ values of them, and then we select the smallest one. We then add that node, $x$, to the tree. At this point, we can then consider the nodes adjacent to $x$, and calculate their costs, by using the same method. This checks the smallest cost nodes, that aren't already checked, but we will end up saving time since the heuristic function adds a bias towards the nodes that are heading in the direction of the finish. In order for a heuristic function to be considered consistent, it needs to fulfill the follwoing criteria;
+                \begin{itemize}
+                    \itemsep0em
+                    \item for any two adjacent nodes, $x, y$, we have $h(x) \leq W(w, y) + h(y)$
+                    \item $h(~finish~) = 0$
+                \end{itemize}
+                Consistency is a stronger property than a function being admissible (if $h(x) \leq $ the weight of the shortest path from $x$ to the finish). We can solve this trivially with the consistency criteria, by setting $y = ~finish~$, as we'd then have $h(x) \leq W(x, ~finish~)$.
+                \medskip
+                The set of tree nodes is often referred to as the \textbf{closed set}, and the set of fringe is the \textbf{open} set. If we have a heuristic $h(x) = 0$, albeit useless, then we get Dijkstra's algorithm. Thus we can say that the time complexity of A$^*$ is the same as Djikstra, in the worst case. We can justify correctness similar to Dijkstra's. Our 'invariant' is that if the node $x$ is a ~tree~, or ~fringe~ node, and not the ~start~, then ~parent[$x$]~ is a tree node. If $x$ is a tree node, then $g(x)$ is the length of the shortest path (once again, not including ~start~). However, if $x$ is a fringe node, then $g(x)$ is the length of the shortest path, where all nodes except $x$ are tree nodes.
+                \medskip
+
+                Let us assume that we have a different, shorter path $P$, which may exist outside the tree nodes. Then it follows that $\text{len}(P) < g(x)$. Let there be some $y$ which is the first node in that isn't part of the tree to be on $P$, and $P_1$ be the path from $~start~$ to $y$, and $P_2$ be the path from $y$ to $x$. We know that $F(y) = g(y) + h(y)$, by definition. Therefore $\leq g(y) + \text{len}(P_2) + h(x)$, by the consistent property of $h$. And also that $\leq \text{len}(P_1) + \text{len}(P_2) + h(x) = \text{len}(P) + h(x)$. As we've assumed that it has a shorter path, it follow that it must be $< g(x) + h(x) = F(x)$. Therefore $F(y) < F(x)$, but that contradicts our choice of $x$, since we chose the lowest $F$.
+                \medskip
+
+                For the sake of completeness; this is the algorithm implemented with a PQ;
+                \begin{lstlisting}
+                    Q = PQCreate()
+                    for x in nodes($G$):
+                      g[x] = $\infty$
+                      key[x] = $\infty$
+                      parent[x] = null
+                      insert(Q, x)
+                    g[start] = 0
+                    decreaseKey(Q, start, g[start] + h[start])
+                    while not tree[finish] and not isEmpty(Q):
+                      x = getMin(Q)
+                      deleteMin(Q)
+                      tree[x] = true
+                      for y in adj[x]:
+                        if not tree[y]:
+                          if g[x] + $W$(x, y) < g[y]:
+                            g[y] = g[x] + $W$(x, y)
+                            decreaseKey(Q, y, g[y] + h[y])
+                            parent[y] = x
+                \end{lstlisting}
+        \subsection*{7th February 2019}
 \end{document}
