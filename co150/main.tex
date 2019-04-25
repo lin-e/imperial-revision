@@ -1491,6 +1491,17 @@
         \subsubsection*{Function Composition}
             Suppose that we have $f$, $g$ both p-time computable functions. Then the composition $g \circ f$ is also p-time computable. Suppose that $f(x)$ is computed by $A$, within $p(n)$, where $n = |x|$, and $g(y)$ by $B$, within $q(m)$, and $m = |y|$.
             \medskip
-            
+
             In order to compute the composed function, we'd need to first run $A$ on $x$. By definition it must then run in $\leq p(n)$ steps. And therefore the maximum output it can generate is also polynomial. hence $|f(x)|$ must be polynomially bounded in $n$, such that we can say $|f(x)| \leq p^\prime(n)$ for some polynomial $p^\prime(n)$. Then it follows that $B$ will run within $q(p^\prime(n))$ steps. Hence, the total running time of the function, $A$ followed by $B$, is $p(n) + q(p^\prime(n))$. This result is polynomial in $n$.
+        \subsubsection*{Guessing a Certificate}
+            Going back to the Hamiltonian Path problem, and a graph $G$. Let us guess some path $\pi$. Checking that $\pi$ is a HP of $G$ is trivial; we need to check that the items of $\pi$ are a permutation of nodes($G$), and then check that successive nodes in $\pi$ are adjacent in $G$. This can easily be done in p-time.
+            \medskip
+
+            The problem with this is that, if we guess a path correctly, then the problem is trivial to solve in p-time, however, if we guess it incorrectly, such that $\pi$ is not a HP of $G$, then we aren't closer to the solution (maybe we're able to exclude $\pi$ from the search space now - if it's the last permutation to check, then it's useful). We still don't know whether it has a path or not.
+            \medskip
+
+            Let us define some problem VHP (verify HP), taking 2 inputs; $G$, and some path $\pi$. Note that this verification problem runs in $P$. Trivially we can say that $\text{HamPath}(G) \Leftrightarrow \exists \pi [\text{VerHamPath}(G, \pi)]$.
+            \medskip
+
+            We can now define a decision problem $D(x)$ as being in NP (non-deterministic polynomial time) if there is a problem $E(x, y)$ in $P$, and a polynomail $p(n)$ such that $D(x) \Leftrightarrow \exists y [E(x, y)]$, and if $E(x, y)$ then $|y| \leq p(|x|)$ (this means that the guess / certificate is polynomially bounded in the input size). The second condition is required, as it would take too long to even guess $y$ if we didn't have that restriction. In general, we can say that $P$ is the class of decision problems, which can be efficiency \textbf{solved}, and NP is the class of decision problems that can be efficiency \textbf{verified}.
 \end{document}
