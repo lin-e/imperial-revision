@@ -1584,4 +1584,23 @@
             \medskip
 
             In order to show that it is intractable (assuming P $\neq$ NP), we prove it by contradiction. Let us suppose that it can be solved by a p-time algorithm, such that the optimal time $O$ can be computed in p-time. Therefore, it follows that TSPD is p-time, since we just need to check whether the path is valid (it would be, with a correct algorithm), and then check that $O \leq B$. However, this wouldn't be possible, since we have just proven that TSPD is NP-complete, and that P $\neq$ NP.
+        \subsubsection*{Metric TSP}
+            The MTSP restricts to graphs $(G, W)$ that satisfy the triangle inequality. Such that $\forall x, y, z \in \text{nodes}(G) [W(x, z) \leq W(x, y) + W(y, z)]$. This is a fairly natural condition, as if it didn't hold, we'd travel via $y$. Once again, we can make a decision version of it; MTSPD. The method for checking the first criteria is the exact same as for TSPD, where we have some verification function. We cannot easily do this reduction with the TSP, since we cannot do the implication the other way (since we're reducing the weights of the graphs, having it remain in budget in from TSP to MTSP is trivial, but proving it the other way can be extremely challenging).
+            \medskip
+
+            Instead, we look to reduce the HP problem to MTSPD. We'll apply the same rules for the weighting function from the HP problem to the TSPD problem for MTSPD. We know that $1 \leq W(x, y) \leq 2$ for all $x \neq y$. Therefore, it follows that $W(x, z) \leq W(x, y) + W(y, z)$; since it's an equality, let us consider the worst case on either side, the greatest possible value of the LHS, and the least possible value on the RHS. Because it is bounded, we know the greatest value of the LHS is 2. For the RHS, we know the least value is 2 (1 + 1), therefore in any case $2 \leq 2$. By applying the same justifications as we did for HP to TSPD, we can conclude that HP $\leq$ MTSPD.
+        \subsubsection*{Vehicle Routing Problem}
+            Suppose that we have a depot, some vehicles, and various deliveries (with destination addresses). We can model this as a complete graph, where the nodes are the depot, and the customer addresses. This graph must satisfy the triangle inequality, and $W(x, y)$ once again represents the cost of the shortest path from $x$, to $y$. We have additional constraints in that the vehicles have a capacity, and that the sum of the sizes of the packages transported on each trip cannot exceed thsi capacity. We can also assume that each vehicle does at least one trip.
+            \medskip
+
+            The problem (VRPCD) is now as follows, where we are given;
+            \begin{itemize}
+                \itemsep0em
+                \item a complete weighted graph $(G, W)$ which satisfies the triangle inequality
+                \item a distinguished ~start~ node (the depot)
+                \item $k$ vehicles, each with capacity ~C~
+                \item a set of packages of size $s_1, ..., s_n$, to be delivered to nodes $x_1, ..., x_n$ respectively.
+                \item a budget $B$
+            \end{itemize}
+            Can we deliver the items within the total cost?
 \end{document}
