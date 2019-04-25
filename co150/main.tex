@@ -502,14 +502,41 @@
                         \node[circle, fill=black, label=above:start] () at (2.5, -2) {};
                         \node[circle, fill=black, label=left:t] (t) at (3, -3) {};
                         \node[circle, fill=black, label=left:f] (f) at (4, -3.75) {};
-                        \node[] () at (1, -0.375) {fringe};
-                        \node[] () at (2, -1.25) {tree};
-                        \node[] () at (-1, -2) {unseen};
+                        \node[] () at (1, -0.375) {~fringe~};
+                        \node[] () at (2, -1.25) {~tree~};
+                        \node[] () at (-1, -2) {~unseen~};
                         \draw
                         (0, 0) -- (5, 0) -- (5, -4) -- (0, -4) -- cycle
                         (0.75, -0.75) -- (4.25, -0.75) -- (4.25, -3.25) -- (0.75, -3.25) -- cycle
                         (t) -- (f);
                     \end{tikzpicture}
                 \end{center}
-                The general idea is to pick a random node (doesn't matter which, as all nodes will be in the MST by definition)
+                The general idea is to pick a random node (doesn't matter which, as all nodes will be in the MST by definition). This is now the start node, and therefore part of the MST (hence classified as ~tree~). Now classify all the nodes adjacent to this node as ~fringe~. While the fringe isn't empty, select the arc with minimum length between a tree node $t$, and a fringe node $f$. Classify $f$ as ~tree~, and add the arc $(t, f)$ to the tree. Reclassify all the unseen nodes adjacent to $f$ as ~fringe~.
+                \medskip
+
+                The while loop is executed roughly $n$ times, as it will be executed for each node. However, in the worst case, when we're selecting a minimum arc, that takes $n + m$. Therefore, we can calculate this to be an $O(n(n + m))$ algorithm. This is a more naive approach, we can improve this by choosing candidate arcs; as we're avoiding redoing work. If we consider a parent function, such that the parent of $f$ (~fringe~) is $t$ (~tree~), such that the arc $(t, f)$ has the least weight. This can be summarised in two parts; first the initialsation, and then the execution of the algorithm;
+                \begin{lstlisting}
+                    tree[start] = true
+                    for x in adj[start]:
+                      fringe[x] = true
+                      parent[x] = start
+                      weight[x] = $W$(start, x)
+                    while not isempty(fringe):
+                      select f such that weight[f] is minimum
+                      fringe[f] = false
+                      tree[f] = true
+                      for y in adj[f]:
+                        if not tree[y]:
+                          if fringe[y]:
+                            # updating arcs if we can get a lower weight
+                            if $W$(f, y) < weight[y]:
+                              weight[y] = $W$(f, y)
+                              parent[y] = f
+                          else:
+                            # we haven't seen y yet
+                            # this can probably be shortend with the above
+                            fringe[y] = true
+                            weight[y] = $W$(f, y)
+                            parent[y] = f
+                \end{lstlisting}
 \end{document}
