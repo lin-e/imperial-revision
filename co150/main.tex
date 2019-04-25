@@ -199,7 +199,7 @@
                 \end{center}
                 If we have some subgraph $G^\prime$, and $\text{nodes}(G^\prime) = \text{nodes}(G)$, then it $G^\prime$ spans $G$.
             \subsubsection*{Adjacency Matrix}
-                For the entry in the matrix $a_{i,j}$, it represents the number of arcs thast connect $i$ to $j$. In an undirected graph, this matrix is symmetric (such that $a^\top = a$). In our example, we're doing the rows, and columns, alphabetically. It's also important to note that we count each loop twice in a diagonal entry. We can determine the degree of a node by taking the sum of its respective row (or column), and find the number of arcs by taking the sum of all the values in the matrix, and then halving it.
+                For the entry in the matrix $a_{i,j}$, it represents the number of arcs that connect $i$ to $j$. In an undirected graph, this matrix is symmetric (such that $a^\top = a$). In our example, we're doing the rows, and columns, alphabetically. It's also important to note that we count each loop twice in a diagonal entry. We can determine the degree of a node by taking the sum of its respective row (or column), and find the number of arcs by taking the sum of all the values in the matrix, and then halving it.
                 \begin{center}
                     $\begin{matrix}
                         \text{A} \\
@@ -364,9 +364,9 @@
                     \end{tikzpicture}
                 \end{center}
             \subsubsection*{Graph Colouring}
-                Any (literal, real-life) map can be convereted into a simple planar graph by letting the countries represent nodes, and joining them if they are neighbours. This newly generated graph is known as the dual graph. We can say some graph $G$ is $k$-colourable, if the nodes of $G$ can be coloured with no more than $k$ colours, therefore every simple planar graph is 4-colourable.
+                Any (literal, real-life) map can be converted into a simple planar graph by letting the countries represent nodes, and joining them if they are neighbours. This newly generated graph is known as the dual graph. We can say some graph $G$ is $k$-colourable, if the nodes of $G$ can be coloured with no more than $k$ colours, therefore every simple planar graph is 4-colourable.
             \subsubsection*{Bipartite Graphs}
-                We can say a graph is bipartite if we can partition nodes($G$), into two sets $X$, and $Y$, such that no two nodes of $X$ are joined, and likewise for $Y$. A graph is biparite $\Leftrightarrow$ it is 2-colourable.
+                We can say a graph is bipartite if we can partition nodes($G$), into two sets $X$, and $Y$, such that no two nodes of $X$ are joined, and likewise for $Y$. A graph is bipartite $\Leftrightarrow$ it is 2-colourable.
             \subsubsection*{Paths, and Connectedness}
                 A path in a graph is a sequence of adjacent arcs, although normally described by the nodes that we pass through. A path is called \textbf{simple} if it doesn't repeat nodes, and a graph is \textbf{connected} if there is a path joining any two nodes.
                 \medskip
@@ -391,18 +391,18 @@
             \subsubsection*{Hamiltonian Path / Circuits}
                 A Hamiltonian path is one that visits each node exactly once, and similarly a Hamiltonian circuit returns to the start node. For this, we will only consider simple graphs, since we won't ever follow a loop, or a parallel arc. In order for there to be a HP, we need a connected graph, and for a HC to exist, each node must have a degree $\geq 2$. To determine whether a circuit exists, we can take a brute force approach, since a circuit is really just a permutation on the set of nodes; such that for $n$ nodes, we have $\pi : \{1, ..., n\} \mapsto \{1, ..., n\}$. However, for this to be a circuit, we need $\pi(i)$ to be adjacent to $\pi(i + 1)$, and so on. As we have $n!$ possible circuits, this is far too slow. There exists a dynamic programming approach that reduces this to $O(n^22^n)$, but that is still exponential. Compared to EPP, which has $O(n^2)$ time. HCP has been shown to be NP-complete, and are therefore not solvable in polynomial time.
             \subsubsection*{Trees}
-                A tree is an acyclic connected graph (whether we specify it's rooted, or nonrooted, depends on the author). The root of $G$ is a distinguished node. Assuming a rooted graph, the depth of a node $x$ is the distance along the unique path from the root to $x$. If $x$ isn't the root node, the parent of $x$ is the node directly before it in the path from the root to $x$. The depth of tree is the maximum of the depths of all its nodes.
+                A tree is an acyclic connected graph (whether we specify it's rooted, or non-rooted, depends on the author). The root of $G$ is a distinguished node. Assuming a rooted graph, the depth of a node $x$ is the distance along the unique path from the root to $x$. If $x$ isn't the root node, the parent of $x$ is the node directly before it in the path from the root to $x$. The depth of tree is the maximum of the depths of all its nodes.
                 \medskip
 
                 A spanning tree of a graph $G$, is a tree, $T$, such that $\text{nodes}(T) = \text{nodes}(G)$, and $\text{arcs}(T) \subseteq \text{arcs}(G)$. The spanning trees are not necessarily unique.
             \subsubsection*{Directed Graphs}
-                While we generally cover undirected graphs in this course, it makes sense in some applications for the arcs to be directed. For each $a \in \text{arcs}(G)$, it is associated with an \textbf{ordered} pair of nodes. In diagrams, these are shown with arrows. In a path for $a_1, ..., a_n$, the source of $a_{i + 1}$, must match the target of $a_i$. We define the indegree as the number of arcs entering, and likewise the outdegree is the number of args leaving. For any directed graph, the sum of the indegree of all nodes, and the outdegree of all nodes is equal to the number of arcs. We say a directed graph is strongly connected if there exists a path between any two nodes in $G$.
+                While we generally cover undirected graphs in this course, it makes sense in some applications for the arcs to be directed. For each $a \in \text{arcs}(G)$, it is associated with an \textbf{ordered} pair of nodes. In diagrams, these are shown with arrows. In a path for $a_1, ..., a_n$, the source of $a_{i + 1}$, must match the target of $a_i$. We define the indegree as the number of arcs entering, and likewise the outdegree is the number of arcs leaving. For any directed graph, the sum of the indegree of all nodes, and the outdegree of all nodes is equal to the number of arcs. We say a directed graph is strongly connected if there exists a path between any two nodes in $G$.
         \subsection*{24th January 2019}
             \subsubsection*{Tree Traversal Algorithms}
                 The two types of traversal covered in this course are depth-first search (DFS), and breadth-first search (BFS). While they are similar in many ways, they also have quite a few differences.
                 \medskip
 
-                In depth first search, we choose one of the adjacent nodes to the start; from there, we then spawn another depth first search. This is done recursively until there aren't any more (unvisited) adjacent nodes. At this point, the spawned DFS returns back to the parent node, where it checks the next adjacent node (normally ordered by how the adjaceny list / matrix is stored). It does this until we have visited all of the nodes, and then returns back all the way to the start.
+                In depth first search, we choose one of the adjacent nodes to the start; from there, we then spawn another depth first search. This is done recursively until there aren't any more (unvisited) adjacent nodes. At this point, the spawned DFS returns back to the parent node, where it checks the next adjacent node (normally ordered by how the adjacency list / matrix is stored). It does this until we have visited all of the nodes, and then returns back all the way to the start.
                 \medskip
 
                 In contrast to DFS, breadth-first search goes through all the adjacent nodes, and then goes deeper. This means that we only check the nodes adjacent to the ones adjacent to the start node, after all of the nodes directly adjacent to the start node have been visited.
@@ -450,7 +450,7 @@
                         (4-2) edge[->] (6-2);
                     \end{tikzpicture}
                 \end{center}
-                In order to formalise this, let us consider the graph to be traversed as an adjaceny list, a boolean array of nodes (which are visited), and the parent is the parent node in the search tree. The output will be the nodes visited in order.
+                In order to formalise this, let us consider the graph to be traversed as an adjacency list, a boolean array of nodes (which are visited), and the parent is the parent node in the search tree. The output will be the nodes visited in order.
                 \begin{lstlisting}
                     procedure dfs(x):
                       visited[x] = true
@@ -487,7 +487,7 @@
                 \medskip
 
                 It's also trivial to modify BFS to find the distance of each node, by having a running counter. Due to how BFS is implemented, we can also extract the shortest path from ~y~; as ~y, parent[y], parent[parent[y]], ..., start~.
-            \subsubsection*{Weihted Graphs}
+            \subsubsection*{Weighted Graphs}
                 We can associate a cost with each arc on a network. We can define a weighted graph as a graph, $G$, with a weight function $W : \text{arcs}(G) \mapsto \mathbb{R}^+$. With weights, we're able to consider the following problems; finding an MST (minimum spanning tree), finding shortest paths, and finding a shortest circuit.
                 \medskip
 
@@ -496,7 +496,7 @@
                 We can say that $T$ is a minimum spanning tree for $G$m if $T$ is a spanning tree for $G$, and no other spanning tree for $G$ has a smaller weight. Once again, MSTs do not have to be unique.
                 \medskip
 
-                The main idea in Prim's algorithm is to add the shortest arc that will extend the tree. This is an example of a greedy algorithm, which gives a short-term advantage byt may not be the best overall (it is in this case). At any stage in Prim's algorithm, we have three types of nodes; tree nodes (which are already part of the MST), candidate nodes - which are fringe nodes adjacent to a tree node, and the rest are unseen nodes. At the start, all nodes are unseen.
+                The main idea in Prim's algorithm is to add the shortest arc that will extend the tree. This is an example of a greedy algorithm, which gives a short-term advantage but may not be the best overall (it is in this case). At any stage in Prim's algorithm, we have three types of nodes; tree nodes (which are already part of the MST), candidate nodes - which are fringe nodes adjacent to a tree node, and the rest are unseen nodes. At the start, all nodes are unseen.
                 \begin{center}
                     \begin{tikzpicture}[x=1.25cm, y=1.25cm]
                         \node[circle, fill=black, label=above:start] () at (2.5, -2) {};
@@ -514,7 +514,7 @@
                 The general idea is to pick a random node (doesn't matter which, as all nodes will be in the MST by definition). This is now the start node, and therefore part of the MST (hence classified as ~tree~). Now classify all the nodes adjacent to this node as ~fringe~. While the fringe isn't empty, select the arc with minimum length between a tree node $t$, and a fringe node $f$. Classify $f$ as ~tree~, and add the arc $(t, f)$ to the tree. Reclassify all the unseen nodes adjacent to $f$ as ~fringe~.
                 \medskip
 
-                The while loop is executed roughly $n$ times, as it will be executed for each node. However, in the worst case, when we're selecting a minimum arc, that takes $n + m$. Therefore, we can calculate this to be an $O(n(n + m))$ algorithm. This is a more naive approach, we can improve this by choosing candidate arcs; as we're avoiding redoing work. If we consider a parent function, such that the parent of $f$ (~fringe~) is $t$ (~tree~), such that the arc $(t, f)$ has the least weight. This can be summarised in two parts; first the initialsation, and then the execution of the algorithm;
+                The while loop is executed roughly $n$ times, as it will be executed for each node. However, in the worst case, when we're selecting a minimum arc, that takes $n + m$. Therefore, we can calculate this to be an $O(n(n + m))$ algorithm. This is a more naive approach, we can improve this by choosing candidate arcs; as we're avoiding redoing work. If we consider a parent function, such that the parent of $f$ (~fringe~) is $t$ (~tree~), such that the arc $(t, f)$ has the least weight. This can be summarised in two parts; first the initialisation, and then the execution of the algorithm;
                 \begin{lstlisting}
                     tree[start] = true
                     for x in adj[start]:
@@ -534,12 +534,12 @@
                               parent[y] = f
                           else:
                             # we haven't seen y yet
-                            # this can probably be shortend with the above
+                            # this can probably be shortened with the above
                             fringe[y] = true
                             weight[y] = $W$(f, y)
                             parent[y] = f
                 \end{lstlisting}
-                We're still iterating through the loop $n$ times. During the while loop, we're checking whether the fringe is empty (an $O(n)$ operation), finding the minimum fringe (also an $O(n)$ operation), and updating the candidate arc (if needed), which is constant time. Therefore the inner loop has a complexity of $O(n)$, hence the overall algoithm has a complexity of $O(n^2)$. In the worst case, $m$ can be as large as $n^2$, which would be problematic in the first implementation.
+                We're still iterating through the loop $n$ times. During the while loop, we're checking whether the fringe is empty (an $O(n)$ operation), finding the minimum fringe (also an $O(n)$ operation), and updating the candidate arc (if needed), which is constant time. Therefore the inner loop has a complexity of $O(n)$, hence the overall algorithm has a complexity of $O(n^2)$. In the worst case, $m$ can be as large as $n^2$, which would be problematic in the first implementation.
                 \medskip
 
                 However, we have a greedy algorithm, and therefore need to prove its correctness. Let us represent the trees constructed at each iteration as $T_0, T_1, ..., T_k, T_{k + 1}...$; where $T_0$ is juts the initial start node, and you get $T_{k + 1}$ from $T_k$, by adding some arc $a_{k + 1}$. Hence it follows that $T_k$ has $k + 1$ nodes (by induction, probably). With this algorithm, we will end up with $n$ nodes, by definition of a spanning tree, therefore we end up returning $T_{n - 1}$.
@@ -561,7 +561,7 @@
                     \item ~deleteMin(Q)~
                     \item ~decreaseKey(Q, x, newkey)~
                 \end{itemize}
-                The implemenation is as follows;
+                The implementation is as follows;
                 \begin{lstlisting}
                     Q = PQCreate()
                     for x in nodes$(G)$:
@@ -588,7 +588,7 @@
                 In our implementation, we need to do two things; look at each arc in ascending order (we can either sort the arcs right at the start, or use a priority queue). We will also need to use \textbf{dynamic equivalence classes}, which prevents adding arcs that would cause cycles. We can generate equivalence classes if they belong to the same connected tree, and an arc $(x, y)$ can only be added if $x$, and $y$ are in different equivalence classes. If the arc is added, the classes are merged.
                 \medskip
 
-                We can use the \textbf{Union-Find} data type to implement these DECs. Let each set have a leader element, which represents the set. We can \textbf{find} the leader of the equivalence class, and union (merge) two classes (discussion of the implemention is in the next section);
+                We can use the \textbf{Union-Find} data type to implement these DECs. Let each set have a leader element, which represents the set. We can \textbf{find} the leader of the equivalence class, and union (merge) two classes (discussion of the implementation is in the next section);
                 \begin{itemize}
                     \itemsep0em
                     \item ~sets = UFCreate(n)~ \hfill creates a family of singleton sets, with ~find(sets, x) = x~
@@ -609,7 +609,7 @@
                         add (x, y) to F
                         union(sets, x', y')
                 \end{lstlisting}
-                With a weighted union (non-binary tree) implemenation of Union-Find, we have a complexity of find being $O(\text{log}(n))$, and a union of $O(1)$;
+                With a weighted union (non-binary tree) implementation of Union-Find, we have a complexity of find being $O(\text{log}(n))$, and a union of $O(1)$;
                 \begin{itemize}
                     \itemsep0em
                     \item $O(m)$ inserts for the PQ, which takes $O(m\text{log}(m))$
@@ -617,10 +617,10 @@
                     \item $O(m)$ ~finds~, which takes $O(m\text{log}(n)$
                     \item $O(n)$ ~unions~, which takes $O(n)$
                 \end{itemize}
-                Assuming $m \geq n$, as it's normally the case, the overal time is $O(m\text{log}(m))$. However, we know that the number of arcs in a simple graph is bounded by $n^2$, hence the complexity is $O(m\text{log}(n))$ which is the same as a PQ implementation of Prim's.
+                Assuming $m \geq n$, as it's normally the case, the overall time is $O(m\text{log}(m))$. However, we know that the number of arcs in a simple graph is bounded by $n^2$, hence the complexity is $O(m\text{log}(n))$ which is the same as a PQ implementation of Prim's.
         \subsection*{31st January 2019}
             \subsubsection*{Union-Find Implementations}
-                A naive implemention for the union-find is to store an array of leader nodes, where it initially stores itself as its leader. Finding is $O(1)$, but union will be $O(n)$, which means our implementation of Kruskal's will be $O(n^2)$.
+                A naive implementation for the union-find is to store an array of leader nodes, where it initially stores itself as its leader. Finding is $O(1)$, but union will be $O(n)$, which means our implementation of Kruskal's will be $O(n^2)$.
                 \medskip
 
                 Instead of taking the naive approach, we can consider it as a non-binary tree, with the root node being the leader for the equivalence class. When two trees are merged, with leaders ~x~, and ~y~, we either set ~parent[x] = y~, or vice versa. This now makes a merging operation $O(1)$, which is much better. However, finding the parent will now involve traversing up the ~parent~ chain, which would be $O(n)$ in the worst case (on a tree where it's basically a linked list). This still keeps Kruskal's at $O(n^2)$, which isn't an improvement.
@@ -673,7 +673,7 @@
                         (t) -- (f);
                     \end{tikzpicture}
                 \end{center}
-                The implementation fro this is similar to Prim's algorithm, but we also need to store its parent node, and the distance of the shortest path known. At any stage, the next node to be added is the fringe nede with the smallest distance from the start. The fringe is then updated, possibly improving the shortest path. Once again, we can keep checking parents to obtain the path we'e taken.
+                The implementation fro this is similar to Prim's algorithm, but we also need to store its parent node, and the distance of the shortest path known. At any stage, the next node to be added is the fringe node with the smallest distance from the start. The fringe is then updated, possibly improving the shortest path. Once again, we can keep checking parents to obtain the path we've taken.
                 \begin{lstlisting}
                     tree[start] = true
                     for x in adj[start]:
@@ -716,12 +716,12 @@
                             parent[y] = f
                 \end{lstlisting}
                 Once again, the complexity is the same, with either the binary heap, or the Fibonacci heap implementation.
-        \subsection*{4th Febuary 2019}
+        \subsection*{4th February 2019}
             \subsubsection*{A$^*$ Algorithm}
-                Djikstra's algorithm omits any sense of direction, and expands outwards until we reach the finish node. A$^*$ modifies this by allowing for some heuristic function $h(x)$ by underestimating the distance from any node to the finish node. On a map, we could say that $h$ represents the Euclidean distance between any two cities.
+                Dijkstra's algorithm omits any sense of direction, and expands outwards until we reach the finish node. A$^*$ modifies this by allowing for some heuristic function $h(x)$ by underestimating the distance from any node to the finish node. On a map, we could say that $h$ represents the Euclidean distance between any two cities.
                 \medskip
 
-                We can calculate the cost of going to a node as $F(x) = g(x) + h(x)$, where $g(x)$ is what we defined as the distance between the target node, and the start node. Given a start node, we calculate the 'cost' of the node by taking the $F$ values of them, and then we select the smallest one. We then add that node, $x$, to the tree. At this point, we can then consider the nodes adjacent to $x$, and calculate their costs, by using the same method. This checks the smallest cost nodes, that aren't already checked, but we will end up saving time since the heuristic function adds a bias towards the nodes that are heading in the direction of the finish. In order for a heuristic function to be considered consistent, it needs to fulfill the follwoing criteria;
+                We can calculate the cost of going to a node as $F(x) = g(x) + h(x)$, where $g(x)$ is what we defined as the distance between the target node, and the start node. Given a start node, we calculate the 'cost' of the node by taking the $F$ values of them, and then we select the smallest one. We then add that node, $x$, to the tree. At this point, we can then consider the nodes adjacent to $x$, and calculate their costs, by using the same method. This checks the smallest cost nodes, that aren't already checked, but we will end up saving time since the heuristic function adds a bias towards the nodes that are heading in the direction of the finish. In order for a heuristic function to be considered consistent, it needs to fulfil the following criteria;
                 \begin{itemize}
                     \itemsep0em
                     \item for any two adjacent nodes, $x, y$, we have $h(x) \leq W(w, y) + h(y)$
@@ -729,7 +729,7 @@
                 \end{itemize}
                 Consistency is a stronger property than a function being admissible (if $h(x) \leq $ the weight of the shortest path from $x$ to the finish). We can solve this trivially with the consistency criteria, by setting $y = ~finish~$, as we'd then have $h(x) \leq W(x, ~finish~)$.
                 \medskip
-                The set of tree nodes is often referred to as the \textbf{closed set}, and the set of fringe is the \textbf{open} set. If we have a heuristic $h(x) = 0$, albeit useless, then we get Dijkstra's algorithm. Thus we can say that the complexity of A$^*$ is the same as Djikstra, in the worst case. We can justify correctness similar to Dijkstra's. Our 'invariant' is that if the node $x$ is a ~tree~, or ~fringe~ node, and not the ~start~, then ~parent[$x$]~ is a tree node. If $x$ is a tree node, then $g(x)$ is the length of the shortest path (once again, not including ~start~). However, if $x$ is a fringe node, then $g(x)$ is the length of the shortest path, where all nodes except $x$ are tree nodes.
+                The set of tree nodes is often referred to as the \textbf{closed set}, and the set of fringe is the \textbf{open} set. If we have a heuristic $h(x) = 0$, albeit useless, then we get Dijkstra's algorithm. Thus we can say that the complexity of A$^*$ is the same as Dijkstra, in the worst case. We can justify correctness similar to Dijkstra's. Our 'invariant' is that if the node $x$ is a ~tree~, or ~fringe~ node, and not the ~start~, then ~parent[$x$]~ is a tree node. If $x$ is a tree node, then $g(x)$ is the length of the shortest path (once again, not including ~start~). However, if $x$ is a fringe node, then $g(x)$ is the length of the shortest path, where all nodes except $x$ are tree nodes.
                 \medskip
 
                 Let us assume that we have a different, shorter path $P$, which may exist outside the tree nodes. Then it follows that $\text{len}(P) < g(x)$. Let there be some $y$ which is the first node in that isn't part of the tree to be on $P$, and $P_1$ be the path from $~start~$ to $y$, and $P_2$ be the path from $y$ to $x$. We know that $F(y) = g(y) + h(y)$, by definition. Therefore $\leq g(y) + \text{len}(P_2) + h(x)$, by the consistent property of $h$. And also that $\leq \text{len}(P_1) + \text{len}(P_2) + h(x) = \text{len}(P) + h(x)$. As we've assumed that it has a shorter path, it follow that it must be $< g(x) + h(x) = F(x)$. Therefore $F(y) < F(x)$, but that contradicts our choice of $x$, since we chose the lowest $F$.
@@ -772,7 +772,7 @@
                 Suppose we have nodes $\{1, ..., n\}$. Considering a path $p = x_1, x_2, ..., x_k$ from $x_1$ to $x_k$, we can say that $x_m$ is an intermediate nodes, $\forall m \in [2,k-1]$. We want to look for paths that use nodes $\leq i$ as intermediate nodes. Defining a matrix $B_k[i, j] = 1 \Leftrightarrow$ if there exists a path from $i$ to $j$ that uses only intermediate nodes $\leq k$ (otherwise the value in the matrix is 0).
                 \medskip
 
-                Therefore, $B_0[i, j] = A[i, j]$ as we only consider paths of length one, since tehre are no intermediate nodes $\leq 0$. Since $B_n$ allows all possible intermediate nodes, we have all possible paths, therefore $R^+(i, j) \Leftrightarrow B_n[i, j]$.
+                Therefore, $B_0[i, j] = A[i, j]$ as we only consider paths of length one, since there are no intermediate nodes $\leq 0$. Since $B_n$ allows all possible intermediate nodes, we have all possible paths, therefore $R^+(i, j) \Leftrightarrow B_n[i, j]$.
                 \medskip
 
                 Consider how to compute $B_k$ from $B_{k - 1}$. Suppose we have some path $P$ from $i$ to $j$, using intermediate nodes $\leq k$. The path either contains $k$ as an intermediate node, or it doesn't. In the former, $k$ is not an intermediate node, therefore $B_{k - 1}[i, j]$. However, if it is, we only consider when $k$ occurs once (if it repeats, then it's not helpful - we just remove the path between the two $k$s). Then we have some path $i$ to $k$, and another path $k$ to $j$, therefore it follows that $B_{k - 1}[i,  k]$, and also $B_{k - 1}[k, j]$. This has a trivial complexity of $O(n^3)$, which is much more efficient than the matrix method for closure.
@@ -789,7 +789,7 @@
                     return B
                 \end{lstlisting}
             \subsubsection*{Floyd's Algorithm}
-                Returning to the all pairs shortest path problem on some weighted directed graph $G$. This can be solved with a modification of Warshall's. Once again, $G$ has nodes $\{1, ..., n\}$, and an adjacency matrix $A$. We now consider $B_k[i, j]$ to be the length of the shortest path between $i$, and $j$ which has intermediate nodes $\leq k$. If there isn't a path, then let the value be $\infty$. Once again, like with Warshall's, we let $B_n[i, j]$ represent the length of the shortest path between $i$, and $j$. Assume that we know $B_{k - 1}$, and we want to get $B_k$. Suppose there eixsts some shortest path $P$ from $i$ to $j$, using intermediate nodes $\leq k$, with $\text{len}(P) = d$. Once again, if we consider the two cases, the case where $k$ is not in $P$, is trivial, and the second where $k$ is in the path, only occuring once. We can then calculate the length between the two as the minimum of $B_{k-1}[i, j]$, and $B_{k-1}[i, k] + B_{k-1}[k, j]$. If there aren't any shortest paths, then we still get $\infty$. Once again, it has the same complexity of $O(n^3)$.
+                Returning to the all pairs shortest path problem on some weighted directed graph $G$. This can be solved with a modification of Warshall's. Once again, $G$ has nodes $\{1, ..., n\}$, and an adjacency matrix $A$. We now consider $B_k[i, j]$ to be the length of the shortest path between $i$, and $j$ which has intermediate nodes $\leq k$. If there isn't a path, then let the value be $\infty$. Once again, like with Warshall's, we let $B_n[i, j]$ represent the length of the shortest path between $i$, and $j$. Assume that we know $B_{k - 1}$, and we want to get $B_k$. Suppose there exists some shortest path $P$ from $i$ to $j$, using intermediate nodes $\leq k$, with $\text{len}(P) = d$. Once again, if we consider the two cases, the case where $k$ is not in $P$, is trivial, and the second where $k$ is in the path, only occurring once. We can then calculate the length between the two as the minimum of $B_{k-1}[i, j]$, and $B_{k-1}[i, k] + B_{k-1}[k, j]$. If there aren't any shortest paths, then we still get $\infty$. Once again, it has the same complexity of $O(n^3)$.
                 \begin{lstlisting}
                     input A
                     (for all i, j <= n) B[i, j] = 0       if i = j
@@ -834,15 +834,15 @@
                 For each subset of ~nodes~, we do $O(n^2)$ the two for loops, with an overall complexity of $O(n^22^n)$.
         \subsection*{11th February 2019}
             \subsubsection*{Approximate Methods for TSP}
-                We could easily try a nearest neighbour heuristic for TSP, such that we choose the shortest availabel arc that doesn't violate any rules. This can fail though, since we may fall into a point where we're forced to use an extremely high weight arc.
-            \subsubsection*{Toplogical Sorting}
+                We could easily try a nearest neighbour heuristic for TSP, such that we choose the shortest available arc that doesn't violate any rules. This can fail though, since we may fall into a point where we're forced to use an extremely high weight arc.
+            \subsubsection*{Topological Sorting}
                 Suppose there is a list of tasks, with prerequisites (therefore some have to be performed others, and these may allow others to be performed). This is seen as an acyclic, directed graph (if it were cyclic, then there would be a sort of circular dependency). Find a total ordering, such that for nodes $x_1, ..., x_n$, for any $i, j \leq n$, if $j > i$, there is no path from $x_j$ to $x_i$.
                 \medskip
 
                 Given a DAG $G$, let $x \leq y \Leftrightarrow$ there is a path from $x$ to $y$, then $\subseteq$ is a (weak) partial ordering, as it's reflexive, transitive, and antisymmetric. If you have a partial ordering $(X, \leq)$, then we can create an acyclic directed graph with nodes $X$, and arcs $\{(x,y) : x \leq y\}$.
                 \medskip
 
-                We can perform a toplogical sorting by using DFS, as it inherently finishes with all the nodes reachable from $x$ before we finish with $x$. We can add a node to the end of a sorted list, once we've finished processing it (by exiting the node). In the example below, our visiting order is 1, 2, 5, 6, 3, 4, 6. However, we want to consider the order we exit them, not the order in which we enter. Thus we get the exit order 5, 7, 2, 1, 4, 3, 6. Therefore we end up with the sort 6, 3, 4, 1, 2, 7, 5.
+                We can perform a topological sorting by using DFS, as it inherently finishes with all the nodes reachable from $x$ before we finish with $x$. We can add a node to the end of a sorted list, once we've finished processing it (by exiting the node). In the example below, our visiting order is 1, 2, 5, 6, 3, 4, 6. However, we want to consider the order we exit them, not the order in which we enter. Thus we get the exit order 5, 7, 2, 1, 4, 3, 6. Therefore we end up with the sort 6, 3, 4, 1, 2, 7, 5.
                 \begin{center}
                     \begin{minipage}{0.485\textwidth}
                         \begin{lstlisting}
@@ -880,7 +880,7 @@
                     \end{minipage}
                 \end{center}
             \subsubsection*{Algorithm Analysis}
-                Given we have some problem $P$, and $S$ for all the possible solutions for $P$. In this course,we only consider the complexity. A harder, more theoretical question, would be "can we improve our existing algorithm, or have we found the best algorithm for $P$?". In order to reason about this, we need to consider ehat is the least amount of work every member of $S$ must to do solve $P$ - this gives us a lower bound complexity on $P$. This is important as we're not just considering a large amount of solutions, but all possible solutions that exist.
+                Given we have some problem $P$, and $S$ for all the possible solutions for $P$. In this course,we only consider the complexity. A harder, more theoretical question, would be "can we improve our existing algorithm, or have we found the best algorithm for $P$?". In order to reason about this, we need to consider what is the least amount of work every member of $S$ must to do solve $P$ - this gives us a lower bound complexity on $P$. This is important as we're not just considering a large amount of solutions, but all possible solutions that exist.
                 \medskip
 
                 For this, we will examine searching, and sorting algorithms; because these are frequently used (therefore efficiency is very important), and analysis for them have already been carried out (such that we know the optimal algorithms). If we can prove an algorithm has the complexity exactly on the lower bound, then we've proven that it's the best possible algorithm.
@@ -891,7 +891,7 @@
                 In worst case analysis, we denote it with $W(n)$, which is the largest number of comparisons for an input size $n$. We could also consider the average case, which is $A(n)$, however this is much harder to analyse as we might need to know (or make an assumption) about its probability distribution.
                 \medskip
 
-                Here, let us reason about how linear search is optimal for an unordered list. Take any $A$ which solves the search problem. We can claim that if $A$ says the item isn't found, it must've inspected every element. In order to prove this by contradiction, suppose that $A$ didn't inspect $L[k]$, which is an arbitary index in the list. Now place some item, $x$ into $L[k]$, and $A$ would then return that the item wasn't found, which is incorrect. Therefore, in the worst case, $n$ comparisons are needed.
+                Here, let us reason about how linear search is optimal for an unordered list. Take any $A$ which solves the search problem. We can claim that if $A$ says the item isn't found, it must've inspected every element. In order to prove this by contradiction, suppose that $A$ didn't inspect $L[k]$, which is an arbitrary index in the list. Now place some item, $x$ into $L[k]$, and $A$ would then return that the item wasn't found, which is incorrect. Therefore, in the worst case, $n$ comparisons are needed.
         \subsection*{14th February 2019}
             \subsubsection*{Ordered List}
                 If the problem were now changed to be searching an ordered list, linear search would still be applicable, but no longer optimal.
@@ -961,7 +961,7 @@
                 Suppose we have some algorithm $W(n) = 7n^3 + 1000n + 32$, as $n$ gets larger, $7n^2$ is the most important term. If we ignore the constant, $W(n)$ therefore has order $n^2$. We prefer algorithms of lower order, even if a higher order algorithm may have a lower operation time for small $n$. The constant factor can also be ignored.
                 \medskip
 
-                The main types of orders we encounter are; polynomial, exponential, and logarithmic. The heirachy for logarithmic (with polynomial) is as follows;
+                The main types of orders we encounter are; polynomial, exponential, and logarithmic. The hierarchy for logarithmic (with polynomial) is as follows;
                 \begin{center}
                     1 \ \ log($n$) \ \ $n$log($n$) \ \ $n^2$ \ \ $n^2$log($n$)
                 \end{center}
@@ -1060,16 +1060,16 @@
                         (orl) -- (orlr);
                     \end{tikzpicture}
                 \end{center}
-                You'll notice that each leaf node is a permutation of the list, therefore there are $3!$ leaf nodes. Note that the this is a 3-sort, not insertion sort. If we were to draw this for insertion sort, it would be important to list the state of the list as you make changes, to ensure we keep track of how the elements have moved. We can justify that this is optimal as any decision tree for a list of length 3 must have $3!$ leaves. We cannot have anything with a depth $\leq 2$ as all binary trees of depth $\leq 2$ have $\leq 4$ leaves. Therefore it follows that the minimum bound is a depth of at least 3. In both cases, our worst-case comparsions is 3, and therefore both of these sorting algorithms are optimal for $n = 3$.
+                You'll notice that each leaf node is a permutation of the list, therefore there are $3!$ leaf nodes. Note that the this is a 3-sort, not insertion sort. If we were to draw this for insertion sort, it would be important to list the state of the list as you make changes, to ensure we keep track of how the elements have moved. We can justify that this is optimal as any decision tree for a list of length 3 must have $3!$ leaves. We cannot have anything with a depth $\leq 2$ as all binary trees of depth $\leq 2$ have $\leq 4$ leaves. Therefore it follows that the minimum bound is a depth of at least 3. In both cases, our worst-case comparisons is 3, and therefore both of these sorting algorithms are optimal for $n = 3$.
                 \medskip
 
-                Consider a general list $n$. We can justify that it therefore has $n!$ permutations. Given some tree with a depth $d$, it follows that it has a maximum of $2^d$ leaves, and therefore $n! \leq 2^d$. Therefore, by arithmetic, we can jutify that $d \geq \text{log}_2(n!)$, which means that $d \geq \ceil{\text{log}_2(n!)}$, since $d \in \mathbb{N}$.
+                Consider a general list $n$. We can justify that it therefore has $n!$ permutations. Given some tree with a depth $d$, it follows that it has a maximum of $2^d$ leaves, and therefore $n! \leq 2^d$. Therefore, by arithmetic, we can justify that $d \geq \text{log}_2(n!)$, which means that $d \geq \ceil{\text{log}_2(n!)}$, since $d \in \mathbb{N}$.
         \subsection*{21st February 2019}
             \subsubsection*{Average Case}
                 When we don't know the actual distribution, we can assume that each permutation is equally likely. If we consider our previous 3-sort tree, we take the sum of the path lengths to each leaf, and then divide it by the number of permutations.
                 \medskip
 
-                We can define the total path of a tree is the sum of the path lengths to each leaf. Suppose we have some decsion tree $T$, for sorting a list of length $n$. It therefore has $n!$ leaves, and a total path length $b$. In the general case, we cannot change $n!$, so the average number of comparisons is $\frac{b}{n!}$, hence we want to minimise $b$. This is the case when we have a roughly balanced tree.
+                We can define the total path of a tree is the sum of the path lengths to each leaf. Suppose we have some decision tree $T$, for sorting a list of length $n$. It therefore has $n!$ leaves, and a total path length $b$. In the general case, we cannot change $n!$, so the average number of comparisons is $\frac{b}{n!}$, hence we want to minimise $b$. This is the case when we have a roughly balanced tree.
                 \medskip
 
                 We can define a tree as being balanced when all the leaves of a tree are at either depth $d$, or $d - 1$. If a tree is unbalanced, we can find a balanced tree without increasing the total path length.
@@ -1234,7 +1234,7 @@
             This can be solved such that the average case becomes $\Theta(n\text{log}(n))$. No idea how, but just trust it, I guess.
             \medskip
 
-            While it sems that merge sort seems to be much better than quicksort, the latter can improve the chances of a good split, whereas merge sort is required to split down the middle, and the latter also requires less memory since it can all be done in place.
+            While it seems that merge sort seems to be much better than quicksort, the latter can improve the chances of a good split, whereas merge sort is required to split down the middle, and the latter also requires less memory since it can all be done in place.
         \subsubsection*{Heapsort}
             A \textbf{heap structure} is a left-complete binary tree. For a tree with depth $d$, to be left-complete; all nodes are present at depths 0 to $d - 1$, and at $d$, no node is missing to the left of a node which is present. The rightmost tree at $d$ is the last node. A tree $T$ is a minimising partial order tree if the key at any node is $\leq$ the keys at each child node. A min heap is a heap structure that combines this property. A max heap is similar, but with $\geq$ the child nodes. The following is an example of a max heap;
             \begin{center}
@@ -1291,7 +1291,7 @@
             Suppose that $n = 2^k - 1$, therefore the heap structure is a complete binary tree with a depth of $k - 1$. Let $W(n)$ be the worst-case number of comparisons for ~buildMaxHeap~; $W(n) = 2W(\frac{n - 1}{2}) + 2\text{log}(n)$. By application of the master theorem, we have $a = 2$, $b = 2$, and $f(n) = \Theta(\text{log}(n))$. Then it follows that $E = 1$, therefore it's the third case, and $T(n) = \Theta(n)$. Therefore, building the heap is a linear time operation. As such, we the overall comparison count is; $O(n\text{log}(n))$.
             \medskip
 
-            While the tree representation of trees is quite helpful to visualise the concept, we can implement a heap using arrays. Starting at 1 allows for easier arithmetic. Given some node at index $i$, we store the left, and right children at $2i$, and $2i + 1$ respectively. This then allows us to get the parent node of any node at index $i$ as $\floor{\frac{i}{2}}$. Without using pointers, we can reduce the overhead, and it allows us to carry out heapsort in place just like quicksort. We can store the heap previously drawn in an array as follows, using the rules prevsiouly mentioned;
+            While the tree representation of trees is quite helpful to visualise the concept, we can implement a heap using arrays. Starting at 1 allows for easier arithmetic. Given some node at index $i$, we store the left, and right children at $2i$, and $2i + 1$ respectively. This then allows us to get the parent node of any node at index $i$ as $\floor{\frac{i}{2}}$. Without using pointers, we can reduce the overhead, and it allows us to carry out heapsort in place just like quicksort. We can store the heap previously drawn in an array as follows, using the rules previously mentioned;
             \begin{center}
                 \vspace{-\baselineskip}
                 \begin{tabularx}{\textwidth}{|l|X|X|X|X|X|X|X|X|X|X|X|X|X|}
@@ -1331,7 +1331,7 @@
                       largerSubHeap = left
                     else:
                       largerSubHeap = right
-                    if E[root].key < E[largerSubHeap].keu:
+                    if E[root].key < E[largerSubHeap].key:
                       swap(root, largerSubHeap)
                       fixMaxHeap(largerSubHeap, heapsize)
             \end{lstlisting}
@@ -1367,7 +1367,7 @@
             While we've already seen some examples of dynamic programming, we should consider examples to illustrate the types of solutions; \textbf{top-down}, and \textbf{bottom-up}.
             \medskip
 
-            Given some string of charactrs ~s~, can we split it into words occurring in a dictionary?
+            Given some string of characters ~s~, can we split it into words occurring in a dictionary?
             For example; the "windown" can be split into "win down", or "wind own" (hence there isn't necessarily a unique solution), whereas the string "trcarlenz" cannot be split. If we were to consider all possible splits, that would take exponential time. A \textbf{top-down} recursive solution would be as follows;
             \begin{lstlisting}
                 # s[i:j] takes strings from index i to j - 1
@@ -1461,7 +1461,7 @@
             Dynamic programming aims to reduce a problem with an exponentially large solution, and find a path to a solution in polynomial time. We use the term programming to plan an order of computation, and the subproblems we consider depend on our previous results (hence it is dynamic).
     \subsection*{4th March 2019}
         \subsubsection*{Tractability}
-            We want to identify which problems are feasible, therefore can be computed in a reasonable amoutn of time. When we do this, we should be focusing on the worst-case, such that $W(n)$ doesn't grow "too large". We've proven that we can solve sorting in polynomial time with multiple different algorithms, but consider more complex graph problems.
+            We want to identify which problems are feasible, therefore can be computed in a reasonable amount of time. When we do this, we should be focusing on the worst-case, such that $W(n)$ doesn't grow "too large". We've proven that we can solve sorting in polynomial time with multiple different algorithms, but consider more complex graph problems.
             \medskip
 
             Given some graph $G$, we want to know whether there exists an Euler path. The input size of $G$, depends on how we represent it; either as an adjacency matrix of size $O(n^2)$, or as a linked list with size $O(n + m)$. From before, we know that $G$ has an EP $\Leftrightarrow$ it has 0, or 2, nodes of odd degree. This is a trivially tractable problem, as counting the number of odd degree nodes is extremely easy.
@@ -1503,7 +1503,7 @@
             Let us define some problem VHP (verify HP), taking 2 inputs; $G$, and some path $\pi$. Note that this verification problem runs in $P$. Trivially we can say that $\text{HamPath}(G) \Leftrightarrow \exists \pi [\text{VerHamPath}(G, \pi)]$.
             \medskip
 
-            We can now define a decision problem $D(x)$ as being in NP (non-deterministic polynomial time) if there is a problem $E(x, y)$ in $P$, and a polynomail $p(n)$ such that $D(x) \Leftrightarrow \exists y [E(x, y)]$, and if $E(x, y)$ then $|y| \leq p(|x|)$ (this means that the guess / certificate is polynomially bounded in the input size). The second condition is required, as it would take too long to even guess $y$ if we didn't have that restriction. In general, we can say that $P$ is the class of decision problems, which can be efficiency \textbf{solved}, and NP is the class of decision problems that can be efficiency \textbf{verified}.
+            We can now define a decision problem $D(x)$ as being in NP (non-deterministic polynomial time) if there is a problem $E(x, y)$ in $P$, and a polynomial $p(n)$ such that $D(x) \Leftrightarrow \exists y [E(x, y)]$, and if $E(x, y)$ then $|y| \leq p(|x|)$ (this means that the guess / certificate is polynomially bounded in the input size). The second condition is required, as it would take too long to even guess $y$ if we didn't have that restriction. In general, we can say that $P$ is the class of decision problems, which can be efficiency \textbf{solved}, and NP is the class of decision problems that can be efficiency \textbf{verified}.
     \subsection*{7th March 2019}
         \subsubsection*{Satisfiability}
             A formula $\phi$ is in CNF (from \textbf{CO140}) if it is of the form;
@@ -1522,7 +1522,7 @@
 
             Whether we can say P = NP is still unknown. While the majority of researchers believe P $\neq$ NP, it remains as one of the most important open problems in mathematics, let alone in computer science.
         \subsubsection*{Problem Reduction (P)}
-            Since we know that P $\subseteq$ NP, showing a problem belongs to NP doesn't necessarily mean it's not tractiable (in P). We want to identify high complexity (hard) problems in NP. Consider two.
+            Since we know that P $\subseteq$ NP, showing a problem belongs to NP doesn't necessarily mean it's not tractable (in P). We want to identify high complexity (hard) problems in NP. Consider two.
             \medskip
 
             Suppose that we have two decision problems $D$, and $D^\prime$. We can say that $D$ reduces to $D^\prime$ (such that $D \leq D^\prime$) if there exists some p-time (possibly many-to-one) function $f$, such that $D(x) \Leftrightarrow D^\prime(f(x))$.
@@ -1544,10 +1544,10 @@
 
             Note that the reduction order is reflexive, and transitive such that $D \leq D$, and if $D \leq D^\prime \leq D^{\prime\prime}$ then $D \leq D^{\prime\prime}$. For the former, we can prove it by letting the reduction function be $f(x) = x$, and the latter is (probably) done with polynomial function composition, as that keeps it closed within the set of polynomial functions. If both $D \leq D^\prime$, and $D^\prime \leq D$, then we can write $D \sim D^\prime$, which states that they are as hard as each other.
         \subsubsection*{NP-completeness}
-            We identify a decison problem $D$ as being NP-hard if for all problems $D^\prime \in$ NP, we have $D^\prime \leq D$, such that we can reduce $D^\prime$ to $D$. Such an NP-hard problems do not necessarily belong to NP, and that they could be harder. We can state a problem as being NP-complete, if it is an NP problem, and it is NP-hard (such that $D \in$ NP).
+            We identify a decision problem $D$ as being NP-hard if for all problems $D^\prime \in$ NP, we have $D^\prime \leq D$, such that we can reduce $D^\prime$ to $D$. Such an NP-hard problems do not necessarily belong to NP, and that they could be harder. We can state a problem as being NP-complete, if it is an NP problem, and it is NP-hard (such that $D \in$ NP).
             \medskip
 
-            We take SAT as an NP-complete problem (proved). Instead of proving it directly, we can reduce it as follws. In order to see that $D$ is NPC, we need to show that $D \in$ NP, and that $D^\prime \leq D$ for some NPC complete $D^\prime$. The latter criteria establishes that $D$ is NP-hard, given that $D^\prime$ is also NP-hard.
+            We take SAT as an NP-complete problem (proved). Instead of proving it directly, we can reduce it as follows. In order to see that $D$ is NPC, we need to show that $D \in$ NP, and that $D^\prime \leq D$ for some NPC complete $D^\prime$. The latter criteria establishes that $D$ is NP-hard, given that $D^\prime$ is also NP-hard.
             \medskip
 
             For example, let us show that the Hamiltonian Path problem is NP-complete. We've already verified it being $\in$ NP, as we've done the proofs for the guess, and p-time verification. It's possible to show that SAT $\leq$ HP (long proof), therefore HP is NP-complete.
@@ -1564,7 +1564,7 @@
             While the problem is fairly well understood, we cannot deal with it since it's an optimisation problem, and not a decision problem. A common method for doing this is to give it some upper bound, such that the problem then becomes "given a weighted graph $(G, W)$, and a bound $B$, is there a tour of $G$ with a total weight $\leq B$?"
             \medskip
 
-            Now, we can try, and show that TSPD is NP-complete, by fulfulling the two criteria;
+            Now, we can try, and show that TSPD is NP-complete, by fulfilling the two criteria;
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item TSPD $\in$ NP
@@ -1577,10 +1577,10 @@
             We need to then define some p-time function $f$ which is able to transform a graph $G$ into some weighted graph $(G^\prime, W)$, with some bound $B$. To construct the weighted graph $(G^\prime, W)$, we do the following. First let nodes($G^\prime$) = nodes($G$). Given a pair of distinct nodes $x$, $y$ in $G$, if $(x, y) \in \text{arcs}(G)$, then $W(x, y) = 1$. Otherwise $W(x, y) = 2$. Essentially, we're adding in the arcs with higher weight (since we want a connected graph for TSP). Then we set the upper bound $B = n + 1$, where $n$ is the number of nodes in $G$. This reduction is trivial to see as a polynomial time function, $f(G) = ((G^\prime, W), B)$.
             \medskip
 
-            However, to show that $f$ is a valid reduction, we need to veryify $\text{HP}(G) \Leftrightarrow \text{TSPD}((G^\prime, W), B)$. Suppose that $G$ has a HP $\pi$, with endpoints $x$, and $y$. If we follow that path in $G^\prime$, it has a weight of $n - 1$, as we have $n$ nodes, thus $n - 1$ arcs (we can't really repeat an arc, as we'd end up going back to a node). We get a TS tour by adding in the arc $(x, y)$, with $W(x, y) \leq 2$, by our definition of $f$. Therefore, the tour weight $\leq n + 1 = B$.
+            However, to show that $f$ is a valid reduction, we need to verify $\text{HP}(G) \Leftrightarrow \text{TSPD}((G^\prime, W), B)$. Suppose that $G$ has a HP $\pi$, with endpoints $x$, and $y$. If we follow that path in $G^\prime$, it has a weight of $n - 1$, as we have $n$ nodes, thus $n - 1$ arcs (we can't really repeat an arc, as we'd end up going back to a node). We get a TS tour by adding in the arc $(x, y)$, with $W(x, y) \leq 2$, by our definition of $f$. Therefore, the tour weight $\leq n + 1 = B$.
             \medskip
 
-            To prove the other direction of the implicaiton, suppose that we have some weighted graph $(G^\prime, W)$, which has a tour of weight $\leq B = n = 1$. This has $n$ arcs, since we're not revisiting nodes. At most, only one arc can have a weight of 2 (any more would lead to the path being overbudget). Now, if we were to remove that that arc, we'd have a Hamiltonian path in $G$. Since we've proven both sides of the implication, we've then proven that $\text{HP} \leq \text{TSPD}$, thus TSPD is an NP-hard problem, that is also NP, hence it is NP-complete.
+            To prove the other direction of the implication, suppose that we have some weighted graph $(G^\prime, W)$, which has a tour of weight $\leq B = n = 1$. This has $n$ arcs, since we're not revisiting nodes. At most, only one arc can have a weight of 2 (any more would lead to the path being over-budget). Now, if we were to remove that that arc, we'd have a Hamiltonian path in $G$. Since we've proven both sides of the implication, we've then proven that $\text{HP} \leq \text{TSPD}$, thus TSPD is an NP-hard problem, that is also NP, hence it is NP-complete.
             \medskip
 
             In order to show that it is intractable (assuming P $\neq$ NP), we prove it by contradiction. Let us suppose that it can be solved by a p-time algorithm, such that the optimal time $O$ can be computed in p-time. Therefore, it follows that TSPD is p-time, since we just need to check whether the path is valid (it would be, with a correct algorithm), and then check that $O \leq B$. However, this wouldn't be possible, since we have just proven that TSPD is NP-complete, and that P $\neq$ NP.
@@ -1590,7 +1590,7 @@
 
             Instead, we look to reduce the HP problem to MTSPD. We'll apply the same rules for the weighting function from the HP problem to the TSPD problem for MTSPD. We know that $1 \leq W(x, y) \leq 2$ for all $x \neq y$. Therefore, it follows that $W(x, z) \leq W(x, y) + W(y, z)$; since it's an equality, let us consider the worst case on either side, the greatest possible value of the LHS, and the least possible value on the RHS. Because it is bounded, we know the greatest value of the LHS is 2. For the RHS, we know the least value is 2 (1 + 1), therefore in any case $2 \leq 2$. By applying the same justifications as we did for HP to TSPD, we can conclude that HP $\leq$ MTSPD.
         \subsubsection*{Vehicle Routing Problem}
-            Suppose that we have a depot, some vehicles, and various deliveries (with destination addresses). We can model this as a complete graph, where the nodes are the depot, and the customer addresses. This graph must satisfy the triangle inequality, and $W(x, y)$ once again represents the cost of the shortest path from $x$, to $y$. We have additional constraints in that the vehicles have a capacity, and that the sum of the sizes of the packages transported on each trip cannot exceed thsi capacity. We can also assume that each vehicle does at least one trip.
+            Suppose that we have a depot, some vehicles, and various deliveries (with destination addresses). We can model this as a complete graph, where the nodes are the depot, and the customer addresses. This graph must satisfy the triangle inequality, and $W(x, y)$ once again represents the cost of the shortest path from $x$, to $y$. We have additional constraints in that the vehicles have a capacity, and that the sum of the sizes of the packages transported on each trip cannot exceed this capacity. We can also assume that each vehicle does at least one trip.
             \medskip
 
             The problem (VRPCD) is now as follows, where we are given;
@@ -1616,7 +1616,7 @@
             Now we just have to verify that $\text{MTSPD}((G, W), B) \Leftrightarrow \text{VRPCD}(f((G, W), B))$.
             \smallskip
 
-            Given that $\text{MTSPD}((G, W), B)$, this tells us that we can start at some ~start~ node, and visit each node exactly once, and return, within the cost $B$. As the graph is unaltered, we an do the same in the VRPCD analog. We also don't exceed the vehicle capacity since we've set the value, such that the capacity matches exactly.
+            Given that $\text{MTSPD}((G, W), B)$, this tells us that we can start at some ~start~ node, and visit each node exactly once, and return, within the cost $B$. As the graph is unaltered, we an do the same in the VRPCD analogue. We also don't exceed the vehicle capacity since we've set the value, such that the capacity matches exactly.
             \medskip
 
             To prove the implication the other way, we assume $\text{VRPCD}(f((G, W), B))$. Then it follows that we have a route that starts at the depot, and delivers packages to each node (hence it must visit each node), and return to the depot within the cost $B$. This is a TS tour, and we can justify that we won't visit a node more than once since the graph satisfies the triangle inequality. Hence $\text{MTSPD}((G, W), B)$.
