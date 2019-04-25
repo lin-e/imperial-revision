@@ -844,21 +844,134 @@
 
                 We can perform a toplogical sorting by using DFS, as it inherently finishes with all the nodes reachable from $x$ before we finish with $x$. We can add a node to the end of a sorted list, once we've finished processing it (by exiting the node). In the example below, our visiting order is 1, 2, 5, 6, 3, 4, 6. However, we want to consider the order we exit them, not the order in which we enter. Thus we get the exit order 5, 7, 2, 1, 4, 3, 6. Therefore we end up with the sort 6, 3, 4, 1, 2, 7, 5.
                 \begin{center}
-                    \begin{tikzpicture}[x=2cm]
-                        \node[circle, fill=black, label=left:1] (1) at (0, 0) {};
-                        \node[circle, fill=black, label=above:2] (2) at (1, -0.5) {};
-                        \node[circle, fill=black, label=left:3] (3) at (0, -2) {};
-                        \node[circle, fill=black, label=above:4] (4) at (1, -2) {};
-                        \node[circle, fill=black, label=right:5] (5) at (2, -1) {};
-                        \node[circle, fill=black, label=left:6] (6) at (0, -1) {};
-                        \node[circle, fill=black, label=right:7] (7) at (2, 0) {};
+                    \begin{minipage}{0.485\textwidth}
+                        \begin{lstlisting}
+                            procedure dfsts(x):
+                              entered[x] = true
+                              for y in adj[x]:
+                                if entered[y]:
+                                  if not exited[y]:
+                                    ERROR # cycle
+                                else:
+                                  parent[y] = x
+                                  dfts(y)
+                            exited[x] = true
+                            ts[index] = x
+                            index = index -1
+                        \end{lstlisting}
+                    \end{minipage} \
+                    \begin{minipage}{0.485\textwidth}
+                        \begin{tikzpicture}[x=2cm]
+                            \node[circle, fill=black, label=left:1] (1) at (0, 0) {};
+                            \node[circle, fill=black, label=above:2] (2) at (1, -0.5) {};
+                            \node[circle, fill=black, label=left:3] (3) at (0, -2) {};
+                            \node[circle, fill=black, label=above:4] (4) at (1, -2) {};
+                            \node[circle, fill=black, label=right:5] (5) at (2, -1) {};
+                            \node[circle, fill=black, label=left:6] (6) at (0, -1) {};
+                            \node[circle, fill=black, label=right:7] (7) at (2, 0) {};
+                            \draw
+                            (1) edge[->] (2)
+                            (2) edge[->] (5)
+                            (2) edge[->] (7)
+                            (3) edge[->] (4)
+                            (4) edge[->, dashed] (5)
+                            (6) edge[->, dashed] (2);
+                        \end{tikzpicture}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Algorithm Analysis}
+                Given we have some problem $P$, and $S$ for all the possible solutions for $P$. In this course,we only consider the time complexity. A harder, more theoretical question, would be "can we improve our existing algorithm, or have we found the best algorithm for $P$?". In order to reason about this, we need to consider ehat is the least amount of work every member of $S$ must to do solve $P$ - this gives us a lower bound time complexity on $P$. This is important as we're not just considering a large amount of solutions, but all possible solutions that exist.
+                \medskip
+
+                For this, we will examine searching, and sorting algorithms; because these are frequently used (therefore efficiency is very important), and analysis for them have already been carried out (such that we know the optimal algorithms). If we can prove an algorithm has the complexity exactly on the lower bound, then we've proven that it's the best possible algorithm.
+            \subsubsection*{Unordered List}
+                Consider a list of elements (that allows for random access) $L$, and some target element $x$. We can consider a simple, linear approach; inspect each element, until the end of the list. For this, we have a best case of 1 (where it's the first item we check), and a worst case of $n$ (where the item is either at the end of the list, or not in the list at all). Note that here we are counting comparisons.
+                \medskip
+
+                In worst case analysis, we denote it with $W(n)$, which is the largest number of comparisons for an input size $n$. We could also consider the average case, which is $A(n)$, however this is much harder to analyse as we might need to know (or make an assumption) about its probability distribution.
+                \medskip
+
+                Here, let us reason about how linear search is optimal for an unordered list. Take any $A$ which solves the search problem. We can claim that if $A$ says the item isn't found, it must've inspected every element. In order to prove this by contradiction, suppose that $A$ didn't inspect $L[k]$, which is an arbitary index in the list. Now place some item, $x$ into $L[k]$, and $A$ would then return that the item wasn't found, which is incorrect. Therefore, in the worst case, $n$ comparisons are needed.
+        \subsection*{14th February 2019}
+            \subsubsection*{Ordered List}
+                If the problem were now changed to be searching an ordered list, linear search would still be applicable, but no longer optimal.
+                \medskip
+
+                We can now consider binary search, which divides the list (and we're able to do that due to the ordered nature of the list). It can either be represented by pseudocode (which is trivial to work out), or as the following decision tree. Note that for sake of time, and because I'm lazy, if it goes down the right left hand side, for some node $n$, it means that $x < L[n]$, and for the right hand side, it would mean that $x > L[n]$. If $x = L[n]$, then we've solved it (note that the leaf nodes represent my result in this exam);
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[] (o) at (0, 0) {3};
+                        \node[] (ol) at (-2, -1.5) {1};
+                        \node[] (or) at (2, -1.5) {5};
+                        \node[] (oll) at (-3, -3) {0};
+                        \node[] (olr) at (-1, -3) {2};
+                        \node[] (orl) at (1, -3) {4};
+                        \node[] (orr) at (3, -3) {6};
+                        \node[] (olll) at (-3.5, -4.5) {fail};
+                        \node[] (ollr) at (-2.5, -4.5) {fail};
+                        \node[] (olrl) at (-1.5, -4.5) {fail};
+                        \node[] (olrr) at (-0.5, -4.5) {fail};
+                        \node[] (orll) at (0.5, -4.5) {fail};
+                        \node[] (orlr) at (1.5, -4.5) {fail};
+                        \node[] (orrl) at (2.5, -4.5) {fail};
+                        \node[] (orrr) at (3.5, -4.5) {7};
+                        \node[] (orrrl) at (3, -6) {fail};
+                        \node[] (orrrr) at (4, -6) {fail};
                         \draw
-                        (1) edge[->] (2)
-                        (2) edge[->] (5)
-                        (2) edge[->] (7)
-                        (3) edge[->] (4)
-                        (4) edge[->, dashed] (5)
-                        (6) edge[->, dashed] (2);
+                        (o) -- (ol)
+                        (o) -- (or)
+                        (ol) -- (oll)
+                        (ol) -- (olr)
+                        (or) -- (orl)
+                        (or) -- (orr)
+                        (oll) -- (olll)
+                        (oll) -- (ollr)
+                        (olr) -- (olrl)
+                        (olr) -- (olrr)
+                        (orl) -- (orll)
+                        (orl) -- (orlr)
+                        (orr) -- (orrl)
+                        (orr) -- (orrr)
+                        (orrr) -- (orrrl)
+                        (orrr) -- (orrrr);
                     \end{tikzpicture}
                 \end{center}
+                We can say that the worst case, $W(8) = 4$, as it's the depth of the decision tree. However, this is a big improvement on linear search, as we are reducing the worst case to a logarithm of $n$, where the difference would be much more apparent in larger data sets. Since the worst case of binary search is the depth of the tree, we can say that it's the optimal solution.
+                \medskip
+
+                While we can fairly easily see the worst case by looking at the decision tree, it's not as apparent for other algorithms, or larger sets of data. We can use a recurrence relation to solve it;
+                \begin{align*}
+                    W(1) & = 1 \\
+                    W(n) & = 1 + W(\floor{\frac{n}{2}})
+                    \intertext{We can solve this by repeated expansion;}
+                    W(n) & = 1 + W(\floor{\frac{n}{2}}) \\
+                    & = 1 + [1 + W(\floor{\frac{n}{4}})] \\
+                    & = 1 + 1 + 1 + W(\floor{\frac{n}{8}})] \\
+                    & \phantom{=\ \ } ... \\
+                    & = 1 + ... + 1 + W(1)
+                \end{align*}
+                Now, we can say that the number of 1s is the number of times the number is divisible by 2, hence $k$ where $2^k \leq n < 2^{k + 1}$. Therefore $k = \floor{\text{log}_2(n)}$, Hence it follows that $W(n) = 1 + \floor{\text{log}_2(n)}$.
+                \medskip
+
+                We can represent search algorithm, considering comparisons, as a binary tree - we either have the item being less than, greater than, or equal. In the latter, we can just terminate the algorithm. We can propose that if a binary tree has depth $d$, then it has $\leq 2^{d + 1} - 1$ nodes. This can be proven by induction over natural numbers.
+                \medskip
+
+                Given that the worst case performance of some search algorithm $A$ is $d + 1$ (where $d$ is the depth, and we can use the inequality for the nodes above). It follows that $d + 1 \geq \text{log}(n + 1)$ by taking logs of both sides. And this can be proven to be $W(n)$.
+            \subsubsection*{Orders}
+                Suppose we have some algorithm $W(n) = 7n^3 + 1000n + 32$, as $n$ gets larger, $7n^2$ is the most important term. If we ignore the constant $W(n)$ therefore has order $n^2$. We prefer algorithms of lower order, even if a higher order algorithm may have a lower operation time for small $n$. The constant factor can also be ignored.
+                \medskip
+
+                The main types of orders we encounter are; polynomial, exponential, and logarithmic. The heirachy for logarithmic (with polynomial) is as follows;
+                \begin{center}
+                    1 \ \ log($n$) \ \ $n$log($n$) \ \ $n^2$ \ \ $n^2$log($n$)
+                \end{center}
+                Let two functions $f, g : \mathbb{N} \mapsto \mathbb{R}^+$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f$ is $O(g) \leftrightarrow \exists m \in \mathbb{N} \exists c \in \mathbb{R}^+ [\forall n \geq m [f(n) \leq c \cdot g(n)]]$
+                    \item $f$ is $\Theta(g) \leftrightarrow f $ is $O(g)$, and $g$ is $O(f)$
+                        \subitem the $\Theta$ means order
+                \end{itemize}
+                We know that matrix multiplication is a $O(n^3)$ problem, but there exists a lower bound of $\Theta(n^2)$.
+        \subsection*{18th February 2019}
 \end{document}
