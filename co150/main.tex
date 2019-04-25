@@ -300,7 +300,7 @@
                 In order to confirm whether two graphs are isomorphic, the easiest approach is to first check the obvious; whether the number of arcs, nodes, and loops are the same, as well as the degrees of the nodes. If any of these are different, then the graphs cannot be isomorphic. However if they pass all the tests, then we can attempt to find a bijection on the nodes.
         \subsection*{17th January 2019}
             \subsubsection*{Complexity}
-                Generally, the process of determining whether two graphs are isomorphic is computationally expensive, hence it has a high complexity. A naive approach would be to check all the permutations, which would then lead to a time complexity of $O(n!)$, which is worse than even exponential ($O(2^n)$).
+                Generally, the process of determining whether two graphs are isomorphic is computationally expensive, hence it has a high complexity. A naive approach would be to check all the permutations, which would then lead to a complexity of $O(n!)$, which is worse than even exponential ($O(2^n)$).
             \subsubsection*{Automorphisms}
                 An automorphism on $G$ is an isomorphism from $G$ to itself. Every graph has at least one automorphism (the identity). Consider the following graph;
                 \begin{center}
@@ -478,7 +478,7 @@
                             enqueue(z, Q)
                         dequeue(Q)
                 \end{lstlisting}
-                The size of the queue represents the breadth of the front. Once again, the time complexity is $O(n + m)$.
+                The size of the queue represents the breadth of the front. Once again, the complexity is $O(n + m)$.
             \subsubsection*{Applications of Traversal}
                 The algorithms used above also work on non-connected graphs. If we analyse the set of visited nodes, and see that it isn't the same as the set of all nodes, then it is clear that the graph is not connected. As such, we have an $O(n + m)$ algorithm for detecting non-connected graphs.
                 \medskip
@@ -539,7 +539,7 @@
                             weight[y] = $W$(f, y)
                             parent[y] = f
                 \end{lstlisting}
-                We're still iterating through the loop $n$ times. During the while loop, we're checking whether the fringe is empty (an $O(n)$ operation), finding the minimum fringe (also an $O(n)$ operation), and updating the candidate arc (if needed), which is constant time. Therefore the inner loop has a time complexity of $O(n)$, hence the overall algoithm has a complexity of $O(n^2)$. In the worst case, $m$ can be as large as $n^2$, which would be problematic in the first implementation.
+                We're still iterating through the loop $n$ times. During the while loop, we're checking whether the fringe is empty (an $O(n)$ operation), finding the minimum fringe (also an $O(n)$ operation), and updating the candidate arc (if needed), which is constant time. Therefore the inner loop has a complexity of $O(n)$, hence the overall algoithm has a complexity of $O(n^2)$. In the worst case, $m$ can be as large as $n^2$, which would be problematic in the first implementation.
                 \medskip
 
                 However, we have a greedy algorithm, and therefore need to prove its correctness. Let us represent the trees constructed at each iteration as $T_0, T_1, ..., T_k, T_{k + 1}...$; where $T_0$ is juts the initial start node, and you get $T_{k + 1}$ from $T_k$, by adding some arc $a_{k + 1}$. Hence it follows that $T_k$ has $k + 1$ nodes (by induction, probably). With this algorithm, we will end up with $n$ nodes, by definition of a spanning tree, therefore we end up returning $T_{n - 1}$.
@@ -579,7 +579,7 @@
                             decreaseKey(Q, y, $W$(f, y))
                             parent[y] = f
                 \end{lstlisting}
-                With a priority queue of length $N$, all operations have time complexity log($N$) (other than ~isEmpty~, and ~getMin~, which are constant time), with a good implementation. Overall, we have a time complexity of $O(m \text{log}(n))$, given that $n < m$. In a dense graph, classic Prim is better.
+                With a priority queue of length $N$, all operations have complexity log($N$) (other than ~isEmpty~, and ~getMin~, which are constant time), with a good implementation. Overall, we have a complexity of $O(m \text{log}(n))$, given that $n < m$. In a dense graph, classic Prim is better.
         \subsection*{28th January 2019}
             \subsubsection*{Kruskal's Algorithm}
                 An even greedier approach is to take the shortest arc that hasn't been included in the tree, except for ones that would cause a cycle. In intermediate stages, we have a forest (which is an acyclic graph), and not a tree (a connected acyclic graph).
@@ -609,7 +609,7 @@
                         add (x, y) to F
                         union(sets, x', y')
                 \end{lstlisting}
-                With a weighted union (non-binary tree) implemenation of Union-Find, we have a time complexity of find being $O(\text{log}(n))$, and a union of $O(1)$;
+                With a weighted union (non-binary tree) implemenation of Union-Find, we have a complexity of find being $O(\text{log}(n))$, and a union of $O(1)$;
                 \begin{itemize}
                     \itemsep0em
                     \item $O(m)$ inserts for the PQ, which takes $O(m\text{log}(m))$
@@ -641,10 +641,10 @@
                       return root
                 \end{lstlisting}
             \subsubsection*{Comparison}
-                We can refer to the table below to summarise the time complexities of each of the algorithms we're referring to. On dense graphs, where $m$ has order $n^2$ (is large), then Kruskal's gives a complexity of $O(n^2\text{log}(n))$, therefore classic Prim's is better. ON the other hand, where $m$ is small, around the order of $n\text{log}(n)$, then Kruskal's or PQ Prim's is better, as we have $O(n\text{log}^2(n))$.
+                We can refer to the table below to summarise the complexities of each of the algorithms we're referring to. On dense graphs, where $m$ has order $n^2$ (is large), then Kruskal's gives a complexity of $O(n^2\text{log}(n))$, therefore classic Prim's is better. ON the other hand, where $m$ is small, around the order of $n\text{log}(n)$, then Kruskal's or PQ Prim's is better, as we have $O(n\text{log}^2(n))$.
                 \begin{center}
                     \begin{tabular}{l|r}
-                        algorithm & time complexity \\
+                        algorithm & complexity \\
                         \hline
                         Kruskal & $O(m\text{log}(n))$ \\
                         Prim with binary heap PQ & $O(m\text{log}(n))$ \\
@@ -729,7 +729,7 @@
                 \end{itemize}
                 Consistency is a stronger property than a function being admissible (if $h(x) \leq $ the weight of the shortest path from $x$ to the finish). We can solve this trivially with the consistency criteria, by setting $y = ~finish~$, as we'd then have $h(x) \leq W(x, ~finish~)$.
                 \medskip
-                The set of tree nodes is often referred to as the \textbf{closed set}, and the set of fringe is the \textbf{open} set. If we have a heuristic $h(x) = 0$, albeit useless, then we get Dijkstra's algorithm. Thus we can say that the time complexity of A$^*$ is the same as Djikstra, in the worst case. We can justify correctness similar to Dijkstra's. Our 'invariant' is that if the node $x$ is a ~tree~, or ~fringe~ node, and not the ~start~, then ~parent[$x$]~ is a tree node. If $x$ is a tree node, then $g(x)$ is the length of the shortest path (once again, not including ~start~). However, if $x$ is a fringe node, then $g(x)$ is the length of the shortest path, where all nodes except $x$ are tree nodes.
+                The set of tree nodes is often referred to as the \textbf{closed set}, and the set of fringe is the \textbf{open} set. If we have a heuristic $h(x) = 0$, albeit useless, then we get Dijkstra's algorithm. Thus we can say that the complexity of A$^*$ is the same as Djikstra, in the worst case. We can justify correctness similar to Dijkstra's. Our 'invariant' is that if the node $x$ is a ~tree~, or ~fringe~ node, and not the ~start~, then ~parent[$x$]~ is a tree node. If $x$ is a tree node, then $g(x)$ is the length of the shortest path (once again, not including ~start~). However, if $x$ is a fringe node, then $g(x)$ is the length of the shortest path, where all nodes except $x$ are tree nodes.
                 \medskip
 
                 Let us assume that we have a different, shorter path $P$, which may exist outside the tree nodes. Then it follows that $\text{len}(P) < g(x)$. Let there be some $y$ which is the first node in that isn't part of the tree to be on $P$, and $P_1$ be the path from $~start~$ to $y$, and $P_2$ be the path from $y$ to $x$. We know that $F(y) = g(y) + h(y)$, by definition. Therefore $\leq g(y) + \text{len}(P_2) + h(x)$, by the consistent property of $h$. And also that $\leq \text{len}(P_1) + \text{len}(P_2) + h(x) = \text{len}(P) + h(x)$. As we've assumed that it has a shorter path, it follow that it must be $< g(x) + h(x) = F(x)$. Therefore $F(y) < F(x)$, but that contradicts our choice of $x$, since we chose the lowest $F$.
@@ -775,7 +775,7 @@
                 Therefore, $B_0[i, j] = A[i, j]$ as we only consider paths of length one, since tehre are no intermediate nodes $\leq 0$. Since $B_n$ allows all possible intermediate nodes, we have all possible paths, therefore $R^+(i, j) \Leftrightarrow B_n[i, j]$.
                 \medskip
 
-                Consider how to compute $B_k$ from $B_{k - 1}$. Suppose we have some path $P$ from $i$ to $j$, using intermediate nodes $\leq k$. The path either contains $k$ as an intermediate node, or it doesn't. In the former, $k$ is not an intermediate node, therefore $B_{k - 1}[i, j]$. However, if it is, we only consider when $k$ occurs once (if it repeats, then it's not helpful - we just remove the path between the two $k$s). Then we have some path $i$ to $k$, and another path $k$ to $j$, therefore it follows that $B_{k - 1}[i,  k]$, and also $B_{k - 1}[k, j]$. This has a trivial time complexity of $O(n^3)$, which is much more efficient than the matrix method for closure.
+                Consider how to compute $B_k$ from $B_{k - 1}$. Suppose we have some path $P$ from $i$ to $j$, using intermediate nodes $\leq k$. The path either contains $k$ as an intermediate node, or it doesn't. In the former, $k$ is not an intermediate node, therefore $B_{k - 1}[i, j]$. However, if it is, we only consider when $k$ occurs once (if it repeats, then it's not helpful - we just remove the path between the two $k$s). Then we have some path $i$ to $k$, and another path $k$ to $j$, therefore it follows that $B_{k - 1}[i,  k]$, and also $B_{k - 1}[k, j]$. This has a trivial complexity of $O(n^3)$, which is much more efficient than the matrix method for closure.
                 \begin{lstlisting}
                     input A
                     copy A into B # B = B$_\text{0}$
@@ -789,7 +789,7 @@
                     return B
                 \end{lstlisting}
             \subsubsection*{Floyd's Algorithm}
-                Returning to the all pairs shortest path problem on some weighted directed graph $G$. This can be solved with a modification of Warshall's. Once again, $G$ has nodes $\{1, ..., n\}$, and an adjacency matrix $A$. We now consider $B_k[i, j]$ to be the length of the shortest path between $i$, and $j$ which has intermediate nodes $\leq k$. If there isn't a path, then let the value be $\infty$. Once again, like with Warshall's, we let $B_n[i, j]$ represent the length of the shortest path between $i$, and $j$. Assume that we know $B_{k - 1}$, and we want to get $B_k$. Suppose there eixsts some shortest path $P$ from $i$ to $j$, using intermediate nodes $\leq k$, with $\text{len}(P) = d$. Once again, if we consider the two cases, the case where $k$ is not in $P$, is trivial, and the second where $k$ is in the path, only occuring once. We can then calculate the length between the two as the minimum of $B_{k-1}[i, j]$, and $B_{k-1}[i, k] + B_{k-1}[k, j]$. If there aren't any shortest paths, then we still get $\infty$. Once again, it has the same time complexity of $O(n^3)$.
+                Returning to the all pairs shortest path problem on some weighted directed graph $G$. This can be solved with a modification of Warshall's. Once again, $G$ has nodes $\{1, ..., n\}$, and an adjacency matrix $A$. We now consider $B_k[i, j]$ to be the length of the shortest path between $i$, and $j$ which has intermediate nodes $\leq k$. If there isn't a path, then let the value be $\infty$. Once again, like with Warshall's, we let $B_n[i, j]$ represent the length of the shortest path between $i$, and $j$. Assume that we know $B_{k - 1}$, and we want to get $B_k$. Suppose there eixsts some shortest path $P$ from $i$ to $j$, using intermediate nodes $\leq k$, with $\text{len}(P) = d$. Once again, if we consider the two cases, the case where $k$ is not in $P$, is trivial, and the second where $k$ is in the path, only occuring once. We can then calculate the length between the two as the minimum of $B_{k-1}[i, j]$, and $B_{k-1}[i, k] + B_{k-1}[k, j]$. If there aren't any shortest paths, then we still get $\infty$. Once again, it has the same complexity of $O(n^3)$.
                 \begin{lstlisting}
                     input A
                     (for all i, j <= n) B[i, j] = 0       if i = j
@@ -880,7 +880,7 @@
                     \end{minipage}
                 \end{center}
             \subsubsection*{Algorithm Analysis}
-                Given we have some problem $P$, and $S$ for all the possible solutions for $P$. In this course,we only consider the time complexity. A harder, more theoretical question, would be "can we improve our existing algorithm, or have we found the best algorithm for $P$?". In order to reason about this, we need to consider ehat is the least amount of work every member of $S$ must to do solve $P$ - this gives us a lower bound time complexity on $P$. This is important as we're not just considering a large amount of solutions, but all possible solutions that exist.
+                Given we have some problem $P$, and $S$ for all the possible solutions for $P$. In this course,we only consider the complexity. A harder, more theoretical question, would be "can we improve our existing algorithm, or have we found the best algorithm for $P$?". In order to reason about this, we need to consider ehat is the least amount of work every member of $S$ must to do solve $P$ - this gives us a lower bound complexity on $P$. This is important as we're not just considering a large amount of solutions, but all possible solutions that exist.
                 \medskip
 
                 For this, we will examine searching, and sorting algorithms; because these are frequently used (therefore efficiency is very important), and analysis for them have already been carried out (such that we know the optimal algorithms). If we can prove an algorithm has the complexity exactly on the lower bound, then we've proven that it's the best possible algorithm.
@@ -1236,4 +1236,188 @@
 
             While it sems that merge sort seems to be much better than quicksort, the latter can improve the chances of a good split, whereas merge sort is required to split down the middle, and the latter also requires less memory since it can all be done in place.
         \subsubsection*{Heapsort}
+            A \textbf{heap structure} is a left-complete binary tree. For a tree with depth $d$, to be left-complete; all nodes are present at depths 0 to $d - 1$, and at $d$, no node is missing to the left of a node which is present. The rightmost tree at $d$ is the last node. A tree $T$ is a minimising partial order tree if the key at any node is $\leq$ the keys at each child node. A min heap is a heap structure that combines this property. A max heap is similar, but with $\geq$ the child nodes. The following is an example of a max heap;
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[] (o) at (0, 0) {16};
+                    \node[] (ol) at (-2, -1) {12};
+                    \node[] (or) at (2, -1) {13};
+                    \node[] (oll) at (-3, -2) {9};
+                    \node[] (olr) at (-1, -2) {5};
+                    \node[] (orl) at (1, -2) {6};
+                    \node[] (orr) at (3, -2) {8};
+                    \node[] (olll) at (-3.5, -3) {0};
+                    \node[] (ollr) at (-2.5, -3) {7};
+                    \node[] (olrl) at (-1.5, -3) {1};
+                    \node[] (olrr) at (-0.5, -3) {3};
+                    \node[] (orll) at (0.5, -3) {4};
+                    \node[] (orlr) at (1.5, -3) {2};
+                    \draw
+                    (o) -- (ol)
+                    (o) -- (or)
+                    (ol) -- (oll)
+                    (ol) -- (olr)
+                    (or) -- (orl)
+                    (or) -- (orr)
+                    (oll) -- (olll)
+                    (oll) -- (ollr)
+                    (olr) -- (olrl)
+                    (olr) -- (olrr)
+                    (orl) -- (orll)
+                    (orl) -- (orlr);
+                \end{tikzpicture}
+            \end{center}
+            \begin{lstlisting}
+                procedure sort():
+                  # build a max heap H out of an array E of   elements
+                  for i = n to 1:
+                    max = getMax(H)
+                    deleteMax(H)
+                    E[i] = max
+                procedure getMax(H):
+                  # read root node of H
+                procedure deleteMax(H):
+                  # copy element at last node into root node
+                  # remove last node
+                  fixMaxHeap(H)
+                procedure fixMaxHeap(H):
+                  # O(log n)
+                  if not leaf(H):
+                    largerSubHeap = left or right subheap with larger root
+                    if root(H).key < root(largerSubHeap).key:
+                      swap root(H) and root(largerSubHeap)
+                      fixMaxHeap(largerSubHeap)
+            \end{lstlisting}
+            Suppose that $n = 2^k - 1$, therefore the heap structure is a complete binary tree with a depth of $k - 1$. Let $W(n)$ be the worst-case number of comparisons for ~buildMaxHeap~; $W(n) = 2W(\frac{n - 1}{2}) + 2\text{log}(n)$. By application of the master theorem, we have $a = 2$, $b = 2$, and $f(n) = \Theta(\text{log}(n))$. Then it follows that $E = 1$, therefore it's the third case, and $T(n) = \Theta(n)$. Therefore, building the heap is a linear time operation. As such, we the overall comparison count is; $O(n\text{log}(n))$.
+            \medskip
+
+            While the tree representation of trees is quite helpful to visualise the concept, we can implement a heap using arrays. Starting at 1 allows for easier arithmetic. Given some node at index $i$, we store the left, and right children at $2i$, and $2i + 1$ respectively. This then allows us to get the parent node of any node at index $i$ as $\floor{\frac{i}{2}}$. Without using pointers, we can reduce the overhead, and it allows us to carry out heapsort in place just like quicksort. We can store the heap previously drawn in an array as follows, using the rules prevsiouly mentioned;
+            \begin{center}
+                \vspace{-\baselineskip}
+                \begin{tabularx}{\textwidth}{|l|X|X|X|X|X|X|X|X|X|X|X|X|X|}
+                    \hline
+                    index & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 \\
+                    \hline
+                    value & 16 & 12 & 13 & 9 & 5 & 6 & 8 & 0 & 7 & 1 & 3 & 4 & 2 \\
+                    \hline
+                \end{tabularx}
+            \end{center}
+            \vspace{-2\baselineskip}
+            \begin{lstlisting}
+                procedure heapsort(E, n):
+                  buildMaxHeap(1, n)
+                  heapsize = n
+                  while heapsize > 1:
+                    swap(1, heapsize) # put the root into the sorted list
+                    heapsize = heapsize - 1
+                    fixMaxHeap(1, heapsize)
+                procedure buildMaxHeap(root, heapsize):
+                  # not actually sure this is correct
+                  left = 2 * root
+                  right = 2 * root + 1
+                  if left <= heapsize:
+                    buildMaxHeap(left, heapsize)
+                    buildMaxHeap(right, heapsize)
+                    fixMaxHeap(root)
+                procedure fixMaxHeap(root, heapsize):
+                  left = 2 * root
+                  right = 2 * root + 1
+                  if left <= heapsize:
+                    # the root isn't a leaf
+                    if left = heapsize:
+                      # no right subheap
+                      largerSubHeap = left
+                    else if E[left].key > E[right].key:
+                      largerSubHeap = left
+                    else:
+                      largerSubHeap = right
+                    if E[root].key < E[largerSubHeap].keu:
+                      swap(root, largerSubHeap)
+                      fixMaxHeap(largerSubHeap, heapsize)
+            \end{lstlisting}
+    \subsection*{28th February 2019}
+        \subsubsection*{Priority Queues}
+            Now that we have some knowledge on what a heap is, we can implement a priority queue as a binary heap. For Prim's algorithm, we use a min heap. The operations are the same - but we will also include how they are implemented with the heap.
+            \begin{tabularx}{\textwidth}{|l|l|X|}
+                \hline
+                PQ operation & complexity & heap action \\
+                \hline
+                \hline
+                ~Q = PQCreate()~ & & create an empty array ~E~ of a suitable size, and ~heapsize~ = 0 \\
+                \hline
+                ~isEmpty(Q)~ & $O(1)$ & check if ~heapsize~ = 0 \\
+                \hline
+                ~getMin(Q)~ & $O(1)$ & return ~E[1]~ \\
+                \hline
+                ~deleteMin(Q)~ & $O(\text{log}(n))$ & ~E[1] = E[heapsize]; heapsize = heapsize - 1; fixMinHeap(1, heapsize)~ \\
+                \hline
+                ~insert(Q, x)~ & $O(\text{log}(n))$ & ~heapsize = heapsize + 1; E[heapsize] = x; percolateup(heapsize)~ \\
+                \hline
+            \end{tabularx}
+            \begin{lstlisting}
+                procedure percolateup(c):
+                  if c > 1:
+                    parent = floor(c / 2)
+                    if E[c].key < E[parent].key
+                    swap(c, parent)
+                    percolateup(parent)
+            \end{lstlisting}
+            The one function we haven't considered yet is ~decreaseKey(Q, x, newKey)~. If we know the location, let it be ~c~, of ~x~ in the heap, then we can change the key to ~newKey~ and run ~percolateup(c)~. A solution would be to give each element an ID. We can then take a supplementary array ~xref~ to store the location of an ID. Therefore, we can use ~xref[id] = k~ means that the element is at location ~k~ in the heap. However, we will need to modify ~percolateup~ to update ~xref~.
+        \subsubsection*{Word Break Problem}
+            While we've already seen some examples of dynamic programming, we should consider examples to illustrate the types of solutions; \textbf{top-down}, and \textbf{bottom-up}.
+            \medskip
+
+            Given some string of charactrs ~s~, can we split it into words occurring in a dictionary?
+            For example; the "windown" can be split into "win down", or "wind own" (hence there isn't necessarily a unique solution), whereas the string "trcarlenz" cannot be split. If we were to consider all possible splits, that would take exponential time. A \textbf{top-down} recursive solution would be as follows;
+            \begin{lstlisting}
+                # s[i:j] takes strings from index i to j - 1
+                # s[:j]  takes strings from index 0 to j - 1
+                # s[i:]  takes strings from index i to len(s) - 1
+                procedure wb1(s):
+                  if len(s) == 0:
+                    return true
+                  else:
+                    for i = 0 to len(s) - 1:
+                      if indict(s[i:]):
+                        if wb1(s[:i]):
+                          return true
+                  return false
+            \end{lstlisting}
+            We can consider the operation of this as a tree (formatted as ~RECURSIVE CALL : DICT LOOKUP~);
+            \begin{center}
+                \begin{tikzpicture}[x=2cm, y=1.5cm]
+                    \node[draw] (o) at (0, 0) {~abcd:~};
+                    \node[draw] (o1) at (-2, -1) {~:abcd~};
+                    \node[draw] (o2) at (-1, -1) {~a:bcd~};
+                    \node[draw] (o3) at (0, -1) {~ab:cd~};
+                    \node[draw] (o4) at (2, -1) {~abc:d~};
+                    \node[draw] (o21) at (-2, -2) {~:a~};
+                    \node[draw] (o31) at (-1, -2) {~:ab~};
+                    \node[draw] (o32) at (0, -2) {~a:b~};
+                    \node[draw] (o41) at (1, -2) {~:abc~};
+                    \node[draw] (o42) at (2, -2) {~a:bc~};
+                    \node[draw] (o43) at (3, -2) {~ab:c~};
+                    \node[draw,color=red] (o331) at (0, -3) {~:a~};
+                    \node[draw,color=red] (o421) at (1, -3) {~:a~};
+                    \node[draw,color=red] (o431) at (2, -3) {~:ab~};
+                    \node[draw,color=red] (o432) at (3, -3) {~a:b~};
+                    \node[draw,color=red] (o4321) at (3, -4) {~:a~};
+                    \draw
+                    (o) -- (o1)
+                    (o) -- (o2)
+                    (o) -- (o3)
+                    (o) -- (o4)
+                    (o2) -- (o21)
+                    (o3) -- (o31)
+                    (o3) -- (o32)
+                    (o4) -- (o41)
+                    (o4) -- (o42)
+                    (o4) -- (o43)
+                    (o32) -- (o331)
+                    (o42) -- (o421)
+                    (o43) -- (o431)
+                    (o43) -- (o432)
+                    (o432) -- (o4321);
+                \end{tikzpicture}
+            \end{center}
 \end{document}
