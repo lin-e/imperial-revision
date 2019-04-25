@@ -1602,5 +1602,22 @@
                 \item a set of packages of size $s_1, ..., s_n$, to be delivered to nodes $x_1, ..., x_n$ respectively.
                 \item a budget $B$
             \end{itemize}
-            Can we deliver the items within the total cost?
+            Can we deliver the items within the total cost? We want to show that this is NP-complete, and by the method; we need to do the following;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item we can show that VRPCD $\in$ NP, by finding a simple verification algorithm that runs in p-time with a given input
+                \item find some $D^\prime$, where $D^\prime \leq$ VRPCD
+                    \subitem see below
+            \end{enumerate}
+        \subsubsection*{MTSPD $\leq$ VRPCD}
+            Due to the use of the triangle inequality, we can instead use MTSPD, and show that MTPSD $\leq$ VRPCD. Given a graph $(G, W)$, with $n$ nodes satisfying the triangle inequality, and a budget $B$ from the MTSPD implementation, we keep $(G, W)$, and $B$ the same. We mark one node to be the ~start~ (depot). Now we can assign one package, with size 1, to each of the non-depot nodes, and create a single vehicle with a capacity of $n - 1$. All of this can be easily done in p-time.
+            \medskip
+
+            Now we just have to verify that $\text{MTSPD}((G, W), B) \Leftrightarrow \text{VRPCD}(f((G, W), B))$.
+            \smallskip
+
+            Given that $\text{MTSPD}((G, W), B)$, this tells us that we can start at some ~start~ node, and visit each node exactly once, and return, within the cost $B$. As the graph is unaltered, we an do the same in the VRPCD analog. We also don't exceed the vehicle capacity since we've set the value, such that the capacity matches exactly.
+            \medskip
+
+            To prove the implication the other way, we assume $\text{VRPCD}(f((G, W), B))$. Then it follows that we have a route that starts at the depot, and delivers packages to each node (hence it must visit each node), and return to the depot within the cost $B$. This is a TS tour, and we can justify that we won't visit a node more than once since the graph satisfies the triangle inequality. Hence $\text{MTSPD}((G, W), B)$.
 \end{document}
