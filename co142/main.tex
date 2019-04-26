@@ -63,6 +63,8 @@
 
 \newcommand{\powerset}[0]{\wp}
 \renewcommand{\emptyset}[0]{\varnothing}
+\newcommand{\la}[0]{\langle}
+\newcommand{\ra}[0]{\rangle}
 
 \newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
 \newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
@@ -183,7 +185,7 @@
                 We can say that any set is a trivial subset of itself, as we'd have $x \in A \Rightarrow x \in A$, which always evaluates to true, from propositional logic. Another trivial example is that $\emptyset$, the empty set, is a subset of every set. Using the second definition of subset, we can say that as $x \in \emptyset$ is false, by definition, and anything follows from falsity, whereas in the first definition we argue that all (0) elements of $\emptyset$ are in some other set.
                 \medskip
 
-                We can also define set equality as $A = B \triangleq A \subseteq B \land B \subseteq A$. However, we can also consider the set composition notation for a set, such that $A = \{x \mid P(x)\}$, and $B = \{x \mid Q(x)\}$. If we're able to prove that $\forall x (P(x) \Leftrightarrow Q(x))$, it follos that $A = B$. This method can be quite powerful if we're familiar with logic, and equivalences. We can justify this by saying that $y \in A \Rightarrow P(y) \Rightarrow Q(y) \Rightarrow y \in B$, and also in the other direcion; $y \in B \Rightarrow Q(y) \Rightarrow P(y) \Rightarrow y \in A$.
+                We can also define set equality as $A = B \triangleq A \subseteq B \land B \subseteq A$. However, we can also consider the set composition notation for a set, such that $A = \{x \in C \mid P(x)\}$, and $B = \{x \in C \mid Q(x)\}$. If we're able to prove that $\forall x (P(x) \Leftrightarrow Q(x))$, it follos that $A = B$. This method can be quite powerful if we're familiar with logic, and equivalences. We can justify this by saying that $y \in A \Rightarrow P(y) \Rightarrow Q(y) \Rightarrow y \in B$, and also in the other direcion; $y \in B \Rightarrow Q(y) \Rightarrow P(y) \Rightarrow y \in A$. This however requires both sets to be constructed on top of some known set $C$.
             \subsubsection*{Set Composition}
                 \begin{itemize}
                     \itemsep0em
@@ -207,6 +209,155 @@
                 \medskip
 
                 Consider the proof to show that $C \cap D = D \cap C$. Let us first take some arbitary $x \in (C \cap D)$. By definition of union, we know that $x \in C$, and $x \in D$. Therefore, it also fits the predicate for $(D \cap C)$. As such, $C \cap D \subseteq D \cap C$. To prove the other direction is trivial, and almost identical to this direction. Since we've proved both directions of $\subseteq$, we can conclude equality.
+                \medskip
 
+                Prove that $A = (A \backslash B) \cup (A \cap B)$. I took the approach where we use predicate logic, since I assumed it would be much easier than proving both directions of $\subseteq$ (turns out that the proof is very similar as proving one direction, is proving the other). In order to keep my proof cleaner, let $a \triangleq x \in A$, $b \triangleq x \in B$, and the negations $\neg a \triangleq x \notin A$ (and similar for $b$). Let us now define $A = \{x \mid P(x)\}$, where $P(x) = a$, and $B = \{x \mid Q(x)\}$, where $Q(x) = (a \land \neg b) \lor (a \land b)$ - by definitions of set difference, union, and intersection. Since this proves equivalence between the two predicates, we can therefore prove that the sets are equal.
+                \begin{reasoning}
+                    \proofmath{Q(x)}{(a \land \neg b) \lor (a \land b)}{}
+                    \proofmath{}{[(a \land \neg b) \lor a] \land [(a \land \neg b) \lor b]}{$(B \land C) \lor A \equiv (A \lor B) \land (A \lor C)$}
+                    \proofmath{}{(a \lor a) \land (a \lor \neg b) \land (a \lor b) \lor (b \lor \neg b)}{$(B \land C) \lor A \equiv (A \lor B) \land (A \lor C)$ (twice)}
+                    \proofmath{}{a \land (a \lor \neg b) \land (a \lor b)}{$A \lor A \equiv A$, $A \lor \neg A \equiv \top$, and $A \land \top \equiv A$}
+                    \proofmath{}{a}{$A \land (A \lor B) \equiv A$ (twice)}
+                    \proofmath{}{P(x)}{}
+                \end{reasoning}
+        \subsection*{16th October 2018}
+            \subsubsection*{A Note on the Use of Venn Diagrams}
+                While we can use a Venn diagram to aid in constructing a counter example, the diagram itself is not a counter example. We're also quite limited in the possible uses, as a diagram (in 2d) consisting of $\geq 4$ sets doesn't represent all the possible combinations of sets.
+            \subsubsection*{Operator Properties}
+                Similar to \textbf{CO140}, we have some properties which can be used on arbitrary sets. Note that these are not axioms, and therefore we are able to prove them.
+                \begin{itemize}
+                    \itemsep0em
+                    \item $A \cup A = A$ \hfill indempotence
+                    \item $A \cap A = A$ \hfill indempotence
+                    \item $A \cup B  = B \cup A$ \hfill commutativity
+                    \item $A \cap B  = B \cap A$ \hfill commutativity
+                    \item $A \triangle B  = B \triangle A$ \hfill commutativity
+                    \item $A \cup (B \cup C) = (A \cup B) \cup C$ \hfill associativity
+                    \item $A \cap (B \cap C) = (A \cap B) \cap C$ \hfill associativity
+                    \item $A \cup \emptyset = A$ \hfill empty set
+                    \item $A \cap \emptyset = \emptyset$ \hfill empty set
+                    \item $A \triangle A = \emptyset$ \hfill empty set
+                    \item $A \cup (B \cap C) = (A \cup B) \cap (A \cup C)$ \hfill distributivity
+                    \item $A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$ \hfill distributivity
+                    \item $A \cup (A \cap B) = A$ \hfill absorption
+                    \item $A \cap (A \cup B) = A$ \hfill absorption
+                \end{itemize}
+                Note that we are able to use the properties of logical connectives to aid us in our proofs, since those are fairly easy to prove with truth tables, as they have a finite number of configurations. For example, the proof of indempotence inherently uses the property $p \land p \equiv p$, and the same for $\lor$.
+            \subsubsection*{Cardinality}
+                With some finite set $A$, we can say that the cardinality, $|A|$ is the number of distinct elements in $A$. Given two finite sets, we can then say that $|A \cup B| = |A| + |B| - |A \cap B|$. With the following set properties (and that for two disjoint finite sets, $|A \cup B| = |A| + |B|$), and knowing the RHSs are disjoint unions;
+                \begin{reasoning}
+                    \proofmath{A}{(A \backslash B) \cup (A \cap B)}{}
+                    \proofmath{B}{(B \backslash A) \cup (A \cap B)}{}
+                    \proofmath{A \cup B}{(A \backslash B) \cup (A \cap B) \cup (B \backslash A)}{}
+                    \proofmath{|A|}{|A \backslash B| + |A \cap B|}{}
+                    \proofmath{|B|}{|B \backslash A| + |A \cap B|}{}
+                    \proofmath{|A \cup B|}{|A \backslash B| + |A \cap B| + |B \backslash A|}{}
+                    \proofmath{}{|A| - |A \cap B| + |A \cap B| + |B| - |A \cap B|}{}
+                    \proofmath{}{|A| + |B| - |A \cap B|}{}
+                \end{reasoning}
+        \subsection*{19th October 2018}
+            \subsubsection*{Powerset}
+                Let us define the powerset of $A$, as $\powerset A \triangleq \{x \mid x \subseteq A\}$. It's therefore important to note that $\powerset \emptyset = \{\emptyset\}$, hence the powerset of the empty set has size 1. We can prove that $|\powerset X| = 2^n$, for some set $X$, where $|X| = n$. This can be done (fairly) easily with mathematical induction, over natural numbers. Another approach it is to consider that each item in some arbitrary set, $A = \{a_1, a_2, ... a_n\}$, can either be in the powerset or not. Therefore, we can represet each subset of $A$ as some $n$-bit binary number. Therefore, we can have a $2^n$ possible combinations, hence the size of $|\powerset A| = 2^n$
+            \subsubsection*{Products}
+                Let us define some \textbf{ordered} pair as $\langle a, b \rangle$, such that generally $\la a, b \ra \neq \la b, a \ra$.
+                \medskip
 
+                Let there be some arbitrary sets $A$, and $B$. We can then define the cartsian product as follows; $A \times B \triangleq \{\la a, b \ra \mid a \in A \land b \in B\}$. Since we'll often deal with binary relations, we use the shorthand $A^2 = A \times A$. We can define equality on ordered pairs as $\forall a, b, c, d [\la a, b \ra =_{A \times B} \la c, d \ra \triangleq a =_A c \land b =_B d]$. Note that in general, $\times$ is not a commutative operation.
+                \medskip
+
+                Suppose that there are two finite sets $A = \{a_1, a_2, ..., a_n\}$, and $B = \{b_1, b_2, ..., b_m\}$, with sizes $n$, and $m$ respectively - then it follows that $|A \times B| = |A| \cdot |B|$. We can justify this by constructing such a matrix $R$, of dimension $(A \times B)^{n,m}$ - thus having $n \cdot m$ elements;
+                \begin{center}
+                    $R = \begin{matrix}
+                        \la a_1, b_1 \ra & \la a_1, b_2 \ra & \cdots & \la a_1, b_m \ra \\
+                        \la a_2, b_1 \ra & \la a_2, b_2 \ra & \cdots & \la a_2, b_m \ra \\
+                        \vdots & \vdots & \ddots & \vdots \\
+                        \la a_n, b_1 \ra & \la a_1, b_2 \ra & \cdots & \la a_n, b_m \ra \\
+                    \end{matrix}$
+                \end{center}
+                We can also have an $n$-ary product, to construct an $n$-tuple $\la a_1, a_2, ..., a_n \ra$, when $n \geq 1$. Let there be some arbitrary sets, $A_1, A_2, ..., A_n$.
+                \smallskip
+
+                This is written as $A_1 \times ... \times A_n = \prod\limits_{i = 1}^n A_i$, and is defined as $\{\la a_1, a_2, ..., a_n \ra \mid \forall i \in [1, n] [a_i \in A_i]\}$.
+            \subsubsection*{Partitions}
+                Given some set $S$, we can define a \textbf{partition} of $S$ to be a family of subsets $\{A_1, A_2, ..., A_n\}$ such that;
+                \begin{itemize}
+                    \itemsep0em
+                    \item none of them are empty (therefore $\forall i \in [1, n] [A_i \neq \emptyset]$)
+                    \item the subsets cover $S$ (therefore $S = \bigcup\limits_{i = 1}^n A_i$)
+                    \item they are pairwise disjoint (therefore $\forall i, j \in [1, n] [i \neq j \Rightarrow A_i \cup A_j = \emptyset]$)
+                \end{itemize}
+                A partition of $S$ is a set of non-empty subsets that are pairwise disjoint, and cover $S$.
+            \subsubsection*{Pigeonhole Principle}
+                Given a set $S$ of size $n$, partitioned into $k$ sets such that $0 < k < n$, then at least one of the subsets must have at least 2 elements. We can prove this by contradiction (one of the few times we actually do this, in DS). Assume that there are $k$ subsets, each of size 1 (therefore $\forall i \in [1, k] [|A_k| = 1]$). By definition of a partion, we can form a cover of $S$, therefore (the last 2 steps are justfied by the requirement of a partiion being pairwise disjoint);
+                \smallskip
+
+                $n = |S| = |\bigcup\limits_{i = 1}^k A_i| = \summation{i = 1}{k}{|A_i|} = \summation{i = 1}{k}{1} = k$
+                \smallskip
+
+                However, given the bounding condition $k < n$, there is no way that $k = n$, and the only assumption is that we made $k$ sets of size 1.
+            \subsubsection*{Representing Relations}
+                We define a relation between two sets $A$, and $B$ (from $A$ to $B$), as a subset of $A \times B$, such that $R \subseteq A \times B$. If we say that $R \subseteq A \times B$, it means that it has type $A \times B$. However, if $R \subseteq A^2$, it is a \textbf{binary} relation on $A$. Instead of writing $\la a, b \ra \in \mathbb{R}$, we will often shorten it to $a\ R\ b$.
+                \medskip
+
+                A relation does not have to be meaningful; for a set of size $n = 2$, let it be $A = \{a, b\}$, it can have 16 $(2^{n^2})$ possible binary relations. For any set $A$, the possible binary relations can be generated by taking $\powerset A^2$. A predicate over $A$ is a 1-ary relation, which is just a subset of $A$. We also can say something along the lines of $\{\la x, y, z \ra \in \mathbb{R}^3 \mid x^2 + y^2 + z^2 = 1\}$, as a ternary relation on the reals which covers the surface of a unit sphere at the origin.
+                \medskip
+
+                Generally, writing out all pairs can become tedious, therefore there are numerous other ways of representing it. We can construct a diagram (a bipartite graph) for the following relation $A = \{a_1, a_1\}$, $B = \{b_1, b_2, b_3\}$, and $R = \{\la a_1, b_1 \ra, \la a_2, b_1 \ra, \la a_2, b_2 \ra\}$;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[] () at (-1.5, 0) {$A$};
+                        \node[] () at (6.5, 0) {$B$};
+                        \node[] (a1) at (0, 1) {$a_1$};
+                        \node[] (a2) at (0, 0) {$a_2$};
+                        \node[] (b1) at (5, 1) {$b_1$};
+                        \node[] (b2) at (5, 0) {$b_2$};
+                        \node[] (b3) at (5, -1) {$b_2$};
+                        \draw
+                        (0,0) ellipse (1 and 2)
+                        (5,0) ellipse (1 and 2)
+                        (a1) edge[bend left=30, ->] (b1)
+                        (a2) edge[bend left=15, ->] (b1)
+                        (a2) edge[bend right=10, ->] (b2);
+                    \end{tikzpicture}
+                \end{center}
+                However, we might also want to represent a binary relation in a similar way, in which case we can draw a regular directed graph. Here we have $A = \{a_1, a_2, a_3, a_4\}$, and $R = \{\la a_1, a_2 \ra, \la a_2, a_1 \ra, \la a_3, a_2 \ra, \la a_3, a_3 \ra\}$;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[] () at (-3.5, 0) {$A$};
+                        \node[] (a1) at (0, 1) {$a_1$};
+                        \node[] (a2) at (2, 0) {$a_2$};
+                        \node[] (a3) at (0, -1) {$a_3$};
+                        \node[] (a4) at (-2, 0) {$a_4$};
+                        \draw
+                        (0, 0) ellipse (3 and 2)
+                        (a3) edge[loop, ->, out=170, in=130, distance=1cm] (a3)
+                        (a3) edge[bend right=20, ->] (a2)
+                        (a2) edge[bend right=30, ->] (a1)
+                        (a1) edge[bend right=40, ->] (a2);
+                    \end{tikzpicture}
+                \end{center}
+                It can also be represented as a matrix, such that we have
+                \begin{equation*}
+                    M_{i,j} =
+                    \begin{cases}
+                        \text{True} & \text{if } a_i\ R\ b_j \\
+                        \text{False} & \text{otherwise}
+                    \end{cases}
+                \end{equation*}
+            \subsubsection*{Constructing Relations}
+                Just like in sets, we can construct relations quite easily. Except, we now have a known set in they exist in (by the subset definition), hence (these examples use $R, S \subseteq A \times B$, and $T \subseteq B \times C$);
+                \begin{itemize}
+                    \itemsep0em
+                    \item $R \cup S \triangleq \{\la a, b \ra \in A \times B \mid \la a, b \ra \in A \lor \la a, b \ra \in B\}$ \hfill relation union
+                    \item $R \cap S \triangleq \{\la a, b \ra \in A \times B \mid \la a, b \ra \in A \land \la a, b \ra \in B\}$ \hfill relation intersection
+                    \item $\overline{R} \triangleq \{\la a, b \ra \in A \times B \mid \la a, b \ra \notin A\}$ \hfill relation complement
+                    \item $R^{-1} \triangleq \{\la b, a \ra \in B \times A \mid a\ R\ b\}$ \hfill inverse relation
+                    \item $id_A \triangleq \{\la x, y \ra \in A^2 \mid x =_A y\}$ \hfill identity relation
+                    \item $R \circ T \triangleq \{\la a, c \ra \in A \times C \mid \exists b \in B [a\ R\ b \land b\ T\ c]\}$ \hfill relation composition
+                        \subitem this is only defined when the types are matching
+                        \subitem we can define grandparentof $\triangleq$ parentof $\circ$ parentof
+                        \subitem therefore $x \text{ gpo } y \triangleq \exists z (x \text{ po } z \land z \text{ po } y)$
+                \end{itemize}
+        \subsection*{23rd October 2018}
+            \subsubsection{Equality}
 \end{document}
