@@ -352,12 +352,46 @@
                     \item $R \cap S \triangleq \{\la a, b \ra \in A \times B \mid \la a, b \ra \in A \land \la a, b \ra \in B\}$ \hfill relation intersection
                     \item $\overline{R} \triangleq \{\la a, b \ra \in A \times B \mid \la a, b \ra \notin A\}$ \hfill relation complement
                     \item $R^{-1} \triangleq \{\la b, a \ra \in B \times A \mid a\ R\ b\}$ \hfill inverse relation
-                    \item $id_A \triangleq \{\la x, y \ra \in A^2 \mid x =_A y\}$ \hfill identity relation
+                    \item $\text{id}_A \triangleq \{\la x, y \ra \in A^2 \mid x =_A y\}$ \hfill identity relation
                     \item $R \circ T \triangleq \{\la a, c \ra \in A \times C \mid \exists b \in B [a\ R\ b \land b\ T\ c]\}$ \hfill relation composition
                         \subitem this is only defined when the types are matching
                         \subitem we can define grandparentof $\triangleq$ parentof $\circ$ parentof
                         \subitem therefore $x \text{ gpo } y \triangleq \exists z (x \text{ po } z \land z \text{ po } y)$
                 \end{itemize}
         \subsection*{23rd October 2018}
-            \subsubsection{Equality}
+            To be honest, this lecture was basically just a tutorial. Some solutions are listed here;
+            \subsubsection*{Associativity of $\circ$}
+                For arbitrary relations, $R \subseteq A \times B$, $S \subseteq B \times C$, and $T \subseteq C \times D$, show that $R \circ (S \circ T) = (R \circ S) \circ T$
+                \medskip
+
+                Take some arbitrary $\la x, y \ra \in R \circ (S \circ T)$;
+                \begin{align*}
+                    x\ R \circ (S \circ T)\ y \triangleq &\ \exists z [x\ R\ z \land z\ (S \circ T)\ y] \\
+                    \triangleq &\ \exists z [x\ R\ z \land \exists w [z\ S\ w \land w\ T\ y]] \\
+                    \Leftrightarrow &\ \exists w, z [x\ R\ z \land z\ S\ w \land w\ T\ y] \\
+                    \Leftrightarrow &\ \exists w [x\ (R \circ S)\ w \land w\ T\ y] \\
+                    \triangleq &\ x\ (R \circ S) \circ T\ y
+                \end{align*}
+                The key point to take from this proof is how we can use our knowledge of propositional logic, and apply it to sets. Since propositional logic is far easier to prove than an arbitrary set, we can reduce the work we do significantly.
+            \subsubsection*{Subsets of Inverse Relations}
+                Given two binary relations $R, S \subseteq A^2$, prove that $R \subseteq S \Rightarrow R^{-1} \subseteq S^{-1}$
+                \medskip
+
+                Take some arbitrary $\la y, x \ra \in R^{-1}$. In order to show the RHS, we want to show that this is also in $S^{-1}$. Let us also make the assumption (the LHS) that $R \subseteq S$, such that $k \in R \Rightarrow k \in S$, where $k$ is any tuple. As we have some $\la y, x \ra \in R^{-1}$, it follows that there is a corresponding $\la x, y \ra \in R$. Because of our assumption, we can say that $\la x, y \ra \in S$, and therfore $\la y, x \ra \in S^{-1}$. Therefore, any arbitrary element of $R^{-1}$ is also in $S^{-1}$, hence $R^{-1} \subseteq S^{-1}$ (given our assumption holds) - so $R \subseteq S \Rightarrow R^{-1} \subseteq S^{-1}$.
+        \subsection*{26th October 2018}
+            The first part is just some stuff about how you should be doing proofs in natural language, as mathematics (and symbols) is just formalised human thinking. This then goes into (basically) natural deduction - so check \textbf{CO140} for techniques you can apply in proofs. Once again, we went through more questions in this lecture.
+            \subsubsection*{Relation Properties}
+                Let there be $R \subseteq A^2$, such that $R$ is a binary relation on $A$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $R$ is reflexive $\triangleq \forall x \in A [\la x, x \ra \in R]$
+                        \subitem $\Leftrightarrow \text{id}_A \subseteq R$
+                    \item $R$ is symmetric $\triangleq \forall x, y \in A [\la x, y \ra \in A \Rightarrow \la y, x \ra \in R]$
+                        \subitem $\Leftrightarrow R = R^{-1}$
+                    \item $R$ is transitive $\triangleq \forall x, z \in A [\exists y \in A [\la x, y \ra \in R \land \la y, z \ra \in R] \Rightarrow \la x, z \ra \in R]$
+                        \subitem $\Leftrightarrow R \circ R \subseteq R$
+                    \item $R$ is an equivalence relation if it is reflexive, symmetric, and transitive
+                \end{itemize}
+                We consider something to be an equivalence if it has a weak equality, such that $a\ R\ b$ means that $a$ is indistinguishable from $b$ in some sense. We can write this as $a \sim_R b$.
+        \subsection*{30th October 2018}
 \end{document}
