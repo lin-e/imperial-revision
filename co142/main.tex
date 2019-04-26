@@ -394,4 +394,31 @@
                 \end{itemize}
                 We consider something to be an equivalence if it has a weak equality, such that $a\ R\ b$ means that $a$ is indistinguishable from $b$ in some sense. We can write this as $a \sim_R b$.
         \subsection*{30th October 2018}
+            \subsubsection*{Equivlence Classes}
+                Given $n \neq 0$, and $n \in \mathbb{N}$, the binary relation $R_n$ on $\mathbb{Z}$ is defined by $a\ R_n\ b$ when $n$ divides into $(b - a)$ is defined as; $R_n \triangleq \{\la a, b \ra \in \mathbb{Z}^2 \mid \exists q \in \mathbb{Z} [q \cdot n = (b - a)]\}$. This means that two numbers are in the same equivalence class given that they are an integer multiple of $n$ apart. As such, they have the same result under modulo $n$.
+                \medskip
+
+                Suppose we have some $R$, which is an equivalence relation on $A$. For any $a \in A$, we can define the equivalence class of $a$ with respect to $R$ as follows; $[a]_R \triangleq \{b \in A \mid a \sim_R b\}$. For brevity, we can omit the $_R$ when it's clear what equivalence relation we're referring to from the context. The set of equivalnce classes is referred to as the \textbf{quotient set}; $\frac{A}{R}$; therefore with the example above, the set $\frac{\mathbb{Z}}{R_n}$ is the quotient set which represents integers which have modulo $n$.
+                \medskip
+
+                Let us propose that the set of all equivalence classes, $\{[a] \mid a \in A\}$, forms a partiion of $A$. This means that the equivalence classes aren't empty, they form a cover of $A$, and that they are pairwise disjoint.
+                \medskip
+
+                We need to first show that no equivalence class is empty. First, let's take some arbitrary $x \in A$. By the reflexive nature of equivalences, we know that $x \sim_R x$, hence $x \in [x]$. As we took an arbitrary element of $A$, it's satisfied for all $A$, therefore none of the equivalnce classes are empty.
+                \medskip
+
+                Next we need to prove that it forms a cover of $A$, such that $A = \bigcup\limits_{a \in A}[a]$; done by proving that $A \subseteq \bigcup\limits_{a \in A}[a]$, and also $\bigcup\limits_{a \in A}[a] \subseteq A$.
+                \smallskip
+
+                Doing the former, let us take some arbitrary $x \in A$. Now, it follows that it's in its own equivalence class $[x]$, under the same justification we gave for the first part of the proof ($x \sim_R x$ by reflexivity). Trivially, we can say that $[x] \subseteq \bigcup\limits_{a \in A}[a]$. Hence $x \in \bigcup\limits_{a \in A}[a]$, and as we took arbitrary $x$; $A \subseteq \bigcup\limits_{a \in A}[a]$.
+                \medskip
+
+                To prove the other direction, take some arbitrary equivalence class $[x] \in \bigcup\limits_{a \in A}[a]$, and arbitrary $y \in [x]$. This then means we've taken arbitrary $y \in \bigcup\limits_{a \in A}[a]$.
+                \smallskip
+
+                By our definition of an equivalence class, for $y \in [x]$, it must therefore mean $x \sim_R y$, and also that $y \in A$. Hence we get $\bigcup\limits_{a \in A}[a] \subseteq A$. As we have both directions of $\subseteq$, we conclude the two sets are equal.
+                \medskip
+
+                The last one can be done by proving two equivalence classes are equal, if they aren't pairwise disjoint. Suppose two arbitrary classes in the set of equivalnce classes aren't pairwise disjoint, such that $[x] \cap [y] \neq \emptyset$. Therefore, this means that $w \in ([x] \cap [y])$, by definition of set union, we can then say that $w \in [x]$, and also $w \in [y]$. This then leads to $x \sim_R w$, and also $y \sim_R w$, by definition. However, by symmetry, we can rewrite the former as $w \sim_R x$. To establish equality, we need to show that they are subsets of each other (will only do one, since it's trivial to do the other way around). Take some arbitrary $v \in [x]$, then it follows that $x \sim_R v$. By transitivity, we can now say $w \sim_R v$, and therefore also $y \sim_R v$. It then follows that $v \in [y]$. As we took arbitrary $v \in [x]$, it follows that $[x] \subseteq [y]$. Hence the only way two items aren't disjoint in a set of equivalence classes, is when they are equal. Thus, the family of equivalence classes is pairwise disjoint, and is a partion of $A$.
+
 \end{document}
