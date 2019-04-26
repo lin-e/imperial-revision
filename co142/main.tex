@@ -420,5 +420,29 @@
                 \medskip
 
                 The last one can be done by proving two equivalence classes are equal, if they aren't pairwise disjoint. Suppose two arbitrary classes in the set of equivalnce classes aren't pairwise disjoint, such that $[x] \cap [y] \neq \emptyset$. Therefore, this means that $w \in ([x] \cap [y])$, by definition of set union, we can then say that $w \in [x]$, and also $w \in [y]$. This then leads to $x \sim_R w$, and also $y \sim_R w$, by definition. However, by symmetry, we can rewrite the former as $w \sim_R x$. To establish equality, we need to show that they are subsets of each other (will only do one, since it's trivial to do the other way around). Take some arbitrary $v \in [x]$, then it follows that $x \sim_R v$. By transitivity, we can now say $w \sim_R v$, and therefore also $y \sim_R v$. It then follows that $v \in [y]$. As we took arbitrary $v \in [x]$, it follows that $[x] \subseteq [y]$. Hence the only way two items aren't disjoint in a set of equivalence classes, is when they are equal. Thus, the family of equivalence classes is pairwise disjoint, and is a partion of $A$.
+            \subsubsection*{Transitive Closure}
+                Strange that I'm revising this \textbf{after} doing Warshall's algorithm in \textbf{CO150}. It's probably a better idea to learn the pre-requisites for a module, before doing it.
+                \medskip
 
+                Suppose we have a binary relation $R$ on $A$. We define the transitive closure of $R^+$, such that it's the smallest transitive relation that contains $R$. Defining $R^k$ is required;
+                \begin{align*}
+                    R^1 & \triangleq R \\
+                    R^2 & \triangleq R \circ R \\
+                    R^3 & \triangleq R \circ R \circ R = R \circ (R^2) \\
+                    & \cdots \\
+                    R^k & \triangleq R \circ R \circ \cdots \circ R\ \ \ (\text{$k$ times})
+                \end{align*}
+                We can then define $R^+ \triangleq \bigcup\limits_{i \geq 1}R^i$, and thus we get $a\ R^+\ b \Leftrightarrow \exists i \geq 1 [a\ R^i\ b]$.
+                \smallskip
+
+                Let $R$ be some fniite binary relation on $A$. If $R$ is already transitive, then there is no more work we need to do. However, in the case that it's not transitive, it must mean that there is some $a, b, c \in A$ such that we have $a\ R\ b$, and also $b\ R\ c$, but not $a\ R\ c$. We then add the pair $\la a, c \ra$ to the relation. This is then repeated until we reach a point where the relation is transitive, and we are done.
+                \medskip
+
+                Since every step was a requirement of transitivity, we have obtained the smallest possible relation containing $R$. In our proofs, we are allowed to create an infinite construction, but \textbf{not} an infinite step proof.
+                \medskip
+
+                Consider some relation $<_1 \triangleq \{\la m, n \ra \in \mathbb{N}^2 \mid m = n + 1\}$ over $\mathbb{N}$. This is relation represents a difference of 1. Now, we can construct $<_2 = <_1 \circ <_1$ (fairly trivial to prove, since we know it covers the naturals, we can almost appraoch it inductively, however there is an easier solution where we use the properties of natural numbers (hint - if $n \in \mathbb{N}$, then $n + 1 \in \mathbb{N}$)). The transitive closure on $<_1$, $<_1^+$, is therefore $<$.
+                \medskip
+
+                Note that I won't include most of the exercises, because it's surprisingly laborious to typeset them on \LaTeX, especially when I'm sleep deprived. The ones included are ones that have specific techniques that we should remember for the exam.
 \end{document}
