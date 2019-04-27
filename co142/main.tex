@@ -337,13 +337,13 @@
                     \end{tikzpicture}
                 \end{center}
                 It can also be represented as a matrix, such that we have
-                \begin{equation*}
-                    M_{i,j} =
+                \begin{align*}
+                    M_{i,j} & =
                     \begin{cases}
                         \text{True} & \text{if } a_i\ R\ b_j \\
                         \text{False} & \text{otherwise}
                     \end{cases}
-                \end{equation*}
+                \end{align*}
             \subsubsection*{Constructing Relations}
                 Just like in sets, we can construct relations quite easily. Except, we now have a known set in they exist in (by the subset definition), hence (these examples use $R, S \subseteq A \times B$, and $T \subseteq B \times C$);
                 \begin{itemize}
@@ -445,4 +445,127 @@
                 \medskip
 
                 Note that I won't include most of the exercises, because it's surprisingly laborious to typeset them on \LaTeX, especially when I'm sleep deprived. The ones included are ones that have specific techniques that we should remember for the exam.
+        \subsection*{2nd November 2018}
+            \subsubsection*{Peano Arithmetic}
+                Peano defined a set of \textbf{axioms} for the naturals, such that for the set $\mathbb{N}$, it must satisfy the properties;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item $0 \in \mathbb{N}$
+                    \item if $n \in \mathbb{N}$, then $\text{Succ}(n) \in \mathbb{N}$
+                    \item for all $n \in \mathbb{N}$, Succ($n$) $\neq$ 0
+                    \item for all $n, m \in \mathbb{N}$, if $\text{Succ}(n) = \text{Succ}(m)$, then $n = m$
+                    \item suppose there is a set $V$, such that $0 \in V$, and for all $n \in \mathbb{N}$, if $n \in V$ then $\text{Succ}(n) \in V$, then $\mathbb{N} \subseteq V$
+                \end{enumerate}
+                Note that the 5$^\text{th}$ point is the principle of induction. Let us also define arithmetic as follows, on the successor function (will use $S(n)$ to represent Succ($n$), $A(m, n)$ to represent Add($m, n$), and $M(m, n)$ to represent Mult($m, n$);
+                \begin{itemize}
+                    \itemsep0em
+                    \item $A(0, n) = n$
+                    \item $A(S(m), 0) = S(A(m))$
+                    \item $M(0, n) = 0$
+                    \item $M(S(m), n) = A(M(m, n), n)$
+                \end{itemize}
+                Let us prove that $\forall n \in \mathbb{N} [A(n, S(0)) = S(n)]$. By the principle of induction, let us define some set $V \triangleq \{n \mid A(n, S(0)) = S(n)\}$. First, we have to show $0 \in V$, which means showing that $A(0, S(0)) = S(0)$. By the first case for addition, we can show the predicate holds trivially, hence $0 \in V$.
+                \medskip
+
+                Now, let us make the assumption that some arbitrary $k \in \mathbb{N}$, $n \in V$, such that we are given $A(k, S(0)) = S(k)$. Our goal here is to prove that $S(k) \in V$, by showing $A(S(k), S(0)) = S(S(k))$. By the second case of addition, we can say that $A(S(k), S(0)) = S(A(k, S(0)))$. However, by our assumption, we can substitute the value for $S(k)$, therefore $S(S(k))$. Therefore, by our assumption, we can say $k \in V \Rightarrow S(k) \in V$. By the principle of induction, it follows that $\mathbb{N} \subseteq V$, hence $\forall n \in \mathbb{N} [A(n, S(0)) = S(n)]$.
+                \medskip
+
+                While the idea of an infinite proof seems accpetable to us, intutively, we cannot do an infinite proof. We are allowed to do infinite constructions, but not a proof with inifite steps, hence we must use induction.
+            \subsubsection*{Defining Natural Numbers with Sets}
+                Assuming that our notion of sets is real, we can recursively define natural numbers as follows;
+                \begin{align*}
+                    0 \triangleq &\ \emptyset \\
+                    n \triangleq &\ n - 1 \cup \{n - 1\} \\
+                    = &\ n - 2 \cup \{n - 2\} \cup \{n - 1\} \\
+                    = &\ \cdots \\
+                    = &\ \{1, 2, 3, ..., n - 2, n - 1\} \\
+                    0 = &\ \emptyset \\
+                    1 = &\ \emptyset \cup \{\emptyset\} \\
+                    = &\ \{\emptyset\} \\
+                    2 = &\ \{\emptyset\} \cup \{\{\emptyset\}\}\\
+                    = &\ \{\emptyset, \{\emptyset\}\}
+                    \vspace{-\baselineskip}
+                \end{align*}
+            \subsubsection*{Defining Integers, and Rational Numbers}
+                We can define the integers, $\mathbb{Z}$, as $\mathbb{Z} \triangleq \mathbb{N} \cup \{-n \mid n \in \mathbb{N}\}$. We can also define equality on the integers, $=_\mathbb{Z}$, as $=_\mathbb{Z} \triangleq \la -0, 0 \ra \cup \{\la n, m \ra \mid n =_\mathbb{N} m\} \cup \{\la -n, -m \ra \mid n =_\mathbb{N} m\}$, which covers all the cases (note the specific inclusion of $\pm 0$). By these definitions, we can see that $\mathbb{N} \subseteq \mathbb{Z}$.
+                \medskip
+
+                With this, we're also able to define the rational numbers, $\mathbb{Q}$, as $\mathbb{Q} \triangleq \mathbb{Z} \times \mathbb{N}$, and we can define equality over the natural numbers, $=_\mathbb{Q}$, as $=_\mathbb{Q} \triangleq \{\la \la n_1, m_1 \ra, \la n_2, m_2 \ra \ra \in (\mathbb{Z} \times \mathbb{N})^2 \mid n_1 \cdot m_2 =_\mathbb{Z} n_2 \cdot m_1\}$. Note that the slides use $=_\mathbb{N}$, which is incorrect, as we have no guarantee that the product of a natural, and an integer is a natural, but we can guarantee it is an integer by the closure of multiplication on integers.
+                \medskip
+
+                Defining $=_\mathbb{R}$ takes much more work. It's also established that every sequence of rational ($\mathbb{Q}$) numbers, e.g. $\{3, 3.1, 3.14, 3.141, 3.145, ...\}$ has an upper limit in $\mathbb{R}$.
+        \subsection*{6th November 2018}
+            \subsubsection*{Functions}
+                We define a function $f$, from $A$ (the function domain to $B$ (the function co-domain) as $f : A \mapsto B$ (should I be using $\mapsto$, or $\to$ here?). \textbf{Every} element of $A$ must map to a \textbf{unique} (exactly 1) element in $B$. We can formally write this as follows, where both conditions must hold;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item $\forall a \in A \forall b_1, b_2 \in B [\la a, b_1 \ra \in f \land \la a, b_2 \ra \in f \Rightarrow b_1 = b_2]$
+                    \item $\forall a \in A \exists b \in B [\la a, b \ra \in f]$
+                \end{enumerate}
+                The set of all functions from $A$, to $B$ is denoted as $B^A$, such that $B^A \subseteq \powerset (A \times B)$. For brevity, we can use the following shorthands;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f : A \mapsto B$ is short for $f \subseteq B^A$
+                    \item $\exists f : A \mapsto B [\cdots]$ is short for $\exists f \in B^A [...]$
+                    \item $\forall f : A \mapsto B [\cdots]$ is short for $\forall f \in B^A [...]$
+                    \item suppose that $A$ is an $n$-ary product $A_1 \times ... \times A_n$, we can write $f(a_1, ..., a_n)$ instead of $f(\la a_1, ..., a_n \ra)$
+                \end{itemize}
+                We define equality on two functions $f, g : A \mapsto B$, as $f =_{A \times B} g \triangleq \forall x \in A [f(x) =_B g(x)]$.
+                \medskip
+
+                For any subset of $A$, $X \subseteq A$, the image of $X$ under $f$ is denoted $f[X] \triangleq \{f(x) \mid x \in X\}$. We can define the image set of $A$, as $f[A]$. For example, let there be sets $A = \{1, 2, 3\}$, $B = \{a, b, c\}$, and the function $f = \{\la 1, a \ra, \la 2, b \ra, \la 3, a \ra\}$. The image set of $A$, $f[A]$, is $\{a, b\}$, and the image set $f[\{1, 3\}] = \{a\}$.
+                \medskip
+
+                These are some examples of functions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f : \mathbb{N}^2 \mapsto \mathbb{N}$ \hfill $f(x, y) = x + y$
+                    \item $f : \mathbb{N} \mapsto \mathbb{N}$ \hfill $f(x) = x^2$
+                    \item $f : \mathbb{R} \mapsto \mathbb{R}$ \hfill $f(x) = x + 3$
+                \end{itemize}
+                However, the \textbf{relation} $R \triangleq \{\la x, y \ra \in \mathbb{R}^2 \mid x = y^2\}$ is not a function, as we can easily prove a one-to-many relationship, thus violating the first condition. For example; both $\la 1, -1 \ra$, and $\la 1, 1 \ra$ are in $R$, but clearly $-1 \neq_\mathbb{R} 1$. In order to verify a function is actually a function, we must prove that the LHS has 1 unique mapping.
+            \subsubsection*{Cardinality of Function Space}
+                Let $B^A$ represent the function space of all functions mapping from $A$ to $B$, where both $A$, and $B$ are finite sets, such that $|A| = m$, and $|B| = n$. For something to be a function, every item in $A$, must map to an item in $B$. For any item in $A$, there are $n$ indepedant options to which it can map to. Hence it follows that there are $n^m$ unique options; thus $|B^A| = n^m$.
+            \subsubsection*{Characteristic Function}
+                Suppose we have a set $A$, and the characteristic function of $B \subseteq A$ is defined as $\chi_B : A \mapsto \{0, 1\}$, and for some $n$-ary relation $R$, such that $R \subseteq A_1 \times ... \times A_n$, we can define $\chi_R : A_1 \times ... \times A_n \mapsto \{0, 1\}$;
+                \begin{align*}
+                    \chi_B(a) & =
+                    \begin{cases}
+                        1 & \text{if } a \in B \\
+                        0 & \text{if } a \in A \backslash B
+                    \end{cases} \\
+                    \chi_R(a_1, ..., a_n) & =
+                    \begin{cases}
+                        1 & \text{if } \la a_1, ..., a_n \ra \in R \\
+                        0 & \text{if } \la a_1, ..., a_n \ra \notin R
+                    \end{cases}
+                \end{align*}
+            \subsubsection*{Partial Functions}
+                A partial function is a function \textbf{without} the second condition, therefore not all elements in $A$, must have a corresponding element in $B$. We denote an undefined value as $\bot$, therefore we can create a "function" from a partial function by saying $f : A \mapsto (B \cup \{\bot\})$. If you are asked to give a function in an exam, \textbf{do not give a partial function}.
+            \subsubsection*{Properties of Functions}
+                We will be working on some function $f : A \mapsto B$.
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f$ is onto (surjective) when every element of $B$ is in the image of $A$
+                        \subitem $\forall b \in B \exists a \in A [f(a) =_B b]$
+                        \subitem also $f[A] = B$ (?)
+                    \item $f$ is one-to-one (injective) when every element of $B$ has \textbf{at most one} $a \in A$ with $f(a) = b$
+                        \subitem $\forall a_1, a_2 \in A [f(a_1) =_B f(a_2) \Rightarrow a_1 =_A a_2]$
+                    \item $f$ is bijective, if it is both surjective (onto), and injective (one-to-one)
+                \end{itemize}
+                The (Dual) Cantor-Bernstein Theorem states that if tehre exists $f : A \mapsto B$, and $g : B \mapsto A$, where they are both surjective, or both injective, then it follows that there is is a bijection $h : A \mapsto B$. This theorem is extremely helpful when we want to prove that two infinite sets have the same cardinality.
+                \medskip
+
+                These are some example functions, and their properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f : \mathbb{N}^2 \mapsto \mathbb{N}$ \hfill $f(x, y) = x + y$
+                        \subitem we can prove it is surjective by taking some arbitrary $n \in \mathbb{N}$, and proving that $f(n, 0) = n + 0 = n$
+                        \subitem we can prove it is not injective by finding a counter example, such as $f(0, 1) = 1 = f(1, 0)$, but $\la 0, 1 \ra \neq \la 1, 0 \ra$
+                    \item $f : \mathbb{N} \mapsto \mathbb{N}$ \hfill $f(x) = x^2$
+                        \subitem we can prove it is not surjective by finding a counter example; such as $f(x) = 3$, as there is no $x \in \mathbb{N}$ such that $x^2 = 3$
+                    \item $f : \mathbb{R} \mapsto \mathbb{R}$ \hfill $f(x) = 4x + 3$
+                        \subitem this is bijective
+                \end{itemize}
+                
 \end{document}
