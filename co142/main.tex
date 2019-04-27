@@ -185,7 +185,7 @@
                 We can say that any set is a trivial subset of itself, as we'd have $x \in A \Rightarrow x \in A$, which always evaluates to true, from propositional logic. Another trivial example is that $\emptyset$, the empty set, is a subset of every set. Using the second definition of subset, we can say that as $x \in \emptyset$ is false, by definition, and anything follows from falsity, whereas in the first definition we argue that all (0) elements of $\emptyset$ are in some other set.
                 \medskip
 
-                We can also define set equality as $A = B \triangleq A \subseteq B \land B \subseteq A$. However, we can also consider the set composition notation for a set, such that $A = \{x \in C \mid P(x)\}$, and $B = \{x \in C \mid Q(x)\}$. If we're able to prove that $\forall x (P(x) \Leftrightarrow Q(x))$, it follos that $A = B$. This method can be quite powerful if we're familiar with logic, and equivalences. We can justify this by saying that $y \in A \Rightarrow P(y) \Rightarrow Q(y) \Rightarrow y \in B$, and also in the other direcion; $y \in B \Rightarrow Q(y) \Rightarrow P(y) \Rightarrow y \in A$. This however requires both sets to be constructed on top of some known set $C$.
+                We can also define set equality as $A = B \triangleq A \subseteq B \land B \subseteq A$. However, we can also consider the set composition notation for a set, such that $A = \{x \in C \mid P(x)\}$, and $B = \{x \in C \mid Q(x)\}$. If we're able to prove that $\forall x (P(x) \Leftrightarrow Q(x))$, it follows that $A = B$. This method can be quite powerful if we're familiar with logic, and equivalences. We can justify this by saying that $y \in A \Rightarrow P(y) \Rightarrow Q(y) \Rightarrow y \in B$, and also in the other direction; $y \in B \Rightarrow Q(y) \Rightarrow P(y) \Rightarrow y \in A$. This however requires both sets to be constructed on top of some known set $C$.
             \subsubsection*{Set Composition}
                 \begin{itemize}
                     \itemsep0em
@@ -208,7 +208,7 @@
                 We also want to aim for a direct proof, instead of a proof by contradiction, since we will often do the following; assume $\neg A$, then we somehow get $A$, which causes a contradiction ($\lightning$), and therefore $A$. However, we still did all the work to prove $A$.
                 \medskip
 
-                Consider the proof to show that $C \cap D = D \cap C$. Let us first take some arbitary $x \in (C \cap D)$. By definition of union, we know that $x \in C$, and $x \in D$. Therefore, it also fits the predicate for $(D \cap C)$. As such, $C \cap D \subseteq D \cap C$. To prove the other direction is trivial, and almost identical to this direction. Since we've proved both directions of $\subseteq$, we can conclude equality.
+                Consider the proof to show that $C \cap D = D \cap C$. Let us first take some arbitrary $x \in (C \cap D)$. By definition of union, we know that $x \in C$, and $x \in D$. Therefore, it also fits the predicate for $(D \cap C)$. As such, $C \cap D \subseteq D \cap C$. To prove the other direction is trivial, and almost identical to this direction. Since we've proved both directions of $\subseteq$, we can conclude equality.
                 \medskip
 
                 Prove that $A = (A \backslash B) \cup (A \cap B)$. I took the approach where we use predicate logic, since I assumed it would be much easier than proving both directions of $\subseteq$ (turns out that the proof is very similar as proving one direction, is proving the other). In order to keep my proof cleaner, let $a \triangleq x \in A$, $b \triangleq x \in B$, and the negations $\neg a \triangleq x \notin A$ (and similar for $b$). Let us now define $A = \{x \mid P(x)\}$, where $P(x) = a$, and $B = \{x \mid Q(x)\}$, where $Q(x) = (a \land \neg b) \lor (a \land b)$ - by definitions of set difference, union, and intersection. Since this proves equivalence between the two predicates, we can therefore prove that the sets are equal.
@@ -227,8 +227,8 @@
                 Similar to \textbf{CO140}, we have some properties which can be used on arbitrary sets. Note that these are not axioms, and therefore we are able to prove them.
                 \begin{itemize}
                     \itemsep0em
-                    \item $A \cup A = A$ \hfill indempotence
-                    \item $A \cap A = A$ \hfill indempotence
+                    \item $A \cup A = A$ \hfill idempotence
+                    \item $A \cap A = A$ \hfill idempotence
                     \item $A \cup B  = B \cup A$ \hfill commutativity
                     \item $A \cap B  = B \cap A$ \hfill commutativity
                     \item $A \triangle B  = B \triangle A$ \hfill commutativity
@@ -242,7 +242,7 @@
                     \item $A \cup (A \cap B) = A$ \hfill absorption
                     \item $A \cap (A \cup B) = A$ \hfill absorption
                 \end{itemize}
-                Note that we are able to use the properties of logical connectives to aid us in our proofs, since those are fairly easy to prove with truth tables, as they have a finite number of configurations. For example, the proof of indempotence inherently uses the property $p \land p \equiv p$, and the same for $\lor$.
+                Note that we are able to use the properties of logical connectives to aid us in our proofs, since those are fairly easy to prove with truth tables, as they have a finite number of configurations. For example, the proof of idempotence inherently uses the property $p \land p \equiv p$, and the same for $\lor$.
             \subsubsection*{Cardinality}
                 With some finite set $A$, we can say that the cardinality, $|A|$ is the number of distinct elements in $A$. Given two finite sets, we can then say that $|A \cup B| = |A| + |B| - |A \cap B|$. With the following set properties (and that for two disjoint finite sets, $|A \cup B| = |A| + |B|$), and knowing the RHSs are disjoint unions;
                 \begin{reasoning}
@@ -257,12 +257,12 @@
                 \end{reasoning}
         \subsection*{19th October 2018}
             \subsubsection*{Powerset}
-                Let us define the powerset of $A$, as $\powerset A \triangleq \{x \mid x \subseteq A\}$. It's therefore important to note that $\powerset \emptyset = \{\emptyset\}$, hence the powerset of the empty set has size 1. We can prove that $|\powerset X| = 2^n$, for some set $X$, where $|X| = n$. This can be done (fairly) easily with mathematical induction, over natural numbers. Another approach it is to consider that each item in some arbitrary set, $A = \{a_1, a_2, ... a_n\}$, can either be in the powerset or not. Therefore, we can represet each subset of $A$ as some $n$-bit binary number. Therefore, we can have a $2^n$ possible combinations, hence the size of $|\powerset A| = 2^n$
+                Let us define the powerset of $A$, as $\powerset A \triangleq \{x \mid x \subseteq A\}$. It's therefore important to note that $\powerset \emptyset = \{\emptyset\}$, hence the powerset of the empty set has size 1. We can prove that $|\powerset X| = 2^n$, for some set $X$, where $|X| = n$. This can be done (fairly) easily with mathematical induction, over natural numbers. Another approach it is to consider that each item in some arbitrary set, $A = \{a_1, a_2, ... a_n\}$, can either be in the powerset or not. Therefore, we can represent each subset of $A$ as some $n$-bit binary number. Therefore, we can have a $2^n$ possible combinations, hence the size of $|\powerset A| = 2^n$
             \subsubsection*{Products}
                 Let us define some \textbf{ordered} pair as $\langle a, b \rangle$, such that generally $\la a, b \ra \neq \la b, a \ra$.
                 \medskip
 
-                Let there be some arbitrary sets $A$, and $B$. We can then define the cartsian product as follows; $A \times B \triangleq \{\la a, b \ra \mid a \in A \land b \in B\}$. Since we'll often deal with binary relations, we use the shorthand $A^2 = A \times A$. We can define equality on ordered pairs as $\forall a, b, c, d [\la a, b \ra =_{A \times B} \la c, d \ra \triangleq a =_A c \land b =_B d]$. Note that in general, $\times$ is not a commutative operation.
+                Let there be some arbitrary sets $A$, and $B$. We can then define the Cartesian product as follows; $A \times B \triangleq \{\la a, b \ra \mid a \in A \land b \in B\}$. Since we'll often deal with binary relations, we use the shorthand $A^2 = A \times A$. We can define equality on ordered pairs as $\forall a, b, c, d [\la a, b \ra =_{A \times B} \la c, d \ra \triangleq a =_A c \land b =_B d]$. Note that in general, $\times$ is not a commutative operation.
                 \medskip
 
                 Suppose that there are two finite sets $A = \{a_1, a_2, ..., a_n\}$, and $B = \{b_1, b_2, ..., b_m\}$, with sizes $n$, and $m$ respectively - then it follows that $|A \times B| = |A| \cdot |B|$. We can justify this by constructing such a matrix $R$, of dimension $(A \times B)^{n,m}$ - thus having $n \cdot m$ elements;
@@ -288,7 +288,7 @@
                 \end{itemize}
                 A partition of $S$ is a set of non-empty subsets that are pairwise disjoint, and cover $S$.
             \subsubsection*{Pigeonhole Principle}
-                Given a set $S$ of size $n$, partitioned into $k$ sets such that $0 < k < n$, then at least one of the subsets must have at least 2 elements. We can prove this by contradiction (one of the few times we actually do this, in DS). Assume that there are $k$ subsets, each of size 1 (therefore $\forall i \in [1, k] [|A_k| = 1]$). By definition of a partion, we can form a cover of $S$, therefore (the last 2 steps are justfied by the requirement of a partiion being pairwise disjoint);
+                Given a set $S$ of size $n$, partitioned into $k$ sets such that $0 < k < n$, then at least one of the subsets must have at least 2 elements. We can prove this by contradiction (one of the few times we actually do this, in DS). Assume that there are $k$ subsets, each of size 1 (therefore $\forall i \in [1, k] [|A_k| = 1]$). By definition of a partition, we can form a cover of $S$, therefore (the last 2 steps are justified by the requirement of a partition being pairwise disjoint);
                 \smallskip
 
                 $n = |S| = |\bigcup\limits_{i = 1}^k A_i| = \summation{i = 1}{k}{|A_i|} = \summation{i = 1}{k}{1} = k$
@@ -377,7 +377,7 @@
                 Given two binary relations $R, S \subseteq A^2$, prove that $R \subseteq S \Rightarrow R^{-1} \subseteq S^{-1}$
                 \medskip
 
-                Take some arbitrary $\la y, x \ra \in R^{-1}$. In order to show the RHS, we want to show that this is also in $S^{-1}$. Let us also make the assumption (the LHS) that $R \subseteq S$, such that $k \in R \Rightarrow k \in S$, where $k$ is any tuple. As we have some $\la y, x \ra \in R^{-1}$, it follows that there is a corresponding $\la x, y \ra \in R$. Because of our assumption, we can say that $\la x, y \ra \in S$, and therfore $\la y, x \ra \in S^{-1}$. Therefore, any arbitrary element of $R^{-1}$ is also in $S^{-1}$, hence $R^{-1} \subseteq S^{-1}$ (given our assumption holds) - so $R \subseteq S \Rightarrow R^{-1} \subseteq S^{-1}$.
+                Take some arbitrary $\la y, x \ra \in R^{-1}$. In order to show the RHS, we want to show that this is also in $S^{-1}$. Let us also make the assumption (the LHS) that $R \subseteq S$, such that $k \in R \Rightarrow k \in S$, where $k$ is any tuple. As we have some $\la y, x \ra \in R^{-1}$, it follows that there is a corresponding $\la x, y \ra \in R$. Because of our assumption, we can say that $\la x, y \ra \in S$, and therefore $\la y, x \ra \in S^{-1}$. Therefore, any arbitrary element of $R^{-1}$ is also in $S^{-1}$, hence $R^{-1} \subseteq S^{-1}$ (given our assumption holds) - so $R \subseteq S \Rightarrow R^{-1} \subseteq S^{-1}$.
         \subsection*{26th October 2018}
             The first part is just some stuff about how you should be doing proofs in natural language, as mathematics (and symbols) is just formalised human thinking. This then goes into (basically) natural deduction - so check \textbf{CO140} for techniques you can apply in proofs. Once again, we went through more questions in this lecture.
             \subsubsection*{Relation Properties}
@@ -394,17 +394,17 @@
                 \end{itemize}
                 We consider something to be an equivalence if it has a weak equality, such that $a\ R\ b$ means that $a$ is indistinguishable from $b$ in some sense. We can write this as $a \sim_R b$.
         \subsection*{30th October 2018}
-            \subsubsection*{Equivlence Classes}
+            \subsubsection*{Equivalence Classes}
                 Given $n \neq 0$, and $n \in \mathbb{N}$, the binary relation $R_n$ on $\mathbb{Z}$ is defined by $a\ R_n\ b$ when $n$ divides into $(b - a)$ is defined as; $R_n \triangleq \{\la a, b \ra \in \mathbb{Z}^2 \mid \exists q \in \mathbb{Z} [q \cdot n = (b - a)]\}$. This means that two numbers are in the same equivalence class given that they are an integer multiple of $n$ apart. As such, they have the same result under modulo $n$.
                 \medskip
 
-                Suppose we have some $R$, which is an equivalence relation on $A$. For any $a \in A$, we can define the equivalence class of $a$ with respect to $R$ as follows; $[a]_R \triangleq \{b \in A \mid a \sim_R b\}$. For brevity, we can omit the $_R$ when it's clear what equivalence relation we're referring to from the context. The set of equivalnce classes is referred to as the \textbf{quotient set}; $\frac{A}{R}$; therefore with the example above, the set $\frac{\mathbb{Z}}{R_n}$ is the quotient set which represents integers which have modulo $n$.
+                Suppose we have some $R$, which is an equivalence relation on $A$. For any $a \in A$, we can define the equivalence class of $a$ with respect to $R$ as follows; $[a]_R \triangleq \{b \in A \mid a \sim_R b\}$. For brevity, we can omit the $_R$ when it's clear what equivalence relation we're referring to from the context. The set of equivalence classes is referred to as the \textbf{quotient set}; $\frac{A}{R}$; therefore with the example above, the set $\frac{\mathbb{Z}}{R_n}$ is the quotient set which represents integers which have modulo $n$.
                 \medskip
 
-                Let us propose that the set of all equivalence classes, $\{[a] \mid a \in A\}$, forms a partiion of $A$. This means that the equivalence classes aren't empty, they form a cover of $A$, and that they are pairwise disjoint.
+                Let us propose that the set of all equivalence classes, $\{[a] \mid a \in A\}$, forms a partition of $A$. This means that the equivalence classes aren't empty, they form a cover of $A$, and that they are pairwise disjoint.
                 \medskip
 
-                We need to first show that no equivalence class is empty. First, let's take some arbitrary $x \in A$. By the reflexive nature of equivalences, we know that $x \sim_R x$, hence $x \in [x]$. As we took an arbitrary element of $A$, it's satisfied for all $A$, therefore none of the equivalnce classes are empty.
+                We need to first show that no equivalence class is empty. First, let's take some arbitrary $x \in A$. By the reflexive nature of equivalences, we know that $x \sim_R x$, hence $x \in [x]$. As we took an arbitrary element of $A$, it's satisfied for all $A$, therefore none of the equivalence classes are empty.
                 \medskip
 
                 Next we need to prove that it forms a cover of $A$, such that $A = \bigcup\limits_{a \in A}[a]$; done by proving that $A \subseteq \bigcup\limits_{a \in A}[a]$, and also $\bigcup\limits_{a \in A}[a] \subseteq A$.
@@ -419,7 +419,7 @@
                 By our definition of an equivalence class, for $y \in [x]$, it must therefore mean $x \sim_R y$, and also that $y \in A$. Hence we get $\bigcup\limits_{a \in A}[a] \subseteq A$. As we have both directions of $\subseteq$, we conclude the two sets are equal.
                 \medskip
 
-                The last one can be done by proving two equivalence classes are equal, if they aren't pairwise disjoint. Suppose two arbitrary classes in the set of equivalnce classes aren't pairwise disjoint, such that $[x] \cap [y] \neq \emptyset$. Therefore, this means that $w \in ([x] \cap [y])$, by definition of set union, we can then say that $w \in [x]$, and also $w \in [y]$. This then leads to $x \sim_R w$, and also $y \sim_R w$, by definition. However, by symmetry, we can rewrite the former as $w \sim_R x$. To establish equality, we need to show that they are subsets of each other (will only do one, since it's trivial to do the other way around). Take some arbitrary $v \in [x]$, then it follows that $x \sim_R v$. By transitivity, we can now say $w \sim_R v$, and therefore also $y \sim_R v$. It then follows that $v \in [y]$. As we took arbitrary $v \in [x]$, it follows that $[x] \subseteq [y]$. Hence the only way two items aren't disjoint in a set of equivalence classes, is when they are equal. Thus, the family of equivalence classes is pairwise disjoint, and is a partion of $A$.
+                The last one can be done by proving two equivalence classes are equal, if they aren't pairwise disjoint. Suppose two arbitrary classes in the set of equivalence classes aren't pairwise disjoint, such that $[x] \cap [y] \neq \emptyset$. Therefore, this means that $w \in ([x] \cap [y])$, by definition of set union, we can then say that $w \in [x]$, and also $w \in [y]$. This then leads to $x \sim_R w$, and also $y \sim_R w$, by definition. However, by symmetry, we can rewrite the former as $w \sim_R x$. To establish equality, we need to show that they are subsets of each other (will only do one, since it's trivial to do the other way around). Take some arbitrary $v \in [x]$, then it follows that $x \sim_R v$. By transitivity, we can now say $w \sim_R v$, and therefore also $y \sim_R v$. It then follows that $v \in [y]$. As we took arbitrary $v \in [x]$, it follows that $[x] \subseteq [y]$. Hence the only way two items aren't disjoint in a set of equivalence classes, is when they are equal. Thus, the family of equivalence classes is pairwise disjoint, and is a partition of $A$.
             \subsubsection*{Transitive Closure}
                 Strange that I'm revising this \textbf{after} doing Warshall's algorithm in \textbf{CO150}. It's probably a better idea to learn the pre-requisites for a module, before doing it.
                 \medskip
@@ -435,13 +435,13 @@
                 We can then define $R^+ \triangleq \bigcup\limits_{i \geq 1}R^i$, and thus we get $a\ R^+\ b \Leftrightarrow \exists i \geq 1 [a\ R^i\ b]$.
                 \smallskip
 
-                Let $R$ be some fniite binary relation on $A$. If $R$ is already transitive, then there is no more work we need to do. However, in the case that it's not transitive, it must mean that there is some $a, b, c \in A$ such that we have $a\ R\ b$, and also $b\ R\ c$, but not $a\ R\ c$. We then add the pair $\la a, c \ra$ to the relation. This is then repeated until we reach a point where the relation is transitive, and we are done.
+                Let $R$ be some finite binary relation on $A$. If $R$ is already transitive, then there is no more work we need to do. However, in the case that it's not transitive, it must mean that there is some $a, b, c \in A$ such that we have $a\ R\ b$, and also $b\ R\ c$, but not $a\ R\ c$. We then add the pair $\la a, c \ra$ to the relation. This is then repeated until we reach a point where the relation is transitive, and we are done.
                 \medskip
 
                 Since every step was a requirement of transitivity, we have obtained the smallest possible relation containing $R$. In our proofs, we are allowed to create an infinite construction, but \textbf{not} an infinite step proof.
                 \medskip
 
-                Consider some relation $<_1 \triangleq \{\la m, n \ra \in \mathbb{N}^2 \mid m = n + 1\}$ over $\mathbb{N}$. This is relation represents a difference of 1. Now, we can construct $<_2 = <_1 \circ <_1$ (fairly trivial to prove, since we know it covers the naturals, we can almost appraoch it inductively, however there is an easier solution where we use the properties of natural numbers (hint - if $n \in \mathbb{N}$, then $n + 1 \in \mathbb{N}$)). The transitive closure on $<_1$, $<_1^+$, is therefore $<$.
+                Consider some relation $<_1 \triangleq \{\la m, n \ra \in \mathbb{N}^2 \mid m = n + 1\}$ over $\mathbb{N}$. This is relation represents a difference of 1. Now, we can construct $<_2 = <_1 \circ <_1$ (fairly trivial to prove, since we know it covers the naturals, we can almost approach it inductively, however there is an easier solution where we use the properties of natural numbers (hint - if $n \in \mathbb{N}$, then $n + 1 \in \mathbb{N}$)). The transitive closure on $<_1$, $<_1^+$, is therefore $<$.
                 \medskip
 
                 Note that I won't include most of the exercises, because it's surprisingly laborious to typeset them on \LaTeX, especially when I'm sleep deprived. The ones included are ones that have specific techniques that we should remember for the exam.
@@ -470,7 +470,7 @@
                 Now, let us make the assumption that some arbitrary $k \in \mathbb{N}$, $n \in V$, such that we are given $A(k, S(0)) = S(k)$. Our goal here is to prove that $S(k) \in V$, by showing $A(S(k), S(0)) = S(S(k))$. By the second case of addition, we can say that $A(S(k), S(0)) = S(A(k, S(0)))$. However, by our assumption, we can substitute the value for $S(k)$, therefore $S(S(k))$. Therefore, by our assumption, we can say $k \in V \Rightarrow S(k) \in V$. By the principle of induction, it follows that $\mathbb{N} \subseteq V$, hence $\forall n \in \mathbb{N} [A(n, S(0)) = S(n)]$.
                 \medskip
 
-                While the idea of an infinite proof seems accpetable to us, intutively, we cannot do an infinite proof. We are allowed to do infinite constructions, but not a proof with inifite steps, hence we must use induction.
+                While the idea of an infinite proof seems acceptable to us, intuitively, we cannot do an infinite proof. We are allowed to do infinite constructions, but not a proof with infinite steps, hence we must use induction.
             \subsubsection*{Defining Natural Numbers with Sets}
                 Assuming that our notion of sets is real, we can recursively define natural numbers as follows;
                 \begin{align*}
@@ -525,7 +525,7 @@
                 \end{itemize}
                 However, the \textbf{relation} $R \triangleq \{\la x, y \ra \in \mathbb{R}^2 \mid x = y^2\}$ is not a function, as we can easily prove a one-to-many relationship, thus violating the first condition. For example; both $\la 1, -1 \ra$, and $\la 1, 1 \ra$ are in $R$, but clearly $-1 \neq_\mathbb{R} 1$. In order to verify a function is actually a function, we must prove that the LHS has 1 unique mapping.
             \subsubsection*{Cardinality of Function Space}
-                Let $B^A$ represent the function space of all functions mapping from $A$ to $B$, where both $A$, and $B$ are finite sets, such that $|A| = m$, and $|B| = n$. For something to be a function, every item in $A$, must map to an item in $B$. For any item in $A$, there are $n$ indepedant options to which it can map to. Hence it follows that there are $n^m$ unique options; thus $|B^A| = n^m$.
+                Let $B^A$ represent the function space of all functions mapping from $A$ to $B$, where both $A$, and $B$ are finite sets, such that $|A| = m$, and $|B| = n$. For something to be a function, every item in $A$, must map to an item in $B$. For any item in $A$, there are $n$ independent options to which it can map to. Hence it follows that there are $n^m$ unique options; thus $|B^A| = n^m$.
             \subsubsection*{Characteristic Function}
                 Suppose we have a set $A$, and the characteristic function of $B \subseteq A$ is defined as $\chi_B : A \mapsto \{0, 1\}$, and for some $n$-ary relation $R$, such that $R \subseteq A_1 \times ... \times A_n$, we can define $\chi_R : A_1 \times ... \times A_n \mapsto \{0, 1\}$;
                 \begin{align*}
@@ -553,7 +553,7 @@
                         \subitem $\forall a_1, a_2 \in A [f(a_1) =_B f(a_2) \Rightarrow a_1 =_A a_2]$
                     \item $f$ is bijective, if it is both surjective (onto), and injective (one-to-one)
                 \end{itemize}
-                The (Dual) Cantor-Bernstein Theorem states that if tehre exists $f : A \mapsto B$, and $g : B \mapsto A$, where they are both surjective, or both injective, then it follows that there is is a bijection $h : A \mapsto B$. This theorem is extremely helpful when we want to prove that two infinite sets have the same cardinality.
+                The (Dual) Cantor-Bernstein Theorem states that if there exists $f : A \mapsto B$, and $g : B \mapsto A$, where they are both surjective, or both injective, then it follows that there is is a bijection $h : A \mapsto B$. This theorem is extremely helpful when we want to prove that two infinite sets have the same cardinality.
                 \medskip
 
                 These are some example functions, and their properties;
@@ -574,10 +574,10 @@
                 By contradiction, let us assume that $|f[X]| > |X|$. Define a function $p$, such that $p : f[X] \mapsto X$. Suppose we pick an arbitrary $b \in f[X]$, and some $a \in X$ (we know this exists by definition of image), such that we have $f(a) = b$, and define $p(b) = a$.
                 \medskip
 
-                We take $y$, from $f[X]$, and place it into a pigeonhole labeled $x$, where $x \in X$, if $p(y) = x$. By the pigeonhole principle, there exists some $c \in X$, such that $d, d^\prime \in f[X]$ (because the image set is larger). Hence, it follows that $p(d) = p(d^\prime) = c$. But, by definition of $p$, we have $f(c) = d$, and also $f(c) = d^\prime$. Therefore, $f$ isn't a function, hence we have a contradicion.
+                We take $y$, from $f[X]$, and place it into a pigeonhole labeled $x$, where $x \in X$, if $p(y) = x$. By the pigeonhole principle, there exists some $c \in X$, such that $d, d^\prime \in f[X]$ (because the image set is larger). Hence, it follows that $p(d) = p(d^\prime) = c$. But, by definition of $p$, we have $f(c) = d$, and also $f(c) = d^\prime$. Therefore, $f$ isn't a function, hence we have a contradiction.
         \subsubsection*{9th November 2018}
             \subsubsection*{An Improvement on Last Lecture's Proof}
-                Using the same introduction as last lecture's proof, construct sets for all $x \in X$, $V_x \subseteq f[X]$. If for some $a \in X$, $f(a) = b$, then $b \in f[X]$ (by definition of the image), and $b \in V_a$ (by our definition). By making our assumption (which we want to be able to derive a contradicion from) $|f[X]| > |X|$. Therefore, $\exists c \in X [|V_c| > 1]$. So, we're able to say that there are distinct $d, d^\prime \in V_c$. But by our definition of $V_c$, it follows that $f(c) = d$, and also $f(c) = d^\prime$. This is not possible, as we defined $f$ as a function, hence we have a contradicion. The main issue with last week's proof was assuming we had an inverse function, $p$.
+                Using the same introduction as last lecture's proof, construct sets for all $x \in X$, $V_x \subseteq f[X]$. If for some $a \in X$, $f(a) = b$, then $b \in f[X]$ (by definition of the image), and $b \in V_a$ (by our definition). By making our assumption (which we want to be able to derive a contradiction from) $|f[X]| > |X|$. Therefore, $\exists c \in X [|V_c| > 1]$. So, we're able to say that there are distinct $d, d^\prime \in V_c$. But by our definition of $V_c$, it follows that $f(c) = d$, and also $f(c) = d^\prime$. This is not possible, as we defined $f$ as a function, hence we have a contradiction. The main issue with last week's proof was assuming we had an inverse function, $p$.
             \subsubsection*{Proposition on the Property of Functions}
                 Given two \textbf{finite} sets (these do not always apply to infinite sets) $A$, and $B$, and a function $f : A \mapsto B$, we can say that if...
                 \begin{itemize}
@@ -601,7 +601,7 @@
                     & = (h \circ g)(f(a)) \\
                     & = ((h \circ g) \circ f))(a)
                 \end{align*}
-                As we have taken arbitary $a \in A$, it follows that the two are equal.
+                As we have taken arbitrary $a \in A$, it follows that the two are equal.
                 \medskip
 
                 When we're working with function compositions, especially when we're told to give a specific example, it's useful to draw out diagrams (wish I knew that during the Christmas exam). The example below has $f : A \mapsto B$, such that $f = \{\la a_1, b_1 \ra, \la a_2, b_2 \ra\}$, and $g : B \mapsto C$, such that $g = \{\la b_1, c_1 \ra, \la b_2, c_1 \ra, \la b_3 c_2 \ra\}$. Thus the composed function $(g \circ f) : A \mapsto B$, is $g \circ f = \{\la a_1, c_1 \ra, \la a_2, c_2 \ra\}$.
@@ -648,9 +648,9 @@
                 The first part can be proven by assuming that they are both surjective. Therefore, it means that $\forall c \in C \exists b \in B [g(b) = c]$, and also $\forall b \in B \exists a \in A [f(a) = b]$. So, suppose that there is an arbitrary $c \in C$, therefore there exists some $b \in B$, such that $g(c) = b$. Now, with that $b$, we can say that there exists such an $a \in A$ where $f(a) = b$. Therefore, it follows that $\forall c \in C \exists a \in A [(g \circ f)(a) = c]$. Hence, the composed function is surjective.
                 \medskip
 
-                The second part can be proven similarly, assuming that both functions are injective. Let us take some arbitary $a_1, a_2 \in A$. We assume that $(g \circ f)(a_1) = (g \circ f)(a_2)$, hence $g(f(a_1)) = g(f(a_2))$. But we know $g$ is injective, therefore $f(a_1) = f(a_2)$, but since $f$ is also injective, it follows that $a_1 = a_2$. Hence, by assuming that $(g \circ f)(a_1) = (g \circ f)(a_2)$, we end up with $a_1 = a_2$, it follows that $g \circ f$ is injective. By proving it's also a surjection, it is therefore a bijective function.
+                The second part can be proven similarly, assuming that both functions are injective. Let us take some arbitrary $a_1, a_2 \in A$. We assume that $(g \circ f)(a_1) = (g \circ f)(a_2)$, hence $g(f(a_1)) = g(f(a_2))$. But we know $g$ is injective, therefore $f(a_1) = f(a_2)$, but since $f$ is also injective, it follows that $a_1 = a_2$. Hence, by assuming that $(g \circ f)(a_1) = (g \circ f)(a_2)$, we end up with $a_1 = a_2$, it follows that $g \circ f$ is injective. By proving it's also a surjection, it is therefore a bijective function.
             \subsubsection*{Identity, and Inverse}
-                Suppose we have a set $A$, the identity function on $A$, denoted $\text{id}_A : A \mapsto A$, is defined by $\forall a \in A [\text{id}_A(a) = a]$. Let there be some arbitrary function $f : A \mapsto B$, then the inverse of the function, $g : B \mapsto A$ (normally written $f^{-1}$) has to fulfill the following criteria. $\forall a \in A [g(f(a)) = a] \land \forall b \in B [f(g(b)) = b]$. We can also write this, more succinctly, as $g \circ f = \text{id}_A \land f \circ g = \text{id}_B$.
+                Suppose we have a set $A$, the identity function on $A$, denoted $\text{id}_A : A \mapsto A$, is defined by $\forall a \in A [\text{id}_A(a) = a]$. Let there be some arbitrary function $f : A \mapsto B$, then the inverse of the function, $g : B \mapsto A$ (normally written $f^{-1}$) has to fulfil the following criteria. $\forall a \in A [g(f(a)) = a] \land \forall b \in B [f(g(b)) = b]$. We can also write this, more succinctly, as $g \circ f = \text{id}_A \land f \circ g = \text{id}_B$.
                 \medskip
 
                 Let there be a bijection $f : A \mapsto B$, and its inverse $f^{-1} : B \mapsto A$, defined as $f^{-1}(b) = a$, when $f(a) = b$. Take some arbitrary $b \in B$, we know that there must be a corresponding $a \in A$, since $f$ is surjective. Therefore, we have shown that every item in the domain of $f^{-1}$ maps to something (one of the criteria for a function). Knowing that $f$ is also injective means that for arbitrary $b$, we have a single unique $a$ that corresponds to it, therefore $f^{-1}$ is a well defined function.
@@ -714,4 +714,40 @@
                         (p14) edge[->] (v0);
                     \end{tikzpicture}
                 \end{center}
+            \subsubsection*{Example of Bijection}
+                At the start of the course, we considered the Cartesian product of sets, and considered whether it was associative. While they are not equal, we can build a bijection between them. For example, $f : (A \times B) \times C \mapsto A \times (B \times C)$. In order to precisely define this, without using Haskell-style pattern matching, we can define $L(x, y) = x$, and $R(x, y) = y$. Therefore, to get $f(\la a, b \ra, c) = (a, \la b, c \ra)$, we define $f(x, y) = (L(x), \la R(x), y \ra)$, and similar for the inverse.
+        \subsection*{13th November 2018}
+            \subsubsection*{Cardinality of Arbitrary Sets}
+                We previously defined the cardinality of a finite set as the number of elements in it. Consider arbitrary finite sets $A$, and $B$, such that $|A| = |B| = n$. It is then trivial for us to construct a bijection $c_A : \{1, 2, ..., n\} \mapsto A$, and similarly $c_B : \{1, 2, ..., n\} \mapsto B$. Because the former is a bijection, we have a corresponding inverse function $c_A^{-1} : A \mapsto \{1, 2, ..., n\}$. Now, we can therefore form a third bijection $(c_A^{-1} \circ c_B) A \mapsto B$, hence $A \approx B$.
+            \subsubsection*{Cantor's Theorem}
+                This proof is important in mathematics as it shows that there are different types of infinities. We want to prove that for any set $A$, $A \not\approx \powerset A$.
+                \medskip
+
+                To do this, we will do a proof by contradiction. Assume that there exists some bijection (therefore we also get the fact that it's surjective without doing any work) $f : A \mapsto \powerset A$. Define a set $B = \{x \in A \mid x \notin f(x)\}$. Note that this has a clear similarity to Russel's paradox. Now, it's clear that $B \subseteq A$, since we're constructing from a well defined set. Therefore, it follows that $B \in \powerset A$, by the definition of $\powerset$. However, from our assumption, we're given that it's a surjection, hence there exists some $b \in A$, such that $f(b) = B$.
+                \medskip
+
+                We then get $b \in f(b)$ (same as $b \in B$), or $b \notin f(b)$. Consider the first case, when $b \in f(b) = B$, therefore, it means it satisfies the criteria that $b \notin f(b)$, thus $\lightning$. Consider the latter case, where $b \notin f(b)$, by the definition of $B$, $b \in B$, therefore $b \in f(b)$, hence $\lightning$. Because we get a contradiction on both cases, the assumption leads to falsity, hence $f$ is not surjective, therefore it definitely isn't bijective. As there doesn't exist a bijection between the two sets, they do not have the same cardinality.
+                \medskip
+
+                An important technique to pick out is that we don't care how the bijection is defined, just that it exists (for our purposes), and we can therefore use the properties for our proof.
+            \subsubsection*{Countable Sets}
+                We can say some set $A$ countable if it is finite, or $A \approx \mathbb{N}$. The elements of a countable set can be listed as a \textbf{finite, or infinite} sequence of distinct terms $A = \{a_1, a_2, a_3, ...\}$. For example, we can write the integers as $\mathbb{Z} = {0, -1, 1, -2, 2, -3, 3, ...}$, where the "counting bijection" $g : \mathbb{N} \mapsto \mathbb{Z}$ is defined as follows;
+                \begin{align*}
+                    g(x) & =
+                    \begin{cases}
+                        \frac{x}{2} & x \text{ is even}\\
+                        -\frac{x + 1}{2} & x \text{ is odd}
+                    \end{cases}
+                \end{align*}
+                As we're dealing with sets, there's no reason to construct a bijection that preserves an order. We can quite easily show that $\mathbb{Q}^+$ (the positive rationals) is countable, via the same technique we used for $\mathbb{N}^2$. By applying the method we used for showing countability of $\mathbb{Z}$, we can do the same for $\mathbb{Q}^+$ to $\mathbb{Q}$, and also union $\{0\}$, to make it complete.
+                \medskip
+
+                In order to prove that the set $\{0, 1\} \times \mathbb{N}$ is countable, we can either construct a diagram similar to the one for $\mathbb{N}^2$, or we can define a bijection function $g : \mathbb{N} \mapsto \{0, 1\} \times \mathbb{N}$, defined as follows;
+                \begin{align*}
+                    g(x) & =
+                    \begin{cases}
+                        \la 0, \frac{x}{2} \ra & x \text{ is even}\\
+                        \la 1, {x + 1}{2} \ra & x \text{ is odd}
+                    \end{cases}
+                \end{align*}
 \end{document}
