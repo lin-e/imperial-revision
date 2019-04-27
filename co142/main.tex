@@ -284,7 +284,7 @@
                     \itemsep0em
                     \item none of them are empty (therefore $\forall i \in [1, n] [A_i \neq \emptyset]$)
                     \item the subsets cover $S$ (therefore $S = \bigcup\limits_{i = 1}^n A_i$)
-                    \item they are pairwise disjoint (therefore $\forall i, j \in [1, n] [i \neq j \Rightarrow A_i \cup A_j = \emptyset]$)
+                    \item they are pairwise disjoint (therefore $\forall i, j \in [1, n] [i \neq j \Rightarrow A_i \cap A_j = \emptyset]$)
                 \end{itemize}
                 A partition of $S$ is a set of non-empty subsets that are pairwise disjoint, and cover $S$.
             \subsubsection*{Pigeonhole Principle}
@@ -311,7 +311,7 @@
                         \node[] (a2) at (0, 0) {$a_2$};
                         \node[] (b1) at (5, 1) {$b_1$};
                         \node[] (b2) at (5, 0) {$b_2$};
-                        \node[] (b3) at (5, -1) {$b_2$};
+                        \node[] (b3) at (5, -1) {$b_3$};
                         \draw
                         (0,0) ellipse (1 and 2)
                         (5,0) ellipse (1 and 2)
@@ -567,5 +567,151 @@
                     \item $f : \mathbb{R} \mapsto \mathbb{R}$ \hfill $f(x) = 4x + 3$
                         \subitem this is bijective
                 \end{itemize}
-                
+            \subsubsection*{Some Proof on Function Image?}
+                No idea what this should actually be titled. But let there be a finite set $A$, a function $f : A \mapsto B$, and $X \subseteq A$. We want to prove that $|f[X]| \leq |X|$.
+                \medskip
+
+                By contradiction, let us assume that $|f[X]| > |X|$. Define a function $p$, such that $p : f[X] \mapsto X$. Suppose we pick an arbitrary $b \in f[X]$, and some $a \in X$ (we know this exists by definition of image), such that we have $f(a) = b$, and define $p(b) = a$.
+                \medskip
+
+                We take $y$, from $f[X]$, and place it into a pigeonhole labeled $x$, where $x \in X$, if $p(y) = x$. By the pigeonhole principle, there exists some $c \in X$, such that $d, d^\prime \in f[X]$ (because the image set is larger). Hence, it follows that $p(d) = p(d^\prime) = c$. But, by definition of $p$, we have $f(c) = d$, and also $f(c) = d^\prime$. Therefore, $f$ isn't a function, hence we have a contradicion.
+        \subsubsection*{9th November 2018}
+            \subsubsection*{An Improvement on Last Lecture's Proof}
+                Using the same introduction as last lecture's proof, construct sets for all $x \in X$, $V_x \subseteq f[X]$. If for some $a \in X$, $f(a) = b$, then $b \in f[X]$ (by definition of the image), and $b \in V_a$ (by our definition). By making our assumption (which we want to be able to derive a contradicion from) $|f[X]| > |X|$. Therefore, $\exists c \in X [|V_c| > 1]$. So, we're able to say that there are distinct $d, d^\prime \in V_c$. But by our definition of $V_c$, it follows that $f(c) = d$, and also $f(c) = d^\prime$. This is not possible, as we defined $f$ as a function, hence we have a contradicion. The main issue with last week's proof was assuming we had an inverse function, $p$.
+            \subsubsection*{Proposition on the Property of Functions}
+                Given two \textbf{finite} sets (these do not always apply to infinite sets) $A$, and $B$, and a function $f : A \mapsto B$, we can say that if...
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f$ is onto (surjective), then $|A| \geq |B|$
+                        \subitem note that if it is injective, then $f[A] = B$, therefore $|f[A]| = |B|$
+                        \subitem we can use what we just proved, that $|f[A]| \leq |A|$, so $|A| \geq |B|$
+                    \item $f$ is one-to-one (injective), then $|A| \leq |B|$
+                        \subitem contraposition of the pigeonhole principle, or something
+                    \item $f$ is bijective, then $|A| = |B|$
+                        \subitem this follows from the first two, trivially
+                \end{itemize}
+            \subsubsection*{Function Composition}
+                Suppose we have arbitrary sets, $A$, $B$, $C$, and let there be two functions $f : A \mapsto B$, and $g : B \mapsto C$. We can define the composition of $f$ with $g$ (meaning $g$ applied to the image of $f$), as $\la a, c \ra \in (g \circ f) \triangleq \exists b \in B [\la a, b \ra \in f \land \la b, c \ra \in g]$ where $(g \circ f) : A \mapsto C$. It's important to note that the order of the arguments is flipped, compared to relation composition. The crucial requirement is that the co-domain of $f$ matches the domain of $g$.
+                \medskip
+
+                We can prove that function composition is associative quite trivially. Recall that two functions $i, j$ (let them both be functions from $A$ to $B$) are equal if $\forall a \in A [i(a) =_B j(b)]$. We want to prove that $h \circ (g \circ f) = (h \circ g) \circ f$, and we are using the same definitions mentioned previously, plus a new set $D$, and $h : C \mapsto D$. We first take an arbitrary $a \in A$;
+                \begin{align*}
+                    (h \circ (g \circ f)) (a) & = h((g \circ f)(a)) \\
+                    & = h(g(f(a))) \\
+                    & = (h \circ g)(f(a)) \\
+                    & = ((h \circ g) \circ f))(a)
+                \end{align*}
+                As we have taken arbitary $a \in A$, it follows that the two are equal.
+                \medskip
+
+                When we're working with function compositions, especially when we're told to give a specific example, it's useful to draw out diagrams (wish I knew that during the Christmas exam). The example below has $f : A \mapsto B$, such that $f = \{\la a_1, b_1 \ra, \la a_2, b_2 \ra\}$, and $g : B \mapsto C$, such that $g = \{\la b_1, c_1 \ra, \la b_2, c_1 \ra, \la b_3 c_2 \ra\}$. Thus the composed function $(g \circ f) : A \mapsto B$, is $g \circ f = \{\la a_1, c_1 \ra, \la a_2, c_2 \ra\}$.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[] () at (0, 2.5) {$A$};
+                        \node[] () at (5, 2.5) {$B$};
+                        \node[] () at (10, 2.5) {$C$};
+                        \node[] (a1) at (0, 1) {$a_1$};
+                        \node[] (a2) at (0, 0) {$a_2$};
+                        \node[] (b1) at (5, 1) {$b_1$};
+                        \node[] (b2) at (5, 0) {$b_2$};
+                        \node[] (b3) at (5, -1) {$b_3$};
+                        \node[] (c1) at (10, 1) {$c_1$};
+                        \node[] (c2) at (10, 0) {$c_2$};
+                        \node[] (c3) at (10, -1) {$c_3$};
+                        \draw
+                        (0,0) ellipse (1 and 2)
+                        (5,0) ellipse (1 and 2)
+                        (10, 0) ellipse (1 and 2)
+                        (a1) edge[bend left=30, ->] (b1)
+                        (a2) edge[bend right=10, ->] (b2)
+                        (b1) edge[bend left=20, ->] (c1)
+                        (b2) edge[bend left=10, ->] (c1)
+                        (b3) edge[bend right=30, ->] (c2);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Proofs on Properties of Composed Functions}
+                We want to show that if $g \circ f$ is an injective function, then it follows that $f$ is an injective function.
+                \medskip
+
+                Take some arbitrary $a_1, a_2 \in A$. Assume that $f(a_1) = f(a_2)$ (otherwise it doesn't help, since falsity implies anything). Now, by the definition of a function, we can say that $g(f(a_1)) = g(f(a_2))$, which means that $(g \circ f) (a_1) = (g \circ f)(a_2)$. However, we're assuming that $g \circ f$ is injective, hence it follows that $a_1 = a_2$. By assuming that $f(a_1) = f(a_2)$, we get $a_1 = a_2$, hence we have proven $f$ is injective.
+                \medskip
+
+                We want to show that if $g \circ f$ is a surjective function, then it follows that $g$ is a surjective function.
+                \medskip
+
+                Our goal is to show that $\forall c \in C \exists b \in B [g(b) = a]$. Knowing that $\forall c \in C \exists a \in A [(g \circ f)(a) = c]$, it implies that there exists some $b \in B$, such that $f(a) = b$ (by definition of function composition). Hence, $g$ is surjective.
+                \medskip
+
+                We want to show that if we have bijections $f : A \mapsto B$, and $g : B \mapsto C$, then $g \circ f$ is a bijection. It is sufficient to show that if $f, g$ are both surjective, then so is $g \circ f$, and if $f, g$ are both injective, then so is $g \circ f$.
+                \medskip
+
+                The first part can be proven by assuming that they are both surjective. Therefore, it means that $\forall c \in C \exists b \in B [g(b) = c]$, and also $\forall b \in B \exists a \in A [f(a) = b]$. So, suppose that there is an arbitrary $c \in C$, therefore there exists some $b \in B$, such that $g(c) = b$. Now, with that $b$, we can say that there exists such an $a \in A$ where $f(a) = b$. Therefore, it follows that $\forall c \in C \exists a \in A [(g \circ f)(a) = c]$. Hence, the composed function is surjective.
+                \medskip
+
+                The second part can be proven similarly, assuming that both functions are injective. Let us take some arbitary $a_1, a_2 \in A$. We assume that $(g \circ f)(a_1) = (g \circ f)(a_2)$, hence $g(f(a_1)) = g(f(a_2))$. But we know $g$ is injective, therefore $f(a_1) = f(a_2)$, but since $f$ is also injective, it follows that $a_1 = a_2$. Hence, by assuming that $(g \circ f)(a_1) = (g \circ f)(a_2)$, we end up with $a_1 = a_2$, it follows that $g \circ f$ is injective. By proving it's also a surjection, it is therefore a bijective function.
+            \subsubsection*{Identity, and Inverse}
+                Suppose we have a set $A$, the identity function on $A$, denoted $\text{id}_A : A \mapsto A$, is defined by $\forall a \in A [\text{id}_A(a) = a]$. Let there be some arbitrary function $f : A \mapsto B$, then the inverse of the function, $g : B \mapsto A$ (normally written $f^{-1}$) has to fulfill the following criteria. $\forall a \in A [g(f(a)) = a] \land \forall b \in B [f(g(b)) = b]$. We can also write this, more succinctly, as $g \circ f = \text{id}_A \land f \circ g = \text{id}_B$.
+                \medskip
+
+                Let there be a bijection $f : A \mapsto B$, and its inverse $f^{-1} : B \mapsto A$, defined as $f^{-1}(b) = a$, when $f(a) = b$. Take some arbitrary $b \in B$, we know that there must be a corresponding $a \in A$, since $f$ is surjective. Therefore, we have shown that every item in the domain of $f^{-1}$ maps to something (one of the criteria for a function). Knowing that $f$ is also injective means that for arbitrary $b$, we have a single unique $a$ that corresponds to it, therefore $f^{-1}$ is a well defined function.
+                \medskip
+
+                Suppose we have a function $f : A \mapsto B$, with a well defined inverse $g$. We can prove that $f$ is a bijection, and $g$ is unique. We want to first prove that it is a surjection; take an arbitrary $b \in B$; now we know that $f(g(b)) = b$, by definition of inverse, hence it is onto. Now to prove that $f$ is injective, take arbitrary $a_1, a_2 \in A$. Assume that $f(a_1) = f(a_2)$, then it follows that $g(f(a_1) = g(f(a_2))$. By definition of inverse (with the identity), we can then say that $g(f(a_1)) = a_1 = a_2 = g(f(a_2))$, hence $a_1 = a_2$, thus $f$ is injective, and since it is both injective, and surjective, it is a bijection.
+                \medskip
+
+                Assume that there are two inverses of $f$; $g, g^\prime$. Taking an arbitrary $b \in B$, we can say that $f(g(b)) = b$, and also $f(g^\prime(b)) = b$, once again by using the identity definition. Hence, it follows that $g = g^\prime$, as $f$ is injective.
+            \subsubsection*{Cardinality of Sets}
+                Let us define equivalence on sets (not equality), for \textbf{any} (they can be infinite) sets $A$, and $B$;
+                \smallskip
+
+                $A \approx B \triangleq \exists f : A \mapsto B$ (where $f$ is a bijection). Note that the previously mentioned (Dual) Cantor-Bernstein Theorem states that there is a bijection when there are two injective (or two surjective) functions $g : A \mapsto B$, and $h : B \mapsto A$.
+                \medskip
+
+                We can also prove that it is an equivalence relation, such that it is reflexive, symmetric, and also transitive;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\approx$ is reflexive, hence $A \approx A$
+                        \subitem we have the identity relation $\text{id}_A : A \mapsto A$, which is a bijection
+                    \item $\approx$ is symmetric, hence if $A \approx B$, then $B \approx A$
+                        \subitem given that there is a bijection $f : A \mapsto B$, there exists an inverse $f^{-1} : B \mapsto A$, which is also a bijection (proven above)
+                    \item $\approx$ is transitive, hence if $A \approx B$, and $B \approx C$, then $A \approx C$
+                        \subitem given that there exists two bijections, $f : A \mapsto B$, and $g : B \mapsto C$, the composition $(g \circ f) : A \mapsto C$ is also a bijection (proven above)
+                \end{itemize}
+                We can prove that $\mathbb{N} \approx \mathbb{N}^2$ by arranging the pairs in an infinite grid (remember that we're allowed infinite constructions, just not infinite step proofs). Each pair is visited once, and only once, therefore there exists a bijection.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \foreach \x in {0,...,5} {
+                            \foreach \y in {0,...,4} {
+                                \node[] (p\x\y) at (1.5*\x, -\y) {$\la \x, \y \ra$};
+                            }
+                        }
+                        \foreach \x in {0,...,5} {
+                            \node[] (v\x) at (1.5*\x, -5) {$\vdots$};
+                        }
+                        \foreach \y in {0,...,4} {
+                            \node[] (c\y) at (9, -\y) {$\cdots$};
+                        }
+                        \draw
+                        (p00) edge[->] (p10)
+                        (p10) edge[->] (p01)
+                        (p01) edge[->] (p02)
+                        (p01) edge[->] (p02)
+                        (p02) edge[->] (p11)
+                        (p11) edge[->] (p20)
+                        (p20) edge[->] (p30)
+                        (p30) edge[->] (p21)
+                        (p21) edge[->] (p12)
+                        (p12) edge[->] (p03)
+                        (p04) edge[->] (p13)
+                        (p13) edge[->] (p22)
+                        (p22) edge[->] (p31)
+                        (p31) edge[->] (p40)
+                        (p40) edge[->] (p50)
+                        (p50) edge[->] (p41)
+                        (p41) edge[->] (p32)
+                        (p32) edge[->] (p23)
+                        (p23) edge[->] (p14)
+                        (p14) edge[->] (v0);
+                    \end{tikzpicture}
+                \end{center}
 \end{document}
