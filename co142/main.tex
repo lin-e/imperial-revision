@@ -787,13 +787,13 @@
             \subsubsection*{???}
                 I'm pretty sure there was something important here that I need to rewatch, about diagonalisation.
             \subsubsection*{Proving the Rationals are Insignificant in the Reals}
-                Here, we want to show that $\mathbb{Q}$ is insignificant (hence a zero-set) in $\mathbb{R}$. Since we've proven that the rationals are countable, we can write $\mathbb{Q} = \{q_0, q_1, q_2, ...\}$. We can contruct intervals in $\mathbb{R}$, $V_\delta^i \subseteq \mathbb{R}$ as $V_\delta^i \subseteq \mathbb{R}$, as $V_\delta^i \triangleq (q_i - \delta \cdot 2^{-i}, q_i + \delta \cdot 2^{-i})$. Therefore, we can say that each interval therefore has a size of $\delta \cdot 2^{1-i}$, which can be written as $||V_\delta^i||$, for brevity.
+                Here, we want to show that $\mathbb{Q}$ is insignificant (hence a zero-set) in $\mathbb{R}$. Since we've proven that the rationals are countable, we can write $\mathbb{Q} = \{q_0, q_1, q_2, ...\}$. We can construct intervals in $\mathbb{R}$, $V_\delta^i \subseteq \mathbb{R}$ as $V_\delta^i \subseteq \mathbb{R}$, as $V_\delta^i \triangleq (q_i - \delta \cdot 2^{-i}, q_i + \delta \cdot 2^{-i})$. Therefore, we can say that each interval therefore has a size of $\delta \cdot 2^{1-i}$, which can be written as $||V_\delta^i||$, for brevity.
                 \smallskip
 
                 We can also say that $V_\delta \triangleq \bigcup\limits_{i = 0}^\infty V_\delta^i$, hence $\mathbb{Q} \subseteq V_\delta$. As well as $0 < ||V_\delta|| \leq \summation{i = 0}{\infty}{||V_\delta^i||} = 2\delta\summation{i = 0}{\infty}{2^-i} = 4\delta$.
                 \smallskip
 
-                We've therefore defined that the size of $V_\delta$ is bounded between 0, and $4\delta$. Since this is true for any $\delta$, if we take $V = \limit{\delta}{0}V_\delta$, we approach 0, we show that $V$ is neglgiible. Since $\mathbb{Q} \subseteq V$, $\mathbb{Q}$ is a null set in $\mathbb{R}$.
+                We've therefore defined that the size of $V_\delta$ is bounded between 0, and $4\delta$. Since this is true for any $\delta$, if we take $V = \limit{\delta}{0}V_\delta$, we approach 0, we show that $V$ is negligible. Since $\mathbb{Q} \subseteq V$, $\mathbb{Q}$ is a null set in $\mathbb{R}$.
             \subsubsection*{Orderings}
                 Define $R$ as a binary relation on $A$, we can then say the following properties;
                 \begin{itemize}
@@ -875,4 +875,58 @@
                     & \equiv \neg \exists b \in A [b \leq_A a \land b \neq_A a] \\
                     & \equiv \neg \exists b \in A [b <_A a]
                 \end{align*}
+        \subsection*{20th November 2018}
+            \subsubsection*{Questions on the Divisor Order}
+                The following questions concern a divisor order $\leq_D$ defined on the positive natural numbers ($\mathbb{N}^+$), defined such that $n \leq_D m \triangleq n \text{ divides } m$ (or more formally as $\exists p \in \mathbb{Z} [m = p \cdot n]$).
+                \medskip
+
+                The first question is to prove that this is a partial order, which means that it's transitive, anti-symmetric, and also reflexive. In order to prove that it's transitive, assume there are arbitrary $a, b, c \in \mathbb{N}^+$, such that $a \leq_D b$, and also $b \leq_D c$. The former implies that there is some integer, let it be $p$, such that $b = p \cdot a$, and the latter implies that there is some other integer $q$ such that $c = q \cdot b$. By substitution, we can then say $c = q \cdot p \cdot a$. By closure of multiplication on the integers, we can say that $q \cdot p \in \mathbb{Z}$, therefore $a \leq_D c$, hence it is transitive (as we took arbitrary values).
+                \medskip
+
+                In order to prove that it's anti-symmetric, suppose we have arbitrary $n, m \in \mathbb{N}^+$, such that $n \leq_D m$, and also $m \leq_D n$. The former suggests that there's an integer $p$, where $m = p \cdot n$, and the latter suggests similar (let the integer be $q$); $n = q \cdot m$. Once again, by substitution, we can say $m = p \cdot q \cdot m$. As we know $m \neq 0$ by the positive restriction, we can divide through, hence we have $p \cdot q = 1$. As they are both integers, we can conclude that $p = q = 1$, therefore $m = n$. Hence $\leq_D$ is also anti-symmetric.
+                \medskip
+
+                Finally, we want to prove that it's reflexive. Take an arbitary $n \in \mathbb{N}^+$. Trivially, we can say $n = 1 \cdot n$, and as $1 \in \mathbb{Z}$, we have $n \leq_D n$, hence $\leq_D$ is also reflexive. However, as we've proven the other proerties, it follows that it is a partial order.
+                \medskip
+
+                The next part requires us to draw the Hasse diagram of $(S, \leq_D)$, where $S = \{2, 4, 5, 10, 12, 20, 25\}$. The minimal elements here are $\{2, 5\}$, and the maximal elements are $\{12, 20, 25\}$.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[circle, fill=black, inner sep=1.5pt, label=below:{2}] (2) at (-1, 0) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=below:{5}] (5) at (1, 0) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=below:{10}] (10) at (0, 1) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=left:{4}] (4) at (-2, 1) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=right:{25}] (25) at (2, 1) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=above:{12}] (12) at (-2, 2) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=above:{20}] (20) at (0, 2) {};
+                        \draw
+                        (2) -- (4)
+                        (2) -- (10)
+                        (5) -- (10)
+                        (5) -- (25)
+                        (4) -- (12)
+                        (4) -- (20)
+                        (10) -- (20);
+                    \end{tikzpicture}
+                \end{center}
+                The above is not a total order, as we don't have any relations (including implied ones by transitivity) between 20, and 25, nor 5, and 12, and so on. We can find a total order $\leq_T$, on $S$, by simply taking $\leq_{\mathbb{N}^+}$, which is the standard less-than-or-equal-to on the positive naturals.
+            \subsubsection*{Well-founded Partial Orders}
+                A well-founded partial order is defined as a partial order that has no infinite \textbf{decreasing} chain of elements. For every infinite sequence, written as $a_1, a_2, a_3, ...$, such that $a_1 \geq a_2 \geq ...$, there exists some point $m \in \mathbb{N}$, such that $a_n = a_m$ for any $n \geq m$.
+                \medskip
+
+                If we have two well-founded partial orders $(A, \leq_A)$, and $(B, \leq_B)$, then the lexigraphical order of $L = A \times B$ is also well-founded. By contradiction, let us consider a chain $\la a_1, b_1 \ra \geq_L \la a_2, b_2 \ra \geq_L \la a_3, b_3 \ra \geq_L ...$. Then, by lexigraphical ordering, it follows that $a_1 \geq_A a_2 \geq_A a_3 \geq_A ...$, until some point, where it's just repeating $a_m$ (since we're told it's well-founded). After this point, since $a_n = a_m$ for all $n \geq m$, we start checking $b$ values. Now, we have $b_m \geq_B b_{m + 1} \geq_B b_{m + 2} \geq_B b_{m + 3} \geq_B ...$,to another limit, let it be $r$, where it continues to repeat values. As we now have repeating $\la a_r, b_r \ra$, it follows that the lexigraphical must also be well-founded.
+            \subsubsection*{Ackermann Function}
+                We can prove that the Ackermann function (will be referred to as $A$ for brevity) terminates. This relies on the previous proof that the lexigraphical ordering of the product set is also well-founded if the 'factors' are. Note that the Ackermann function is defined as $A : \mathbb{N}^\mapsto \mathbb{N}$, and concerns the following cases;
+                \begin{align*}
+                    A(0, y) & = y + 1 \\
+                    A(x + 1, 0) & = A(x, 1) \\
+                    A(x + 1, y + 1) & = A(x, A(x + 1, y))
+                \end{align*}
+                We define the lexigraphical ordering of natural number pairs as $\la x, y \ra < \la x^\prime y^\prime \ra \triangleq x < x^\prime \lor (x = x^\prime \land y < y^\prime)$. Applying this to the inputs of the functions, we obtain the following results;
+                \begin{align*}
+                    \la x + 1, 0 \ra & < \la x, 1 \ra \\
+                    \la x + 1, y + 1 \ra & < \la, A(x + 1, y) \ra \\
+                    \la x + 1, y + 1 \ra & < \la x + 1, y \ra
+                \end{align*}
+                Therefore, the function must terminate.
 \end{document}
