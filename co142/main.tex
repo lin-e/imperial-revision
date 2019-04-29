@@ -750,4 +750,129 @@
                         \la 1, {x + 1}{2} \ra & x \text{ is odd}
                     \end{cases}
                 \end{align*}
+        \subsection*{16th November 2018}
+            \subsubsection*{Something on the Union of Countable Sets}
+                Prove that if $X$, and $Y$ are disjoint, countable sets, then the union $V = X \cup Y$ is also countable. This can be split into four cases, as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item Both $X$, and $Y$ are finite sets. This is the simplest case, as we can say that $|X| = n$, and $|Y| = m$, where $n, m \in \mathbb{N}$, hence $|X \cup Y| = n + m \in \mathbb{N}$, due to the closure of addition on the natural numbers. We can take the sum, as proven at the start of the module.
+                    \item $X$ is a finite set, and $Y$ is infinite. As $Y$ is countable, we can say $Y \approx \mathbb{N}$, hence there exists some bijection $f : \mathbb{N} \mapsto Y$. Since $X$ is finite, we can say $|X| = n$, and also $X = \{x_1, x_2, ..., x_n\}$. Let us now construct another bijection, $h : \mathbb{N} \mapsto X \cup Y$, defined as follows;
+                        \begin{align*}
+                            h(i) & =
+                            \begin{cases}
+                                x_i & \text{if } i \leq |X| \\
+                                f(i - |X|) & \text{otherwise}
+                            \end{cases}
+                        \end{align*}
+                        Since there exists such a bijection, it proves that the union is also countable.
+                    \item $X$ is an infinite set, and $Y$ is finite. Same proof as above, but with the two sets swapped.
+                    \item Both $X$, and $Y$, are countably infinite sets. This proof relies on the fact that $\{0, 1\} \times \mathbb{N}$ is countable. Let us make some bijection $k : \mathbb{N} \mapsto \{0, 1\} \times \mathbb{N}$ defined as;
+                        \begin{align*}
+                            k(n) & =
+                            \begin{cases}
+                                \la 0, \frac{n}{2} \ra & n \text{ is even} \\
+                                \la 1, \frac{n - 1}{2} \ra & n \text{ is odd}
+                            \end{cases}
+                        \end{align*}
+                        Since they are both countable, it follows that $X \approx \mathbb{N}$, and $Y \approx \mathbb{N}$, hence there exists a pair of bijections $f : \mathbb{N} \mapsto X$, and $g : \mathbb{N} \mapsto Y$. Let us also define an additional $h : \{0, 1\} \times \mathbb{N} \mapsto X \cup Y$, defined as;
+                        \begin{align*}
+                            h(b, n) & =
+                            \begin{cases}
+                                f(n) & b = 0 \\
+                                g(n) & b = 1
+                            \end{cases}
+                        \end{align*}
+                        Due to function composition, we could also create a bijection from $\mathbb{N} \mapsto X \cup Y$, but proving that the Cartesian product is countable should be sufficient.
+                \end{enumerate}
+            \subsubsection*{???}
+                I'm pretty sure there was something important here that I need to rewatch, about diagonalisation.
+            \subsubsection*{Proving the Rationals are Insignificant in the Reals}
+                Here, we want to show that $\mathbb{Q}$ is insignificant (hence a zero-set) in $\mathbb{R}$. Since we've proven that the rationals are countable, we can write $\mathbb{Q} = \{q_0, q_1, q_2, ...\}$. We can contruct intervals in $\mathbb{R}$, $V_\delta^i \subseteq \mathbb{R}$ as $V_\delta^i \subseteq \mathbb{R}$, as $V_\delta^i \triangleq (q_i - \delta \cdot 2^{-i}, q_i + \delta \cdot 2^{-i})$. Therefore, we can say that each interval therefore has a size of $\delta \cdot 2^{1-i}$, which can be written as $||V_\delta^i||$, for brevity.
+                \smallskip
+
+                We can also say that $V_\delta \triangleq \bigcup\limits_{i = 0}^\infty V_\delta^i$, hence $\mathbb{Q} \subseteq V_\delta$. As well as $0 < ||V_\delta|| \leq \summation{i = 0}{\infty}{||V_\delta^i||} = 2\delta\summation{i = 0}{\infty}{2^-i} = 4\delta$.
+                \smallskip
+
+                We've therefore defined that the size of $V_\delta$ is bounded between 0, and $4\delta$. Since this is true for any $\delta$, if we take $V = \limit{\delta}{0}V_\delta$, we approach 0, we show that $V$ is neglgiible. Since $\mathbb{Q} \subseteq V$, $\mathbb{Q}$ is a null set in $\mathbb{R}$.
+            \subsubsection*{Orderings}
+                Define $R$ as a binary relation on $A$, we can then say the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $R$ is a pre-order \hfill $R$ is reflexive, and transitive
+                    \item $R$ is anti-symmetric \hfill $\forall a, b \in A [a\ R\ b \land b\ R\ a \Rightarrow a =_A b]$
+                    \item $R$ is a partial order (often written as $\leq$) \hfill $R$ is reflexive, transitive, and anti-symmetric
+                        \subitem $(A, \leq)$, or $\leq_A$ means a partial order $\leq$ on $A$
+                    \item $R$ is irreflexive \hfill $\forall a \in A [\neg (a\ R\ a)]$
+                    \item $R$ is a strict partial order (often written as $<$) \hfill $R$ is irreflexive, and transitive
+                    \item $R$ is a total order \hfill a partial order that satisfies $\forall a, b \in A [a\ R\ b \lor b\ R\ a]$
+                \end{itemize}
+                Given two partial orders $(A, \leq_A)$, and also $(B, \leq_B)$, the important orders on the product set $P = A \times B$ are;
+                \begin{itemize}
+                    \itemsep0em
+                    \item product order \hfill $\la a_1, b_1 \ra \leq_P \la a_2, b_2 \ra \triangleq a_1 \leq_A a_2 \land b_1 \leq_B b_2$
+                    \item lexigraphical order \hfill $\la a_1, b_1 \ra \leq_P \la a_2, b_2 \ra \triangleq a_1 \leq_A a_2 \lor (a_1 =_A a_2 \land b_1 \leq_B b_2)$
+                \end{itemize}
+                If both $(A, \leq_A)$, and $(B, \leq_B)$ are total orders, the lexigraphical order is also a total order, but in general the product order is partial.
+            \subsubsection*{Hasse Diagrams}
+                By convention, Hasse diagrams only record the immediate predecessors (as the rest can be inferred). The direction of the lines are often omitted, and conventionally are read by looking up the page. For example, the Hasse diagrams for the binary relation 'divides' on the set $\{1, 2, 3, 6, 12, 18\}$, and the binary relation $\subseteq$ on $\powerset \{\alpha, \beta, \gamma\}$ are as follows;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[circle, fill=black, inner sep=1.5pt, label=below:{1}] (1) at (-6, 0) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=left:{2}] (2) at (-8, 1) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=right:{3}] (3) at (-4, 1) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=below:{6}] (6) at (-6, 2) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=left:{12}] (12) at (-8, 3) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=right:{18}] (18) at (-4, 3) {};
+                        \draw
+                        (1) -- (2)
+                        (1) -- (3)
+                        (2) -- (6)
+                        (3) -- (6)
+                        (6) -- (12)
+                        (6) -- (18);
+
+                        \node[circle, fill=black, inner sep=1.5pt, label=below:{$\emptyset$}] (e) at (0, 0) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=left:{$\{\alpha\}$}] (a) at (-2, 1) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=left:{$\{\beta\}$}] (b) at (0, 1) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=right:{$\{\gamma\}$}] (g) at (2, 1) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=left:{$\{\alpha, \beta\}$}] (ab) at (-2, 2) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=left:{$\{\alpha, \gamma\}$}] (ag) at (0, 2) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=right:{$\{\beta, \gamma\}$}] (bg) at (2, 2) {};
+                        \node[circle, fill=black, inner sep=1.5pt, label=right:{$\{\alpha, \beta, \gamma\}$}] (abg) at (0, 3) {};
+                        \draw
+                        (e) -- (a)
+                        (e) -- (b)
+                        (e) -- (g)
+                        (a) -- (ab)
+                        (a) -- (ag)
+                        (b) -- (ab)
+                        (b) -- (bg)
+                        (g) -- (ag)
+                        (g) -- (bg)
+                        (ab) -- (abg)
+                        (bg) -- (abg)
+                        (ag) -- (abg);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Properties of Partial Orders}
+                Suppose there is a partial order $(A, \leq)$, and $a \in A$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $a$ is minimal \hfill $\forall b \in A [b \leq_A a \Rightarrow b =_A a]$
+                    \item $a$ is maximal \hfill $\forall b \in A [a \leq_A b \Rightarrow b =_A a]$
+                    \item $a$ is least \hfill $\forall b \in A [a \leq_A b]$
+                    \item $a$ is greatest \hfill $\forall b \in A [b \leq_A a]$
+                \end{itemize}
+                From this, we know that any least element is a minimal element, and any greatest element is also a maximal element. Note that the minimal element isn't necessarily unique; for example, given the set $W = \{V \subseteq \mathbb{N} \mid |V| \geq 1\}$, then every item which is just a set composed of a single natural number is minimal in $(W, \subseteq)$, and there exists no least element.
+                \medskip
+
+                We can prove that a least element is unique. For example, let us take two 'least' elements, $a_1, a_2 \in A$. It then follows for all $b \in A$ that $a_1 \leq_A b$, and also $a_2 \leq_A b$. However, since we have this for all $b$, it follows that $a_1 \leq_A a_2$, and also $a_2 \leq_A a_1$, therefore $a_1 =_A a_2$. Note that in our first example, with the divisors, there isn't always a greatest element, but there are two maximal elements in 12, and 18.
+
+                By using logical equivalences, we can derive the condition for $a$ to be minimal in a \textbf{strict partial order} $(A, <)$, note that equality is no longer considered, since we have irreflexivity);
+                \begin{align*}
+                    \forall b \in A [b \leq_A a \Rightarrow b =_A a] & \equiv \forall b \in A [\neg (b \leq_A a) \lor b =_A a] \\
+                    & \equiv \forall b \in A [\neg (b \leq_A a \land b \neq_A a)] \\
+                    & \equiv \neg \exists b \in A [b \leq_A a \land b \neq_A a] \\
+                    & \equiv \neg \exists b \in A [b <_A a]
+                \end{align*}
 \end{document}
