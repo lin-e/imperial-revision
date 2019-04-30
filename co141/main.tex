@@ -271,7 +271,7 @@
                     \proofeq{}{\frac{(k + 1)((k + 1) + 1)}{2}}{by arithmetic}
                 \end{reasoning}
             \subsubsection*{Example - $7^n + 5$ is divisible by 3}
-                We want to prove $P(n)$, where $P(n) \triangleq 7^n + 5 \text{ is divisible by 3}$. However, this isn't exactly a very formal defined, so we will rewrite it as $P(n) \triangleq \exists m : \mathbb{N}[7^n + 5 = 3m]$
+                We want to prove $P(n)$, where $P(n) \triangleq 7^n + 5 \text{ is divisible by 3}$. However, this isn't exactly a very formal definition, so we will rewrite it as $P(n) \triangleq \exists m : \mathbb{N}[7^n + 5 = 3m]$
                 \smallskip
 
                 We need to formally write this as;
@@ -487,7 +487,7 @@
                     \proofeq{}{(\texttt{rev } ys) ++ ((\texttt{rev } zs) ++ [z])}{by (D)}
                     \proofeq{}{(\texttt{rev } ys) ++ (\texttt{rev } (z : zs))}{by def. of \texttt{rev}}
                 \end{reasoning}
-                Unlike in induction over natural numbers, each list has an infinite number of successors (for example, both \texttt{3:[]}, and \text{877:[]} are successors of \texttt{[]}), which is why it's important for us to consider arbitrary values. Intuitively, assuming the base case of $P(\texttt{[]})$ holds, we have $P(\texttt{[]}) \rightarrow (P(\texttt{x:[]}) \rightarrow (P(\texttt{y:x:[]}) \rightarrow P(\texttt{z:y:x[]})))$, and so on, hence it holds for all lists.
+                Unlike in induction over natural numbers, each list has an infinite number of successors (for example, both \texttt{3:[]}, and \texttt{877:[]} are successors of \texttt{[]}), which is why it's important for us to consider arbitrary values. Intuitively, assuming the base case of $P(\texttt{[]})$ holds, we have $P(\texttt{[]}) \rightarrow (P(\texttt{x:[]}) \rightarrow (P(\texttt{y:x:[]}) \rightarrow P(\texttt{z:y:x[]})))$, and so on, hence it holds for all lists.
         \subsection*{Induction over Haskell Data Structures}
             While we can now perform induction over the natural numbers, as well as lists of arbitrary type, we cannot yet perform induction over arbitrary data structures, which are recursively defined. Consider the following data structures;
             \begin{itemize}
@@ -495,7 +495,7 @@
                 \item \texttt{data Nat = Zero | Succ Nat}
                     \subitem $P(\texttt{Zero}) \land \forall n : \texttt{Nat} [P(n) \rightarrow P(\texttt{Succ } n)] \rightarrow \forall n : \texttt{Nat} [P(n)]$
                 \item \texttt{data Tree a = Empty | Node (Tree a) a (Tree a)}
-                    \subitem $P(\texttt{Empty}) \land \forall t_1, t_2 : \texttt{Tree T} \forall x \texttt{T} [P(t_1) \land P(t_2) \rightarrow P(\texttt{Node }t_1\ x\ t_2)] \rightarrow \forall t : \texttt{Tree T} [P(t)]$
+                    \subitem $P(\texttt{Empty}) \land \forall t_1, t_2 : \texttt{Tree a} \forall x : \texttt{a} [P(t_1) \land P(t_2) \rightarrow P(\texttt{Node }t_1\ x\ t_2)] \rightarrow \forall t : \texttt{Tree a} [P(t)]$
                 \item \texttt{data BExp = T | F | BNt BExp | BAnd BExp BExp}
                     \subitem $P(\texttt{T}) \land P(\texttt{F}) \land \forall b : \texttt{BExp} [P(b) \rightarrow P(\texttt{BNt } b)] \land \forall b_1, b_2 : \texttt{BExp} [P(b_1) \land P(b_2) \rightarrow P(\texttt{BAnd } b_1 b_2)] \rightarrow \forall b : \texttt{BExp} [P(b)]$
             \end{itemize}
@@ -571,7 +571,7 @@
                 data Cactus = Root Tree
                 data Tree   = Leaf | Node [Tree]
             \end{lstlisting}
-            Now; the new \texttt{Tree} structure has the inductive principle; $P(\texttt{Leaf}) \land \forall ts : \texttt{Trees} [\forall t : \texttt{Tree}, \forall ts_1, ts_2 : \texttt{Trees} [\textcolor{violet}{ts = ts_1 ++ [t] ++ ts_2 \rightarrow P(t)}] \rightarrow P(\texttt{Node } ts)] \rightarrow \forall t : \texttt{Tree} [P(t)]$. The meaning of the part in \textcolor{violet}{violet} is that every item in $ts$ satisfies the property $P$, I think.
+            Now; the new \texttt{Tree} structure has the inductive principle; $P(\texttt{Leaf}) \land \forall ts : \texttt{[Tree]} [\forall t : \texttt{Tree}, \forall ts_1, ts_2 : \texttt{[Tree]} [\textcolor{violet}{ts = ts_1 ++ [t] ++ ts_2 \rightarrow P(t)}] \rightarrow P(\texttt{Node } ts)] \rightarrow \forall t : \texttt{Tree} [P(t)]$. The meaning of the part in \textcolor{violet}{violet} is that every item in $ts$ satisfies the property $P$, I think.
             \medskip
 
             In summary, by having a recursively defined data type, it allows us to construct an induction principle, which then leads to a proof schema. We are able to use first-order equivalences to swap quantifiers, which may allow for a proof on an easier equivalent property. Occasionally, lemmas will need to be strengthened, or we will need to create auxiliary lemmas.
@@ -621,12 +621,6 @@
 
             In order to prove \textbf{Assrt\_3}, we need to apply mathematical induction over $k$, and formally apply the principle as;
             \smallskip
-
-            \begin{itemize}
-                \itemsep0em
-                \item $\forall m, cnt, acc : \mathbb{N} [m = cnt \rightarrow \texttt{M'}(i, cnt, acc) = acc]$
-                \item $\forall m, cnt, acc : \mathbb{N} [m > cnt \rightarrow ]$
-            \end{itemize}
 
             $\phantom{\forall k : \mathbb{N}[} \textcolor{blue}{\forall m, cnt, acc : \mathbb{N} [0 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]} \land \\ \textcolor{red}{\forall k : \mathbb{N} [\forall m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc] \rightarrow } \\ \phantom{\forall k : \mathbb{N} [} \textcolor{red}{\forall m, cnt, acc : \mathbb{N} [k + 1 = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]]} \rightarrow \\ \phantom{\ : \mathbb{N}[} \textcolor{violet}{\forall k, m, cnt, acc : \mathbb{N} [k = m - cnt \rightarrow \texttt{M'}(m, cnt, acc) = 2^{m - cnt} \cdot acc]}$
             \begin{reasoning}
@@ -895,11 +889,11 @@
                     // PRE: $P$
                     // POST: $Q$
                     {
-                    somecodeblock0
-                    // MID: $R$
-                    somecodeblock1
-                    // MID: $S$
-                    somecodeblock2
+                      somecodeblock0
+                      // MID: $R$
+                      somecodeblock1
+                      // MID: $S$
+                      somecodeblock2
                     }
                 \end{lstlisting}
                 The following specification suggests that if $P[\texttt{x}_1 \mapsto v_1, ... \texttt{x}_n \mapsto v_n]$ holds before the call to \\ $\texttt{someMethod}(v_1, v_2 ..., v_n)$, then $Q[\texttt{x}_1 \mapsto v_1, ... \texttt{x}_n \mapsto v_n]$ holds on the return. Note that $v_i$ is a value, and $\texttt{x}_i$ is variable. Sometimes, this will be simplified as $\bar{\texttt{x}}$, or $\bar{v}$. The rules for the mid-conditions are the same as before.
@@ -963,18 +957,18 @@
                     // PRE ($P$): $\top$
                     // POST ($Q$): r = max{x, y, z}
                     {
-                    int res;
-                    if (x >= y) {
+                      int res;
+                      if (x >= y) {
                         res = x;
-                    } else {
+                      } else {
                         res = y;
-                    }
-                    // MID ($M_1$): res = max{x, y}
-                    if (z >= res) {
+                      }
+                      // MID ($M_1$): res = max{x, y}
+                      if (z >= res) {
                         res = z;
-                    }
-                    // MID ($M_2$): res = max{z, max{x, y}}
-                    return res;
+                      }
+                      // MID ($M_2$): res = max{z, max{x, y}}
+                      return res;
                     }
                 \end{lstlisting}
                 It's important to note the mid-condition ($M_2$) in line 15, since we are describing a logical assertion, not what the code is doing. For example, writing \texttt{res = max\{res, z\}} is invalid, as it is only true when $\texttt{res} \geq \texttt{z}$, but that isn't guaranteed in the program specification, which doesn't constrain any of the input values (other than type). We also cannot write $\texttt{res = max\{}\texttt{res}_\text{old}\texttt{, z\}}$, since that is only used in our proofs - as a tool to distinguish between values at different points in code execution.
@@ -995,9 +989,9 @@
                 \begin{lstlisting}
                     // PRE: $P$
                     if (cond) {
-                    code1;
+                      code1;
                     } else {
-                    code2;
+                      code2;
                     }
                     // POST: $Q$
                 \end{lstlisting}
@@ -1005,13 +999,13 @@
                 \begin{lstlisting}
                     // PRE: $P$
                     if (cond) {
-                    // MID: $P \land \texttt{cond}$
-                    code1;
-                    // MID: $R_1$
+                      // MID: $P \land \texttt{cond}$
+                      code1;
+                      // MID: $R_1$
                     } else {
-                    // MID: $P \land \neg\texttt{cond}$
-                    code2;
-                    // MID: $R_2$
+                      // MID: $P \land \neg\texttt{cond}$
+                      code2;
+                      // MID: $R_2$
                     }
                     // POST: $Q$
                 \end{lstlisting}
@@ -1021,18 +1015,18 @@
                     // PRE ($P$): $\top$
                     ...
                     {
-                    int res;
-                    if (x >= y) {
+                      int res;
+                      if (x >= y) {
                         // MID ($P \land \texttt{cond}$): x $\geq$ y
                         res = x;
                         // MID ($R_1$): res = x $\land$ x $\geq$ y
-                    } else {
+                      } else {
                         // MID ($P \land \neg\texttt{cond}$): y $>$ x
                         res = y;
                         // MID ($R_2$): res = y $\land$ y $>$ x
-                    }
-                    // MID ($M_1$): res = max{x, y}
-                    ...
+                      }
+                      // MID ($M_1$): res = max{x, y}
+                      ...
                     }
                 \end{lstlisting}
                 \begin{align*}
@@ -1050,16 +1044,16 @@
                 Consider the following methods here;
                 \begin{lstlisting}
                     void mainMethod() {
-                    ...
-                    // MID: $P$
-                    someMethod($v_1$, ..., $v_n$);
-                    // MID: $Q$
-                    }
+                      ...
+                      // MID: $P$
+                      someMethod($v_1$, ..., $v_n$);
+                      // MID: $Q$
+                      }
                     void someMethod(type x$_1$, ..., type x$_n$)
                     // PRE: $R$
                     // POST: $S$
                     {
-                    code
+                      code
                     }
                 \end{lstlisting}
                 The first requirement is to show that $P \rightarrow R[\bar{\texttt{x}} \mapsto \bar{v}]$, once that's proven, we can apply the method as;
@@ -1074,13 +1068,13 @@
                 If we consider return values from a method, such that we can change the code to be the following;
                 \begin{lstlisting}
                     void mainMethod() {
-                    ...
-                    // MID: $P$
-                    res = someMethod($v_1$, ..., $v_n$);
-                    // MID: $Q$
+                      ...
+                      // MID: $P$
+                      res = someMethod($v_1$, ..., $v_n$);
+                      // MID: $Q$
                     }
                     type someMethod(type x$_1$, ..., type x$_n$) {
-                    ...
+                      ...
                 \end{lstlisting}
                 We need to be careful with the modification of \texttt{res}. Once again, the pre-condition of \texttt{someMethod} still needs to be satisfied in the same way, but we will also need additional substitutions as follows;
                 \smallskip
@@ -1097,19 +1091,19 @@
                     // PRE ($P_1$): b $\neq$ null
                     // POST ($Q_1$): b[..) $\sim$ b[..)$_\text{pre}$ $\land$ sorted(b[..))
                     {
-                    ...
+                      ...
                     }
 
                     int smallest(int[] a)
                     // PRE ($P_2$): a $\neq$ null $\land$ a.length $>$ 0
                     // POST ($Q_2$): r = min(a[..)$_\text{pre}$)
                     {
-                    // MID ($M_1$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ a $\neq$ null $\land$ a.length $>$ 0
-                    sort(a);
-                    // MID ($M_2$): a[..) $\sim$ a[..)$_\text{pre}$ $\land$ sorted(a[..)) $\land$ a.length $>$ 0
-                    int res = a[0];
-                    // MID ($M_3$): a[..) $\sim$ a[..)$_\text{pre}$ $\land$ res = min(a[..))
-                    return res;
+                      // MID ($M_1$): a[..) $\approx$ a[..)$_\text{pre}$ $\land$ a $\neq$ null $\land$ a.length $>$ 0
+                      sort(a);
+                      // MID ($M_2$): a[..) $\sim$ a[..)$_\text{pre}$ $\land$ sorted(a[..)) $\land$ a.length $>$ 0
+                      int res = a[0];
+                      // MID ($M_3$): a[..) $\sim$ a[..)$_\text{pre}$ $\land$ res = min(a[..))
+                      return res;
                     }
                 \end{lstlisting}
                 Informally (and formally below), the obligations are as follows;
