@@ -949,9 +949,9 @@
                 \end{align*}
                 We define the lexicographical ordering of natural number pairs as $\la x, y \ra < \la x^\prime y^\prime \ra \triangleq x < x^\prime \lor (x = x^\prime \land y < y^\prime)$. Applying this to the inputs of the functions, we obtain the following results;
                 \begin{align*}
-                    \la x + 1, 0 \ra & < \la x, 1 \ra \\
-                    \la x + 1, y + 1 \ra & < \la, A(x + 1, y) \ra \\
-                    \la x + 1, y + 1 \ra & < \la x + 1, y \ra
+                    \la x + 1, 0 \ra & > \la x, 1 \ra \\
+                    \la x + 1, y + 1 \ra & > \la x, A(x + 1, y) \ra \\
+                    \la x + 1, y + 1 \ra & > \la x + 1, y \ra
                 \end{align*}
                 Therefore, the function must terminate.
 \end{document}
