@@ -784,8 +784,33 @@
                         \end{align*}
                         Due to function composition, we could also create a bijection from $\mathbb{N} \mapsto X \cup Y$, but proving that the Cartesian product is countable should be sufficient.
                 \end{enumerate}
-            \subsubsection*{???}
-                I'm pretty sure there was something important here that I need to rewatch, about diagonalisation.
+            \subsubsection*{Diagonalisation}
+                To clarify on the notation used; I am using $v_i^j$ to denote the $i^\text{th}$ element of $V^j$.
+                \medskip
+
+                We want to prove that $\powerset \mathbb{N}$ is uncountable, as $\mathbb{N} \not\approx \powerset \mathbb{N}$. Any subset $V \subseteq \mathbb{N}$ can be represented as a list of 0s, and 1s. For example, let the set $V^j$ be represented as $v_0^j, v_1^j, v_2^j, ...$, based on the characteristic function $\chi_{V^j}$, such that $v_i^j = 1$ if $i \in V^j$, otherwise $v_i^j = 0$ if $i \notin V^j$ - it's important to note that $i \in \mathbb{N}$. Suppose there is a set of sets $V^0, V^1, V^2, ...$, let us define a new set $W$, where the $i^\text{th}$ element, $w_i$, is defined as $w_i = 1 - v^i_i$. As we're still bounded to 0s, and 1s - it follows that $W \subseteq \mathbb{N}$. From the definition of $W$, we get that $\forall i \in \mathbb{N} [i \in W \Leftrightarrow i \notin V^i]$ therefore this new set is different from every other set $V$, in at least one item (hence $\forall i \in \mathbb{N} [W \neq V^i]$). The diagram below visualises this concept;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \foreach \x in {0,...,4} {
+                            \foreach \y in {0,...,4} {
+                                \node[] () at (1.5*\x, -\y) {$v^\y_\x$};
+                            }
+                        }
+                        \foreach \x in {0,...,4} {
+                            \node[] () at (1.5*\x, -5) {$\vdots$};
+                            \node[] () at (1.5*\x, -6) {$1 - v_\x^\x$};
+                            \draw
+                            (1.5*\x, -\x) ellipse (0.5 and 0.5);
+                        }
+                        \foreach \y in {0,...,4} {
+                            \node[] () at (7.5, -\y) {$\cdots$};
+                            \node[] () at (-1, -\y) {$=$};
+                            \node[] () at (-2, -\y) {$V^\y$};
+                        }
+                        \node[] () at (-1, -6) {$=$};
+                        \node[] () at (-2, -6) {$W$};
+                    \end{tikzpicture}
+                \end{center}
             \subsubsection*{Proving the Rationals are Insignificant in the Reals}
                 Here, we want to show that $\mathbb{Q}$ is insignificant (hence a zero-set) in $\mathbb{R}$. Since we've proven that the rationals are countable, we can write $\mathbb{Q} = \{q_0, q_1, q_2, ...\}$. We can construct intervals in $\mathbb{R}$, $V_\delta^i \subseteq \mathbb{R}$ as $V_\delta^i \subseteq \mathbb{R}$, as $V_\delta^i \triangleq (q_i - \delta \cdot 2^{-i}, q_i + \delta \cdot 2^{-i})$. Therefore, we can say that each interval therefore has a size of $\delta \cdot 2^{1-i}$, which can be written as $||V_\delta^i||$, for brevity.
                 \smallskip
@@ -810,9 +835,9 @@
                 \begin{itemize}
                     \itemsep0em
                     \item product order \hfill $\la a_1, b_1 \ra \leq_P \la a_2, b_2 \ra \triangleq a_1 \leq_A a_2 \land b_1 \leq_B b_2$
-                    \item lexigraphical order \hfill $\la a_1, b_1 \ra \leq_P \la a_2, b_2 \ra \triangleq a_1 \leq_A a_2 \lor (a_1 =_A a_2 \land b_1 \leq_B b_2)$
+                    \item lexicographical order \hfill $\la a_1, b_1 \ra \leq_P \la a_2, b_2 \ra \triangleq a_1 \leq_A a_2 \lor (a_1 =_A a_2 \land b_1 \leq_B b_2)$
                 \end{itemize}
-                If both $(A, \leq_A)$, and $(B, \leq_B)$ are total orders, the lexigraphical order is also a total order, but in general the product order is partial.
+                If both $(A, \leq_A)$, and $(B, \leq_B)$ are total orders, the lexicographical order is also a total order, but in general the product order is partial.
             \subsubsection*{Hasse Diagrams}
                 By convention, Hasse diagrams only record the immediate predecessors (as the rest can be inferred). The direction of the lines are often omitted, and conventionally are read by looking up the page. For example, the Hasse diagrams for the binary relation 'divides' on the set $\{1, 2, 3, 6, 12, 18\}$, and the binary relation $\subseteq$ on $\powerset \{\alpha, \beta, \gamma\}$ are as follows;
                 \begin{center}
@@ -886,7 +911,7 @@
                 In order to prove that it's anti-symmetric, suppose we have arbitrary $n, m \in \mathbb{N}^+$, such that $n \leq_D m$, and also $m \leq_D n$. The former suggests that there's an integer $p$, where $m = p \cdot n$, and the latter suggests similar (let the integer be $q$); $n = q \cdot m$. Once again, by substitution, we can say $m = p \cdot q \cdot m$. As we know $m \neq 0$ by the positive restriction, we can divide through, hence we have $p \cdot q = 1$. As they are both integers, we can conclude that $p = q = 1$, therefore $m = n$. Hence $\leq_D$ is also anti-symmetric.
                 \medskip
 
-                Finally, we want to prove that it's reflexive. Take an arbitary $n \in \mathbb{N}^+$. Trivially, we can say $n = 1 \cdot n$, and as $1 \in \mathbb{Z}$, we have $n \leq_D n$, hence $\leq_D$ is also reflexive. However, as we've proven the other proerties, it follows that it is a partial order.
+                Finally, we want to prove that it's reflexive. Take an arbitrary $n \in \mathbb{N}^+$. Trivially, we can say $n = 1 \cdot n$, and as $1 \in \mathbb{Z}$, we have $n \leq_D n$, hence $\leq_D$ is also reflexive. However, as we've proven the other properties, it follows that it is a partial order.
                 \medskip
 
                 The next part requires us to draw the Hasse diagram of $(S, \leq_D)$, where $S = \{2, 4, 5, 10, 12, 20, 25\}$. The minimal elements here are $\{2, 5\}$, and the maximal elements are $\{12, 20, 25\}$.
@@ -914,15 +939,15 @@
                 A well-founded partial order is defined as a partial order that has no infinite \textbf{decreasing} chain of elements. For every infinite sequence, written as $a_1, a_2, a_3, ...$, such that $a_1 \geq a_2 \geq ...$, there exists some point $m \in \mathbb{N}$, such that $a_n = a_m$ for any $n \geq m$.
                 \medskip
 
-                If we have two well-founded partial orders $(A, \leq_A)$, and $(B, \leq_B)$, then the lexigraphical order of $L = A \times B$ is also well-founded. By contradiction, let us consider a chain $\la a_1, b_1 \ra \geq_L \la a_2, b_2 \ra \geq_L \la a_3, b_3 \ra \geq_L ...$. Then, by lexigraphical ordering, it follows that $a_1 \geq_A a_2 \geq_A a_3 \geq_A ...$, until some point, where it's just repeating $a_m$ (since we're told it's well-founded). After this point, since $a_n = a_m$ for all $n \geq m$, we start checking $b$ values. Now, we have $b_m \geq_B b_{m + 1} \geq_B b_{m + 2} \geq_B b_{m + 3} \geq_B ...$,to another limit, let it be $r$, where it continues to repeat values. As we now have repeating $\la a_r, b_r \ra$, it follows that the lexigraphical must also be well-founded.
+                If we have two well-founded partial orders $(A, \leq_A)$, and $(B, \leq_B)$, then the lexicographical order of $L = A \times B$ is also well-founded. By contradiction, let us consider a chain $\la a_1, b_1 \ra \geq_L \la a_2, b_2 \ra \geq_L \la a_3, b_3 \ra \geq_L ...$. Then, by lexicographical ordering, it follows that $a_1 \geq_A a_2 \geq_A a_3 \geq_A ...$, until some point, where it's just repeating $a_m$ (since we're told it's well-founded). After this point, since $a_n = a_m$ for all $n \geq m$, we start checking $b$ values. Now, we have $b_m \geq_B b_{m + 1} \geq_B b_{m + 2} \geq_B b_{m + 3} \geq_B ...$,to another limit, let it be $r$, where it continues to repeat values. As we now have repeating $\la a_r, b_r \ra$, it follows that the lexicographical must also be well-founded.
             \subsubsection*{Ackermann Function}
-                We can prove that the Ackermann function (will be referred to as $A$ for brevity) terminates. This relies on the previous proof that the lexigraphical ordering of the product set is also well-founded if the 'factors' are. Note that the Ackermann function is defined as $A : \mathbb{N}^\mapsto \mathbb{N}$, and concerns the following cases;
+                We can prove that the Ackermann function (will be referred to as $A$ for brevity) terminates. This relies on the previous proof that the lexicographical ordering of the product set is also well-founded if the 'factors' are. Note that the Ackermann function is defined as $A : \mathbb{N}^\mapsto \mathbb{N}$, and concerns the following cases;
                 \begin{align*}
                     A(0, y) & = y + 1 \\
                     A(x + 1, 0) & = A(x, 1) \\
                     A(x + 1, y + 1) & = A(x, A(x + 1, y))
                 \end{align*}
-                We define the lexigraphical ordering of natural number pairs as $\la x, y \ra < \la x^\prime y^\prime \ra \triangleq x < x^\prime \lor (x = x^\prime \land y < y^\prime)$. Applying this to the inputs of the functions, we obtain the following results;
+                We define the lexicographical ordering of natural number pairs as $\la x, y \ra < \la x^\prime y^\prime \ra \triangleq x < x^\prime \lor (x = x^\prime \land y < y^\prime)$. Applying this to the inputs of the functions, we obtain the following results;
                 \begin{align*}
                     \la x + 1, 0 \ra & < \la x, 1 \ra \\
                     \la x + 1, y + 1 \ra & < \la, A(x + 1, y) \ra \\
