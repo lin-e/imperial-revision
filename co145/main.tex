@@ -10,7 +10,16 @@
 \usepackage{logicproof}
 \usepackage{diagbox}
 \usepackage{listings}
+\usepackage{graphicx}
 \usepackage{lstautogobble}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{stmaryrd}
+\usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
+
+% shorthand for verbatim
+\catcode`~=\active
+\def~#1~{\texttt{#1}}
 
 % code listing
 \lstdefinestyle{main}{
@@ -28,6 +37,7 @@
     xleftmargin=3.0ex,
     mathescape=true
 }
+\newcommand{\dollar}{\mbox{\textdollar}} %
 \lstset{style=main}
 
 % augmented matrix
@@ -49,9 +59,12 @@
 \newcommand{\limit}[2]{\displaystyle{\lim_{#1 \to #2}}}
 \newcommand{\summation}[3]{\sum\limits_{#1}^{#2} #3}
 \newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
+\newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
 
 \newcommand{\powerset}[0]{\wp}
 \renewcommand{\emptyset}[0]{\varnothing}
+\newcommand{\la}[0]{\langle}
+\newcommand{\ra}[0]{\rangle}
 
 \newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
 \newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
@@ -59,6 +72,7 @@
 
 % no indent
 \setlength\parindent{0pt}
+\setlength\itemsep{0em}
 
 % reasoning proofs
 \usepackage{ltablex}
@@ -77,9 +91,78 @@
 \newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
 \newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
 
+% reasoning er diagrams
+\newcommand{\nattribute}[4]{
+    \node[draw, state, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\mattribute}[4]{
+    \node[draw, state, accepting, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\dattribute}[4]{
+    \node[draw, state, dashed, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\entity}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 0.5)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -0.5)$) {};
+    \draw
+    ($(#1-c) + (-1, 0.5)$) -- ($(#1-c) + (1, 0.5)$) -- ($(#1-c) + (1, -0.5)$) -- ($(#1-c) + (-1, -0.5)$) -- cycle;
+}
+\newcommand{\relationship}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 1)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -1)$) {};
+    \draw
+    ($(#1-c) + (-1, 0)$) -- ($(#1-c) + (0, 1)$) -- ($(#1-c) + (1, 0)$) -- ($(#1-c) + (0, -1)$) -- cycle;
+}
+
 % actual document
 \begin{document}
     \section*{CO145 - Mathematical Methods}
-        \subsection*{}
+        \subsection*{Prelude}
+            The content discussed here is part of CO145 - Mathematical Methods (Computing MEng); taught by Michael Huth, and Mario Berta, in Imperial College London during the academic year 2018/19. The notes are written for my personal use, and have no guarantee of being correct (although I hope it is, for my own sake). This should be used in conjunction with the lecture notes. This module differs as there isn't as much new content, but it requires practice.
+        \subsection*{Sequences}
+            \subsubsection*{Formal Definition of a Limit}
+                A sequence $a_n$, for $n \geq 1$, converges to some limit $l \in \mathbb{R}$ if, and only if, we can prove $\forall \epsilon > 0 [\exists N_\epsilon \in \mathbb{N} [\forall n > N_\epsilon [|a_n - l| < \epsilon]]]$.
+                \medskip
 
+                To show convergence for the sequence $a_n = \frac{1}{n}$, we need to first make a guess for the limit - suppose $l = 0$. We can now attempt to find some $N_\epsilon$. As $\frac{1}{n} - 0$ is positive for all $n \in \mathbb{N}$, we can drop the absolute, thus it's sufficient to find $n$ such that $\frac{1}{n} < \epsilon$. Since both are positive (hence non-zero), we can take reciprocals on both sides, to get $n > \frac{1}{\epsilon}$. However, we are restricted by the fact that $n$ must be an integer, hence it follows $N_\epsilon = \ceil{\frac{1}{\epsilon}}$. For any value of $\epsilon$, we can get some $N_\epsilon$ with the function, thus it proves that a limit exists.
+            \subsubsection*{Common Converging Sequences}
+                Note that for all of these, we are imiplicity saying $\limit{n}{\infty}$, and that $a_n \to 0$.
+                \begin{center}
+                    \begin{tabular}{l|l|c}
+                        $a_n$ & condition & $N_\epsilon$ \\
+                        \hline
+                        $\frac{1}{n^c}$ & for some $c \in \mathbb{R}^+$ & $\ceil{\frac{1}{\epsilon^c}}$ \\
+                        $\frac{1}{c^n}$ & for some $c \in \mathbb{R}$, such that $|c| > 1$ & $\ceil{\text{log}_c(\frac{1}{\epsilon})}$ \\
+                        $c^n$ & for some $c \in \mathbb{R}$, such that $|c| < 1$ & $\ceil{\text{log}_c(\epsilon)}$ \\
+                        $\frac{1}{n!}$ & & \\
+                        $\frac{1}{\text{ln}(n)}$ & $n > 1$ & $\ceil{e^{\frac{1}{\epsilon}}}$
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Combining Sequences}
+                Suppose that $a_n \to a$, and $b_n \to b$, as $\limit{n}{\infty}$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\limit{n}{\infty}\lambda a_n = \lambda a$ given $\lambda \in \mathbb{R}$
+                    \item $\limit{n}{\infty}(a_n + b_n) = a + b$
+                    \item $\limit{n}{\infty}(a_nb_n) = ab$
+                    \item $\limit{n}{\infty}{\frac{a_n}{b_n}} = \frac{a}{b}$ given $b \neq 0$
+                \end{itemize}
+                \medskip
+
+                For example, the sequence $a_n = \frac{4n^2 + 3n}{7n^2 + 3n - 2}$, it's trivial to find the limit as $n \to \infty$ by inspection as $\frac{4}{7}$. However, if we divide every term by $n^2$, we end up with $a_n = \frac{4 + \frac{3}{n}}{7 + \frac{3}{n} - \frac{2}{n^2}}$, which we can break into $a_n = \frac{b_n}{c_n}$, where $b_n = 4 + \frac{3}{n}$, and $c_n = 7 + \frac{3}{n} - \frac{2}{n^2}$. Using the rules from above, we can further break down the sequences (but I really cannot be bothered to do so), to a point where we get $a = \frac{4 + 0}{7 + 0 - 0} = \frac{4}{7}$.
+            \subsubsection*{Sandwich Theorem}
+                In the sandwich theorem, where we want to prove that $\limit{n}{\infty}a_n = l$, we need two sequences that form upper, and lower bounds for $a_n$, namely $u_n$, and $l_n$. If such sequences exist, and satisfy $\exists N \in \mathbb{N}[\forall n \geq N [l_n \leq a_n \leq u_n]]$, and both $\limit{n}{\infty}u_n = \limit{n}{\infty}l_n = l$, then we get $\limit{n}{\infty}a_n = l$.
+                \medskip
+
+                For example, consider the sequence $a_n = \frac{\text{cos}(n)}{n}$. We know that $-1 \leq \text{cos}(n) \leq 1$, therefore $l_n = -\frac{1}{n} \leq a_n \leq \frac{1}{n} = u_n$. However, as both $u_n \to 0$, and $l_n \to 0$, when $n \to \infty$, it follows that $\limit{n}{\infty}a_n = 0$.
+                \medskip
+
+                The sandwich theorem can be proven by finding ${N_\epsilon}_l$, and ${N_\epsilon}_u$ for $l_n$, and $u_n$ respectively. As they both converge to the same limit, we can justify that for some $N_\epsilon = \text{max}({N_\epsilon}_l, {N_\epsilon}_u)$, 
+            % $P(~Box~) \land \forall ~t1~, ~t2~ : ~BT~ [P(~t1~) \land P(~t2~) \rightarrow P(~Nd t1 t2~)] \rightarrow \forall ~t~ : ~BT~ [P(~t~)]$
 \end{document}
