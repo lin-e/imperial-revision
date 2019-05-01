@@ -56,8 +56,9 @@
 \newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
 \newcommand{\defint}[4]{\int_{#1}^{#2} #3 \, \mathrm{d}#4}
 \newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
-\newcommand{\limit}[2]{\displaystyle{\lim_{#1 \to #2}}}
+\newcommand{\limit}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\lim_{#1 \to #2}}$}}}
 \newcommand{\summation}[3]{\sum\limits_{#1}^{#2} #3}
+% \newcommand{\summation}[3]{\raisebox{0.5ex}{\scalebox{0.5}{$\displaystyle{\sum\limits_{#1}^{#2} #3}$}}}
 \newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
 \newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
 
@@ -87,6 +88,7 @@
 \newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
 \newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
 \newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\proofiff}[3]{$#1$ & $\Leftrightarrow$ $#2$ & \hfill #3 \smallskip \\}
 \newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
 \newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
 \newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
@@ -124,7 +126,7 @@
 \begin{document}
     \section*{CO145 - Mathematical Methods}
         \subsection*{Prelude}
-            The content discussed here is part of CO145 - Mathematical Methods (Computing MEng); taught by Michael Huth, and Mario Berta, in Imperial College London during the academic year 2018/19. The notes are written for my personal use, and have no guarantee of being correct (although I hope it is, for my own sake). This should be used in conjunction with the lecture notes. This module differs as there isn't as much new content, but it requires practice.
+            The content discussed here is part of CO145 - Mathematical Methods (Computing MEng); taught by Michael Huth, and Mario Berta, in Imperial College London during the academic year 2018/19. The notes are written for my personal use, and have no guarantee of being correct (although I hope it is, for my own sake). This should be used in conjunction with the lecture notes. This module differs as there isn't as much new content, but it requires practice - as such, I will likely be including worked examples for my own benefit (which are probably incorrect).
         \subsection*{Sequences}
             \subsubsection*{Formal Definition of a Limit}
                 A sequence $a_n$, for $n \geq 1$, converges to some limit $l \in \mathbb{R}$ if, and only if, we can prove $\forall \epsilon > 0 [\exists N_\epsilon \in \mathbb{N} [\forall n > N_\epsilon [|a_n - l| < \epsilon]]]$.
@@ -163,6 +165,113 @@
                 For example, consider the sequence $a_n = \frac{\text{cos}(n)}{n}$. We know that $-1 \leq \text{cos}(n) \leq 1$, therefore $l_n = -\frac{1}{n} \leq a_n \leq \frac{1}{n} = u_n$. However, as both $u_n \to 0$, and $l_n \to 0$, when $n \to \infty$, it follows that $\limit{n}{\infty}a_n = 0$.
                 \medskip
 
-                The sandwich theorem can be proven by finding ${N_\epsilon}_l$, and ${N_\epsilon}_u$ for $l_n$, and $u_n$ respectively. As they both converge to the same limit, we can justify that for some $N_\epsilon = \text{max}({N_\epsilon}_l, {N_\epsilon}_u)$, 
+                The sandwich theorem can be proven by finding ${N_\epsilon}_l$, and ${N_\epsilon}_u$ for $l_n$, and $u_n$ respectively. As they both converge to the same limit, we can justify that for some $N_\epsilon = \text{max}({N_\epsilon}_l, {N_\epsilon}_u)$, any $n > N_\epsilon$, we have $|l_n - l| < \epsilon$, and $|u_n - l| < \epsilon$. By removing the modulus signs, we get $-\epsilon < l_n - l < \epsilon$, and $-\epsilon < l_n - l < \epsilon$. By rearranging this, and knowing $l_n < u_n$ by definition, we have $l - \epsilon < l_n < u_n < l + \epsilon$. In order to apply the sandwich theorem, we have to assume $l_n \leq a_n \leq u_n$, hence it follows $l - \epsilon < l_n \leq a_n \leq u_n < l + \epsilon$. This can then be arranged to get $-\epsilon < a_n - l < \epsilon$, thus for all $n > N_\epsilon$, $|a_n - l| < \epsilon$.
+            \subsubsection*{Ratio Tests}
+                The follow tests allow us to check if a sequence $a_n$ converges to 0, or diverges. If we want to verify a seqence $\limit{n}{\infty}b_n = l$, where $l \neq 0$, we can reformulate it as $a_n = b_n - l$, and prove it for $a_n$.
+                \medskip
+
+                If $|\frac{a_{n+1}}{a_n}| \leq c < 1$, for $c \in \mathbb{R}$, where $n$ is sufficiently large, then $\limit{n}{\infty}a_n = 0$. Conversely, if $|\frac{a_{n+1}}{a_n}| \geq c > 1$, then $a_n$ diverges.
+                \medskip
+
+                Suppose $a_n = 2^{-n}$, in order to show it converges, we want to find some $c$, such that $|\frac{2^{-(n + 1)}}{2^{-n}}| \leq c < 1$. By arithmetic, we can say $|\frac{2^{-(n + 1)}}{2^{-n}}| = \frac{1}{2} \leq c < 1$. As there exists real $c = \frac{1}{2} < 1$, we can conclude that $a_n$ converges to 0.
+                \medskip
+
+                However, we cannot prove that $a_n = \frac{1}{n!}$ converges, despite it being a fairly straightforward proof with just the standard ration tests. For example, we would end up with $|\frac{a_{n + 1}}{a_n}| = \frac{1}{n + 1}$. While this is fairly conclusive that it's less than 1, we don't get a constant $c$ which sits between it, and 1.
+                \medskip
+
+                Instead of analysing the behaviour of consequtive terms, we take the limit as $r = \limit{n}{\infty}|\frac{a_{n + 1}}{a_n}|$. If $r < 1$, it converges to 0, but if $r > 1$, it then diverges. Applying this to the previous factorial example, we can clearly see that $\limit{n}{\infty}\frac{1}{n + 1} = 0$, therfore $a_n$ converges to 0.
+            \subsubsection*{Manipulating Absolute Values}
+                A useful decomposition with absolute limits is $|x| < a \Leftrightarrow -a < x < a$. Further useful properties are;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $|xy| = |x| \cdot |y|$
+                    \item $|\frac{x}{y}| = \frac{|x|}{|y|}$
+                    \item $|x + y| \leq |x| + |y|$ \hfill triangle inequality
+                    \item $|x - y| \geq ||x| - |y||$
+                \end{itemize}
+            \subsubsection*{Properties of Real Numbers}
+                Suppose we have some set $S$ of real numbers, then the following properties hold;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $u$ is an upper bound on $S$ if $\forall s \in S [u \geq s]$
+                    \item $l$ is a lower bound on $S$ if $\forall s \in S [l \leq s]$
+                    \item $S$ is bounded above if it has an upper bound, bounded below if it has a lower bound, and bounded if it has both
+                    \item a set may have no bounds, or many, therefore we say $\text{sup}(S)$ is the least upper bound of $S$, and $\text{inf}(S)$ to denote the greatet upper bound of $S$
+                    \item if a set has no upper bound, then $\text{sup}(S) = \infty$, and similarly if there is no lower bound, then $\text{inf}(S) = -\infty$
+                \end{itemize}
+                The fundamental axiom of analysis states that if an increasing sequence of reals is bounded above, then it must converge.
+        \subsection*{Series}
+            A series is a sum of a sequence - we consider an infinite series as a summation in the form $S = \summation{n = 1}{\infty}{a_n}$.
+            \smallskip
+
+            We can also take a partial sum, where we sum from 1 to $n$ instead of $\infty$ as $S_n = \summation{i = 1}{n}{a_i}$.
+            \medskip
+
+            Since we're dealing with finite numbers at this point, we can consider $S_n$ as a sequence - thus whether a series converges, or diverges, depends on whether the sequence of partial sums converge, or diverge. If we know that $\forall i \geq 1 [a_i > 0]$, then the parital sum is an increasing sequence where $S_1 < S_2 < S_3 < ...$, if this is bounded above, then it must converge (from the axiom of analysis).
+            \medskip
+
+            For a series to have a chance of converging, we require $\limit{n}{\infty}a_n = 0$. However, just proving that is insufficient for concluding a series converges. It's important to note that we don't really care about the first values of a series, only how it behaves on large numbers, as it tends to infinity.
+            \smallskip
+
+            If $S$ converges, or diverges, then $\summation{n = N}{\infty}{a_n}$ also converges, or diverges, as it's equivalent to $S - S_{N - 1}$.
+            \smallskip
+
+            \subsubsection*{Geometric Series}
+                To determine whether a limit $G$ exists for the geometric series, we need to determine that the partial sums converge. Hence we do the proof on the right hand side. It's important to note that the only term that changes based on $n$ is $x^{n + 1}$, therfore we can conclude that $G$ must converge when $|x| < 1$ (from earlier results).
+                
+                Let us represent the geometric series as $G = \summation{n = 1}{\infty}{x^n}$. If a limit $G$ exists (see the left side);
+                \begin{center}
+                    \vspace{-\baselineskip}
+                    \begin{minipage}{0.485\textwidth}
+                        \begin{align*}
+                            G & = \summation{n = 1}{\infty}{x^n} \\
+                            & = x + \summation{n = 2}{\infty}{x^n} \\
+                            & = x + x\summation{n = 1}{\infty}{x^n} \\
+                            & = x + xG \\
+                            & = \frac{x}{1 - x}
+                        \end{align*}
+                    \end{minipage} \
+                    \begin{minipage}{0.485\textwidth}
+                        \begin{align*}
+                            G_n & = \summation{i = 1}{n}{x^i} \\
+                            & = x + \summation{i = 2}{n}{x^i} \\
+                            & = x + x\summation{i = 1}{n - 1}{x^i} \\
+                            & = x + x(G_n - x^n) \\
+                            & = \frac{x - x^{n + 1}}{1 - x}
+                        \end{align*}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Harmonic Series}
+                The harmonic series is often used in comparison tests to prove that another series diverges.
+                \smallskip
+
+                Let harmonic series be written as $S = \summation{n = 1}{\infty}{\frac{1}{n}} = 1 + \frac{1}{2} + \underbrace{(\textstyle\frac{1}{3} + \frac{1}{4})}_{> \frac{1}{4} + \frac{1}{4}} + \underbrace{(\textstyle\frac{1}{5} + \frac{1}{6} + \frac{1}{7} + \frac{1}{8})}_{> \frac{1}{8} + \frac{1}{8} + \frac{1}{8} + \frac{1}{8}} + ... > 1 + \frac{1}{2} + \frac{1}{2} + \frac{1}{2} + ...$
+                \smallskip
+
+                Therefore, with partial sums, we get $S_n = \summation{i = 1}{2^n}{\frac{1}{i}} > 1 + \frac{n}{2}$. As $S_n$ clearly diverges, $S$ must also diverge.
+            \subsubsection*{Inverse Squares}
+                Suppose we have the sum of squares $S = \summation{n = 1}{\infty}{\frac{1}{n^2}}$, and an auxiliary partial sum $T_n = \summation{i = 1}{n}{\frac{1}{i(i + 1)}}$.
+                \smallskip
+
+                To prove that $S$ converges, we should consider $T_n = 1 - \frac{1}{n + 1}$ (write out the first few terms and a pattern should be spotted). Hence $\limit{n}{\infty}T_n = 1$. Using this, we can argue how the partial sums of the series of inverse squares are bounded. It's trivial to say the following inequality; $\frac{1}{i(i + 1)} < \frac{1}{i^2} < \frac{1}{i(i - 1)}$.
+                \smallskip
+
+                If we sum this inequality from $i = 2$ to $n$, we can then justify the following - it's important to note that the sums on the left, and right, differ by only the first, and last term (therefore we can reduce it to a partial sum);
+                \medskip
+
+                $\phantom{\Leftrightarrow} \frac{1}{2(3)} + \frac{1}{3(4)} + \frac{1}{4(5)} + ... + \frac{1}{n(n + 1)} < \summation{i = 2}{n}{\frac{1}{i^2}} < \frac{1}{1(2)} + \frac{1}{2(3)} + \frac{1}{3(4)} + ... + \frac{1}{n(n - 1)}$
+                \smallskip
+
+                $\Leftrightarrow T_n - \frac{1}{2} < \summation{i = 2}{n}{\frac{1}{i^2}} < T_{n - 1}$
+                \smallskip
+
+                $\Leftrightarrow T_n + \frac{1}{2} < \summation{i = 1}{n}{\frac{1}{i^2}} < T_{n - 1} + 1$
+                \medskip
+
+                $\Leftrightarrow \frac{3}{2} + \frac{1}{n + 1} < S_n < 2 + \frac{1}{n}$
+                \medskip
+
+                Therefore, it follows that the partial sums are bounded by $\frac{3}{2}$, and 2. The existance of an upper bound suggests the sequence converges, therefore the series must also converge.
+            \subsubsection*{Common Converging Series}
             % $P(~Box~) \land \forall ~t1~, ~t2~ : ~BT~ [P(~t1~) \land P(~t2~) \rightarrow P(~Nd t1 t2~)] \rightarrow \forall ~t~ : ~BT~ [P(~t~)]$
 \end{document}
