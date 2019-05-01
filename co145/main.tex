@@ -218,8 +218,9 @@
 
             \subsubsection*{Geometric Series}
                 To determine whether a limit $G$ exists for the geometric series, we need to determine that the partial sums converge. Hence we do the proof on the right hand side. It's important to note that the only term that changes based on $n$ is $x^{n + 1}$, therfore we can conclude that $G$ must converge when $|x| < 1$ (from earlier results).
-                
-                Let us represent the geometric series as $G = \summation{n = 1}{\infty}{x^n}$. If a limit $G$ exists (see the left side);
+                \smallskip
+
+                Let us represent the geometric series as $G = \summation{n = 1}{\infty}{x^n}$. Should a limit $G$ exist - see the left side;
                 \begin{center}
                     \vspace{-\baselineskip}
                     \begin{minipage}{0.485\textwidth}
@@ -272,6 +273,58 @@
                 \medskip
 
                 Therefore, it follows that the partial sums are bounded by $\frac{3}{2}$, and 2. The existance of an upper bound suggests the sequence converges, therefore the series must also converge.
-            \subsubsection*{Common Converging Series}
-            % $P(~Box~) \land \forall ~t1~, ~t2~ : ~BT~ [P(~t1~) \land P(~t2~) \rightarrow P(~Nd t1 t2~)] \rightarrow \forall ~t~ : ~BT~ [P(~t~)]$
+            \subsubsection*{Important Series}
+                These examples will be useful for the comparison tests covered later on. We can use these results to aid us in proving whether some other series converges, or diverges.
+                \begin{center}
+                    \begin{tabular}{l|l|l|l}
+                        name & $S$ & condition & diverges or converges \\
+                        \hline
+                        harmonic series & $\summation{n = 1}{\infty}{\frac{1}{n}}$ & & diverges \\
+                        harmonic primes & $\summation{p : \text{prime}}{}{\frac{1}{p}}$ & & diverges \\
+                        geometric series & $\summation{n = 1}{\infty}{x^n}$ & $|x| \geq 1$ & diverges \\
+                        geometric series & $\summation{n = 1}{\infty}{x^n}$ & $|x| < 1$ & converges \\
+                        inverse squares series & $\summation{n = 1}{\infty}{n^2}$ & & converges \\
+                        ??? & $\summation{n = 1}{\infty}{\frac{1}{n^c}}$ & $c > 1$ & converges
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Convergence Tests}
+                For brevity, suppose we have the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $S = \summation{i = 1}{\infty}{a_i}$ \hfill a series we want to reason about, and $a_i \geq 0$
+                    \item $\summation{i = 1}{\infty}{c_i}$ \hfill a series we have already established converges to $c$
+                    \item $\summation{i = 1}{\infty}{d_i}$ \hfill a series we have already established diverges
+                \end{itemize}
+                In the \textbf{comparison test}, we have some $\lambda > 0$, and a $N \in \mathbb{N}$. If $\forall i > N [a_i \leq \lambda c_i]$, then $S$ converges. On the other hand, if $\forall i > N [a_i \geq \lambda d_i]$, then $S$ diverges.
+                \medskip
+
+                To avoid having to find such a $\lambda$, we can use the \textbf{limit comparison test}, in which we can say if $\limit{i}{\infty}\frac{a_i}{c_i}$ exists, then $S$ converges, but if $\limit{i}{\infty}\frac{d_i}{a_i}$ exists, then $S$ diverges.
+                \medskip
+
+                Another useful test for finding convergence, without needing a pre-established series, is \textbf{D'Alembert's ratio test}. Once again, we consider this from some point $N \in \mathbb{N}$, where the cases are;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item $\forall i \geq N [\frac{a_{i + 1}}{a_i} \geq 1]$, then $S$ diverges
+                    \item there exists a $k$ such that $\forall i \geq N [\frac{a_{i + 1}}{a_i} \leq k < 1]$, then $S$ converges
+                \end{enumerate}
+                This is similar to the comparison test for sequences, and once again the requirement of finding some $k$ between the ratio, and 1 can be avoided by taking limits. This leads to \textbf{D'Alembert's limit ratio test}, in which we have the following cases;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item $\limit{i}{\infty}\frac{a_{i + 1}}{a_i} > 1$, then $S$ diverges
+                    \item $\limit{i}{\infty}\frac{a_{i + 1}}{a_i} = 1$, then it is inconclusve
+                    \item $\limit{i}{\infty}\frac{a_{i + 1}}{a_i} < 1$, then $S$ converges
+                \end{enumerate}
+                The second case, in which it is inconclusive, can be illustrated by setting $a_n = 1$, which obviously causes $S$ to diverge, or by setting $a_n = \frac{1}{n^2}$ which causes $S$ to converge. However, both lead to a limit test of 1.
+                \medskip
+
+                The \textbf{integral test} for a sequence, where $a_n = f(n)$ is a decreasing function relies on the following idea;
+                \begin{center}
+                    $\summation{n = 1}{\infty}{a_{n + 1}} < \defint{1}{\infty}{f(x)}{x} < \summation{n = 1}{\infty}{a_n}$
+                \end{center}
+                In practice, if the integral were to diverge once evaluated, the series would also diverge by the right hand inqeuality, but if it were to converge, then the series would converge with the left hand inequality.
+            \subsubsection*{Absolute Convergence}
+                Consider a series with negative $a_n$ values, and another series $S^\prime = \summation{n = 1}{\infty}{|a_n|}$. If $S^\prime$ converges, so does $S$.
+                \smallskip
+
+                However, the same isn't true the other way around, 
 \end{document}
