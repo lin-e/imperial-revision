@@ -989,7 +989,7 @@ end if
                     \item $\forall x \forall xs (\#(x : xs) = \#(xs) + \texttt{1})$ \hfill recursive definition of length
                     \item $\forall x \forall xs ((x : xs) !! \texttt{0} = x)$ \hfill index 0 of list
                     \item $\forall x \forall xs \forall n (n < \#(xs) \rightarrow (x : xs) !! (n + \texttt{1}) = x !! n)$ \hfill recursive definition of index
-                        \subitem Note how we need to specific $n < \#(xs)$, as we want the \textbf{consequent} to only apply if the \textbf{antecedent} is $\top$.
+                        \subitem Note how we need to specify $n < \#(xs)$, as we want the \textbf{consequent} to only apply if the \textbf{antecedent} is $\top$.
                     \item $\forall xs (xs \neq [] \rightarrow \texttt{head}(xs) = xs !! \texttt{0})$ \hfill head of list
                     \item $\forall x \forall xs (\texttt{head}(x : xs) = x)$ \hfill also head of list, similar to the first definition, and index 0
                     \item $\forall xs \forall ys \forall zs (xs = ys ++ zs \leftrightarrow \\ \textcolor{blue}{\#(xs) = \#(ys) + \#(zs)} \land \\ \textcolor{red}{\forall n (n < \#(ys) \rightarrow xs !! n = ys !! n)} \land \\ \textcolor{violet}{\forall n (n < \#(zs) \rightarrow xs !! (n + \#(ys)) = zs !! n)})$

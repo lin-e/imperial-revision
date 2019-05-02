@@ -326,5 +326,28 @@
                 Consider a series with negative $a_n$ values, and another series $S^\prime = \summation{n = 1}{\infty}{|a_n|}$. If $S^\prime$ converges, so does $S$.
                 \smallskip
 
-                However, the same isn't true the other way around, 
+                However, the same isn't true the other way around, for example, when we have $a_n = (-1)^{n - 1} \frac{1}{n}$, $S$ converges to $\text{ln}(2)$, however, doing this with the absolute series, $S^\prime$, it would diverge, as if it were the normal harmonic series. In order to test for \textbf{absolute} convergence - we have the following cases;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item if $\limit{n}{\infty}|\frac{a_{n + 1}}{a_n}| > 1$ then $\summation{n = 1}{\infty}{a_n}$ diverges
+                    \item if $\limit{n}{\infty}|\frac{a_{n + 1}}{a_n}| = 1$ then $\summation{n = 1}{\infty}{a_n}$ can converge, or diverge
+                    \item if $\limit{n}{\infty}|\frac{a_{n + 1}}{a_n}| < 1$ then $\summation{n = 1}{\infty}{a_n}$ converges absolutely, and therefore also converges
+                \end{enumerate}
+            \subsubsection*{Power Series, and Radius of Convergence}
+                We can represent a function as a power series; $f(x) = \summation{n = 0}{\infty}{a_nx^n}$.
+                \smallskip
+
+                Consider the case where $f(x) = \frac{x}{1 - x}$, which has the expansion $\summation{n = 1}{\infty}{x^n}$, which only converges for $|x| < 1$.
+                \smallskip
+
+                Take the power series $S = \summation{n = 1}{\infty}{n^2 x^n}$, and apply the \textbf{D'Alembert ratio test}, we'd get the following;
+                \begin{align*}
+                    \limit{n}{\infty} |\frac{a_{n + 1}}{a_n}| & = \limit{n}{\infty}|\frac{(n + 1)^2 x^{n + 1}}{n^2 x^n}| \\
+                    & = \limit{n}{\infty} |x(1 + \frac{1}{n})^2| \\
+                    & = |x|
+                \end{align*}
+                As we want to establish convergence, we set the result $|x| < 1$, therefore it follows that the ratio of convergence for this particular power series is 1.
+        \subsection*{Power Series}
+            As previously mentioned, a function can be represnted in a series expansion on $x$; $f(x) = \summation{n = 0}{\infty}{a_nx^n}$.
+
 \end{document}
