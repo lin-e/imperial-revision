@@ -18,8 +18,8 @@
 \usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
 
 % shorthand for verbatim
-\catcode`~=\active
-\def~#1~{\texttt{#1}}
+% \catcode`~=\active
+% \def~#1~{\texttt{#1}}
 
 % code listing
 \lstdefinestyle{main}{
@@ -349,5 +349,11 @@
                 As we want to establish convergence, we set the result $|x| < 1$, therefore it follows that the ratio of convergence for this particular power series is 1.
         \subsection*{Power Series}
             As previously mentioned, a function can be represnted in a series expansion on $x$; $f(x) = \summation{n = 0}{\infty}{a_nx^n}$.
+            \subsubsection*{Maclaurin Series}
+                Let some function $f(x) = a_0 + a_1x + a_2x^2 + a_3x^3 + ...$, then we can easily work out $a_0$, by setting $x = 0$, such that $f(0) = a_0$. By differentiating the function, we get $f^\prime(x) = a_1 + 2a_2x + 3a_3x^2 + ...$, therefore it follows thats $f^\prime(0) = a_1$. By differentiating again,we get $f^{\prime\prime}(x) = 2a_2 + 2 \cdot 3a_3x + ...$, therefore it follows that $\frac{f^{\prime\prime}(0)}{2!} = a_2$. Hence, generally $a_n = \frac{f^{(n)}(0)}{n!}$, where $n \geq 0$.
+                \medskip
+
+                A \textbf{Maclaurin series} is the representation of $f(x) = \summation{i = 0}{\infty}{a_ix^i}$.
+
 
 \end{document}
