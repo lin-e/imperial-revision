@@ -134,7 +134,7 @@
 
                 To show convergence for the sequence $a_n = \frac{1}{n}$, we need to first make a guess for the limit - suppose $l = 0$. We can now attempt to find some $N_\epsilon$. As $\frac{1}{n} - 0$ is positive for all $n \in \mathbb{N}$, we can drop the absolute, thus it's sufficient to find $n$ such that $\frac{1}{n} < \epsilon$. Since both are positive (hence non-zero), we can take reciprocals on both sides, to get $n > \frac{1}{\epsilon}$. However, we are restricted by the fact that $n$ must be an integer, hence it follows $N_\epsilon = \ceil{\frac{1}{\epsilon}}$. For any value of $\epsilon$, we can get some $N_\epsilon$ with the function, thus it proves that a limit exists.
             \subsubsection*{Common Converging Sequences}
-                Note that for all of these, we are imiplicity saying $\limit{n}{\infty}$, and that $a_n \to 0$.
+                Note that for all of these, we are implicitly saying $\limit{n}{\infty}$, and that $a_n \to 0$.
                 \begin{center}
                     \begin{tabular}{l|l|c}
                         $a_n$ & condition & $N_\epsilon$ \\
@@ -167,7 +167,7 @@
 
                 The sandwich theorem can be proven by finding ${N_\epsilon}_l$, and ${N_\epsilon}_u$ for $l_n$, and $u_n$ respectively. As they both converge to the same limit, we can justify that for some $N_\epsilon = \text{max}({N_\epsilon}_l, {N_\epsilon}_u)$, any $n > N_\epsilon$, we have $|l_n - l| < \epsilon$, and $|u_n - l| < \epsilon$. By removing the modulus signs, we get $-\epsilon < l_n - l < \epsilon$, and $-\epsilon < l_n - l < \epsilon$. By rearranging this, and knowing $l_n < u_n$ by definition, we have $l - \epsilon < l_n < u_n < l + \epsilon$. In order to apply the sandwich theorem, we have to assume $l_n \leq a_n \leq u_n$, hence it follows $l - \epsilon < l_n \leq a_n \leq u_n < l + \epsilon$. This can then be arranged to get $-\epsilon < a_n - l < \epsilon$, thus for all $n > N_\epsilon$, $|a_n - l| < \epsilon$.
             \subsubsection*{Ratio Tests}
-                The follow tests allow us to check if a sequence $a_n$ converges to 0, or diverges. If we want to verify a seqence $\limit{n}{\infty}b_n = l$, where $l \neq 0$, we can reformulate it as $a_n = b_n - l$, and prove it for $a_n$.
+                The follow tests allow us to check if a sequence $a_n$ converges to 0, or diverges. If we want to verify a sequence $\limit{n}{\infty}b_n = l$, where $l \neq 0$, we can reformulate it as $a_n = b_n - l$, and prove it for $a_n$.
                 \medskip
 
                 If $|\frac{a_{n+1}}{a_n}| \leq c < 1$, for $c \in \mathbb{R}$, where $n$ is sufficiently large, then $\limit{n}{\infty}a_n = 0$. Conversely, if $|\frac{a_{n+1}}{a_n}| \geq c > 1$, then $a_n$ diverges.
@@ -179,7 +179,7 @@
                 However, we cannot prove that $a_n = \frac{1}{n!}$ converges, despite it being a fairly straightforward proof with just the standard ration tests. For example, we would end up with $|\frac{a_{n + 1}}{a_n}| = \frac{1}{n + 1}$. While this is fairly conclusive that it's less than 1, we don't get a constant $c$ which sits between it, and 1.
                 \medskip
 
-                Instead of analysing the behaviour of consequtive terms, we take the limit as $r = \limit{n}{\infty}|\frac{a_{n + 1}}{a_n}|$. If $r < 1$, it converges to 0, but if $r > 1$, it then diverges. Applying this to the previous factorial example, we can clearly see that $\limit{n}{\infty}\frac{1}{n + 1} = 0$, therfore $a_n$ converges to 0.
+                Instead of analysing the behaviour of consecutive terms, we take the limit as $r = \limit{n}{\infty}|\frac{a_{n + 1}}{a_n}|$. If $r < 1$, it converges to 0, but if $r > 1$, it then diverges. Applying this to the previous factorial example, we can clearly see that $\limit{n}{\infty}\frac{1}{n + 1} = 0$, therefore $a_n$ converges to 0.
             \subsubsection*{Manipulating Absolute Values}
                 A useful decomposition with absolute limits is $|x| < a \Leftrightarrow -a < x < a$. Further useful properties are;
                 \begin{itemize}
@@ -196,7 +196,7 @@
                     \item $u$ is an upper bound on $S$ if $\forall s \in S [u \geq s]$
                     \item $l$ is a lower bound on $S$ if $\forall s \in S [l \leq s]$
                     \item $S$ is bounded above if it has an upper bound, bounded below if it has a lower bound, and bounded if it has both
-                    \item a set may have no bounds, or many, therefore we say $\text{sup}(S)$ is the least upper bound of $S$, and $\text{inf}(S)$ to denote the greatet upper bound of $S$
+                    \item a set may have no bounds, or many, therefore we say $\text{sup}(S)$ is the least upper bound of $S$, and $\text{inf}(S)$ to denote the greatest upper bound of $S$
                     \item if a set has no upper bound, then $\text{sup}(S) = \infty$, and similarly if there is no lower bound, then $\text{inf}(S) = -\infty$
                 \end{itemize}
                 The fundamental axiom of analysis states that if an increasing sequence of reals is bounded above, then it must converge.
@@ -207,7 +207,7 @@
             We can also take a partial sum, where we sum from 1 to $n$ instead of $\infty$ as $S_n = \summation{i = 1}{n}{a_i}$.
             \medskip
 
-            Since we're dealing with finite numbers at this point, we can consider $S_n$ as a sequence - thus whether a series converges, or diverges, depends on whether the sequence of partial sums converge, or diverge. If we know that $\forall i \geq 1 [a_i > 0]$, then the parital sum is an increasing sequence where $S_1 < S_2 < S_3 < ...$, if this is bounded above, then it must converge (from the axiom of analysis).
+            Since we're dealing with finite numbers at this point, we can consider $S_n$ as a sequence - thus whether a series converges, or diverges, depends on whether the sequence of partial sums converge, or diverge. If we know that $\forall i \geq 1 [a_i > 0]$, then the partial sum is an increasing sequence where $S_1 < S_2 < S_3 < ...$, if this is bounded above, then it must converge (from the axiom of analysis).
             \medskip
 
             For a series to have a chance of converging, we require $\limit{n}{\infty}a_n = 0$. However, just proving that is insufficient for concluding a series converges. It's important to note that we don't really care about the first values of a series, only how it behaves on large numbers, as it tends to infinity.
@@ -217,7 +217,7 @@
             \smallskip
 
             \subsubsection*{Geometric Series}
-                To determine whether a limit $G$ exists for the geometric series, we need to determine that the partial sums converge. Hence we do the proof on the right hand side. It's important to note that the only term that changes based on $n$ is $x^{n + 1}$, therfore we can conclude that $G$ must converge when $|x| < 1$ (from earlier results).
+                To determine whether a limit $G$ exists for the geometric series, we need to determine that the partial sums converge. Hence we do the proof on the right hand side. It's important to note that the only term that changes based on $n$ is $x^{n + 1}$, therefore we can conclude that $G$ must converge when $|x| < 1$ (from earlier results).
                 \smallskip
 
                 Let us represent the geometric series as $G = \summation{n = 1}{\infty}{x^n}$. Should a limit $G$ exist - see the left side;
@@ -272,7 +272,7 @@
                 $\Leftrightarrow \frac{3}{2} + \frac{1}{n + 1} < S_n < 2 + \frac{1}{n}$
                 \medskip
 
-                Therefore, it follows that the partial sums are bounded by $\frac{3}{2}$, and 2. The existance of an upper bound suggests the sequence converges, therefore the series must also converge.
+                Therefore, it follows that the partial sums are bounded by $\frac{3}{2}$, and 2. The existence of an upper bound suggests the sequence converges, therefore the series must also converge.
             \subsubsection*{Important Series}
                 These examples will be useful for the comparison tests covered later on. We can use these results to aid us in proving whether some other series converges, or diverges.
                 \begin{center}
@@ -311,7 +311,7 @@
                 \begin{enumerate}[1.]
                     \itemsep0em
                     \item $\limit{i}{\infty}\frac{a_{i + 1}}{a_i} > 1$, then $S$ diverges
-                    \item $\limit{i}{\infty}\frac{a_{i + 1}}{a_i} = 1$, then it is inconclusve
+                    \item $\limit{i}{\infty}\frac{a_{i + 1}}{a_i} = 1$, then it is inconclusive
                     \item $\limit{i}{\infty}\frac{a_{i + 1}}{a_i} < 1$, then $S$ converges
                 \end{enumerate}
                 The second case, in which it is inconclusive, can be illustrated by setting $a_n = 1$, which obviously causes $S$ to diverge, or by setting $a_n = \frac{1}{n^2}$ which causes $S$ to converge. However, both lead to a limit test of 1.
@@ -321,7 +321,7 @@
                 \begin{center}
                     $\summation{n = 1}{\infty}{a_{n + 1}} < \defint{1}{\infty}{f(x)}{x} < \summation{n = 1}{\infty}{a_n}$
                 \end{center}
-                In practice, if the integral were to diverge once evaluated, the series would also diverge by the right hand inqeuality, but if it were to converge, then the series would converge with the left hand inequality.
+                In practice, if the integral were to diverge once evaluated, the series would also diverge by the right hand inequality, but if it were to converge, then the series would converge with the left hand inequality.
             \subsubsection*{Absolute Convergence}
                 Consider a series with negative $a_n$ values, and another series $S^\prime = \summation{n = 1}{\infty}{|a_n|}$. If $S^\prime$ converges, so does $S$.
                 \smallskip
@@ -348,12 +348,84 @@
                 \end{align*}
                 As we want to establish convergence, we set the result $|x| < 1$, therefore it follows that the ratio of convergence for this particular power series is 1.
         \subsection*{Power Series}
-            As previously mentioned, a function can be represnted in a series expansion on $x$; $f(x) = \summation{n = 0}{\infty}{a_nx^n}$.
+            As previously mentioned, a function can be represented in a series expansion on $x$; $f(x) = \summation{n = 0}{\infty}{a_nx^n}$.
             \subsubsection*{Maclaurin Series}
-                Let some function $f(x) = a_0 + a_1x + a_2x^2 + a_3x^3 + ...$, then we can easily work out $a_0$, by setting $x = 0$, such that $f(0) = a_0$. By differentiating the function, we get $f^\prime(x) = a_1 + 2a_2x + 3a_3x^2 + ...$, therefore it follows thats $f^\prime(0) = a_1$. By differentiating again,we get $f^{\prime\prime}(x) = 2a_2 + 2 \cdot 3a_3x + ...$, therefore it follows that $\frac{f^{\prime\prime}(0)}{2!} = a_2$. Hence, generally $a_n = \frac{f^{(n)}(0)}{n!}$, where $n \geq 0$.
+                Let some function $f(x) = a_0 + a_1x + a_2x^2 + a_3x^3 + ...$, then we can easily work out $a_0$, by setting $x = 0$, such that $f(0) = a_0$. By differentiating the function, we get $f^\prime(x) = a_1 + 2a_2x + 3a_3x^2 + ...$, therefore it follows that $f^\prime(0) = a_1$. By differentiating again,we get $f^{\prime\prime}(x) = 2a_2 + 2 \cdot 3a_3x + ...$, therefore it follows that $\frac{f^{\prime\prime}(0)}{2!} = a_2$. Hence, generally $a_n = \frac{f^{(n)}(0)}{n!}$, where $n \geq 0$.
                 \medskip
 
                 A \textbf{Maclaurin series} is the representation of $f(x) = \summation{i = 0}{\infty}{a_ix^i}$.
+                \smallskip
 
+                This function can then be differentiated $n$ times to get $f^{(n)}(x) = \summation{i = n}{\infty}{a_i(i - 1)...(i - n + 1)x^{i - n}}$.
+                \smallskip
 
+                From this, we can see that $f^{(n)}(0) = n! a_n$, hence $f(x) = \summation{n = 0}{\infty}{f^{n}(0)\frac{x^n}{n!}}$.
+                \smallskip
+
+                For example, if we take $f(x) = \text{ln}(1 + x)$, and differentiate repeatedly;
+                \begin{reasoning} % too lazy to make a new environment
+                    \proofmath{f(x)}{\text{ln}(1 + x)}{$f(0) = 0$}
+                    \proofmath{f^\prime(x)}{(1 + x)^{-1}}{$f^\prime(0) = 1$}
+                    \proofmath{f^{\prime\prime}(x)}{(-1)(1 + x)^{-2}}{$f^{\prime\prime}(0) = -1$}
+                    \proofmath{f^{\prime\prime\prime}(x)}{(-2)(-1)(1 + x)^{-3}}{$f^{\prime\prime}(0) = 2$}
+                    \proofmath{f^{(n)}(x)}{\frac{(-1)^{n - 1}(n - 1)!}{(1 + x)^n}}{$f^{(n)}(0) = (-1)^{n - 1}(n - 1)!$}
+                    $a_n$ & = $\frac{(-1)^{n - 1}}{n}$
+                \end{reasoning}
+                Therefore, we can justify that $f(x) = \text{ln}(1 + x) = \frac{x}{1} - \frac{x^2}{2} + \frac{x^3}{3} - \frac{x^4}{4} + ...$. By setting $x = -1$, we'd get $-\infty$, and the power series would become the harmonic series, which we know to diverge. However, by setting $x = 1$, we get $\text{ln}(2)$, is the convergence of the alternating harmonic series (as previously mentioned, in the ratio test example).
+            \subsubsection*{Taylor Series}
+                When we're interested in values around a certain point, we can use a more generalised version of a \textbf{Maclaurin series}. The general result, where we apply the series around $a$ is;
+                \smallskip
+
+                $f(x) = f(a) + \frac{f^{(1)}(a)}{1!}(x - a)^1 + \frac{f^{(2)}(a)}{2!}(x - a)^2 + ... = \summation{n = 0}{\infty}{\frac{f^{(n)}(a)}{n!}(x - a)^n}$
+                \smallskip
+
+                For example, if we take $f(x) = \text{ln}(x)$ around $a$, and differentiate repeatedly;
+                \begin{reasoning} % too lazy to make a new environment
+                    \proofmath{f(x)}{\text{ln}(x)}{$f(2) = \text{ln}(2)$}
+                    \proofmath{f^\prime(x)}{\frac{1}{x}}{$f^\prime(2) = \frac{1}{2}$}
+                    \proofmath{f^{\prime\prime}(x)}{(-1)\frac{1}{x^2}}{$f^{\prime\prime}(2) = -\frac{1}{4}$}
+                    \proofmath{f^{\prime\prime\prime}(x)}{(-2)(-1)\frac{1}{x^3}}{$f^{\prime\prime}(2) = \frac{1}{4}$}
+                    \proofmath{f^{(n)}(x)}{\frac{(-1)^{n - 1}(n - 1)!}{x^n}}{$f^{(n)}(2) = \frac{(-1)^{n - 1}(n - 1)!}{2^n}$}
+                    $a_n$ & = $\frac{(-1)^{n - 1}}{n2^n}$
+                \end{reasoning}
+
+                For example, we can approximate $\text{ln}(x)$ around 2 as; $\text{ln}(x) = \text{ln}(2) + \summation{n = 1}{\infty}{\frac{(-1)^{n - 1}}{n2^n}(x - 2)^2}$.
+                \smallskip
+
+                It's important to note the bounds for this, as we start from $n = 1$, and manually state the constant term, since that doesn't fall within the "pattern" we had. We use the same technique to calculate the radius of convergence, as follows;
+                \begin{reasoning}
+                    \proofmath{\limit{n}{\infty}|\frac{a_{n + 1}}{a_n}|}{\limit{n}{\infty}|\frac{\frac{(x - 2)^{n + 1}}{(n + 1)2^{n + 1}}}{\frac{(x - 2)^n}{n2^n}}|}{}
+                    \proofmath{}{\limit{n}{\infty}\frac{n}{n + 1} \cdot \frac{|x - 2|}{2}}{}
+                    \proofmath{}{\frac{|x - 2|}{2}}{}
+                \end{reasoning}
+                And then, by setting $\frac{|x - 2|}{2} < 1$,we have a radius of convergence of 2, around $x = 2$. Generally, the radius is limited by the closest singularity (where a point is not defined, or isn't well-behaved).
+            \subsubsection*{Taylor Series Error Term}
+                In order to ensure termination, instead of summing to $\infty$, we often truncate at some arbitrary $k^\text{th}$ term.
+                \begin{center}
+                    $f(x) = \summation{n = 0}{\infty}{\frac{f^{(n)}(a)}{n!}(x - a)^n} = \summation{n = 0}{k}{\frac{f^{(n)}(a)}{n!}(x - a)^n} + \underbrace{\textstyle\frac{f^{k + 1}(c)}{(k + 1)!}(x - a)^{k + 1}}_\text{Lagrange error term}$
+                \end{center}
+                The Lagrange error term replaces the tail of the infinite series, from, which would otherwise be a sum from $k + 1$ to $\infty$. The constant $c$ lies between $x$, and $a$. By taking the bound $a < c < x$, or $x < c < a$, it can be used to generate the worst-case error.
+                \medskip
+
+                The mean value theorem states that there is some point $c$ between $x$, and $a$, such that $f^\prime(c) = \frac{f(x) - f(a)}{x - a}$, therefore we can get $f(x) = f(a) + (x - a)f^\prime(c)$.
+            \subsubsection*{Cauchy Error Term}
+                Define the set of partial sums of the Taylor series as $F_k(t) = \summation{n = 0}{k}{\frac{f^{(n)}(t)}{n!}(x - t)^n}$, where $t$ is the offset.
+                \smallskip
+
+                It follows that $F_k(x) = f(x)$ for all $k$ (justified as every term becomes 0, other than the first term, $n = 0$, where it's $\frac{f(x)}{0!}$). Therefore the error term is derived as follows, where $R_k(x)$ is the remainder after $k$ terms;
+                \begin{center}
+                    $F_k(x) - F_k(a) = f(x) - \summation{n = 0}{k}{\frac{f^{(n)}(a)}{n!}(x - a)^n} = R_k(x)$
+                \end{center}
+            \subsubsection*{Power Series Solutions of ODE}
+                When we have a differential equation in the form $\dif{y}{x} = ky$, for a constant k, we can consider the power series for $y$. By differentiating term by term, we can compare coefficients;
+                \begin{center}
+                    $\dif{y}{x} \equiv \dif{}{x}\summation{i = 0}{\infty}{a_ix^i} \equiv \summation{i = 1}{\infty}{a_iix^{i - 1}} \equiv ky \equiv k\summation{i = 0}{\infty}{a_ix^i} \equiv k\summation{i = 1}{\infty}{a_{i - 1}x^{i - 1}} \equiv \summation{i = 1}{\infty}{ka_{i - 1}x^{i - 1}}$
+                \end{center}
+                By matching coefficients of $x^{i - 1}$, where $i \geq 1$, we have $ka_{i - 1} = a_ii$, therefore we end up with the relation $a_i = \frac{k}{i}a_{i - 1}$. By "expanding" this, we end up with $a_i = \frac{k}{i}a_{i - 1} = \frac{k}{i} \cdot \frac{k}{i - 1}a_{i - 2} = ... = \frac{k^i}{i!}a_0$.
+                \medskip
+
+                If we were to have some boundary condition, such as when $x = 0$, $y = 1$, we know that $y(0) = a_0$, hence $a_0 = 1$. Therefore, this can be solved to the following;
+                \begin{center}
+                    $y = \summation{i = 0}{\infty}{\frac{(kx)^i}{i!}} = e^{kx}$
+                \end{center}
 \end{document}
