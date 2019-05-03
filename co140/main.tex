@@ -723,7 +723,7 @@ end if
                     \item $M, h \vDash \exists x (A)$ if $M, g \vDash A$ for \textbf{some} assignment $g$, with $g =_x h$, else $M, h \nvDash \exists x (A)$
                         \subitem (NOT SURE) $M, h \vDash \exists x (A) \triangleq \exists g (g =_x h \land [M, g \vDash A])$ - I probably shouldn't use $\vDash$ to express a truth value.
                     \item $M, h \vDash \forall x (A)$ if $M, g \vDash A$ for \textbf{every} assignment $g$, with $g =_x h$, else $M, h \nvDash \forall x (A)$
-                        \subitem (NOT SURE) $M, h \vDash \forall x (A) \triangleq \forall g (g =_x h \land [M, g \vDash A])$
+                        \subitem (NOT SURE) $M, h \vDash \forall x (A) \triangleq \forall g (g =_x h \rightarrow [M, g \vDash A])$
                 \end{enumerate}
                 Let us create a simple situation $Q$;
                 \begin{center}
