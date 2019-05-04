@@ -382,11 +382,9 @@
                 Therefore, we can justify that $f(x) = \text{ln}(1 + x) = \frac{x}{1} - \frac{x^2}{2} + \frac{x^3}{3} - \frac{x^4}{4} + ...$. By setting $x = -1$, we'd get $-\infty$, and the power series would become the harmonic series, which we know to diverge. However, by setting $x = 1$, we get $\text{ln}(2)$, is the convergence of the alternating harmonic series (as previously mentioned, in the ratio test example).
             \subsubsection*{Taylor Series}
                 When we're interested in values around a certain point, we can use a more generalised version of a \textbf{Maclaurin series}. The general result, where we apply the series around $a$ is;
-                \smallskip
-
-                $f(x) = f(a) + \frac{f^{(1)}(a)}{1!}(x - a)^1 + \frac{f^{(2)}(a)}{2!}(x - a)^2 + ... = \summation{n = 0}{\infty}{\frac{f^{(n)}(a)}{n!}(x - a)^n}$
-                \smallskip
-
+                \begin{center}
+                    $f(x) = f(a) + \frac{f^{(1)}(a)}{1!}(x - a)^1 + \frac{f^{(2)}(a)}{2!}(x - a)^2 + ... = \summation{n = 0}{\infty}{\frac{f^{(n)}(a)}{n!}(x - a)^n}$
+                \end{center}
                 For example, if we take $f(x) = \text{ln}(x)$ around $a$, and differentiate repeatedly;
                 \begin{reasoning} % too lazy to make a new environment
                     \proofmath{f(x)}{\text{ln}(x)}{$f(2) = \text{ln}(2)$}
@@ -779,6 +777,160 @@
                         \subitem outer operation: $\lambda \vec{x} \in U$ \hfill $\forall \lambda \in \mathbb{R}, \vec{x} \in U$
                         \subitem inner operation: $\vec{x} + \vec{y} \in U$ \hfill $\forall \vec{x}, \vec{y} \in U$
                 \end{itemize}
-                We have trivial vector subspaces of the vector space $V$, namely $V$ itself, and $\{\vec{0}\}$ (the subspace containing only the zero vector). The solution space for a homogeneous linear equation system $\mat{A}\vec{x} = \vec{0}$, with $n$ unknowns, is a subspace of $\mathbb{R}^n$. Note that a homogeneous equation means that it has the zero vector on the right hand side. The same also applies in reverse; such that for a vector subspace $U \subset V$, there is a homogeneous system which characterises $U$. In contrast, an inhomogeneous linear equation system $\mat{A}\vec{x} = \vec{b}$, where $\vec{b} \neq \vec{0}$ does not have a vector subspace for its solutions. Assume that it does have some subspace $U$, therefore, $\vec{0} \in U$ by definition. However, $\vec{0}$ doesn't satisfy the equation, since we know $\vec{b} \neq \vec{0}$.
+                We have trivial vector subspaces of the vector space $V$, namely $V$ itself, and $\{\vec{0}\}$ (the subspace containing only the zero vector). The intersection of an arbitrary number of subspaces is also a subspace, and the intersection of all subspaces of $V$ is referred to as the \textbf{linear hull} of $V$.
+                \medskip
+
+                The solution space for a homogeneous linear equation system $\mat{A}\vec{x} = \vec{0}$, with $n$ unknowns, is a subspace of $\mathbb{R}^n$. Note that a homogeneous equation means that it has the zero vector on the right hand side. The same also applies in reverse; such that for a vector subspace $U \subset V$, there is a homogeneous system which characterises $U$. In contrast, an inhomogeneous linear equation system $\mat{A}\vec{x} = \vec{b}$, where $\vec{b} \neq \vec{0}$ does not have a vector subspace for its solutions. Assume that it does have some subspace $U$, therefore, $\vec{0} \in U$ by definition. However, $\vec{0}$ doesn't satisfy the equation, since we know $\vec{b} \neq \vec{0}$.
             \subsubsection*{Linear Independence}
+                We can define a vector space $V$, with $\vec{x_1}, \vec{x_2}, ..., \vec{x_k}$, as being linearly dependent if, and only if, there exists a non-trivial solution (such that there exists at least one $\lambda_i \neq 0$) in the following equation;
+                \begin{center}
+                    $\vec{0} = \summation{i = 1}{k}{\lambda_i\vec{x_i}}$
+                \end{center}
+                By the closure of vector spaces, a set of linearly dependent vectors contains some redundancy.
+                \medskip
+
+                We can check if vectors $\vec{x_1}, \vec{x_2}, ..., \vec{x_k} \in V$ are linearly independent by constructing an augmented matrix; $\mat{A} = \begin{bmatrix}[c|c|c|c]
+                    \vec{x_1} & \vec{x_2} & \cdots & \vec{x_k}
+                \end{bmatrix}$. Once put into row echelon form, if all the columns are pivot columns, then it follows that it is linearly independent, otherwise the non-pivot columns can be made from the pivot columns to the left of it (therefore it is linearly dependent).
+                \medskip
+
+                Consider the following vectors in $\mathbb{R}^4$;
+                \begin{center}
+                    $\vec{x_1} = \begin{bmatrix}
+                        1 \\ 2 \\ -3 \\ 4
+                    \end{bmatrix}$, $\vec{x_2} = \begin{bmatrix}
+                        1 \\ 1 \\ 0 \\ 2
+                    \end{bmatrix}$, and $\vec{x_3} = \begin{bmatrix}
+                        -1 \\ -2 \\ 1 \\ 1
+                    \end{bmatrix}$
+                \end{center}
+                We essentially want to solve $\lambda_1 \vec{x_1} + \lambda_2 \vec{x_2} + \lambda_3 \vec{x_3} = \vec{0}$, which means we can set this up as follows;
+                \begin{tabularx}{\textwidth}{llllll}
+                    $\begin{bmatrix}[ccc|c]
+                        1 & 1 & -1 & 0 \\
+                        2 & 1 & -2 & 0 \\
+                        -3 & 0 & 1 & 0 \\
+                        4 & 2 & 1 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ -2R_1 \\ +3R_1 \\ -4R_1
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}[ccc|c]
+                        1 & 1 & -1 & 0 \\
+                        0 & -1 & 0 & 0 \\
+                        0 & 3 & -2 & 0 \\
+                        0 & -2 & 5 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ +3R_2 \\ -2R_2
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}[ccc|c]
+                        1 & 1 & -1 & 0 \\
+                        0 & -1 & 0 & 0 \\
+                        0 & 0 & -2 & 0 \\
+                        0 & 0 & 5 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ \cdot -1 \\ \cdot -\frac{1}{2} \\ {}
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}[ccc|c]
+                        1 & 1 & -1 & 0 \\
+                        0 & 1 & 0 & 0 \\
+                        0 & 0 & 1 & 0 \\
+                        0 & 0 & 5 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ {} \\ -5R_3
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}[ccc|c]
+                        1 & 1 & -1 & 0 \\
+                        0 & 1 & 0 & 0 \\
+                        0 & 0 & 1 & 0 \\
+                        0 & 0 & 0 & 0
+                    \end{bmatrix}$
+                \end{tabularx}
+                As every column here is a pivot column, such that every column is linearly independent of the ones to its left, it follows that there isn't a non-trivial solution, as the only solution is $\lambda_1 = \lambda_2 = \lambda_3 = 0$, therefore the vectors are linearly independent.
+            \subsubsection*{Linear Combinations (or Something?)}
+                Suppose there is some vector space $V$, with $k$ linearly independent vectors $\vec{b_1}, \vec{b_2}, ..., \vec{b_k}$, and $m$ linear combinations, expressed as follows (with $j \in [1, m]$);
+                \begin{center}
+                    $\vec{x_j} = \summation{i = 1}{k}{\lambda_{i, j}\vec{b_i}}$
+                \end{center}
+                We can then apply the same approach to test for linear independence;
+                \begin{center}
+                    $\vec{0} = \summation{j = 1}{m}{\mu_j\vec{x_j}} = \summation{j = 1}{m}{\mu_j\summation{i = 1}{k}{\lambda_{i, j}\vec{b_i}}} = \summation{j = 1}{m}{\summation{i = 1}{k}{\mu_j\lambda_{i, j}\vec{b_i}}} = \summation{i = 1}{k}{(\summation{j = 1}{m}{\mu_j\lambda_{i, j})\vec{b_i}}}$
+                \end{center}
+                This means that $\vec{x_1}, \vec{x_2}, ..., \vec{x_m}$ only has linear independence if, and only if the following column vectors are linearly independent;
+                \begin{center}
+                    $\vec{\lambda_1} = \begin{bmatrix}
+                        \lambda_{1, 1} \\ \vdots \\ \lambda_{k, 1}
+                    \end{bmatrix} \in \mathbb{R}^k, ..., \vec{\lambda_m} = \begin{bmatrix}
+                        \lambda_{1, m} \\ \vdots \\ \lambda_{k, m}
+                    \end{bmatrix} \in \mathbb{R}^k$
+                \end{center}
+                Consider the following example, with a set of linearly independent vectors $\vec{b_1}, \vec{b_2}, \vec{b_3}, \vec{b_4} \in \mathbb{R}^3$, and;
+                \begin{center}
+                    $\begin{matrix}
+                        \vec{b_1} & - & 2\vec{b_2} & + & \vec{b_3} & - & \vec{b_4} & = & \vec{x_1} \\
+                        -4\vec{b_1} & - & 2\vec{b_2} & + & 0\vec{b_3} & + & 4\vec{b_4} & = & \vec{x_2} \\
+                        2\vec{b_1} & + & 3\vec{b_2} & - & \vec{b_3} & - & 3\vec{b_4} & = & \vec{x_3} \\
+                        17\vec{b_1} & - & 10\vec{b_2} & + & 11\vec{b_3} & + & \vec{b_4} & = & \vec{x_4}
+                    \end{matrix}$
+                \end{center}
+                Now, to check whether $\vec{x_1}, \vec{x_2}, \vec{x_3}, \vec{x_4}$ are linearly independent, we need to find the reduced row echelon form of the coefficient matrix;
+                \begin{tabularx}{\textwidth}{llllll}
+                    $\begin{bmatrix}
+                        1 & -4 & 2 & 17 \\
+                        -2 & -2 & 3 & -10 \\
+                        1 & 0 & -1 & 11 \\
+                        -1 & 4 & -3 & 1
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ +2R_1 \\ -R_1 \\ +R_1
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & -4 & 2 & 17 \\
+                        0 & -10 & 7 & 24 \\
+                        0 & 4 & -3 & -6 \\
+                        0 & 0 & -1 & 18
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ \cdot -\frac{1}{10} \\ {} \\ \cdot -1
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & -4 & 2 & 17 \\
+                        0 & 1 & -\frac{7}{10} & -\frac{24}{10} \\
+                        0 & 4 & -3 & -6 \\
+                        0 & 0 & 1 & -18
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ -4R_2 \\ {}
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}
+                        1 & -4 & 2 & 17 \\
+                        0 & 1 & -\frac{7}{10} & -\frac{24}{10} \\
+                        0 & 0 & -\frac{2}{10} & \frac{36}{10} \\
+                        0 & 0 & 1 & -18
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ +\frac{2}{10}R_4 \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & -4 & 2 & 17 \\
+                        0 & 1 & -\frac{7}{10} & -\frac{24}{10} \\
+                        0 & 0 & 0 & 0 \\
+                        0 & 0 & 1 & -18
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ \leftrightarrow R_4 \\ \leftrightarrow R_3
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & -4 & 2 & 17 \\
+                        0 & 1 & -\frac{7}{10} & -\frac{24}{10} \\
+                        0 & 0 & 1 & -18 \\
+                        0 & 0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        -2R_3 \\ +\frac{7}{10}R_3 \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}
+                        1 & -4 & 0 & 53 \\
+                        0 & 1 & 0 & -15 \\
+                        0 & 0 & 1 & -18 \\
+                        0 & 0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        +4R_2 \\ {} \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 0 & 0 & -7 \\
+                        0 & 1 & 0 & -15 \\
+                        0 & 0 & 1 & -18 \\
+                        0 & 0 & 0 & 0
+                    \end{bmatrix}$
+                \end{tabularx}
+                Since we have a non-pivot column, it follows that it's solvable non-trivially, and therefore it is linearly dependent. Therefore, the $\vec{x}$ vectors are linear dependent since $\vec{x_4}$ lies in the span of $\vec{x_1}, \vec{x_2}, \vec{x_3}$.
 \end{document}
