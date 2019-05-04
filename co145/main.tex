@@ -510,7 +510,7 @@
                         \subitem often written as $y = x^{-1}$, note that this does \textbf{not} mean $y = \frac{1}{x}$, defined with respect to $\otimes$
                     \item \textbf{commutative} \hfill $\forall x, y \in G [x \otimes y = y \otimes x]$
                 \end{enumerate}
-                For example, we can say $(\mathbb{Z}, +)$ is a group, but $(\mathbb{N}, +)$ is not, since the latter doesn't have an inverse element; for example $-5 \notin \mathbb{N}$, so 5 doesn't have an inverse. While $(\mathbb{R}\backslash\{0\}, \cdot)$ is an Abelian group, $(\mathbb{R}, \cdot)$ isn't a group as 0 doesn't have an inverse element ($\neg \exists x \in \mathbb{R} [0 \cdot x = 1]$). $(\mathbb{R}^n, +)$ is an Abelian groups under addition, as long as addition is defined componentwise.
+                For example, we can say $(\mathbb{Z}, +)$ is a group, but $(\mathbb{N}, +)$ is not, since the latter doesn't have an inverse element; for example $-5 \notin \mathbb{N}$, so 5 doesn't have an inverse. While $(\mathbb{R}\backslash\{0\}, \cdot)$ is an Abelian group, $(\mathbb{R}, \cdot)$ isn't a group as 0 doesn't have an inverse element ($\neg \exists x \in \mathbb{R} [0 \cdot x = 1]$). $(\mathbb{R}^n, +)$ is an Abelian groups under addition, as long as addition is defined component-wise.
             \subsubsection*{Matrices}
                 We can defined the set of all real-valued $m \times n$ matrices ($m, n \in \mathbb{N}$), where $m$ is the number of rows, and $n$ is the number of columns, as $\mathbb{R}^{m \times n}$. We can refer to each element as $a_{i, j}$, where $i \in [1, m]$, and $j \in [1, n]$, and $a_{i, j} \in \mathbb{R}$; thus giving us the following rectangular matrix;
                 \begin{center}
@@ -521,7 +521,7 @@
                         a_{m, 1} & a_{m, 2} & \cdots & a_{m, n}
                     \end{bmatrix}$
                 \end{center}
-                A $\mathbb{R}^{1 \times n}$ matrix is refered to as a \textbf{row (vector)}, and a $\mathbb{R}^{m \times 1}$ matrix is referred to as a \textbf{column (vector)}, with componentwise addition, we are able to say $(\mathbb{R}^{m \times n}, +)$ is a group.
+                A $\mathbb{R}^{1 \times n}$ matrix is referred to as a \textbf{row (vector)}, and a $\mathbb{R}^{m \times 1}$ matrix is referred to as a \textbf{column (vector)}, with component-wise addition, we are able to say $(\mathbb{R}^{m \times n}, +)$ is a group.
                 \medskip
 
                 Multiplication on matrices, $\mat{A} \in \mathbb{R}^{m \times n}, \mat{B} \in \mathbb{R}^{n \times k}, \mat{C} \in \mathbb{R}^{m \times k}$, where $\mat{C} = \mat{AB}$, is defined as;
@@ -540,7 +540,7 @@
                 We can define the transpose of $\mat{A} \in \mathbb{R}^{n \times m}$ as $\mat{B} = \mat{A}^\top \in \mat{R}^{m \times n}$, where $b_{j, i} = a_{i, j}$. On the rectangular matrix representation, we are essentially mirroring it on the leading diagonal. A \textbf{square} matrix is symmetric $\Leftrightarrow \mat{A} = \mat{A}^\top$. The general results are $(\mat{A}^\top)^\top = \mat{A}$, $(\mat{A} + \mat{B})^\top = \mat{A}^\top + \mat{B}^\top$, and $(\mat{AB})^\top = \mat{B}^\top\mat{A}^\top$. Also, if $\mat{A}$ is non-singular, then $(\mat{A}^{-1})^\top = (\mat{A}^\top)^{-1}$.
                 \medskip
 
-                A multiplication by scalar $\lambda \in \mathbb{R}$, means that for $\mat{A} \in \mathbb{R}^{m \times n}$, and $\mat{B} = \lambda \mat{A}$, it follows thatt $b_{i, j} = \lambda a_{i, j}$. This operation is distributive, and also associative.
+                A multiplication by scalar $\lambda \in \mathbb{R}$, means that for $\mat{A} \in \mathbb{R}^{m \times n}$, and $\mat{B} = \lambda \mat{A}$, it follows that $b_{i, j} = \lambda a_{i, j}$. This operation is distributive, and also associative.
             \subsubsection*{Solving Linear Equation Systems}
                 Given the general form of an equation system as;
                 \begin{center}
@@ -779,5 +779,6 @@
                         \subitem outer operation: $\lambda \vec{x} \in U$ \hfill $\forall \lambda \in \mathbb{R}, \vec{x} \in U$
                         \subitem inner operation: $\vec{x} + \vec{y} \in U$ \hfill $\forall \vec{x}, \vec{y} \in U$
                 \end{itemize}
-                We have trivial vector subspaces of the vector space $V$, namely $V$ itself, and $\{\vec{0}\}$ (the subspace containing only the zero vector). The solution set for a homogeneous linear equation system $\mat{A}\vec{x} = \vec{0}$, with $n$ unknowns, is a subspace of $\mathbb{R}^n$. Note that a homogeneous equation means that it has the zero vector on the right hand side. The same also applies in reverse; such that for a vector subspace $U \subset V$, there is a homogeneous system which characterises $U$. In contrast, an inhomogenous linear equation system $\mat{A}\vec{x} = \vec{b}$, where $\vec{b} \neq \vec{0}$ does not have a vector subspace for its solutions. Assume that it does have some subspace $U$, therefore, $\vec{0} \in U$ by definition. However, $\vec{0}$ doesn't satisfy the equation, since we know $\vec{b} \neq \vec{0}$.
+                We have trivial vector subspaces of the vector space $V$, namely $V$ itself, and $\{\vec{0}\}$ (the subspace containing only the zero vector). The solution space for a homogeneous linear equation system $\mat{A}\vec{x} = \vec{0}$, with $n$ unknowns, is a subspace of $\mathbb{R}^n$. Note that a homogeneous equation means that it has the zero vector on the right hand side. The same also applies in reverse; such that for a vector subspace $U \subset V$, there is a homogeneous system which characterises $U$. In contrast, an inhomogeneous linear equation system $\mat{A}\vec{x} = \vec{b}$, where $\vec{b} \neq \vec{0}$ does not have a vector subspace for its solutions. Assume that it does have some subspace $U$, therefore, $\vec{0} \in U$ by definition. However, $\vec{0}$ doesn't satisfy the equation, since we know $\vec{b} \neq \vec{0}$.
+            \subsubsection*{Linear Independence}
 \end{document}
