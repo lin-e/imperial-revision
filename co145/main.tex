@@ -18,8 +18,8 @@
 \usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
 
 % shorthand for verbatim
-% \catcode`~=\active
-% \def~#1~{\texttt{#1}}
+\catcode`~=\active
+\def~#1~{\texttt{#1}}
 
 % code listing
 \lstdefinestyle{main}{
@@ -66,6 +66,11 @@
 \renewcommand{\emptyset}[0]{\varnothing}
 \newcommand{\la}[0]{\langle}
 \newcommand{\ra}[0]{\rangle}
+
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\rowt}[1]{\begin{bmatrix}
+    #1
+\end{bmatrix}^\top}
 
 \newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
 \newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
@@ -127,6 +132,9 @@
     \section*{CO145 - Mathematical Methods}
         \subsection*{Prelude}
             The content discussed here is part of CO145 - Mathematical Methods (Computing MEng); taught by Michael Huth, and Mario Berta, in Imperial College London during the academic year 2018/19. The notes are written for my personal use, and have no guarantee of being correct (although I hope it is, for my own sake). This should be used in conjunction with the lecture notes. This module differs as there isn't as much new content, but it requires practice - as such, I will likely be including worked examples for my own benefit (which are probably incorrect).
+            \medskip
+
+            Also, the formatting of this document will be a mess. I'd waste too much time trying to figure out how to adjust line spacing otherwise.
         \subsection*{Sequences}
             \subsubsection*{Formal Definition of a Limit}
                 A sequence $a_n$, for $n \geq 1$, converges to some limit $l \in \mathbb{R}$ if, and only if, we can prove $\forall \epsilon > 0 [\exists N_\epsilon \in \mathbb{N} [\forall n > N_\epsilon [|a_n - l| < \epsilon]]]$.
@@ -438,23 +446,17 @@
                     dx_1 & + & ex_2 & + & fx_3 & = & k \\
                     gx_1 & + & hx_2 & + & ix_3 & = & l
                 \end{matrix}$ \hfill $\begin{matrix}
-                    (1) \\
-                    (2) \\
-                    (3)
+                    (1) \\ (2) \\ (3)
                 \end{matrix}$
 
-                We will write $\mathbf{A}\vec{x} = \vec{y}$, where $\mathbf{A} = \begin{bmatrix}
+                We will write $\mat{A}\vec{x} = \vec{y}$, where $\mat{A} = \begin{bmatrix}
                     a & b & c \\
                     d & e & f \\
                     g & h & i
                 \end{bmatrix}$, $\vec{x} = \begin{bmatrix}
-                    x_1 \\
-                    x_2 \\
-                    x_3
+                    x_1 \\ x_2 \\ x_3
                 \end{bmatrix}$, and $\vec{y} = \begin{bmatrix}
-                    j \\
-                    k \\
-                    l
+                    j \\ k \\ l
                 \end{bmatrix}$
                 \medskip
 
@@ -462,51 +464,39 @@
                 \begin{itemize}
                     \itemsep0em
                     \item no solution
-                        \subitem $\mathbf{A} = \begin{bmatrix}
+                        \subitem $\mat{A} = \begin{bmatrix}
                             1 & 1 & 1 \\
                             1 & -1 & 2 \\
                             2 & 0 & 3
                         \end{bmatrix}$, and $\vec{y} = \begin{bmatrix}
-                            3 \\
-                            2 \\
-                            1
+                            3 \\ 2 \\ 1
                         \end{bmatrix}$
                         \subitem By adding equations (1), and (2), we get $2x_1 + 3x_3 = 5$, which contradicts equation (3), hence it is \textbf{inconsistent}, and therefore has no solutions.
                     \item unique solution
-                        \subitem $\mathbf{A} = \begin{bmatrix}
+                        \subitem $\mat{A} = \begin{bmatrix}
                             1 & 1 & 1 \\
                             1 & -1 & 2 \\
                             0 & 1 & 1
                         \end{bmatrix}$, and $\vec{y} = \begin{bmatrix}
-                            3 \\
-                            2 \\
-                            2
+                            3 \\ 2 \\ 2
                         \end{bmatrix}$
                         \subitem By doing equation (1) - equation (3), we get $x_1 = 1$. Adding equations (1), and (2), we end up with $2x_1 + 3_x3 = 5$, however, we know the value of $x_1$, therefore it follows that $x_3 = 1$. Finally, by using this value in equation (3), we have $x_2 = 1$, therefore the only solution is;
                         \subitem $\vec{x} = \begin{bmatrix}
-                            1 \\
-                            1 \\
-                            1
+                            1 \\ 1 \\ 1
                         \end{bmatrix}$
                     \item infinite solutions
-                        \subitem $\mathbf{A} = \begin{bmatrix}
+                        \subitem $\mat{A} = \begin{bmatrix}
                             1 & 1 & 1 \\
                             1 & -1 & 2 \\
                             2 & 0 & 3
                         \end{bmatrix}$, and $\vec{y} = \begin{bmatrix}
-                            3 \\
-                            2 \\
-                            5
+                            3 \\ 2 \\ 5
                         \end{bmatrix}$
                         \subitem Note that this is the same $\textbf{A}$ from the first example. However, this time adding equations (1), and (2), is consistent with equation (3). If we let $x_3 = \lambda$, such that $x_3$ is a free variable, with $\lambda \in \mathbb{R}$, we can get both $x_1$, and $x_2$ in terms of $\lambda$. By doing equations (1) - (2), we get $2x_2 - x_3 = 1$, hence $x_2 = \frac{1}{2} + \frac{1}{2}\lambda$. By doing equations (1) + (2), we get $2x_1 + 3x_3 = 5$, which leads to $x_1 = \frac{5}{2} - \frac{3}{2}\lambda$. As such, we have an infinite set of solutions, given $\lambda \in \mathbb{R}$;
                         \subitem $\vec{x} = \begin{bmatrix}
-                            \frac{5}{3} \\
-                            \frac{1}{2} \\
-                            0
+                            \frac{5}{3} \\ \frac{1}{2} \\ 0
                         \end{bmatrix} + \lambda \begin{bmatrix}
-                            -\frac{3}{2} \\
-                            \frac{1}{2} \\
-                            1
+                            -\frac{3}{2} \\ \frac{1}{2} \\ 1
                         \end{bmatrix}$
                 \end{itemize}
             \subsubsection*{Groups}
@@ -520,5 +510,208 @@
                         \subitem often written as $y = x^{-1}$, note that this does \textbf{not} mean $y = \frac{1}{x}$, defined with respect to $\otimes$
                     \item \textbf{commutative} \hfill $\forall x, y \in G [x \otimes y = y \otimes x]$
                 \end{enumerate}
-                For example, we can say $(\mathbb{Z}, +)$ is a group, but $(\mathbb{N}, +)$ is not, since the latter doesn't have an inverse element; for example $-5 \notin \mathbb{N}$, so 5 doesn't have an inverse. While $(\mathbb{R}\backslash\{0\}, \cdot)$ is an Abelian group, $(\mathbb{R}, \cdot)$ isn't a group as 0 doesn't have an inverse element ($\neg \exists x \in \mathbb{R} [0 \cdot x = 1]$).
+                For example, we can say $(\mathbb{Z}, +)$ is a group, but $(\mathbb{N}, +)$ is not, since the latter doesn't have an inverse element; for example $-5 \notin \mathbb{N}$, so 5 doesn't have an inverse. While $(\mathbb{R}\backslash\{0\}, \cdot)$ is an Abelian group, $(\mathbb{R}, \cdot)$ isn't a group as 0 doesn't have an inverse element ($\neg \exists x \in \mathbb{R} [0 \cdot x = 1]$). $(\mathbb{R}^n, +)$ is an Abelian groups under addition, as long as addition is defined componentwise.
+            \subsubsection*{Matrices}
+                We can defined the set of all real-valued $m \times n$ matrices ($m, n \in \mathbb{N}$), where $m$ is the number of rows, and $n$ is the number of columns, as $\mathbb{R}^{m \times n}$. We can refer to each element as $a_{i, j}$, where $i \in [1, m]$, and $j \in [1, n]$, and $a_{i, j} \in \mathbb{R}$; thus giving us the following rectangular matrix;
+                \begin{center}
+                    $\mat{A} = \begin{bmatrix}
+                        a_{1, 1} & a_{1, 2} & \cdots & a_{1, n} \\
+                        a_{2, 1} & a_{2, 2} & \cdots & a_{2, n} \\
+                        \vdots & \vdots & \ddots & \vdots \\
+                        a_{m, 1} & a_{m, 2} & \cdots & a_{m, n}
+                    \end{bmatrix}$
+                \end{center}
+                A $\mathbb{R}^{1 \times n}$ matrix is refered to as a \textbf{row (vector)}, and a $\mathbb{R}^{m \times 1}$ matrix is referred to as a \textbf{column (vector)}, with componentwise addition, we are able to say $(\mathbb{R}^{m \times n}, +)$ is a group.
+                \medskip
+
+                Multiplication on matrices, $\mat{A} \in \mathbb{R}^{m \times n}, \mat{B} \in \mathbb{R}^{n \times k}, \mat{C} \in \mathbb{R}^{m \times k}$, where $\mat{C} = \mat{AB}$, is defined as;
+                \begin{center}
+                    $c_{i, j} = \summation{l = 1}{n}{a_{i, l}b_{l, j}}$, with $i \in [1, m]$, and $j \in [1, k]$
+                \end{center}
+                In general, matrix multiplication is not commutative, hence $\mat{AB} \neq \mat{BA}$. However, it is associative, and distributive (given that the dimensions match).
+                \medskip
+
+                The identity matrix, written as $\mat{I}_n \in \mathbb{R}^{n \times n}$, is all 0s, other than $a_{i, i} = 1$, where $i \in [1, n]$. The identity matrix has the following property; $\mat{I}_m\mat{A} = \mat{A} = \mat{AI}_n$, where $\mat{A} \in \mathbb{R}^{m \times n}$.
+                \medskip
+
+                If a square matrix ($\mat{A} \in \mathbb{R}^{n \times n}$) is non-singular, we can find an inverse for it, $\mat{A}^{-1} \in \mathbb{R}^{n \times n}$, such that $\mat{AA}^{-1} = \mat{A}^{-1}\mat{A} = \mat{I}_n$. However, not every matrix has an inverse. We also have the result $(\mat{AB})^{-1} = \mat{B}^{-1}\mat{A}^{-1}$.
+                \medskip
+
+                We can define the transpose of $\mat{A} \in \mathbb{R}^{n \times m}$ as $\mat{B} = \mat{A}^\top \in \mat{R}^{m \times n}$, where $b_{j, i} = a_{i, j}$. On the rectangular matrix representation, we are essentially mirroring it on the leading diagonal. A \textbf{square} matrix is symmetric $\Leftrightarrow \mat{A} = \mat{A}^\top$. The general results are $(\mat{A}^\top)^\top = \mat{A}$, $(\mat{A} + \mat{B})^\top = \mat{A}^\top + \mat{B}^\top$, and $(\mat{AB})^\top = \mat{B}^\top\mat{A}^\top$. Also, if $\mat{A}$ is non-singular, then $(\mat{A}^{-1})^\top = (\mat{A}^\top)^{-1}$.
+                \medskip
+
+                A multiplication by scalar $\lambda \in \mathbb{R}$, means that for $\mat{A} \in \mathbb{R}^{m \times n}$, and $\mat{B} = \lambda \mat{A}$, it follows thatt $b_{i, j} = \lambda a_{i, j}$. This operation is distributive, and also associative.
+            \subsubsection*{Solving Linear Equation Systems}
+                Given the general form of an equation system as;
+                \begin{center}
+                    $\begin{matrix}
+                        a_{1, 1}x_1 & + & a_{1, 2}x_1 & + & \cdots & + & a_{1, n}x_n & = & b_1 \\
+                        a_{2, 1}x_1 & + & a_{2, 2}x_2 & + & \cdots & + & a_{2, n}x_n & = & b_2 \\
+                        \vdots & & \vdots & & & & \vdots & & \vdots \\
+                        a_{m, 1}x_1 & + & a_{m, 2}x_2 & + & \cdots & + & a_{m, n}x_n & = & b_m
+                    \end{matrix}$
+                \end{center}
+                We can easily represent it as $\mat{A}\vec{x} = \vec{b}$, where $\mat{A} \in \mathbb{R}^{m \times n}$, $\vec{x} \in \mathbb{R}^{n (\times 1)}$, and $\vec{b} \in \mathbb{R}^{m (\times 1)}$.
+                \medskip
+
+                For example, consider a simple linear equation system as follows;
+                \begin{center}
+                    $\mat{A}\vec{x} = \begin{bmatrix}
+                        1 & 0 & 8 & -4 \\
+                        0 & 1 & 2 & 12
+                    \end{bmatrix} \begin{bmatrix}
+                        x_1 \\ x_2 \\ x_3 \\ x_4
+                    \end{bmatrix} = \begin{bmatrix}
+                        42 \\ 8
+                    \end{bmatrix}$
+                \end{center}
+                Let us also say $\mat{A} = \begin{bmatrix}[c|c|c|c]
+                    \vec{c_1} & \vec{c_2} & \vec{c_3} & \vec{c_4}
+                \end{bmatrix}$, where $\vec{c_i}$ represents the $i^\text{th}$ column of $\mat{A}$, hence $\vec{b} = \summation{i = 1}{4}{x_i \vec{c_i}}$.
+                \smallskip
+
+                In order to find a particular solution, we can easily create $\vec{b}$ as a linear combination of $\vec{c_1}$, and $\vec{c_2}$, such that $\vec{b} = 42\vec{c_1} + 8\vec{c_2} + 0\vec{c_3} + 0\vec{c_4}$, therefore we can get a \textbf{particular} solution; $\vec{x} = \rowt{42 & 8 & 0 & 0}$.
+
+
+                This doesn't capture all the solutions of this equation system - if there are more unknowns than equations, then there are an infinite number of solutions. Recall that $\vec{b} + \vec{0} = \vec{b}$, hence we can attempt to find non-trivial $\vec{0}$s to generate the set of all solutions.
+                \medskip
+
+                Using the fact that $\mat{A}$ is already in \textbf{row echelon form}, we can try say that $\vec{c_3} = 8\vec{c_1} + 2\vec{c_2}$, therefore, it follows that $\vec{0} = 8\vec{c_3} + 2\vec{c_2} - \vec{c_3} + 0\vec{c_4}$, as such we've managed to create a zero solution when $\vec{x} = \rowt{8 & 2 & -1 & 0}$. We can do the same with $\vec{c_4}$, such that $\vec{c_4} = -4\vec{c_1} + 12\vec{c_2} \Leftrightarrow \vec{0} = -4\vec{c_1} + 12\vec{c_2} + 0\vec{c_3} - \vec{c_4}$, hence $\vec{x} = \rowt{-4 & 12 & 0 & -1}$ is also a zero solution. With these two $\vec{0}$s, we can say that the general solution is as follows (where $\lambda_1, \lambda_2 \in \mathbb{R}$);
+                \begin{center}
+                    $\vec{x} = \begin{bmatrix}
+                        42 \\ 8 \\ 0 \\ 0
+                    \end{bmatrix} + \lambda_1 \begin{bmatrix}
+                        8 \\ 2 \\ -1 \\ 0
+                    \end{bmatrix} + \lambda_2 \begin{bmatrix}
+                        -4 \\ 12 \\ 0 \\ -1
+                    \end{bmatrix}$
+                \end{center}
+                In this solution, we first find a \textbf{particular} solution for $\mat{A}\vec{x} = \vec{b}$, and then combine this with \textbf{all} solutions to $\mat{A}\vec{x} = \vec{0}$. This was fairly trivial to solve, as the matrix was already in a special form. Generally, equation systems won't be given to us like this, however we can transform it into this form by \textbf{Gaussian elimination}.
+            \subsubsection*{Elementary Transformations}
+                We are allowed to apply the following operations, which let us transform the equation system into a simpler state, but preserve the solution set;
+                \begin{itemize}
+                    \itemsep0em
+                    \item swap two equations (which means we can swap rows in the matrix)
+                    \item multiply an equation (matrix row) by a non-zero constant $\lambda \in \mathbb{R}\backslash\{0\}$
+                    \item add (or subtract) an equation (row) to / from another equation (row)
+                \end{itemize}
+                We can say that a matrix is in \textbf{row echelon form (REF)}, if all zero rows are below the non-zero rows, and the pivot of each row is \textbf{strictly} to the right of the pivot in the row above. The pivot of a row is defined as the first non-zero element in a given row, reading left-to-right.
+                \medskip
+
+                Consider the following system of equations, and the result of it after Gaussian elimination;
+                \begin{center}
+                    \setcounter{MaxMatrixCols}{20}
+                    $\begin{matrix}
+                        -2x_1 & + & 4x_2 & - & 2x_3 & - & x_4 & + & 4x_5 & = & -3 \\
+                        4x_1 & - & 8x_2 & + & 3x_3 & - & 3x_4 & + & x_5 & = & 2 \\
+                        x_1 & - & 2x_2 & + & x_3 & - & x_4 & + & x_5 & = & 0 \\
+                        x_1 & - & 2x_2 & + & 0x_3 & - & 3x_4 & + & 4x_5 & = & a \\
+                        & & & & & \leadsto & & & & & \\
+                        x_1 & - & 2x_2 & + & x_3 & - & x_4 & + & x_5 & = & 0 \\
+                        & & & & x_3 & - & x_4 & + & 3x_5 & = & -2 \\
+                        & & & & & & x_4 & - & 2x_5 & = & 1 \\
+                        & & & & & & & & 0 & = & a + 1
+                    \end{matrix}$
+                \end{center}
+                We can now work on the augmented matrix to transform it into \textbf{REF};
+                % I forgot how painful doing matrices on LaTeX was.
+                \begin{tabularx}{\textwidth}{llll}
+                    $\begin{bmatrix}[ccccc|c]
+                        -2 & 4 & -2 & -1 & 4 & -3 \\
+                        4 & -8 & 3 & -3 & 1 & 2 \\
+                        1 & -2 & 1 & -1 & 1 & 0 \\
+                        1 & -2 & 0 & -3 & 4 & a
+                    \end{bmatrix}\begin{matrix}
+                        \leftrightarrow R_3 \\ {} \\ \leftrightarrow R_1 \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}[ccccc|c]
+                        1 & -2 & 1 & -1 & 1 & 0 \\
+                        4 & -8 & 3 & -3 & 1 & 2 \\
+                        -2 & 4 & -2 & -1 & 4 & -3 \\
+                        1 & -2 & 0 & -3 & 4 & a
+                    \end{bmatrix}\begin{matrix}
+                        {} \\ -4R_1 \\ +2R_1 \\ -R_1
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}[ccccc|c]
+                        1 & -2 & 1 & -1 & 1 & 0 \\
+                        0 & 0 & -1 & 1 & -3 & 2 \\
+                        0 & 0 & 0 & -3 & 6 & -3 \\
+                        0 & 0 & -1 & -2 & 3 & a
+                    \end{bmatrix}\begin{matrix}
+                        {} \\ {} \\ {} \\ -R_2
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}[ccccc|c]
+                        1 & -2 & 1 & -1 & 1 & 0 \\
+                        0 & 0 & -1 & 1 & -3 & 2 \\
+                        0 & 0 & 0 & -3 & 6 & -3 \\
+                        0 & 0 & 0 & -3 & 6 & a - 2
+                    \end{bmatrix}\begin{matrix}
+                        {} \\ {} \\ {} \\ -R_3
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}[ccccc|c]
+                        1 & -2 & 1 & -1 & 1 & 0 \\
+                        0 & 0 & -1 & 1 & -3 & 2 \\
+                        0 & 0 & 0 & -3 & 6 & -3 \\
+                        0 & 0 & 0 & 0 & 0 & a + 1
+                    \end{bmatrix}\begin{matrix}
+                        {} \\ \cdot -1 \\ \cdot -\frac{1}{3} \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}[ccccc|c]
+                        1 & -2 & 1 & -1 & 1 & 0 \\
+                        0 & 0 & 1 & -1 & 3 & -2 \\
+                        0 & 0 & 0 & 1 & -2 & 1 \\
+                        0 & 0 & 0 & 0 & 0 & a + 1
+                    \end{bmatrix}$ &
+                \end{tabularx}
+                It follows that there is only a solution when $a = -1$. To clarify some definitions, we refer to a variable as being \textbf{basic}, if it corresponds to the pivot element of any given row, hence in this case, the basic variables are $x_1, x_3, x_4$, and the rest of the variables are \textbf{free} ($x_2$, and $x_5$ in our case). The pivot columns in our case (written as $\vec{p_i}$ corresponding to $x_i$) are;
+                \begin{center}
+                    $\vec{p_1} = \begin{bmatrix}
+                        1 \\ 0 \\ 0 \\ 0
+                    \end{bmatrix}$, $\vec{p_3} = \begin{bmatrix}
+                        1 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix}$, and $\vec{p_4} = \begin{bmatrix}
+                        -1 \\ -1 \\ 1 \\ 0
+                    \end{bmatrix}$
+                \end{center}
+                We implicitly set the \textbf{free} variables to 0 when we find our particular solution using this method.
+                \begin{center}
+                    $x_1\vec{p_1} + x_3\vec{p_3} + x_4\vec{p_4} = \vec{b} \Leftrightarrow x_1\begin{bmatrix}
+                        1 \\ 0 \\ 0 \\ 0
+                    \end{bmatrix} + x_3\begin{bmatrix}
+                        1 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix} + x_4\begin{bmatrix}
+                        -1 \\ -1 \\ 1 \\ 0
+                    \end{bmatrix} = \begin{bmatrix}
+                        0 \\ -2 \\ 1 \\ 0
+                    \end{bmatrix} \Leftrightarrow \vec{x} = \begin{bmatrix}
+                        2 \\ 0 \\ -1 \\ 1 \\ 0
+                    \end{bmatrix}$
+                \end{center}
+                We can get $x_4 = 1$ straight away, and from that we can get $x_3 = -1$, and also $x_1 = 2$. By using the same method as before, where we try create the non-pivot columns as a linear combination of the pivot columns, we can get the following general solution ($\forall \lambda_1, \lambda_2 \in \mathbb{R}$) - note that we could just as easily negate all the values in the column vectors, since our $\lambda_1, \lambda_2$ can take any real value;
+                \begin{center}
+                    $\vec{x} = \begin{bmatrix}
+                        2 \\ 0 \\ -1 \\ 1 \\ 0
+                    \end{bmatrix} + \lambda_1 \begin{bmatrix}
+                        -2 \\ -1 \\ 0 \\ 0 \\ 0
+                    \end{bmatrix} + \lambda_2 \begin{bmatrix}
+                        -2 \\ 0 \\ 1 \\ -2 \\ -1
+                    \end{bmatrix}$
+                \end{center}
+            \subsubsection*{Minus-1 Trick}
+                We say that some equation system is in \textbf{reduced row echelon form (RREF)} (this may also be referred to as row-reduced echelon form, or row canonical form in other texts), if it is already in row echelon form, every pivot item is 1, and the pivot is the only non-zero entry in the column. Consider the following matrix, with the pivots coloured purple, and the matrix after adding rows of the form $\begin{bmatrix}
+                    0 & \cdots & 0 & \textcolor{red}{-1} & 0 & \cdots & 0
+                \end{bmatrix}$, to create a square matrix;
+                \begin{center}
+                    $\mat{A} = \begin{bmatrix}
+                        \textcolor{violet}{1} & 3 & 0 & 0 & 3 \\
+                        0 & 0 & \textcolor{violet}{1} & 0 & 3 \\
+                        0 & 0 & 0 & \textcolor{violet}{1} & -4
+                    \end{bmatrix}$ \hfill $\mat{A^\prime} = \begin{bmatrix}
+                        \textcolor{violet}{1} & 3 & 0 & 0 & 3 \\
+                        0 & \textcolor{red}{-1} & 0 & 0 & 0 \\
+                        0 & 0 & \textcolor{violet}{1} & 0 & 3 \\
+                        0 & 0 & 0 & \textcolor{violet}{1} & -4 \\
+                        0 & 0 & 0 & 0 & \textcolor{red}{-1}
+                    \end{bmatrix}$
+                \end{center}
+                By reading the columns containing the new \textcolor{red}{-1}s, we can get all solutions for $\mat{A}\vec{x} = \vec{0}$
 \end{document}
