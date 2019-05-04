@@ -725,7 +725,7 @@
                 \end{bmatrix}$.
                 \medskip
 
-                This is one of the things that are fairly easy to understand, but just requires practice for the exams. This technique is applied to a simple $\mat{A} \in \mathbb{R}^{2 \times 2}$;
+                This is one of the parts in this module that are fairly easy to understand, but just requires practice for the exams. This technique is applied to a simple $\mat{A} \in \mathbb{R}^{2 \times 2}$;
                 \begin{center}
                     $\begin{bmatrix}[cc|cc]
                         1 & 2 & 1 & 0 \\
@@ -747,4 +747,37 @@
                         0 & 1 & \frac{3}{2} & -\frac{1}{2}
                     \end{bmatrix}$
                 \end{center}
+            \subsubsection*{Vector Spaces}
+                We define a real-valued \textbf{vector space} ($\mathbb{R}$-vector space) is a set $V$ with two operations;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $+ : V \times V \mapsto V$ \hfill inner operation
+                    \item $\cdot : \mathbb{R} \times V \mapsto V$ \hfill outer operation
+                \end{itemize}
+                The following properties hold;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $(V, +)$ is an Abelian group
+                    \item the outer operation is distributive
+                        \subitem $\lambda \cdot (\vec{x} + \vec{y}) = \lambda \cdot \vec{x} + \lambda \cdot \vec{y}$ \hfill $\forall \lambda \in \mathbb{R}, \vec{x}, \vec{y} \in V$
+                        \subitem $(\lambda + \psi) \cdot \vec{x} = \lambda \cdot \vec{x} + \psi \cdot \vec{x}$ \hfill $\forall \lambda, \psi \in \mathbb{R}, \vec{x} \in V$
+                    \item the outer operation is associative
+                        \subitem $\lambda \cdot (\psi \cdot \vec{x}) = (\lambda \cdot \psi) \cdot \vec{x}$ \hfill $\forall \lambda, \psi \in \mathbb{R}, \vec{x} \in V$
+                    \item the outer operation has a neutral element of 1
+                        \subitem $1 \cdot \vec{x} = \vec{x}$ \hfill $\forall \vec{x} \in V$
+                \end{itemize}
+                Examples of vector spaces are $V = \mathbb{R}^n$, $V = \mathbb{R}^{m \times n}$, and $V = \mathbb{C}$ (the standard representation of the complex numbers).
+            \subsubsection*{Vector Subspaces}
+                Suppose we have $U \subset V$, where $V$ is a vector space, then $U$ is a vector / linear subspace if it is a vector space with the same outer, and inner operations, but restricted to $U \times U$, and $\mathbb{R} \times U$, respectively.
+                \medskip
+
+                For us to show that $U$ is a vector subspace, we must show the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $U \neq \emptyset$, especially have to show $\vec{0} \in U$
+                    \item closure of $U$
+                        \subitem outer operation: $\lambda \vec{x} \in U$ \hfill $\forall \lambda \in \mathbb{R}, \vec{x} \in U$
+                        \subitem inner operation: $\vec{x} + \vec{y} \in U$ \hfill $\forall \vec{x}, \vec{y} \in U$
+                \end{itemize}
+                We have trivial vector subspaces of the vector space $V$, namely $V$ itself, and $\{\vec{0}\}$ (the subspace containing only the zero vector). The solution set for a homogeneous linear equation system $\mat{A}\vec{x} = \vec{0}$, with $n$ unknowns, is a subspace of $\mathbb{R}^n$. Note that a homogeneous equation means that it has the zero vector on the right hand side. The same also applies in reverse; such that for a vector subspace $U \subset V$, there is a homogeneous system which characterises $U$. In contrast, an inhomogenous linear equation system $\mat{A}\vec{x} = \vec{b}$, where $\vec{b} \neq \vec{0}$ does not have a vector subspace for its solutions. Assume that it does have some subspace $U$, therefore, $\vec{0} \in U$ by definition. However, $\vec{0}$ doesn't satisfy the equation, since we know $\vec{b} \neq \vec{0}$.
 \end{document}
