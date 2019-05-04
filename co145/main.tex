@@ -933,4 +933,176 @@
                     \end{bmatrix}$
                 \end{tabularx}
                 Since we have a non-pivot column, it follows that it's solvable non-trivially, and therefore it is linearly dependent. Therefore, the $\vec{x}$ vectors are linear dependent since $\vec{x_4}$ lies in the span of $\vec{x_1}, \vec{x_2}, \vec{x_3}$.
+            \subsubsection*{Basis}
+                Given a finite number of vectors $\vec{x_1}, \vec{x_2}, ..., \vec{x_k} \in V$, we can say that any vector of the following form, is a linear combination of the vectors $\vec{x_1}, \vec{x_2}, ..., \vec{x_k}$ (given $\lambda_1, \lambda_2, ..., \lambda_k \in \mathbb{R}$);
+                \begin{center}
+                    $\vec{v} = \summation{i = 1}{k}{\lambda_i \vec{x_i}} \in V$
+                \end{center}
+                Suppose we have $A \subset V$, and $A = \{\vec{x_1}, \vec{x_2}, ..., \vec{x_k}\}$, if we can generate every vector $\vec{v} \in V$, as a linear combination of vectors in $A$, then $A$ is a \textbf{generating set / span} of the vector space $V$. This is denoted as $V = [A] = [\vec{x_1}, \vec{x_2}, ..., \vec{x_k}]$.
+                \medskip
+
+                We can define a generating set of $V$ as a \textbf{basis} of $V$, if is linearly independent, and minimal. We define a generating set of $V$ minimal if there isn't a smaller set which spans $V$. With a real vector space $V$, and $B \subset V$, $B \neq \emptyset$, $B$ is a basis of $V$ $\Leftrightarrow$ $B$ is a minimal generating set $\Leftrightarrow$ $B$ is a maximal linearly independent subset of $V$.
+                \medskip
+
+                It is also equivalent to say that every $\vec{v} \in V$ is a \textbf{unique} linear combination of vectors from $B$;
+                \begin{center}
+                    $\vec{v} = \summation{i = 1}{k}{\lambda_i\vec{b}_i} = \summation{i = 1}{k}{\mu_i\vec{b}_i} \Rightarrow \forall i \in [1, k] [\mu_i = \lambda_i]$
+                \end{center}
+                While bases aren't unique, the number of elements (or $\text{dim}(V)$) is constant for a vector space $V$. In $\mathbb{R}^3$, we refer to the \textbf{standard} basis as the following set of vectors, thus $\text{dim}(\mathbb{R}^3) = 3$, obviously;
+                \begin{center}
+                    $B = [\begin{bmatrix}
+                        1 \\ 0 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 1 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 0 \\ 1
+                    \end{bmatrix}]$
+                \end{center}
+                With a vector subspace $U \subset V$, we can set an upper bound on the dimensions as $\text{dim}(U) \leq \text{dim}(V)$, and $\text{dim}(U) = \text{dim}(V) \Leftrightarrow U = V$.
+                \medskip
+
+                Consider the following subspace $U \subset \mathbb{R}^5$, spanned by;
+                \begin{center}
+                    $\vec{x_1} = \begin{bmatrix}
+                        1 \\ 2 \\ -1 \\ -1 \\ -1
+                    \end{bmatrix}$, $\vec{x_2} = \begin{bmatrix}
+                        2 \\ -1 \\ 1 \\ 2 \\ -2
+                    \end{bmatrix}$, $\vec{x_3} = \begin{bmatrix}
+                        3 \\ -4 \\ 3 \\ 5 \\ -3
+                    \end{bmatrix}$, and $\vec{x_4} = \begin{bmatrix}
+                        -1 \\ 8 \\ -5 \\ -6 \\ 1
+                    \end{bmatrix}$
+                \end{center}
+                As we're once again trying to determine linear independence, we end up with another homogeneous equation system, that can be represented by taking the augmented matrix of the vectors, and then apply Gaussian elimination on it (still doing all of it, for practice);
+                \begin{tabularx}{\textwidth}{llllll}
+                    $\begin{bmatrix}
+                        1 & 2 & 3 & -1 \\
+                        2 & -1 & -4 & 8 \\
+                        -1 & 1 & 3 & -5 \\
+                        -1 & 2 & 5 & -6 \\
+                        -1 & -2 & -3 & 1
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ -2R_1 \\ +R_1 \\ +R_1 \\ +R_1
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 2 & 3 & -1 \\
+                        0 & -5 & -10 & 10 \\
+                        0 & 3 & 6 & -6 \\
+                        0 & 4 & 8 & -7 \\
+                        0 & 0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ \cdot \frac{1}{3} \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 2 & 3 & -1 \\
+                        0 & -5 & -10 & 10 \\
+                        0 & 1 & 2 & -2 \\
+                        0 & 4 & 8 & -7 \\
+                        0 & 0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ +5R_3 \\ {} \\ -4R_3 \\ {}
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}
+                        1 & 2 & 3 & -1 \\
+                        0 & 0 & 0 & 0 \\
+                        0 & 1 & 2 & -2 \\
+                        0 & 0 & 0 & 1 \\
+                        0 & 0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ \rightarrow R_4 \\ \rightarrow R_2 \\ \rightarrow R_3 \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 2 & 3 & -1 \\
+                        0 & 1 & 2 & -2 \\
+                        0 & 0 & 0 & 1 \\
+                        0 & 0 & 0 & 0 \\
+                        0 & 0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        +R_3 \\ +2R_3 \\ {} \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 2 & 3 & 0 \\
+                        0 & 1 & 2 & 0 \\
+                        0 & 0 & 0 & 1 \\
+                        0 & 0 & 0 & 0 \\
+                        0 & 0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        -2R_2 \\ {} \\ {} \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}
+                        1 & 0 & -1 & 0 \\
+                        0 & 1 & 2 & 0 \\
+                        0 & 0 & 0 & 1 \\
+                        0 & 0 & 0 & 0 \\
+                        0 & 0 & 0 & 0
+                    \end{bmatrix}$
+                \end{tabularx}
+                From this, we can see that the vectors corresponding to the pivot columns are $\vec{x_1}$, $\vec{x_2}$, and $\vec{x_4}$, hence we can say that $[\vec{x_1}, \vec{x_2}, \vec{x_4}]$ forms a basis of $U$.
+                \medskip
+
+                On the other hand, we can try to find a simple basis of $U$, which means we want as many coordinates equal to 0 as possible. We can do this by writing the vectors as rows in the matrix, and then apply the same Gaussian elimination;
+                \begin{tabularx}{\textwidth}{llll}
+                    $\begin{bmatrix}
+                        1 & 2 & -1 & -1 & -1 \\
+                        2 & -1 & 1 & 2 & -2 \\
+                        3 & -4 & 3 & 5 & -3 \\
+                        -1 & 8 & -5 & -6 & 1
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ -2R_1 \\ -3R_1 \\ +R_1
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 2 & -1 & -1 & -1 \\
+                        0 & -5 & 3 & 4 & 0 \\
+                        0 & -10 & 6 & 8 & 0 \\
+                        0 & 10 & -6 & -7 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ {} \\ +R_3
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}
+                        1 & 2 & -1 & -1 & -1 \\
+                        0 & -5 & 3 & 4 & 0 \\
+                        0 & -10 & 6 & 8 & 0 \\
+                        0 & 0 & 0 & 1 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ +2R_2 \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 2 & -1 & -1 & -1 \\
+                        0 & -5 & 3 & 4 & 0 \\
+                        0 & 0 & 0 & 0 & 0 \\
+                        0 & 0 & 0 & 1 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ \cdot -\frac{1}{5} \\ \leftrightarrow R_4 \\ \leftrightarrow R_3
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}
+                        1 & 2 & -1 & -1 & -1 \\
+                        0 & 1 & -\frac{3}{5} & -\frac{4}{5} & 0 \\
+                        0 & 0 & 0 & 1 & 0 \\
+                        0 & 0 & 0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        +R_3 \\ +\frac{4}{5}R_3 \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 2 & -1 & 0 & -1 \\
+                        0 & 1 & -\frac{3}{5} & 0 & 0 \\
+                        0 & 0 & 0 & 1 & 0 \\
+                        0 & 0 & 0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        -2R_2 \\ {} \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}
+                        1 & 0 & \frac{1}{5} & 0 & -1 \\
+                        0 & 1 & -\frac{3}{5} & 0 & 0 \\
+                        0 & 0 & 0 & 1 & 0 \\
+                        0 & 0 & 0 & 0 & 0
+                    \end{bmatrix}$
+                \end{tabularx}
+                By reading the rows with the leading 1s, we can write down a simple basis;
+                \begin{center}
+                    $U = [\begin{bmatrix}
+                        1 \\ 0 \\ \frac{1}{5} \\ 0 \\ -1
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 1 \\ -\frac{3}{5} \\ 0 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 0 \\ 0 \\ 1 \\ 0
+                    \end{bmatrix}]$
+                \end{center}
 \end{document}
