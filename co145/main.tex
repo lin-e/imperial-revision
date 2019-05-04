@@ -699,19 +699,52 @@
             \subsubsection*{Minus-1 Trick}
                 We say that some equation system is in \textbf{reduced row echelon form (RREF)} (this may also be referred to as row-reduced echelon form, or row canonical form in other texts), if it is already in row echelon form, every pivot item is 1, and the pivot is the only non-zero entry in the column. Consider the following matrix, with the pivots coloured purple, and the matrix after adding rows of the form $\begin{bmatrix}
                     0 & \cdots & 0 & \textcolor{red}{-1} & 0 & \cdots & 0
-                \end{bmatrix}$, to create a square matrix;
+                \end{bmatrix}$, to create a square matrix. By reading the columns containing the new \textcolor{red}{-1}s, we can get all solutions for $\mat{A}\vec{x} = \vec{0}$, once again $\forall \lambda_1, \lambda_2 \in \mathbb{R}$;
                 \begin{center}
                     $\mat{A} = \begin{bmatrix}
                         \textcolor{violet}{1} & 3 & 0 & 0 & 3 \\
-                        0 & 0 & \textcolor{violet}{1} & 0 & 3 \\
+                        0 & 0 & \textcolor{violet}{1} & 0 & 9 \\
                         0 & 0 & 0 & \textcolor{violet}{1} & -4
                     \end{bmatrix}$ \hfill $\mat{A^\prime} = \begin{bmatrix}
                         \textcolor{violet}{1} & 3 & 0 & 0 & 3 \\
                         0 & \textcolor{red}{-1} & 0 & 0 & 0 \\
-                        0 & 0 & \textcolor{violet}{1} & 0 & 3 \\
+                        0 & 0 & \textcolor{violet}{1} & 0 & 9 \\
                         0 & 0 & 0 & \textcolor{violet}{1} & -4 \\
                         0 & 0 & 0 & 0 & \textcolor{red}{-1}
+                    \end{bmatrix}$ \hfill $\vec{x} = \lambda_1 \begin{bmatrix}
+                        3 \\ -1 \\ 0 \\ 0 \\ 0
+                    \end{bmatrix} + \lambda_2 \begin{bmatrix}
+                        3 \\ 0 \\ 9 \\ -4 \\ -1
                     \end{bmatrix}$
                 \end{center}
-                By reading the columns containing the new \textcolor{red}{-1}s, we can get all solutions for $\mat{A}\vec{x} = \vec{0}$
+            \subsubsection*{Gaussian Elimination to Calculate the Inverse}
+                This is a fairly simple technique for calculating the inverse matrix, where we essentially augment the original matrix with the identity, and apply Gaussian elimination to get the identity on the left hand side; $\begin{bmatrix}[c|c]
+                    \mat{A} & \mat{I}_n
+                \end{bmatrix} \leadsto \cdots \leadsto \begin{bmatrix}[c|c]
+                    \mat{I}_n & \mat{A}^{-1}
+                \end{bmatrix}$.
+                \medskip
+
+                This is one of the things that are fairly easy to understand, but just requires practice for the exams. This technique is applied to a simple $\mat{A} \in \mathbb{R}^{2 \times 2}$;
+                \begin{center}
+                    $\begin{bmatrix}[cc|cc]
+                        1 & 2 & 1 & 0 \\
+                        3 & 4 & 0 & 1
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ -3R_1
+                    \end{matrix} \leadsto \begin{bmatrix}[cc|cc]
+                        1 & 2 & 1 & 0 \\
+                        0 & -2 & -3 & 1
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ \cdot -\frac{1}{2}
+                    \end{matrix} \leadsto \begin{bmatrix}[cc|cc]
+                        1 & 2 & 1 & 0 \\
+                        0 & 1 & \frac{3}{2} & -\frac{1}{2}
+                    \end{bmatrix} \begin{matrix}
+                        -2R_2 \\ {}
+                    \end{matrix} \leadsto \begin{bmatrix}[cc|cc]
+                        1 & 0 & -2 & 1 \\
+                        0 & 1 & \frac{3}{2} & -\frac{1}{2}
+                    \end{bmatrix}$
+                \end{center}
 \end{document}
