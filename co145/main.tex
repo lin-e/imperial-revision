@@ -428,4 +428,97 @@
                 \begin{center}
                     $y = \summation{i = 0}{\infty}{\frac{(kx)^i}{i!}} = e^{kx}$
                 \end{center}
+        \subsection*{Linear Algebra}
+            \subsubsection*{Linear Equation Systems}
+                For brevity, instead of writing;
+                \smallskip
+
+                $\begin{matrix}
+                    ax_1 & + & bx_2 & + & cx_3 & = & j \\
+                    dx_1 & + & ex_2 & + & fx_3 & = & k \\
+                    gx_1 & + & hx_2 & + & ix_3 & = & l
+                \end{matrix}$ \hfill $\begin{matrix}
+                    (1) \\
+                    (2) \\
+                    (3)
+                \end{matrix}$
+
+                We will write $\mathbf{A}\vec{x} = \vec{y}$, where $\mathbf{A} = \begin{bmatrix}
+                    a & b & c \\
+                    d & e & f \\
+                    g & h & i
+                \end{bmatrix}$, $\vec{x} = \begin{bmatrix}
+                    x_1 \\
+                    x_2 \\
+                    x_3
+                \end{bmatrix}$, and $\vec{y} = \begin{bmatrix}
+                    j \\
+                    k \\
+                    l
+                \end{bmatrix}$
+                \medskip
+
+                In general, for a real linear equation system, we have the following possible outcomes;
+                \begin{itemize}
+                    \itemsep0em
+                    \item no solution
+                        \subitem $\mathbf{A} = \begin{bmatrix}
+                            1 & 1 & 1 \\
+                            1 & -1 & 2 \\
+                            2 & 0 & 3
+                        \end{bmatrix}$, and $\vec{y} = \begin{bmatrix}
+                            3 \\
+                            2 \\
+                            1
+                        \end{bmatrix}$
+                        \subitem By adding equations (1), and (2), we get $2x_1 + 3x_3 = 5$, which contradicts equation (3), hence it is \textbf{inconsistent}, and therefore has no solutions.
+                    \item unique solution
+                        \subitem $\mathbf{A} = \begin{bmatrix}
+                            1 & 1 & 1 \\
+                            1 & -1 & 2 \\
+                            0 & 1 & 1
+                        \end{bmatrix}$, and $\vec{y} = \begin{bmatrix}
+                            3 \\
+                            2 \\
+                            2
+                        \end{bmatrix}$
+                        \subitem By doing equation (1) - equation (3), we get $x_1 = 1$. Adding equations (1), and (2), we end up with $2x_1 + 3_x3 = 5$, however, we know the value of $x_1$, therefore it follows that $x_3 = 1$. Finally, by using this value in equation (3), we have $x_2 = 1$, therefore the only solution is;
+                        \subitem $\vec{x} = \begin{bmatrix}
+                            1 \\
+                            1 \\
+                            1
+                        \end{bmatrix}$
+                    \item infinite solutions
+                        \subitem $\mathbf{A} = \begin{bmatrix}
+                            1 & 1 & 1 \\
+                            1 & -1 & 2 \\
+                            2 & 0 & 3
+                        \end{bmatrix}$, and $\vec{y} = \begin{bmatrix}
+                            3 \\
+                            2 \\
+                            5
+                        \end{bmatrix}$
+                        \subitem Note that this is the same $\textbf{A}$ from the first example. However, this time adding equations (1), and (2), is consistent with equation (3). If we let $x_3 = \lambda$, such that $x_3$ is a free variable, with $\lambda \in \mathbb{R}$, we can get both $x_1$, and $x_2$ in terms of $\lambda$. By doing equations (1) - (2), we get $2x_2 - x_3 = 1$, hence $x_2 = \frac{1}{2} + \frac{1}{2}\lambda$. By doing equations (1) + (2), we get $2x_1 + 3x_3 = 5$, which leads to $x_1 = \frac{5}{2} - \frac{3}{2}\lambda$. As such, we have an infinite set of solutions, given $\lambda \in \mathbb{R}$;
+                        \subitem $\vec{x} = \begin{bmatrix}
+                            \frac{5}{3} \\
+                            \frac{1}{2} \\
+                            0
+                        \end{bmatrix} + \lambda \begin{bmatrix}
+                            -\frac{3}{2} \\
+                            \frac{1}{2} \\
+                            1
+                        \end{bmatrix}$
+                \end{itemize}
+            \subsubsection*{Groups}
+                With a set $G$, and some operation $\otimes : G \mapsto G$, the criteria for $(G, \otimes)$ being a \textbf{group} are (1 - 4), and (1 - 5) for an \textbf{Abelian group};
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{closure} \hfill $\forall x, y \in G [x \otimes y \in G]$
+                    \item \textbf{associativity} \hfill $\forall x, y, z \in G [(x \otimes y) \otimes z = x \otimes (y \otimes z)]$
+                    \item \textbf{neutral element} \hfill $\exists e \in G [\forall x \in G [x \otimes e = x \land e \otimes x = x]]$
+                    \item \textbf{inverse element} \hfill $\forall x \in G [\exists y \in G [x \otimes y = e \land y \otimes x = e]]$
+                        \subitem often written as $y = x^{-1}$, note that this does \textbf{not} mean $y = \frac{1}{x}$, defined with respect to $\otimes$
+                    \item \textbf{commutative} \hfill $\forall x, y \in G [x \otimes y = y \otimes x]$
+                \end{enumerate}
+                For example, we can say $(\mathbb{Z}, +)$ is a group, but $(\mathbb{N}, +)$ is not, since the latter doesn't have an inverse element; for example $-5 \notin \mathbb{N}$, so 5 doesn't have an inverse. While $(\mathbb{R}\backslash\{0\}, \cdot)$ is an Abelian group, $(\mathbb{R}, \cdot)$ isn't a group as 0 doesn't have an inverse element ($\neg \exists x \in \mathbb{R} [0 \cdot x = 1]$).
 \end{document}
