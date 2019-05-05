@@ -1192,8 +1192,11 @@
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item if $n^{E + \epsilon} = O(f(n))$ for some $\epsilon > 0$, then $T(n) = \Theta(f(n))$
+                    \subitem informally; if $O(n^E) < O(f(n)) \Rightarrow T(n) = \Theta(f(n))$
                 \item if $f(n) = \Theta(n^E)$ then $T(n) = \Theta(f(n)\text{log}(n))$
+                    \subitem informally; if $O(n^E) = O(f(n)) \Rightarrow T(n) = \Theta(f(n)\text{log}(n))$
                 \item if $f(n) = O(n^{E - \epsilon})$ for some $\epsilon > 0$ then $T(n) = \Theta(n^E)$
+                    \subitem informally; if $O(n^E) < O(f(n)) \Rightarrow T(n) = \Theta(n^E$
             \end{enumerate}
             The use of $\epsilon$ suggests that it is bounded, as we can therefore bound it in a way that suggests $n^E < n^{E+\epsilon}$.
         \subsubsection*{Applying the Master Theorem}
