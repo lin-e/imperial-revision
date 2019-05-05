@@ -197,7 +197,7 @@
                         (a) edge[bend right=15] node{} (g);
                     \end{tikzpicture}
                 \end{center}
-                If we have some subgraph $G^\prime$, and $\text{nodes}(G^\prime) = \text{nodes}(G)$, then it $G^\prime$ spans $G$.
+                If we have some subgraph $G^\prime$, and $\text{nodes}(G^\prime) = \text{nodes}(G)$, then $G^\prime$ spans $G$.
             \subsubsection*{Adjacency Matrix}
                 For the entry in the matrix $a_{i,j}$, it represents the number of arcs that connect $i$ to $j$. In an undirected graph, this matrix is symmetric (such that $a^\top = a$). In our example, we're doing the rows, and columns, alphabetically. It's also important to note that we count each loop twice in a diagonal entry. We can determine the degree of a node by taking the sum of its respective row (or column), and find the number of arcs by taking the sum of all the values in the matrix, and then halving it.
                 \begin{center}
@@ -376,7 +376,7 @@
                     \itemsep0em
                     \item $\forall x \in \text{nodes}(G) [x \sim x]$, $x$ is trivially connected to itself, hence it is reflexive
                     \item $\forall x,y \in \text{nodes}(G) [x \sim y \Rightarrow y \sim x]$, as we are working on an undirected graph, this follows trivially
-                    \item $\forall x,y,z \in \text{nodes}(G) [x \sim y \land y \sim z \rightarrow x \sim z]$, follows trivially by definition of paths
+                    \item $\forall x,y,z \in \text{nodes}(G) [x \sim y \land y \sim z \Rightarrow x \sim z]$, follows trivially by definition of paths
                 \end{itemize}
                 A cycle (circuit) is a special type of path that finishes where it starts, has at least one arc, and doesn't reuse an arc. A graph which doesn't have cycles is \textbf{acyclic}.
         \subsection*{21st January 2019}
@@ -493,7 +493,7 @@
 
                 We're only going to consider simple graphs, as there is no point in taking a loop if we're trying to minimise cost, nor is there any point in taking the more expensive arc in a parallel arc.
             \subsubsection*{Prim's Algorithm}
-                We can say that $T$ is a minimum spanning tree for $G$m if $T$ is a spanning tree for $G$, and no other spanning tree for $G$ has a smaller weight. Once again, MSTs do not have to be unique.
+                We can say that $T$ is a minimum spanning tree for $G$, if $T$ is a spanning tree for $G$, and no other spanning tree for $G$ has a smaller weight. Once again, MSTs do not have to be unique.
                 \medskip
 
                 The main idea in Prim's algorithm is to add the shortest arc that will extend the tree. This is an example of a greedy algorithm, which gives a short-term advantage but may not be the best overall (it is in this case). At any stage in Prim's algorithm, we have three types of nodes; tree nodes (which are already part of the MST), candidate nodes - which are fringe nodes adjacent to a tree node, and the rest are unseen nodes. At the start, all nodes are unseen.

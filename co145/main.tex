@@ -973,7 +973,7 @@
                         -1 \\ 8 \\ -5 \\ -6 \\ 1
                     \end{bmatrix}$
                 \end{center}
-                As we're once again trying to determine linear independence, we end up with another homogeneous equation system, that can be represented by taking the augmented matrix of the vectors, and then apply Gaussian elimination on it (still doing all of it, for practice);
+                As we're once again trying to determine linear independence, we end up with another homogeneous equation system, that can be represented by taking the augmented matrix of the vectors, and then apply Gaussian elimination on it, down to reduced row echelon form (still doing all of it, for practice);
                 \begin{tabularx}{\textwidth}{llllll}
                     $\begin{bmatrix}
                         1 & 2 & 3 & -1 \\
@@ -1038,7 +1038,7 @@
                 From this, we can see that the vectors corresponding to the pivot columns are $\vec{x_1}$, $\vec{x_2}$, and $\vec{x_4}$, hence we can say that $[\vec{x_1}, \vec{x_2}, \vec{x_4}]$ forms a basis of $U$.
                 \medskip
 
-                On the other hand, we can try to find a simple basis of $U$, which means we want as many coordinates equal to 0 as possible. We can do this by writing the vectors as rows in the matrix, and then apply the same Gaussian elimination;
+                On the other hand, we can try to find a simple basis of $U$, which means we want as many coordinates equal to 0 as possible. We can do this by writing the vectors as \textbf{rows} in the matrix, and then apply the same Gaussian elimination;
                 \begin{tabularx}{\textwidth}{llll}
                     $\begin{bmatrix}
                         1 & 2 & -1 & -1 & -1 \\
@@ -1093,16 +1093,170 @@
                         0 & 1 & -\frac{3}{5} & 0 & 0 \\
                         0 & 0 & 0 & 1 & 0 \\
                         0 & 0 & 0 & 0 & 0
-                    \end{bmatrix}$
-                \end{tabularx}
-                By reading the rows with the leading 1s, we can write down a simple basis;
-                \begin{center}
-                    $U = [\begin{bmatrix}
+                    \end{bmatrix}$ & & $U = [\begin{bmatrix}
                         1 \\ 0 \\ \frac{1}{5} \\ 0 \\ -1
                     \end{bmatrix}, \begin{bmatrix}
                         0 \\ 1 \\ -\frac{3}{5} \\ 0 \\ 0
                     \end{bmatrix}, \begin{bmatrix}
                         0 \\ 0 \\ 0 \\ 1 \\ 0
                     \end{bmatrix}]$
+                \end{tabularx}
+                By reading the rows with the leading 1s, we have a simple basis; $U = [\vec{b_1}, \vec{b_2}, \vec{b_3}]$
+            \subsubsection*{Rank}
+                The rank of a matrix is the number of linearly independet columns, denoted $\text{rk}(\mat{A})$, where $\mat{A} \in \mathbb{R}^{m \times n}$. We are also given that the column rank is the same as the row rank, hence $\text{rk}(\mat{A}) = \text{rk}(\mat{A}^\top)$.
+                \medskip
+
+                The columns of $\mat{A}$ span a subspace $U \in \mathbb{R}^m$, with $\text{dim}(U) = \text{rk}(\mat{A})$, and the rows span a subspace $W \in \mathbb{R}^n$, with $\text{dim}(W) = \text{rk}(\mat{A})$. A basis of $U$, and $W$, can be found by applying Gaussian elimination to $\mat{A}$, and $\mat{A}^\top$ respectively.
+                \medskip
+
+                $\mat{A} \in \mathbb{R}^{n \times n}$ is invertible (regular) if, and only if, $\text{rk}(\mat{A}) = n$. For all $\mat{A} \in \mathbb{R}^{m \times n}$, and all $\vec{b} \in \mathbb{R}^m$, the equation system $\mat{A}\vec{x} = \vec{b}$ can only be sovled if $\text{rk}(\mat{A}) = \text{rk}(\mat{A} \mid \vec{b})$. The subspace of solutions for $\mat{A}\vec{x} = \vec{0}$ (\textbf{kernel / nullspace}) has dimension $n - \text{rk}(\mat{A})$. A matrix is said to have \textbf{full rank} if $\text{rk}(\mat{A}) = \text{min}(m, n)$, otherwise it is said to be \textbf{rank deficient}.
+                \medskip
+
+                For example, to calculate the rank of $\mat{A}$, as below, we apply Gaussian elimination to row echelon form, and look at the number of pivot columns (which corresponds to the linearly independent columns);
+                \begin{tabularx}{\textwidth}{lllll}
+                    $\mat{A} = \begin{bmatrix}
+                        1 & 2 & 1 \\
+                        -2 & -3 & 1 \\
+                        3 & 5 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ +2R_2 \\ -3R_2
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 2 & 1 \\
+                        0 & 1 & 3 \\
+                        0 & -1 & -3
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ +R_2
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 2 & 1 \\
+                        0 & 1 & 3 \\
+                        0 & 0 & 0
+                    \end{bmatrix}$
+                \end{tabularx}
+                As we have two pivot columns, it follows that $\text{rk}(\mat{A}) = 2$.
+            \subsubsection*{Subspsace Intersection}
+                Suppose we have two subspaces $U_1 = [\vec{b_1}, \vec{b_2}, ..., \vec{b_k}] \subset V$, and $U_2 = [\vec{c_1}, \vec{c_2}, ..., \vec{c_l}] \subset V$. We're then interested in finding the basis of $U_1 \cap U_2$, which is all the $\vec{x} \in V$, such that $\vec{x} \in U_1 \land \vec{x} \in U_2$. For something to be in $U_1$, or $U_2$, it must be a linear combination of the basis vectors of the respective subspaces; hence we can get the following;
+                \begin{center}
+                    $\summation{i = 1}{k}{\lambda_i\vec{b_i}} = \vec{x} = \summation{j = 1}{l}{\mu_j\vec{c_j}} \Leftrightarrow \summation{i = 1}{k}{\lambda_i\vec{b_i}} - \summation{j = 1}{l}{\mu_j\vec{c_j}} = \vec{0}$
                 \end{center}
+                This gives a homogeneous equation system, where we want to solve;
+                \begin{center}
+                    $\begin{bmatrix}[c|c|c|c|c|c|c|c]
+                        \vec{b_1} & \vec{b_2} & \cdots & \vec{b_k} & -\vec{c_1} & -\vec{c_2} & \cdots & -\vec{c_l}
+                    \end{bmatrix} \begin{bmatrix}
+                        \lambda_1 \\ \vdots \\ \lambda_k \\ \mu_1 \\ \vdots \\ \mu_l
+                    \end{bmatrix} = \vec{0}$
+                \end{center}
+                However, we only need to determine $\lambda_1, \lambda_2, ..., \lambda_k$, or $\mu_1, \mu_2, ..., \mu_l$, to find the intersection of $U_1$, and $U_2$.
+                \medskip
+
+                Consider the example, with the following vector subspaces;
+                \begin{center}
+                    $U_1 = [\begin{bmatrix}
+                        1 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 1 \\ 1 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 0 \\ 1 \\ 1
+                    \end{bmatrix}] \subset \mathbb{R}^4$, and also $U_2 = [\begin{bmatrix}
+                        -1 \\ 1 \\ 2 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix}] \subset \mathbb{R}^4$
+                \end{center}
+                By generating the matrix shown above, we can now apply Gaussian elimination to reduced row echelon form;
+                \begin{tabularx}{\textwidth}{llllll}
+                    $\begin{bmatrix}
+                        1 & 0 & 0 & 1 & 0 \\
+                        1 & 1 & 0 & -1 & -1 \\
+                        0 & 1 & 1 & -2 & 0 \\
+                        0 & 0 & 1 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ -R_1 \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 0 & 0 & 1 & 0 \\
+                        0 & 1 & 0 & -2 & -1 \\
+                        0 & 1 & 1 & -2 & 0 \\
+                        0 & 0 & 1 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ -R_2 \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 0 & 0 & 1 & 0 \\
+                        0 & 1 & 0 & -2 & -1 \\
+                        0 & 0 & 1 & 0 & 1 \\
+                        0 & 0 & 1 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ -R_4 \\ {}
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}
+                        1 & 0 & 0 & 1 & 0 \\
+                        0 & 1 & 0 & -2 & -1 \\
+                        0 & 0 & 0 & 0 & 1 \\
+                        0 & 0 & 1 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ {} \\ \leftrightarrow R_4 \\ \leftrightarrow R_3
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 0 & 0 & 1 & 0 \\
+                        0 & 1 & 0 & -2 & -1 \\
+                        0 & 0 & 1 & 0 & 0 \\
+                        0 & 0 & 0 & 0 & 1
+                    \end{bmatrix}$
+                \end{tabularx}
+                From this, we can determine that $\mu_2 = 0$, and that $\mu_1$ is a free variable, since it doesn't have a corresponding pivot column. Therefore, it follows that $\vec{x} = \mu_1 \vec{c_1}$, hence we've deteremined that the basis of the intersection is as follows;
+                \begin{center}
+                    $U_1 \cap U_2 = [\begin{bmatrix}
+                        -1 \\ 1 \\ 2 \\ 0
+                    \end{bmatrix}]$
+                \end{center}
+            \subsubsection*{Linear Mappings}
+                A linear mapping preserves the structure of vector spaces. Therefore, for two $\mathbb{R}$-vector spaces $V$, $W$, and a mapping $\Phi$ (note that it can also be called a \textbf{vector space homomorphism});
+                \begin{center}
+                    $\Phi : V \mapsto W$ is \textbf{linear} $\Leftrightarrow$ $\forall \lambda, \mu \in \mathbb{R} \forall \vec{x}, \vec{y} \in V [\Phi(\lambda \vec{x} + \mu \vec{y}) = \lambda \Phi(\vec{x}) + \mu \Phi(\vec{y})]$
+                \end{center}
+                Special cases of this are;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{isomorphism} \hfill $\Phi : V \mapsto W$ is linear, and bijective
+                    \item \textbf{endomorphism} \hfill $\Phi : V \mapsto V$ is linear
+                    \item \textbf{automorphism} \hfill $\Phi : V \mapsto V$ is linear, and bijective
+                    \item \textbf{identity mapping} \hfill $\text{id}_V : V \mapsto V$ such that $\forall \vec{x} \in V [\text{id}_V(\vec{x}) = \vec{x}]$
+                \end{itemize}
+                For example, consider the mapping $\Phi : \mathbb{R}^2 \mapsto \mathbb{C}$, where $\Phi(\vec{x}) = x_1 + ix_2$. We can show that this is a linear mapping, by taking arbitrary $\vec{x}, \vec{y} \in \mathbb{R}^2$, and also arbitrary $\lambda \in \mathbb{R}$;
+                \begin{center}
+                    \vspace{-\baselineskip}
+                    \begin{minipage}{0.485\textwidth}
+                        \begin{align*}
+                            \Phi (\begin{bmatrix}
+                                x_1 \\ x_2
+                            \end{bmatrix} + \begin{bmatrix}
+                                y_1 \\ y_2
+                            \end{bmatrix}) & = \Phi (\begin{bmatrix}
+                                x_1 + y_1 \\ x_2 + y_2
+                            \end{bmatrix}) \\
+                            & = (x_1 + y_1) + i(x_2 + y_2) \\
+                            & = x_1 + ix_2 + y_1 + iy_2 \\
+                            & = \Phi(\begin{bmatrix}
+                                x_1 \\ x_2
+                            \end{bmatrix}) + \Phi(\begin{bmatrix}
+                                y_1 \\ y_2
+                            \end{bmatrix})
+                        \end{align*}
+                    \end{minipage} \
+                    \begin{minipage}{0.485\textwidth}
+                        \begin{align*}
+                            \Phi (\lambda \begin{bmatrix}
+                                x_1 \\ x_2
+                            \end{bmatrix}) & = \Phi (\begin{bmatrix}
+                                \lambda x_1 \\ \lambda x_2
+                            \end{bmatrix}) \\
+                            & = (\lambda x_1) + i(\lambda x_2) \\
+                            & = \lambda (x_1 + ix_2) \\
+                            & = \lambda\Phi(\begin{bmatrix}
+                                x_1 \\ x_2
+                            \end{bmatrix})
+                        \end{align*}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Image, and Kernel / Null Space}
+                
 \end{document}
