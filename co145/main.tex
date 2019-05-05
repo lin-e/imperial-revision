@@ -498,7 +498,7 @@
                         \end{bmatrix}$
                 \end{itemize}
             \subsubsection*{Groups}
-                With a set $G$, and some operation $\otimes : G \mapsto G$, the criteria for $(G, \otimes)$ being a \textbf{group} are (1 - 4), and (1 - 5) for an \textbf{Abelian group};
+                With a set $G$, and some operation $\otimes : G \to G$, the criteria for $(G, \otimes)$ being a \textbf{group} are (1 - 4), and (1 - 5) for an \textbf{Abelian group};
                 \begin{enumerate}[1.]
                     \itemsep0em
                     \item \textbf{closure} \hfill $\forall x, y \in G [x \otimes y \in G]$
@@ -749,8 +749,8 @@
                 We define a real-valued \textbf{vector space} ($\mathbb{R}$-vector space) is a set $V$ with two operations;
                 \begin{itemize}
                     \itemsep0em
-                    \item $+ : V \times V \mapsto V$ \hfill inner operation
-                    \item $\cdot : \mathbb{R} \times V \mapsto V$ \hfill outer operation
+                    \item $+ : V \times V \to V$ \hfill inner operation
+                    \item $\cdot : \mathbb{R} \times V \to V$ \hfill outer operation
                 \end{itemize}
                 The following properties hold;
                 \begin{itemize}
@@ -1211,17 +1211,18 @@
             \subsubsection*{Linear Mappings}
                 A linear mapping preserves the structure of vector spaces. Therefore, for two $\mathbb{R}$-vector spaces $V$, $W$, and a mapping $\Phi$ (note that it can also be called a \textbf{vector space homomorphism});
                 \begin{center}
-                    $\Phi : V \mapsto W$ is \textbf{linear} $\Leftrightarrow$ $\forall \lambda, \mu \in \mathbb{R} \forall \vec{x}, \vec{y} \in V [\Phi(\lambda \vec{x} + \mu \vec{y}) = \lambda \Phi(\vec{x}) + \mu \Phi(\vec{y})]$
+                    $\Phi : V \to W$ is \textbf{linear} $\Leftrightarrow$ $\forall \lambda, \mu \in \mathbb{R} \forall \vec{x}, \vec{y} \in V [\Phi(\lambda \vec{x} + \mu \vec{y}) = \lambda \Phi(\vec{x}) + \mu \Phi(\vec{y})]$
                 \end{center}
                 Special cases of this are;
                 \begin{itemize}
                     \itemsep0em
-                    \item \textbf{isomorphism} \hfill $\Phi : V \mapsto W$ is linear, and bijective
-                    \item \textbf{endomorphism} \hfill $\Phi : V \mapsto V$ is linear
-                    \item \textbf{automorphism} \hfill $\Phi : V \mapsto V$ is linear, and bijective
-                    \item \textbf{identity mapping} \hfill $\text{id}_V : V \mapsto V$ such that $\forall \vec{x} \in V [\text{id}_V(\vec{x}) = \vec{x}]$
+                    \item \textbf{isomorphism} \hfill $\Phi : V \to W$ is linear, and bijective
+                        \subitem finite dimensional $\mathbb{R}$-vector spaces $V$, and $W$ are isomorph $\Leftrightarrow \text{dim}(V) = \text{dim}(W)$
+                    \item \textbf{endomorphism} \hfill $\Phi : V \to V$ is linear
+                    \item \textbf{automorphism} \hfill $\Phi : V \to V$ is linear, and bijective
+                    \item \textbf{identity mapping} \hfill $\text{id}_V : V \to V$ such that $\vec{x} \mapsto \vec{x}$
                 \end{itemize}
-                For example, consider the mapping $\Phi : \mathbb{R}^2 \mapsto \mathbb{C}$, where $\Phi(\vec{x}) = x_1 + ix_2$. We can show that this is a linear mapping, by taking arbitrary $\vec{x}, \vec{y} \in \mathbb{R}^2$, and also arbitrary $\lambda \in \mathbb{R}$;
+                For example, consider the mapping $\Phi : \mathbb{R}^2 \to \mathbb{C}$, where $\Phi(\vec{x}) = x_1 + ix_2$. We can show that this is a linear mapping, by taking arbitrary $\vec{x}, \vec{y} \in \mathbb{R}^2$, and also arbitrary $\lambda \in \mathbb{R}$;
                 \begin{center}
                     \vspace{-\baselineskip}
                     \begin{minipage}{0.485\textwidth}
@@ -1258,7 +1259,7 @@
                     \end{minipage}
                 \end{center}
             \subsubsection*{Image, and Kernel / Null Space}
-                For the mapping $\Phi : V \mapsto W$, we define the \textbf{kernel / null space}, and \textbf{image / range} respectively;
+                For the mapping $\Phi : V \to W$, we define the \textbf{kernel / null space}, and \textbf{image / range} respectively;
                 \begin{itemize}
                     \itemsep0em
                     \item $\text{ker}(\Phi) \triangleq \{\vec{v} \in V \mid \Phi(\vec{v}) = \vec{0}_W\} = \Phi^{-1}(\{\vec{0}_W\})$
@@ -1269,5 +1270,138 @@
                 Note that $\Phi(\vec{0}_V) = \vec{0}_W$, hence the \textbf{unique} $\vec{0}_V \in \text{ker}(\Phi)$, therefore the null space $\neq \emptyset$. By the definitions above, we can easily see that $\text{Im}(\Phi) \subset W$, and also $\text{ker}(\Phi) \subset V$, hence they are subspaces of their respective vector spaces. A mapping, $\Phi$, is injective $\Leftrightarrow \text{ker}(\Phi) = \{\vec{0}\}$.
                 \medskip
 
-                A matrix $\mat{A} \in \mathbb{R}^{m \times n}$ represents the mapping $\Phi : \mathbb{R}^n \mapsto \mathbb{R}^m$, where $\vec{x} \mapsto \mat{A}\vec{x}$
+                A matrix $\mat{A} \in \mathbb{R}^{m \times n}$ represents the mapping $\Phi : \mathbb{R}^n \to \mathbb{R}^m$, where $\Phi : \vec{x} \mapsto \mat{A}\vec{x}$. If we consider the column vectors of $\mat{A}$, such that we have $\vec{a_1}, \vec{a_2}, ..., \vec{a_n}$, we can apply the following;
+                \begin{center}
+                    $\text{Im}(\Phi) = \{\mat{A}\vec{x} \mid \vec{x} \in \mathbb{R}^n\} = \{\summation{i = 1}{n}{x_i\vec{a_i}} \mid x_1, ..., x_n \in \mathbb{R}\} = [\vec{a_1}, ..., \vec{a_n}] \subset \mathbb{R}^m$
+                \end{center}
+                Which tells us that the image is the span of the columns of $\mat{A}$.
+                \medskip
+
+                Consider the following example, of a mapping represented by a matrix;
+                \begin{center}
+                    $\Phi : \mathbb{R}^4 \mapsto \mathbb{R}^2$, where $\begin{bmatrix}
+                        x_1 \\ x_2 \\ x_3 \\ x_4
+                    \end{bmatrix} \mapsto \begin{bmatrix}
+                        1 & 2 & -1 & 0 \\
+                        1 & 0 & 0 & 1
+                    \end{bmatrix} \begin{bmatrix}
+                        x_1 \\ x_2 \\ x_3 \\ x_4
+                    \end{bmatrix}$
+                \end{center}
+                By what we've stated above, we can simply get the image / range, by taking the column vectors;
+                \begin{center}
+                    $\text{Im}(\Phi) = [\begin{bmatrix}
+                        1 \\ 1
+                    \end{bmatrix}, \begin{bmatrix}
+                        2 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        -1 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 1
+                    \end{bmatrix}]$
+                \end{center}
+                To compute the kernel of $\Phi$, we solve $\mat{A}\vec{x} = \vec{0}$, which can be done fairly easily with Gaussian elimination into reduced row echelon form, and then applying the Minus-1 Trick;
+                \begin{tabularx}{\textwidth}{lllllll}
+                    $\begin{bmatrix}
+                        1 & 2 & -1 & 0 \\
+                        1 & 0 & 0 & 1
+                    \end{bmatrix} \begin{matrix}
+                        \leftrightarrow R_2 \\ \leftrightarrow R_1
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 0 & 0 & 1 \\
+                        1 & 2 & -1 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ -R_1
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 0 & 0 & 1 \\
+                        0 & 2 & -1 & -1
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ \cdot \frac{1}{2}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 0 & 0 & 1 \\
+                        0 & 1 & -\frac{1}{2} & -\frac{1}{2}
+                    \end{bmatrix}$
+                \end{tabularx}
+                Now that the matrix is in RREF, we can apply the Minus-1 Trick to compute the basis of the kernel;
+                \begin{center}
+                    $\text{ker}(\Phi) = [\begin{bmatrix}
+                        0 \\ -\frac{1}{2} \\ -1 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        1 \\ -\frac{1}{2} \\ 0 \\ -1
+                    \end{bmatrix}]$
+                \end{center}
+                For a linear mapping between two vector spaces; $\Phi : V \to W$, it holds $\text{dim}(\text{ker}(\Phi)) + \text{Im}(\text{ker}(\Phi)) = \text{dim}(V)$. This is referred to as the \textbf{Rank-Nullity Theorem}.
+                \medskip
+
+                The following properties also hold for $\mathbb{R}$-vector spaces $V, W, X$, and the linear mappings $\Phi : V \to W$, $\Psi : W \to X$, and $\Lambda : V \to W$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\Psi \circ \Phi : V \to X$ is also a linear mapping
+                    \item if $\Psi$ is an isomorphism (bijective), then it follows that the inverse, $\Phi^{-1} : W \to V$ is also an isomorphism
+                    \item $\Phi + \Lambda$, and $\lambda \Phi$ are also linear, for $\lambda \in \mathbb{R}$
+                \end{itemize}
+            \subsubsection*{Matrix Representations}
+                Any finite $n$-dimensioanl $\mathbb{R}$-vector space $V$, is isomorphic to another $n$-dimensional $\mathbb{R}$-vector space $W$, especially $\mathbb{R}^n$, if the dimensions match, such that $\text{dim}(V) = \text{dim}(W)$. This allows us to use $\mathbb{R}^n$ without loss of generality. If we define an \textbf{ordered} basis $[\vec{b_1}, \vec{b_2}, ..., \vec{b_n}]$ of $V$, we can construct such an isomorphism.
+                \medskip
+
+                Suppose there is some $\mathbb{R}$-vector space $V$, with the ordered basis $B$, as denoted above. For $\vec{x} \in V$, we can obtain a unique linear combination, same as before;
+                \begin{center}
+                    $\vec{x} = \summation{i = 1}{n}{\alpha_i \vec{b_i}}$
+                \end{center}
+                Therefore, we take the $n$-tuple given by $\alpha_i$, to be the \textbf{coordinates} of $\vec{x}$ with respect to $B$, and have it written as a vector.
+                \smallskip
+
+                Consider $\mathbb{R}^2$, where the \textbf{standard} basis is $[\vec{e_1}, \vec{e_2}] = [\begin{bmatrix}
+                    1 \\ 0
+                \end{bmatrix}, \begin{bmatrix}
+                    0 \\ 1
+                \end{bmatrix}]$, and $\vec{x} = \begin{bmatrix}
+                    2 \\ 3
+                \end{bmatrix}$ with respect to $[\vec{e_1}, \vec{e_2}]$.
+                \smallskip
+
+                However, this same vector doesn't have to be represented with respect to the standard basis. If we were to define another ordered basis;
+                \begin{center}
+                    $B = [\begin{bmatrix}
+                        1 \\ -1
+                    \end{bmatrix}, \begin{bmatrix}
+                        1 \\ 1
+                    \end{bmatrix}]$, then the same vector is $\begin{bmatrix}
+                        -\frac{1}{2} \\ \frac{5}{2}
+                    \end{bmatrix}$ with respect to the new basis
+                \end{center}
+                For some $n$-dimensional vector space $V$, with ordered basis $B$, the mapping $\Phi : \mathbb{R}^n \to V$, with $\Phi(\vec{e_i}) = \vec{b_i}$ is linear, and also an isomorphism.
+                \medskip
+
+                Suppose we have vector spaces $V$, and $W$ with ordered bases $B = [\vec{b_1}, \vec{b_2}, ..., \vec{b_n}]$, and $C = [\vec{c_1}, \vec{c_2}, ..., \vec{c_m}]$ respectively. Then we can consider the representation of each of the basis vectors in $B$ with respect to $C$; for $j \in [1, n]$;
+                \begin{center}
+                    $\Phi(\vec{b_j}) = \summation{i = 1}{m}{\alpha_{i, j}\vec{c_i}}$, where we have $\mat{A}_\Phi \in \mathbb{R}^{m \times n} \triangleq ((\alpha_{i, j}))$
+                \end{center}
+                The coordinates of $\Phi(\vec{b_j})$ with respect to the ordered basis $C$ of $W$ are the $j^\text{th}$ column of $\mat{A}_\Phi$. The rank of the transformation matrix, is the same as the dimension of the image of the transformation, such that $\text{rk}(\mat{A}_\Phi) = \text{dim}(\text{Im}(\Phi))$.
+                \medskip
+
+                If we have $\vec{\hat{x}}$ as the coordinate vector of $\vec{x} \in V$, which is defined with respect to $B$, and $\vec{\hat{y}}$ being the coordinate vector of $\vec{y} = \Phi(\vec{x}) \in W$ with respect to $C$, where $\Phi : V \to W$, then;
+                \begin{center}
+                    $\vec{\hat{y}} = \mat{A}_\Phi \vec{\hat{x}}$
+                \end{center}
+                Thus, we're able to map coordinates with respect to some ordered basis in $V$, to coordinates with respect to some other ordered basis in $W$, by using the transformation matrix we found. % really unsure about this
+                \medskip
+
+                Consider a homomorphism $\Phi : V \to W$, with ordered bases $B = [\vec{b_1}, \vec{b_2}, \vec{b_3}]$, and $C = [\vec{c_1}, \vec{c_2}, \vec{c_3}, \vec{c_4}]$ respectively.
+                \begin{align*}
+                    \Phi(\vec{b_1}) & = \vec{c_1} - \vec{c_2} + 3\vec{c_3} - \vec{c_4} \\
+                    \Phi(\vec{b_2}) & = 2\vec{c_1} + \vec{c_2} + 7\vec{c_3} + 2\vec{c_4} \\
+                    \Phi(\vec{b_3}) & = 3\vec{c_2} + \vec{c_3} + 4\vec{c_4}
+                \end{align*}
+                We can then represent that as the transformation matrix $\mat{A}_\Phi$, which also gives us the coordinate vectors $\alpha_j$ of $\Phi(\vec{b_j})$, with respect to $C$.
+                \begin{center}
+                    $\mat{A}_\Phi = \begin{bmatrix}[c|c|c]
+                        \vec{\alpha_1} & \vec{\alpha_2} & \vec{\alpha_3}
+                    \end{bmatrix} = \begin{bmatrix}
+                        1 & 2 & 0 \\
+                        -1 & 1 & 3 \\
+                        3 & 7 & 1 \\
+                        -1 & 2 & 4
+                    \end{bmatrix}$
+                \end{center}
 \end{document}
