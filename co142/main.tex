@@ -496,7 +496,7 @@
                 Defining $=_\mathbb{R}$ takes much more work. It's also established that every sequence of rational ($\mathbb{Q}$) numbers, e.g. $\{3, 3.1, 3.14, 3.141, 3.145, ...\}$ has an upper limit in $\mathbb{R}$.
         \subsection*{6th November 2018}
             \subsubsection*{Functions}
-                We define a function $f$, from $A$ (the function domain to $B$ (the function co-domain) as $f : A \mapsto B$ (should I be using $\mapsto$, or $\to$ here?). \textbf{Every} element of $A$ must map to a \textbf{unique} (exactly 1) element in $B$. We can formally write this as follows, where both conditions must hold;
+                We define a function $f$, from $A$ (the function domain to $B$ (the function co-domain) as $f : A \to B$. \textbf{Every} element of $A$ must map to a \textbf{unique} (exactly 1) element in $B$. We can formally write this as follows, where both conditions must hold;
                 \begin{enumerate}[1.]
                     \itemsep0em
                     \item $\forall a \in A \forall b_1, b_2 \in B [\la a, b_1 \ra \in f \land \la a, b_2 \ra \in f \Rightarrow b_1 = b_2]$
@@ -505,12 +505,12 @@
                 The set of all functions from $A$, to $B$ is denoted as $B^A$, such that $B^A \subseteq \powerset (A \times B)$. For brevity, we can use the following shorthands;
                 \begin{itemize}
                     \itemsep0em
-                    \item $f : A \mapsto B$ is short for $f \subseteq B^A$
-                    \item $\exists f : A \mapsto B [\cdots]$ is short for $\exists f \in B^A [...]$
-                    \item $\forall f : A \mapsto B [\cdots]$ is short for $\forall f \in B^A [...]$
+                    \item $f : A \to B$ is short for $f \subseteq B^A$
+                    \item $\exists f : A \to B [\cdots]$ is short for $\exists f \in B^A [...]$
+                    \item $\forall f : A \to B [\cdots]$ is short for $\forall f \in B^A [...]$
                     \item suppose that $A$ is an $n$-ary product $A_1 \times ... \times A_n$, we can write $f(a_1, ..., a_n)$ instead of $f(\la a_1, ..., a_n \ra)$
                 \end{itemize}
-                We define equality on two functions $f, g : A \mapsto B$, as $f =_{A \times B} g \triangleq \forall x \in A [f(x) =_B g(x)]$.
+                We define equality on two functions $f, g : A \to B$, as $f =_{A \times B} g \triangleq \forall x \in A [f(x) =_B g(x)]$.
                 \medskip
 
                 For any subset of $A$, $X \subseteq A$, the image of $X$ under $f$ is denoted $f[X] \triangleq \{f(x) \mid x \in X\}$. We can define the image set of $A$, as $f[A]$. For example, let there be sets $A = \{1, 2, 3\}$, $B = \{a, b, c\}$, and the function $f = \{\la 1, a \ra, \la 2, b \ra, \la 3, a \ra\}$. The image set of $A$, $f[A]$, is $\{a, b\}$, and the image set $f[\{1, 3\}] = \{a\}$.
@@ -519,15 +519,15 @@
                 These are some examples of functions;
                 \begin{itemize}
                     \itemsep0em
-                    \item $f : \mathbb{N}^2 \mapsto \mathbb{N}$ \hfill $f(x, y) = x + y$
-                    \item $f : \mathbb{N} \mapsto \mathbb{N}$ \hfill $f(x) = x^2$
-                    \item $f : \mathbb{R} \mapsto \mathbb{R}$ \hfill $f(x) = x + 3$
+                    \item $f : \mathbb{N}^2 \to \mathbb{N}$ \hfill $f(x, y) = x + y$
+                    \item $f : \mathbb{N} \to \mathbb{N}$ \hfill $f(x) = x^2$
+                    \item $f : \mathbb{R} \to \mathbb{R}$ \hfill $f(x) = x + 3$
                 \end{itemize}
                 However, the \textbf{relation} $R \triangleq \{\la x, y \ra \in \mathbb{R}^2 \mid x = y^2\}$ is not a function, as we can easily prove a one-to-many relationship, thus violating the first condition. For example; both $\la 1, -1 \ra$, and $\la 1, 1 \ra$ are in $R$, but clearly $-1 \neq_\mathbb{R} 1$. In order to verify a function is actually a function, we must prove that the LHS has 1 unique mapping.
             \subsubsection*{Cardinality of Function Space}
                 Let $B^A$ represent the function space of all functions mapping from $A$ to $B$, where both $A$, and $B$ are finite sets, such that $|A| = m$, and $|B| = n$. For something to be a function, every item in $A$, must map to an item in $B$. For any item in $A$, there are $n$ independent options to which it can map to. Hence it follows that there are $n^m$ unique options; thus $|B^A| = n^m$.
             \subsubsection*{Characteristic Function}
-                Suppose we have a set $A$, and the characteristic function of $B \subseteq A$ is defined as $\chi_B : A \mapsto \{0, 1\}$, and for some $n$-ary relation $R$, such that $R \subseteq A_1 \times ... \times A_n$, we can define $\chi_R : A_1 \times ... \times A_n \mapsto \{0, 1\}$;
+                Suppose we have a set $A$, and the characteristic function of $B \subseteq A$ is defined as $\chi_B : A \to \{0, 1\}$, and for some $n$-ary relation $R$, such that $R \subseteq A_1 \times ... \times A_n$, we can define $\chi_R : A_1 \times ... \times A_n \to \{0, 1\}$;
                 \begin{align*}
                     \chi_B(a) & =
                     \begin{cases}
@@ -541,9 +541,9 @@
                     \end{cases}
                 \end{align*}
             \subsubsection*{Partial Functions}
-                A partial function is a function \textbf{without} the second condition, therefore not all elements in $A$, must have a corresponding element in $B$. We denote an undefined value as $\bot$, therefore we can create a "function" from a partial function by saying $f : A \mapsto (B \cup \{\bot\})$. If you are asked to give a function in an exam, \textbf{do not give a partial function}.
+                A partial function is a function \textbf{without} the second condition, therefore not all elements in $A$, must have a corresponding element in $B$. We denote an undefined value as $\bot$, therefore we can create a "function" from a partial function by saying $f : A \to (B \cup \{\bot\})$. If you are asked to give a function in an exam, \textbf{do not give a partial function}.
             \subsubsection*{Properties of Functions}
-                We will be working on some function $f : A \mapsto B$.
+                We will be working on some function $f : A \to B$.
                 \begin{itemize}
                     \itemsep0em
                     \item $f$ is onto (surjective) when every element of $B$ is in the image of $A$
@@ -553,25 +553,25 @@
                         \subitem $\forall a_1, a_2 \in A [f(a_1) =_B f(a_2) \Rightarrow a_1 =_A a_2]$
                     \item $f$ is bijective, if it is both surjective (onto), and injective (one-to-one)
                 \end{itemize}
-                The (Dual) Cantor-Bernstein Theorem states that if there exists $f : A \mapsto B$, and $g : B \mapsto A$, where they are both surjective, or both injective, then it follows that there is is a bijection $h : A \mapsto B$. This theorem is extremely helpful when we want to prove that two infinite sets have the same cardinality.
+                The (Dual) Cantor-Bernstein Theorem states that if there exists $f : A \to B$, and $g : B \to A$, where they are both surjective, or both injective, then it follows that there is is a bijection $h : A \to B$. This theorem is extremely helpful when we want to prove that two infinite sets have the same cardinality.
                 \medskip
 
                 These are some example functions, and their properties;
                 \begin{itemize}
                     \itemsep0em
-                    \item $f : \mathbb{N}^2 \mapsto \mathbb{N}$ \hfill $f(x, y) = x + y$
+                    \item $f : \mathbb{N}^2 \to \mathbb{N}$ \hfill $f(x, y) = x + y$
                         \subitem we can prove it is surjective by taking some arbitrary $n \in \mathbb{N}$, and proving that $f(n, 0) = n + 0 = n$
                         \subitem we can prove it is not injective by finding a counter example, such as $f(0, 1) = 1 = f(1, 0)$, but $\la 0, 1 \ra \neq \la 1, 0 \ra$
-                    \item $f : \mathbb{N} \mapsto \mathbb{N}$ \hfill $f(x) = x^2$
+                    \item $f : \mathbb{N} \to \mathbb{N}$ \hfill $f(x) = x^2$
                         \subitem we can prove it is not surjective by finding a counter example; such as $f(x) = 3$, as there is no $x \in \mathbb{N}$ such that $x^2 = 3$
-                    \item $f : \mathbb{R} \mapsto \mathbb{R}$ \hfill $f(x) = 4x + 3$
+                    \item $f : \mathbb{R} \to \mathbb{R}$ \hfill $f(x) = 4x + 3$
                         \subitem this is bijective
                 \end{itemize}
             \subsubsection*{Some Proof on Function Image?}
-                No idea what this should actually be titled. But let there be a finite set $A$, a function $f : A \mapsto B$, and $X \subseteq A$. We want to prove that $|f[X]| \leq |X|$.
+                No idea what this should actually be titled. But let there be a finite set $A$, a function $f : A \to B$, and $X \subseteq A$. We want to prove that $|f[X]| \leq |X|$.
                 \medskip
 
-                By contradiction, let us assume that $|f[X]| > |X|$. Define a function $p$, such that $p : f[X] \mapsto X$. Suppose we pick an arbitrary $b \in f[X]$, and some $a \in X$ (we know this exists by definition of image), such that we have $f(a) = b$, and define $p(b) = a$.
+                By contradiction, let us assume that $|f[X]| > |X|$. Define a function $p$, such that $p : f[X] \to X$. Suppose we pick an arbitrary $b \in f[X]$, and some $a \in X$ (we know this exists by definition of image), such that we have $f(a) = b$, and define $p(b) = a$.
                 \medskip
 
                 We take $y$, from $f[X]$, and place it into a pigeonhole labeled $x$, where $x \in X$, if $p(y) = x$. By the pigeonhole principle, there exists some $c \in X$, such that $d, d^\prime \in f[X]$ (because the image set is larger). Hence, it follows that $p(d) = p(d^\prime) = c$. But, by definition of $p$, we have $f(c) = d$, and also $f(c) = d^\prime$. Therefore, $f$ isn't a function, hence we have a contradiction.
@@ -579,7 +579,7 @@
             \subsubsection*{An Improvement on Last Lecture's Proof}
                 Using the same introduction as last lecture's proof, construct sets for all $x \in X$, $V_x \subseteq f[X]$. If for some $a \in X$, $f(a) = b$, then $b \in f[X]$ (by definition of the image), and $b \in V_a$ (by our definition). By making our assumption (which we want to be able to derive a contradiction from) $|f[X]| > |X|$. Therefore, $\exists c \in X [|V_c| > 1]$. So, we're able to say that there are distinct $d, d^\prime \in V_c$. But by our definition of $V_c$, it follows that $f(c) = d$, and also $f(c) = d^\prime$. This is not possible, as we defined $f$ as a function, hence we have a contradiction. The main issue with last week's proof was assuming we had an inverse function, $p$.
             \subsubsection*{Proposition on the Property of Functions}
-                Given two \textbf{finite} sets (these do not always apply to infinite sets) $A$, and $B$, and a function $f : A \mapsto B$, we can say that if...
+                Given two \textbf{finite} sets (these do not always apply to infinite sets) $A$, and $B$, and a function $f : A \to B$, we can say that if...
                 \begin{itemize}
                     \itemsep0em
                     \item $f$ is onto (surjective), then $|A| \geq |B|$
@@ -591,10 +591,10 @@
                         \subitem this follows from the first two, trivially
                 \end{itemize}
             \subsubsection*{Function Composition}
-                Suppose we have arbitrary sets, $A$, $B$, $C$, and let there be two functions $f : A \mapsto B$, and $g : B \mapsto C$. We can define the composition of $f$ with $g$ (meaning $g$ applied to the image of $f$), as $\la a, c \ra \in (g \circ f) \triangleq \exists b \in B [\la a, b \ra \in f \land \la b, c \ra \in g]$ where $(g \circ f) : A \mapsto C$. It's important to note that the order of the arguments is flipped, compared to relation composition. The crucial requirement is that the co-domain of $f$ matches the domain of $g$.
+                Suppose we have arbitrary sets, $A$, $B$, $C$, and let there be two functions $f : A \to B$, and $g : B \to C$. We can define the composition of $f$ with $g$ (meaning $g$ applied to the image of $f$), as $\la a, c \ra \in (g \circ f) \triangleq \exists b \in B [\la a, b \ra \in f \land \la b, c \ra \in g]$ where $(g \circ f) : A \to C$. It's important to note that the order of the arguments is flipped, compared to relation composition. The crucial requirement is that the co-domain of $f$ matches the domain of $g$.
                 \medskip
 
-                We can prove that function composition is associative quite trivially. Recall that two functions $i, j$ (let them both be functions from $A$ to $B$) are equal if $\forall a \in A [i(a) =_B j(b)]$. We want to prove that $h \circ (g \circ f) = (h \circ g) \circ f$, and we are using the same definitions mentioned previously, plus a new set $D$, and $h : C \mapsto D$. We first take an arbitrary $a \in A$;
+                We can prove that function composition is associative quite trivially. Recall that two functions $i, j$ (let them both be functions from $A$ to $B$) are equal if $\forall a \in A [i(a) =_B j(b)]$. We want to prove that $h \circ (g \circ f) = (h \circ g) \circ f$, and we are using the same definitions mentioned previously, plus a new set $D$, and $h : C \to D$. We first take an arbitrary $a \in A$;
                 \begin{align*}
                     (h \circ (g \circ f)) (a) & = h((g \circ f)(a)) \\
                     & = h(g(f(a))) \\
@@ -604,7 +604,7 @@
                 As we have taken arbitrary $a \in A$, it follows that the two are equal.
                 \medskip
 
-                When we're working with function compositions, especially when we're told to give a specific example, it's useful to draw out diagrams (wish I knew that during the Christmas exam). The example below has $f : A \mapsto B$, such that $f = \{\la a_1, b_1 \ra, \la a_2, b_2 \ra\}$, and $g : B \mapsto C$, such that $g = \{\la b_1, c_1 \ra, \la b_2, c_1 \ra, \la b_3 c_2 \ra\}$. Thus the composed function $(g \circ f) : A \mapsto B$, is $g \circ f = \{\la a_1, c_1 \ra, \la a_2, c_2 \ra\}$.
+                When we're working with function compositions, especially when we're told to give a specific example, it's useful to draw out diagrams (wish I knew that during the Christmas exam). The example below has $f : A \to B$, such that $f = \{\la a_1, b_1 \ra, \la a_2, b_2 \ra\}$, and $g : B \to C$, such that $g = \{\la b_1, c_1 \ra, \la b_2, c_1 \ra, \la b_3 c_2 \ra\}$. Thus the composed function $(g \circ f) : A \to B$, is $g \circ f = \{\la a_1, c_1 \ra, \la a_2, c_2 \ra\}$.
                 \begin{center}
                     \begin{tikzpicture}
                         \node[] () at (0, 2.5) {$A$};
@@ -642,7 +642,7 @@
                 Our goal is to show that $\forall c \in C \exists b \in B [g(b) = a]$. Knowing that $\forall c \in C \exists a \in A [(g \circ f)(a) = c]$, it implies that there exists some $b \in B$, such that $f(a) = b$ (by definition of function composition). Hence, $g$ is surjective.
                 \medskip
 
-                We want to show that if we have bijections $f : A \mapsto B$, and $g : B \mapsto C$, then $g \circ f$ is a bijection. It is sufficient to show that if $f, g$ are both surjective, then so is $g \circ f$, and if $f, g$ are both injective, then so is $g \circ f$.
+                We want to show that if we have bijections $f : A \to B$, and $g : B \to C$, then $g \circ f$ is a bijection. It is sufficient to show that if $f, g$ are both surjective, then so is $g \circ f$, and if $f, g$ are both injective, then so is $g \circ f$.
                 \medskip
 
                 The first part can be proven by assuming that they are both surjective. Therefore, it means that $\forall c \in C \exists b \in B [g(b) = c]$, and also $\forall b \in B \exists a \in A [f(a) = b]$. So, suppose that there is an arbitrary $c \in C$, therefore there exists some $b \in B$, such that $g(c) = b$. Now, with that $b$, we can say that there exists such an $a \in A$ where $f(a) = b$. Therefore, it follows that $\forall c \in C \exists a \in A [(g \circ f)(a) = c]$. Hence, the composed function is surjective.
@@ -650,13 +650,13 @@
 
                 The second part can be proven similarly, assuming that both functions are injective. Let us take some arbitrary $a_1, a_2 \in A$. We assume that $(g \circ f)(a_1) = (g \circ f)(a_2)$, hence $g(f(a_1)) = g(f(a_2))$. But we know $g$ is injective, therefore $f(a_1) = f(a_2)$, but since $f$ is also injective, it follows that $a_1 = a_2$. Hence, by assuming that $(g \circ f)(a_1) = (g \circ f)(a_2)$, we end up with $a_1 = a_2$, it follows that $g \circ f$ is injective. By proving it's also a surjection, it is therefore a bijective function.
             \subsubsection*{Identity, and Inverse}
-                Suppose we have a set $A$, the identity function on $A$, denoted $\text{id}_A : A \mapsto A$, is defined by $\forall a \in A [\text{id}_A(a) = a]$. Let there be some arbitrary function $f : A \mapsto B$, then the inverse of the function, $g : B \mapsto A$ (normally written $f^{-1}$) has to fulfil the following criteria. $\forall a \in A [g(f(a)) = a] \land \forall b \in B [f(g(b)) = b]$. We can also write this, more succinctly, as $g \circ f = \text{id}_A \land f \circ g = \text{id}_B$.
+                Suppose we have a set $A$, the identity function on $A$, denoted $\text{id}_A : A \to A$, is defined by $\forall a \in A [\text{id}_A(a) = a]$. Let there be some arbitrary function $f : A \to B$, then the inverse of the function, $g : B \to A$ (normally written $f^{-1}$) has to fulfil the following criteria. $\forall a \in A [g(f(a)) = a] \land \forall b \in B [f(g(b)) = b]$. We can also write this, more succinctly, as $g \circ f = \text{id}_A \land f \circ g = \text{id}_B$.
                 \medskip
 
-                Let there be a bijection $f : A \mapsto B$, and its inverse $f^{-1} : B \mapsto A$, defined as $f^{-1}(b) = a$, when $f(a) = b$. Take some arbitrary $b \in B$, we know that there must be a corresponding $a \in A$, since $f$ is surjective. Therefore, we have shown that every item in the domain of $f^{-1}$ maps to something (one of the criteria for a function). Knowing that $f$ is also injective means that for arbitrary $b$, we have a single unique $a$ that corresponds to it, therefore $f^{-1}$ is a well defined function.
+                Let there be a bijection $f : A \to B$, and its inverse $f^{-1} : B \to A$, defined as $f^{-1}(b) = a$, when $f(a) = b$. Take some arbitrary $b \in B$, we know that there must be a corresponding $a \in A$, since $f$ is surjective. Therefore, we have shown that every item in the domain of $f^{-1}$ maps to something (one of the criteria for a function). Knowing that $f$ is also injective means that for arbitrary $b$, we have a single unique $a$ that corresponds to it, therefore $f^{-1}$ is a well defined function.
                 \medskip
 
-                Suppose we have a function $f : A \mapsto B$, with a well defined inverse $g$. We can prove that $f$ is a bijection, and $g$ is unique. We want to first prove that it is a surjection; take an arbitrary $b \in B$; now we know that $f(g(b)) = b$, by definition of inverse, hence it is onto. Now to prove that $f$ is injective, take arbitrary $a_1, a_2 \in A$. Assume that $f(a_1) = f(a_2)$, then it follows that $g(f(a_1) = g(f(a_2))$. By definition of inverse (with the identity), we can then say that $g(f(a_1)) = a_1 = a_2 = g(f(a_2))$, hence $a_1 = a_2$, thus $f$ is injective, and since it is both injective, and surjective, it is a bijection.
+                Suppose we have a function $f : A \to B$, with a well defined inverse $g$. We can prove that $f$ is a bijection, and $g$ is unique. We want to first prove that it is a surjection; take an arbitrary $b \in B$; now we know that $f(g(b)) = b$, by definition of inverse, hence it is onto. Now to prove that $f$ is injective, take arbitrary $a_1, a_2 \in A$. Assume that $f(a_1) = f(a_2)$, then it follows that $g(f(a_1) = g(f(a_2))$. By definition of inverse (with the identity), we can then say that $g(f(a_1)) = a_1 = a_2 = g(f(a_2))$, hence $a_1 = a_2$, thus $f$ is injective, and since it is both injective, and surjective, it is a bijection.
                 \medskip
 
                 Assume that there are two inverses of $f$; $g, g^\prime$. Taking an arbitrary $b \in B$, we can say that $f(g(b)) = b$, and also $f(g^\prime(b)) = b$, once again by using the identity definition. Hence, it follows that $g = g^\prime$, as $f$ is injective.
@@ -664,18 +664,18 @@
                 Let us define equivalence on sets (not equality), for \textbf{any} (they can be infinite) sets $A$, and $B$;
                 \smallskip
 
-                $A \approx B \triangleq \exists f : A \mapsto B$ (where $f$ is a bijection). Note that the previously mentioned (Dual) Cantor-Bernstein Theorem states that there is a bijection when there are two injective (or two surjective) functions $g : A \mapsto B$, and $h : B \mapsto A$.
+                $A \approx B \triangleq \exists f : A \to B$ (where $f$ is a bijection). Note that the previously mentioned (Dual) Cantor-Bernstein Theorem states that there is a bijection when there are two injective (or two surjective) functions $g : A \to B$, and $h : B \to A$.
                 \medskip
 
                 We can also prove that it is an equivalence relation, such that it is reflexive, symmetric, and also transitive;
                 \begin{itemize}
                     \itemsep0em
                     \item $\approx$ is reflexive, hence $A \approx A$
-                        \subitem we have the identity relation $\text{id}_A : A \mapsto A$, which is a bijection
+                        \subitem we have the identity relation $\text{id}_A : A \to A$, which is a bijection
                     \item $\approx$ is symmetric, hence if $A \approx B$, then $B \approx A$
-                        \subitem given that there is a bijection $f : A \mapsto B$, there exists an inverse $f^{-1} : B \mapsto A$, which is also a bijection (proven above)
+                        \subitem given that there is a bijection $f : A \to B$, there exists an inverse $f^{-1} : B \to A$, which is also a bijection (proven above)
                     \item $\approx$ is transitive, hence if $A \approx B$, and $B \approx C$, then $A \approx C$
-                        \subitem given that there exists two bijections, $f : A \mapsto B$, and $g : B \mapsto C$, the composition $(g \circ f) : A \mapsto C$ is also a bijection (proven above)
+                        \subitem given that there exists two bijections, $f : A \to B$, and $g : B \to C$, the composition $(g \circ f) : A \to C$ is also a bijection (proven above)
                 \end{itemize}
                 We can prove that $\mathbb{N} \approx \mathbb{N}^2$ by arranging the pairs in an infinite grid (remember that we're allowed infinite constructions, just not infinite step proofs). Each pair is visited once, and only once, therefore there exists a bijection.
                 \begin{center}
@@ -715,15 +715,15 @@
                     \end{tikzpicture}
                 \end{center}
             \subsubsection*{Example of Bijection}
-                At the start of the course, we considered the Cartesian product of sets, and considered whether it was associative. While they are not equal, we can build a bijection between them. For example, $f : (A \times B) \times C \mapsto A \times (B \times C)$. In order to precisely define this, without using Haskell-style pattern matching, we can define $L(x, y) = x$, and $R(x, y) = y$. Therefore, to get $f(\la a, b \ra, c) = (a, \la b, c \ra)$, we define $f(x, y) = (L(x), \la R(x), y \ra)$, and similar for the inverse.
+                At the start of the course, we considered the Cartesian product of sets, and considered whether it was associative. While they are not equal, we can build a bijection between them. For example, $f : (A \times B) \times C \to A \times (B \times C)$. In order to precisely define this, without using Haskell-style pattern matching, we can define $L(x, y) = x$, and $R(x, y) = y$. Therefore, to get $f(\la a, b \ra, c) = (a, \la b, c \ra)$, we define $f(x, y) = (L(x), \la R(x), y \ra)$, and similar for the inverse.
         \subsection*{13th November 2018}
             \subsubsection*{Cardinality of Arbitrary Sets}
-                We previously defined the cardinality of a finite set as the number of elements in it. Consider arbitrary finite sets $A$, and $B$, such that $|A| = |B| = n$. It is then trivial for us to construct a bijection $c_A : \{1, 2, ..., n\} \mapsto A$, and similarly $c_B : \{1, 2, ..., n\} \mapsto B$. Because the former is a bijection, we have a corresponding inverse function $c_A^{-1} : A \mapsto \{1, 2, ..., n\}$. Now, we can therefore form a third bijection $(c_A^{-1} \circ c_B) A \mapsto B$, hence $A \approx B$.
+                We previously defined the cardinality of a finite set as the number of elements in it. Consider arbitrary finite sets $A$, and $B$, such that $|A| = |B| = n$. It is then trivial for us to construct a bijection $c_A : \{1, 2, ..., n\} \to A$, and similarly $c_B : \{1, 2, ..., n\} \to B$. Because the former is a bijection, we have a corresponding inverse function $c_A^{-1} : A \to \{1, 2, ..., n\}$. Now, we can therefore form a third bijection $(c_A^{-1} \circ c_B) A \to B$, hence $A \approx B$.
             \subsubsection*{Cantor's Theorem}
                 This proof is important in mathematics as it shows that there are different types of infinities. We want to prove that for any set $A$, $A \not\approx \powerset A$.
                 \medskip
 
-                To do this, we will do a proof by contradiction. Assume that there exists some bijection (therefore we also get the fact that it's surjective without doing any work) $f : A \mapsto \powerset A$. Define a set $B = \{x \in A \mid x \notin f(x)\}$. Note that this has a clear similarity to Russel's paradox. Now, it's clear that $B \subseteq A$, since we're constructing from a well defined set. Therefore, it follows that $B \in \powerset A$, by the definition of $\powerset$. However, from our assumption, we're given that it's a surjection, hence there exists some $b \in A$, such that $f(b) = B$.
+                To do this, we will do a proof by contradiction. Assume that there exists some bijection (therefore we also get the fact that it's surjective without doing any work) $f : A \to \powerset A$. Define a set $B = \{x \in A \mid x \notin f(x)\}$. Note that this has a clear similarity to Russel's paradox. Now, it's clear that $B \subseteq A$, since we're constructing from a well defined set. Therefore, it follows that $B \in \powerset A$, by the definition of $\powerset$. However, from our assumption, we're given that it's a surjection, hence there exists some $b \in A$, such that $f(b) = B$.
                 \medskip
 
                 We then get $b \in f(b)$ (same as $b \in B$), or $b \notin f(b)$. Consider the first case, when $b \in f(b) = B$, therefore, it means it satisfies the criteria that $b \notin f(b)$, thus $\lightning$. Consider the latter case, where $b \notin f(b)$, by the definition of $B$, $b \in B$, therefore $b \in f(b)$, hence $\lightning$. Because we get a contradiction on both cases, the assumption leads to falsity, hence $f$ is not surjective, therefore it definitely isn't bijective. As there doesn't exist a bijection between the two sets, they do not have the same cardinality.
@@ -731,7 +731,7 @@
 
                 An important technique to pick out is that we don't care how the bijection is defined, just that it exists (for our purposes), and we can therefore use the properties for our proof.
             \subsubsection*{Countable Sets}
-                We can say some set $A$ countable if it is finite, or $A \approx \mathbb{N}$. The elements of a countable set can be listed as a \textbf{finite, or infinite} sequence of distinct terms $A = \{a_1, a_2, a_3, ...\}$. For example, we can write the integers as $\mathbb{Z} = \{0, -1, 1, -2, 2, -3, 3, ...\}$, where the "counting bijection" $g : \mathbb{N} \mapsto \mathbb{Z}$ is defined as follows;
+                We can say some set $A$ countable if it is finite, or $A \approx \mathbb{N}$. The elements of a countable set can be listed as a \textbf{finite, or infinite} sequence of distinct terms $A = \{a_1, a_2, a_3, ...\}$. For example, we can write the integers as $\mathbb{Z} = \{0, -1, 1, -2, 2, -3, 3, ...\}$, where the "counting bijection" $g : \mathbb{N} \to \mathbb{Z}$ is defined as follows;
                 \begin{align*}
                     g(x) & =
                     \begin{cases}
@@ -742,7 +742,7 @@
                 As we're dealing with sets, there's no reason to construct a bijection that preserves an order. We can quite easily show that $\mathbb{Q}^+$ (the positive rationals) is countable, via the same technique we used for $\mathbb{N}^2$. By applying the method we used for showing countability of $\mathbb{Z}$, we can do the same for $\mathbb{Q}^+$ to $\mathbb{Q}$, and also union $\{0\}$, to make it complete.
                 \medskip
 
-                In order to prove that the set $\{0, 1\} \times \mathbb{N}$ is countable, we can either construct a diagram similar to the one for $\mathbb{N}^2$, or we can define a bijection function $g : \mathbb{N} \mapsto \{0, 1\} \times \mathbb{N}$, defined as follows;
+                In order to prove that the set $\{0, 1\} \times \mathbb{N}$ is countable, we can either construct a diagram similar to the one for $\mathbb{N}^2$, or we can define a bijection function $g : \mathbb{N} \to \{0, 1\} \times \mathbb{N}$, defined as follows;
                 \begin{align*}
                     g(x) & =
                     \begin{cases}
@@ -756,7 +756,7 @@
                 \begin{enumerate}[1.]
                     \itemsep0em
                     \item Both $X$, and $Y$ are finite sets. This is the simplest case, as we can say that $|X| = n$, and $|Y| = m$, where $n, m \in \mathbb{N}$, hence $|X \cup Y| = n + m \in \mathbb{N}$, due to the closure of addition on the natural numbers. We can take the sum, as proven at the start of the module.
-                    \item $X$ is a finite set, and $Y$ is infinite. As $Y$ is countable, we can say $Y \approx \mathbb{N}$, hence there exists some bijection $f : \mathbb{N} \mapsto Y$. Since $X$ is finite, we can say $|X| = n$, and also $X = \{x_1, x_2, ..., x_n\}$. Let us now construct another bijection, $h : \mathbb{N} \mapsto X \cup Y$, defined as follows;
+                    \item $X$ is a finite set, and $Y$ is infinite. As $Y$ is countable, we can say $Y \approx \mathbb{N}$, hence there exists some bijection $f : \mathbb{N} \to Y$. Since $X$ is finite, we can say $|X| = n$, and also $X = \{x_1, x_2, ..., x_n\}$. Let us now construct another bijection, $h : \mathbb{N} \to X \cup Y$, defined as follows;
                         \begin{align*}
                             h(i) & =
                             \begin{cases}
@@ -766,7 +766,7 @@
                         \end{align*}
                         Since there exists such a bijection, it proves that the union is also countable.
                     \item $X$ is an infinite set, and $Y$ is finite. Same proof as above, but with the two sets swapped.
-                    \item Both $X$, and $Y$, are countably infinite sets. This proof relies on the fact that $\{0, 1\} \times \mathbb{N}$ is countable. Let us make some bijection $k : \mathbb{N} \mapsto \{0, 1\} \times \mathbb{N}$ defined as;
+                    \item Both $X$, and $Y$, are countably infinite sets. This proof relies on the fact that $\{0, 1\} \times \mathbb{N}$ is countable. Let us make some bijection $k : \mathbb{N} \to \{0, 1\} \times \mathbb{N}$ defined as;
                         \begin{align*}
                             k(n) & =
                             \begin{cases}
@@ -774,7 +774,7 @@
                                 \la 1, \frac{n - 1}{2} \ra & n \text{ is odd}
                             \end{cases}
                         \end{align*}
-                        Since they are both countable, it follows that $X \approx \mathbb{N}$, and $Y \approx \mathbb{N}$, hence there exists a pair of bijections $f : \mathbb{N} \mapsto X$, and $g : \mathbb{N} \mapsto Y$. Let us also define an additional $h : \{0, 1\} \times \mathbb{N} \mapsto X \cup Y$, defined as;
+                        Since they are both countable, it follows that $X \approx \mathbb{N}$, and $Y \approx \mathbb{N}$, hence there exists a pair of bijections $f : \mathbb{N} \to X$, and $g : \mathbb{N} \to Y$. Let us also define an additional $h : \{0, 1\} \times \mathbb{N} \to X \cup Y$, defined as;
                         \begin{align*}
                             h(b, n) & =
                             \begin{cases}
@@ -782,7 +782,7 @@
                                 g(n) & b = 1
                             \end{cases}
                         \end{align*}
-                        Due to function composition, we could also create a bijection from $\mathbb{N} \mapsto X \cup Y$, but proving that the Cartesian product is countable should be sufficient.
+                        Due to function composition, we could also create a bijection from $\mathbb{N} \to X \cup Y$, but proving that the Cartesian product is countable should be sufficient.
                 \end{enumerate}
             \subsubsection*{Diagonalisation}
                 To clarify on the notation used; I am using $v_i^j$ to denote the $i^\text{th}$ element of $V^j$.
@@ -941,7 +941,7 @@
 
                 If we have two well-founded partial orders $(A, \leq_A)$, and $(B, \leq_B)$, then the lexicographical order of $L = A \times B$ is also well-founded. By contradiction, let us consider a chain $\la a_1, b_1 \ra \geq_L \la a_2, b_2 \ra \geq_L \la a_3, b_3 \ra \geq_L ...$. Then, by lexicographical ordering, it follows that $a_1 \geq_A a_2 \geq_A a_3 \geq_A ...$, until some point, where it's just repeating $a_m$ (since we're told it's well-founded). After this point, since $a_n = a_m$ for all $n \geq m$, we start checking $b$ values. Now, we have $b_m \geq_B b_{m + 1} \geq_B b_{m + 2} \geq_B b_{m + 3} \geq_B ...$,to another limit, let it be $r$, where it continues to repeat values. As we now have repeating $\la a_r, b_r \ra$, it follows that the lexicographical ordering must also be well-founded.
             \subsubsection*{Ackermann Function}
-                We can prove that the Ackermann function (will be referred to as $A$ for brevity) terminates. This relies on the previous proof that the lexicographical ordering of the product set is also well-founded if the 'factors' are. Note that the Ackermann function is defined as $A : \mathbb{N}^\mapsto \mathbb{N}$, and concerns the following cases;
+                We can prove that the Ackermann function (will be referred to as $A$ for brevity) terminates. This relies on the previous proof that the lexicographical ordering of the product set is also well-founded if the 'factors' are. Note that the Ackermann function is defined as $A : \mathbb{N}^\to \mathbb{N}$, and concerns the following cases;
                 \begin{align*}
                     A(0, y) & = y + 1 \\
                     A(x + 1, 0) & = A(x, 1) \\

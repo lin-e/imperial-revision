@@ -280,8 +280,8 @@
                 Given two graphs, $G, G^\prime$, an isomorphism from $G$ to $G^\prime$ consists of two bijections (one-to-one mapping), as well as an additional restriction;
                 \begin{itemize}
                     \itemsep0em
-                    \item $f : \text{nodes}(G) \mapsto \text{nodes}(G^\prime)$
-                    \item $g : \text{arcs}(G) \mapsto \text{arcs}(G^\prime)$
+                    \item $f : \text{nodes}(G) \to \text{nodes}(G^\prime)$
+                    \item $g : \text{arcs}(G) \to \text{arcs}(G^\prime)$
                     \item if $a \in \text{arcs}(G)$, with endpoints $n_1, n_2$, then the endpoints of $g(a)$ are $f(n_1), f(n_2)$ (see the diagram below for a visual example).
                 \end{itemize}
                 \begin{center}
@@ -389,7 +389,7 @@
 
                 Consider the following nodes; $n$, $n^\prime$ being the start, and end (the odd nodes of the path), and arbitrary intermediate nodes $i$. Start at $n$, and keep going until we can go no further ($n^\prime$). If we've stopped at $n$, then there must be a spare arc, as we've started, and 'ended' at an odd node. If we stop at some arbitrary $i \neq n^\prime$, then we've still got more arcs, since $i$ is even.
             \subsubsection*{Hamiltonian Path / Circuits}
-                A Hamiltonian path is one that visits each node exactly once, and similarly a Hamiltonian circuit returns to the start node. For this, we will only consider simple graphs, since we won't ever follow a loop, or a parallel arc. In order for there to be a HP, we need a connected graph, and for a HC to exist, each node must have a degree $\geq 2$. To determine whether a circuit exists, we can take a brute force approach, since a circuit is really just a permutation on the set of nodes; such that for $n$ nodes, we have $\pi : \{1, ..., n\} \mapsto \{1, ..., n\}$. However, for this to be a circuit, we need $\pi(i)$ to be adjacent to $\pi(i + 1)$, and so on. As we have $n!$ possible circuits, this is far too slow. There exists a dynamic programming approach that reduces this to $O(n^22^n)$, but that is still exponential. Compared to EPP, which has $O(n^2)$ time. HCP has been shown to be NP-complete, and are therefore not solvable in polynomial time.
+                A Hamiltonian path is one that visits each node exactly once, and similarly a Hamiltonian circuit returns to the start node. For this, we will only consider simple graphs, since we won't ever follow a loop, or a parallel arc. In order for there to be a HP, we need a connected graph, and for a HC to exist, each node must have a degree $\geq 2$. To determine whether a circuit exists, we can take a brute force approach, since a circuit is really just a permutation on the set of nodes; such that for $n$ nodes, we have $\pi : \{1, ..., n\} \to \{1, ..., n\}$. However, for this to be a circuit, we need $\pi(i)$ to be adjacent to $\pi(i + 1)$, and so on. As we have $n!$ possible circuits, this is far too slow. There exists a dynamic programming approach that reduces this to $O(n^22^n)$, but that is still exponential. Compared to EPP, which has $O(n^2)$ time. HCP has been shown to be NP-complete, and are therefore not solvable in polynomial time.
             \subsubsection*{Trees}
                 A tree is an acyclic connected graph (whether we specify it's rooted, or non-rooted, depends on the author). The root of $G$ is a distinguished node. Assuming a rooted graph, the depth of a node $x$ is the distance along the unique path from the root to $x$. If $x$ isn't the root node, the parent of $x$ is the node directly before it in the path from the root to $x$. The depth of tree is the maximum of the depths of all its nodes.
                 \medskip
@@ -488,7 +488,7 @@
 
                 It's also trivial to modify BFS to find the distance of each node, by having a running counter. Due to how BFS is implemented, we can also extract the shortest path from ~y~; as ~y, parent[y], parent[parent[y]], ..., start~.
             \subsubsection*{Weighted Graphs}
-                We can associate a cost with each arc on a network. We can define a weighted graph as a graph, $G$, with a weight function $W : \text{arcs}(G) \mapsto \mathbb{R}^+$. With weights, we're able to consider the following problems; finding an MST (minimum spanning tree), finding shortest paths, and finding a shortest circuit.
+                We can associate a cost with each arc on a network. We can define a weighted graph as a graph, $G$, with a weight function $W : \text{arcs}(G) \to \mathbb{R}^+$. With weights, we're able to consider the following problems; finding an MST (minimum spanning tree), finding shortest paths, and finding a shortest circuit.
                 \medskip
 
                 We're only going to consider simple graphs, as there is no point in taking a loop if we're trying to minimise cost, nor is there any point in taking the more expensive arc in a parallel arc.
@@ -965,7 +965,7 @@
                 \begin{center}
                     1 \ \ log($n$) \ \ $n$log($n$) \ \ $n^2$ \ \ $n^2$log($n$)
                 \end{center}
-                Let two functions $f, g : \mathbb{N} \mapsto \mathbb{R}^+$;
+                Let two functions $f, g : \mathbb{N} \to \mathbb{R}^+$;
                 \begin{itemize}
                     \itemsep0em
                     \item $f$ is $O(g) \leftrightarrow \exists m \in \mathbb{N} \exists c \in \mathbb{R}^+ [\forall n \geq m [f(n) \leq c \cdot g(n)]]$

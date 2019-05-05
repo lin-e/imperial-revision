@@ -1258,5 +1258,16 @@
                     \end{minipage}
                 \end{center}
             \subsubsection*{Image, and Kernel / Null Space}
-                
+                For the mapping $\Phi : V \mapsto W$, we define the \textbf{kernel / null space}, and \textbf{image / range} respectively;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\text{ker}(\Phi) \triangleq \{\vec{v} \in V \mid \Phi(\vec{v}) = \vec{0}_W\} = \Phi^{-1}(\{\vec{0}_W\})$
+                        \subitem this is the set of vectors in $V$ that maps to the neutral element $\vec{0}_W$ in $W$
+                    \item $\text{Im}(\Phi) \triangleq \{\vec{w} \in W \mid \exists \vec{v} \in V [\Phi(\vec{v}) = \vec{w}]\} = \Phi(V)$
+                        \subitem this is the set of vectors in $W$ that can be reached by $\Phi$ from a vector in $V$
+                \end{itemize}
+                Note that $\Phi(\vec{0}_V) = \vec{0}_W$, hence the \textbf{unique} $\vec{0}_V \in \text{ker}(\Phi)$, therefore the null space $\neq \emptyset$. By the definitions above, we can easily see that $\text{Im}(\Phi) \subset W$, and also $\text{ker}(\Phi) \subset V$, hence they are subspaces of their respective vector spaces. A mapping, $\Phi$, is injective $\Leftrightarrow \text{ker}(\Phi) = \{\vec{0}\}$.
+                \medskip
+
+                A matrix $\mat{A} \in \mathbb{R}^{m \times n}$ represents the mapping $\Phi : \mathbb{R}^n \mapsto \mathbb{R}^m$, where $\vec{x} \mapsto \mat{A}\vec{x}$
 \end{document}
