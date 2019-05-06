@@ -1375,7 +1375,7 @@
 
                 Suppose we have vector spaces $V$, and $W$ with ordered bases $B = [\vec{b_1}, \vec{b_2}, ..., \vec{b_n}]$, and $C = [\vec{c_1}, \vec{c_2}, ..., \vec{c_m}]$ respectively. Then we can consider the representation of each of the basis vectors in $B$ with respect to $C$; for $j \in [1, n]$;
                 \begin{center}
-                    $\Phi(\vec{b_j}) = \summation{i = 1}{m}{\alpha_{i, j}\vec{c_i}}$, where we have $\mat{A}_\Phi \in \mathbb{R}^{m \times n} \triangleq ((\alpha_{i, j}))$
+                    $\Phi(\vec{b_j}) = \summation{i = 1}{m}{\alpha_{i, j}\vec{c_i}}$, where we have $\mat{A}_\Phi \in \mathbb{R}^{m \times n} \triangleq (\alpha_{i, j})$
                 \end{center}
                 The coordinates of $\Phi(\vec{b_j})$ with respect to the ordered basis $C$ of $W$ are the $j^\text{th}$ column of $\mat{A}_\Phi$. The rank of the transformation matrix, is the same as the dimension of the image of the transformation, such that $\text{rk}(\mat{A}_\Phi) = \text{dim}(\text{Im}(\Phi))$.
                 \medskip
@@ -1404,6 +1404,69 @@
                         -1 & 2 & 4
                     \end{bmatrix}$
                 \end{center}
+                Suppose the coordinate vector $\vec{\hat{x}}$ representing $\vec{x} \in V$ with respect to $B$ is;
+                \begin{center}
+                    $\vec{\hat{x}} = \begin{bmatrix}
+                        x_1 \\ x_2 \\ x_3
+                    \end{bmatrix} = x_1\vec{b_1} + x_2\vec{b_2} + x_3\vec{b_3}$
+                \end{center}
+                Therefore, the coordinate vector $\vec{\hat{y}}$ representing $\Phi(\vec{x}) \in W$ with respect to $C$ is;
+                \begin{align*}
+                    \vec{\hat{y}} & = \Phi(\vec{\hat{x}}) \\
+                    & = x_1\Phi(\vec{b_1}) + x_2\Phi(\vec{b_2}) + x_3\Phi(\vec{b_3}) \\
+                    & = x_1(\vec{c_1} - \vec{c_2} + 3\vec{c_3} - \vec{c_4}) + x_2(2\vec{c_1} + \vec{c_2} + 7\vec{c_3} + 2\vec{c_4}) + x_3(3\vec{c_2} + \vec{c_3} + 4\vec{c_4}) \\
+                    & = \mat{A}_\Phi \vec{\hat{x}}
+                \end{align*}
+                The above can be done since we know that $\Phi$ is a linear map, and that $\vec{\hat{x}}$ is a real valued vector.
+            \subsubsection*{Basis Change}
+                Continuing on from the previous spaces $V$, and $W$, and the mapping $\Phi : V \to W$, suppose we have another ordered basis of $V$, and $W$, respectively;
+                \begin{center}
+                    $\bar{B} = [\vec{\bar{b_1}}, \vec{\bar{b_2}}, ..., \vec{\bar{b_n}}]$, and also $\bar{C} = [\vec{\bar{c_1}}, \vec{\bar{c_2}}, ..., \vec{\bar{c_m}}]$
+                \end{center}
+                Like before, because we know that $B$, and $C$ are both bases, we can construct anything in $\bar{B}$, and $\bar{C}$ as a linear combination of vectors in their respective original basis;
+                \begin{center}
+                    $\vec{\bar{b_j}} = \summation{i = 1}{n}{s_{i, j}\vec{b_i}}$, and also $\vec{\bar{c_k}} = \summation{l = 1}{m}{t_{l, k}\vec{c_l}}$, where $j \in [1, n]$, and $k \in [1, m]$
+                \end{center}
+                Therefore, we can define regular matrices $\mat{S} \in \mathbb{R}^{n \times n} \triangleq (s_{i, j})$, and $\mat{T} \in \mathbb{R}^{m \times m} \triangleq (t_{l, k})$, which maps coordinates with respect to $\bar{B}$, onto coordinates with respect to $B$, and similar for $\bar{C}$ to $C$. Refer to \textbf{3Blue1Brown}'s \textit{Change of basis $\mid$ Essence of linear algebra, chapter 13}, for a more intuitive perspective on this.
+                \medskip
 
-                $\mapsto$ \ \ \ $\to$
+                Like before, the $j^\text{th}$ column of $\mathbf{S}$, and $\mathbf{T}$, are the coordinate representations of $\vec{\hat{b_j}}$, and $\vec{\hat{c_j}}$ with respect to $B$, and $C$, respectively.
+                \medskip
+
+                Suppose we have some $\mat{\bar{A}}_\Phi$, which represents the mapping $\Phi : V \to W$, with bases $\bar{B}$, and $\bar{C}$ respectively. The elements of $\mat{\bar{A}}_\Phi$ are represented with $\bar{\alpha}$.
+                \begin{reasoning}
+                    \proofmath{\Phi(\vec{\bar{b_j}})}{\summation{k = 1}{m}{\bar{\alpha}_{k, j}\vec{\bar{c_k}}}}{the matrix which we're trying to find}
+                    \proofmath{}{\summation{k = 1}{m}{\bar{\alpha}_{k, j}\summation{i = 1}{m}{t_{i, k}\vec{c_i}}}}{by our definition of $\vec{\bar{c_k}}$}
+                    \proofmath{}{\summation{i = 1}{m}{(\summation{k = 1}{m}{t_{i, k}\bar{\alpha}_{k, j})\vec{c_i}}}}{rearranging $\summation{}{}{}$}
+                \end{reasoning}
+                To solve for $\mat{\bar{A}}_\Phi$, we consider how we represent $\vec{\bar{b_j}}$ with respect to $B$, and how we represent each $\Phi(\vec{b_k})$;
+                \begin{reasoning}
+                    \proofmath{\Phi(\vec{\bar{b_j}})}{\Phi(\summation{k = 1}{n}{s_{k, j}\vec{b_k}})}{by our definition of $\vec{\bar{b_j}}$}
+                    \proofmath{}{\summation{k = 1}{n}{s_{k, j}{\Phi(\vec{b_k})}}}{by linearity of $\Phi$}
+                    \proofmath{}{\summation{k = 1}{n}{s_{k, j}\summation{i = 1}{m}{\alpha_{i, k}\vec{c_i}}}}{by the mapping of $\Phi$}
+                    \proofmath{}{\summation{i = 1}{m}{(\summation{k = 1}{n}{\alpha_{i, k}s_{k, j})\vec{c_i}}}}{rearranging $\summation{}{}{}$}
+                \end{reasoning}
+                Looking at the final lines of the above equations, it follows that;
+                \begin{center}
+                    $\Phi(\vec{\bar{b_j}}) = \summation{i = 1}{m}{(\summation{k = 1}{m}{t_{i, k}\bar{\alpha}_{k, j})\vec{c_i}}} = \summation{i = 1}{m}{(\summation{k = 1}{n}{\alpha_{i, k}s_{k, j})\vec{c_i}}} \Leftrightarrow \summation{k = 1}{m}{t_{i, k}\bar{\alpha}_{k, j}} = \summation{k = 1}{n}{\alpha_{i, k}s_{k, j}}$
+                \end{center}
+                Therefore, it follows that we have $\mat{T}\mat{\bar{A}}_\Phi = \mat{A}_\Phi\mat{S} \Leftrightarrow \mat{\bar{A}}_\Phi = \mat{T}^{-1}\mat{A}_\Phi \mat{S}$. Note that we can represent this as mapping composition; $\Phi_{\bar{C}\bar{B}} = \Phi_{\bar{C}C} \circ \Phi_{CB} \circ \Phi_{B\bar{B}} = \Phi_{C\bar{C}}^{-1} \circ \Phi_{CB} \circ \Phi_{B\bar{B}}$. The diagram below shows the mappings, and the respective transformation matrices in \textcolor{violet}{violet};
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=0.75cm]
+                        \node[] (v) at (0, 0) {$V$};
+                        \node[] (w) at (2, 0) {$W$};
+                        \node[] (b) at (0, -1) {$B$};
+                        \node[] (c) at (2, -1) {$C$};
+                        \node[] (bb) at (0, -3) {$\bar{B}$};
+                        \node[] (cb) at (2, -3) {$\bar{C}$};
+                        \node[] () at (-1, 0) {vector spaces};
+                        \node[] () at (-1, -1) {ordered bases};
+                        \draw
+                        (v) edge[->] node[above] {$\Phi$} (w)
+                        (b) edge[->] node[above] {$\Phi_{CB}$} node[below] {\textcolor{violet}{$\mat{A}_\Phi$}} (c)
+                        (bb) edge[->] node[below] {$\Phi_{\bar{C}\bar{B}}$} node[above] {\textcolor{violet}{$\mat{\bar{A}}_\Phi$}} (cb)
+                        (bb) edge[->] node[left] {$\Phi_{B\bar{B}}$} node[right] {\textcolor{violet}{$\mat{S}$}} (b)
+                        (c) edge[->] node[right] {$\Phi_{\bar{C}C} = \Phi_{\bar{C}C}^{-1}$} node[left] {\textcolor{violet}{$\mat{T}^{-1}$}} (cb);
+                    \end{tikzpicture}
+                \end{center}
 \end{document}
