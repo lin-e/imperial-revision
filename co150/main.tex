@@ -323,7 +323,7 @@
                     \item multiply all the possibilities, and we have 4 automorphisms
                 \end{itemize}
             \subsubsection*{Planar Graphs}
-                We can say a graph is planar if it can be drawn such that no arcs cross. Any non-planar graph contains $K_5$, or $K_{3,3}$ as a subgraph homeomorphic. We can say that two graphs are \textbf{homeomorphic} if they can be obtained by a series of operations such that an arc $x - y$, is replaced by two arcs $x - z$, and $z - y$. For example, the two graphs below are homeomorphic.
+                We can say a graph is planar if it can be drawn such that no arcs cross. Any non-planar graph contains $K_5$, or $K_{3,3}$ as a homeomorphic subgraph. We can say that two graphs are \textbf{homeomorphic} if they can be obtained by a series of operations such that an arc $x - y$, is replaced by two arcs $x - z$, and $z - y$. For example, the two graphs below are homeomorphic.
                 \begin{center}
                     \begin{tikzpicture}
                         \node[circle, fill=black] (a) at (0, 0) {};
@@ -384,12 +384,12 @@
                 An Euler path is a special type of path where each arc is used exactly once, and an Euler circuit is a cycle which uses each arc exactly once (therefore an EC is an EP which finishes at the start node). A connected graph has an EP $\Leftrightarrow$ there are 0, or 2 odd nodes, and there is an EC $\Leftrightarrow$ there are no odd nodes.
                 \medskip
 
-                We can justify it by saying that any intermediate node (ones which aren't the start node) have to be entered, and exited the same number of times (otherwise it wouldn't be an intermediate) node. Therefore, if 2 nodes of odd degree, then it follows that we start from one, and end on the other.
+                We can justify it by saying that any intermediate node (ones which aren't the start node) have to be entered, and exited the same number of times (otherwise it wouldn't be an intermediate) node. Therefore, if there are 2 nodes of odd degree, then it follows that we start from one, and end on the other.
                 \medskip
 
                 Consider the following nodes; $n$, $n^\prime$ being the start, and end (the odd nodes of the path), and arbitrary intermediate nodes $i$. Start at $n$, and keep going until we can go no further ($n^\prime$). If we've stopped at $n$, then there must be a spare arc, as we've started, and 'ended' at an odd node. If we stop at some arbitrary $i \neq n^\prime$, then we've still got more arcs, since $i$ is even.
             \subsubsection*{Hamiltonian Path / Circuits}
-                A Hamiltonian path is one that visits each node exactly once, and similarly a Hamiltonian circuit returns to the start node. For this, we will only consider simple graphs, since we won't ever follow a loop, or a parallel arc. In order for there to be a HP, we need a connected graph, and for a HC to exist, each node must have a degree $\geq 2$. To determine whether a circuit exists, we can take a brute force approach, since a circuit is really just a permutation on the set of nodes; such that for $n$ nodes, we have $\pi : \{1, ..., n\} \to \{1, ..., n\}$. However, for this to be a circuit, we need $\pi(i)$ to be adjacent to $\pi(i + 1)$, and so on. As we have $n!$ possible circuits, this is far too slow. There exists a dynamic programming approach that reduces this to $O(n^22^n)$, but that is still exponential. Compared to EPP, which has $O(n^2)$ time. HCP has been shown to be NP-complete, and are therefore not solvable in polynomial time.
+                A Hamiltonian path is one that visits each node exactly once, and similarly a Hamiltonian circuit returns to the start node. For this, we will only consider simple graphs, since we won't ever follow a loop, or a parallel arc. In order for there to be a HP, we need a connected graph, and for a HC to exist, each node must have a degree $\geq 2$. To determine whether a circuit exists, we can take a brute force approach, since a circuit is really just a permutation on the set of nodes; such that for $n$ nodes, we have $\pi : \{1, ..., n\} \to \{1, ..., n\}$. However, for this to be a circuit, we need $\pi(i)$ to be adjacent to $\pi(i + 1)$, and so on. As we have $n!$ possible circuits, this is far too slow. There exists a dynamic programming approach that reduces this to $O(n^22^n)$, but that is still exponential. Compared to EPP, which has $O(n^2)$ time. HCP has been shown to be NP-complete, and is therefore not solvable in polynomial time.
             \subsubsection*{Trees}
                 A tree is an acyclic connected graph (whether we specify it's rooted, or non-rooted, depends on the author). The root of $G$ is a distinguished node. Assuming a rooted graph, the depth of a node $x$ is the distance along the unique path from the root to $x$. If $x$ isn't the root node, the parent of $x$ is the node directly before it in the path from the root to $x$. The depth of tree is the maximum of the depths of all its nodes.
                 \medskip
@@ -548,7 +548,7 @@
                 The goal here is to now show each $T_k$ is a subgraph of an MST $T^\prime$ of $G$. Trivially, in the base case $T_0$, it has one node, and no arcs, therefore $T_0 \subseteq T^\prime$.
                 \medskip
 
-                Assume that $T_k \subseteq T^\prime$, where $T^\prime$ is an MST of $G$. Let there be some node in the tree $x$, a node in the fringe $y$, and an arc joining them $a_{k + 1}$. We can now consider both cases; if $a_{k + 1} \in \text{arcs}(T^\prime)$, then $T_{k + 1} \subseteq T^\prime$, and is trivial. However, suppose that $a_{k + 1} \notin \text{arcs}(T^\prime)$, there still has to be a path in $T^\prime$ from $x$, to $y$ (by properties of a spanning tree). Therefore, we can form a cycle through some other tree node $x^\prime$, to a fringe node $y^\prime$, through some arc $a$ (such that we can connect $y$, and $y^\prime$). As Prim's chose $a_{k + 1}$, instead of $a$, there we can deduce that $W(a_{k + 1}) \leq W(k)$, and therefore $W(T^{\prime\prime}) \leq W(T^\prime))$. However, since all MSTs have the same weight by definition, we can say that $W(T^{\prime\prime}) = W(T^\prime))$. Also, $T_{k + 1} \subseteq T^{\prime\prime}$, therefore the induction step is complete.
+                Assume that $T_k \subseteq T^\prime$, where $T^\prime$ is an MST of $G$. Let there be some node in the tree $x$, a node in the fringe $y$, and an arc joining them $a_{k + 1}$. We can now consider both cases; if $a_{k + 1} \in \text{arcs}(T^\prime)$, then $T_{k + 1} \subseteq T^\prime$, and is trivial. However, suppose that $a_{k + 1} \notin \text{arcs}(T^\prime)$, there still has to be a path in $T^\prime$ from $x$, to $y$ (by properties of a spanning tree). Therefore, we can form a cycle through some other tree node $x^\prime$, to a fringe node $y^\prime$, through some arc $a$ (such that we can connect $y$, and $y^\prime$). As Prim's chose $a_{k + 1}$, instead of $a$, there we can deduce that $W(a_{k + 1}) \leq W(k)$, and therefore $W(T^{\prime\prime}) \leq W(T^\prime)$. However, since all MSTs have the same weight by definition, we can say that $W(T^{\prime\prime}) = W(T^\prime)$. Also, $T_{k + 1} \subseteq T^{\prime\prime}$, therefore the induction step is complete.
                 \medskip
 
                 We can also implement Prim's with a priority queue. The PQ requires us to have some key of $x$, for each item $x$. In this case, we will likely use the weight of the candidate arc. We have the following operations on PQ;
@@ -673,7 +673,7 @@
                         (t) -- (f);
                     \end{tikzpicture}
                 \end{center}
-                The implementation fro this is similar to Prim's algorithm, but we also need to store its parent node, and the distance of the shortest path known. At any stage, the next node to be added is the fringe node with the smallest distance from the start. The fringe is then updated, possibly improving the shortest path. Once again, we can keep checking parents to obtain the path we've taken.
+                The implementation for this is similar to Prim's algorithm, but we also need to store its parent node, and the distance of the shortest path known. At any stage, the next node to be added is the fringe node with the smallest distance from the start. The fringe is then updated, possibly improving the shortest path. Once again, we can keep checking parents to obtain the path we've taken.
                 \begin{lstlisting}
                     tree[start] = true
                     for x in adj[start]:
@@ -729,6 +729,7 @@
                 \end{itemize}
                 Consistency is a stronger property than a function being admissible (if $h(x) \leq $ the weight of the shortest path from $x$ to the finish). We can solve this trivially with the consistency criteria, by setting $y = ~finish~$, as we'd then have $h(x) \leq W(x, ~finish~)$.
                 \medskip
+
                 The set of tree nodes is often referred to as the \textbf{closed set}, and the set of fringe is the \textbf{open} set. If we have a heuristic $h(x) = 0$, albeit useless, then we get Dijkstra's algorithm. Thus we can say that the complexity of A$^*$ is the same as Dijkstra, in the worst case. We can justify correctness similar to Dijkstra's. Our 'invariant' is that if the node $x$ is a ~tree~, or ~fringe~ node, and not the ~start~, then ~parent[$x$]~ is a tree node. If $x$ is a tree node, then $g(x)$ is the length of the shortest path (once again, not including ~start~). However, if $x$ is a fringe node, then $g(x)$ is the length of the shortest path, where all nodes except $x$ are tree nodes.
                 \medskip
 
@@ -802,7 +803,7 @@
                     return B
                 \end{lstlisting}
             \subsubsection*{Dynamic Programming}
-                The previous two algorithms are examples of dynamic programming. In dynamic programming, we break down the problem into sub-problems, and the smaller sub-problems are ordered to culminate in the main problem. We move through the smaller sub-problems in order, and solve each sub-problem with the stored results of the previous one (and then storing this result for use by the next one). The main problem is solved as if it were the final sub-problem (deep really).
+                The previous two algorithms are examples of dynamic programming. In dynamic programming, we break down the problem into sub-problems, and the smaller sub-problems are ordered to culminate in the main problem. We move through the smaller sub-problems in order, and solve each sub-problem with the stored results of the previous one (and then storing this result for use by the next one). The main problem is solved as if it were the final sub-problem.
             \subsubsection*{Travelling Salesman Problem}
                 Given some complete weighted graph $(G, W)$, we want to find a way to tour the graph visiting each node exactly once, and travelling the shortest possible distance. We consider complete graphs, as we can construct an 'arc' with an extremely high weight.
                 \medskip
@@ -813,7 +814,7 @@
                 Once again, we have $(G, W)$ with nodes $\{1, ..., n\}$. We can fix a start node, say 1 as it doesn't matter where you begin, since the problem would require you to visit all of them anyways. For each $x \neq 1$, and each $S \subseteq \text{nodes}\backslash \{1, x\}$, we can find and store the minimum cost of $C(S, x)$ from node 1 to $x$, using the set of intermediate nodes $S$ (you have to use exactly the set of intermediate nodes).
                 \medskip
 
-                We can use this to calculate the solution to TSP as $\text{min}(C(\text{nodes}\backslash \{1, x\}, x)) + W(x, 1)$, by trying each $x \neq 1$. This is done by calculating all $C(S, x)$ in increasing size order, from 0 to $n - 2$ (which is all nodes excluding 1, and $x$). Clearly, with the base case $C(\emptyset, x) = W(1, x)$, as we aren't allowed any intermediate nodes. If we assume that we know $C(S, x)$ for all $S$ of size $k$. Now, consider a set $S^\prime$, with a size of $k + 1$, such that $S^\prime = S \cup \{y\}$, where $y$ is some last node (and $S = S^\prime \backslash \{y\}$), Therefore, it follows that the cost of a path from 1 to $x$ with intermediate nodes $S^\prime$ is $C(S, y) + W(y, x)$, therefore it follows that $C(S^\prime, x) = min(C(S, y)) + W(y, x)$.
+                We can use this to calculate the solution to TSP as $\text{min}(C(\text{nodes}\backslash \{1, x\}, x)) + W(x, 1)$, by trying each $x \neq 1$. This is done by calculating all $C(S, x)$ in increasing size order, from 0 to $n - 2$ (which is all nodes excluding 1, and $x$). Clearly, with the base case $C(\emptyset, x) = W(1, x)$, as we aren't allowed any intermediate nodes. If we assume that we know $C(S, x)$ for all $S$ of size $k$. Now, consider a set $S^\prime$, with a size of $k + 1$, such that $S^\prime = S \cup \{y\}$, where $y$ is some last node (and $S = S^\prime \backslash \{y\}$), Therefore, it follows that the cost of a path from 1 to $x$ with intermediate nodes $S^\prime$ is $C(S, y) + W(y, x)$, therefore it follows that $C(S^\prime, x) = \text{min}(C(S, y)) + W(y, x)$.
                 \begin{lstlisting}
                     input ($G$, $W$)
                     choose start $\in$ nodes($G$)
@@ -839,10 +840,10 @@
                 Suppose there is a list of tasks, with prerequisites (therefore some have to be performed others, and these may allow others to be performed). This is seen as an acyclic, directed graph (if it were cyclic, then there would be a sort of circular dependency). Find a total ordering, such that for nodes $x_1, ..., x_n$, for any $i, j \leq n$, if $j > i$, there is no path from $x_j$ to $x_i$.
                 \medskip
 
-                Given a DAG $G$, let $x \leq y \Leftrightarrow$ there is a path from $x$ to $y$, then $\subseteq$ is a (weak) partial ordering, as it's reflexive, transitive, and antisymmetric. If you have a partial ordering $(X, \leq)$, then we can create an acyclic directed graph with nodes $X$, and arcs $\{(x,y) : x \leq y\}$.
+                Given a DAG $G$, let $x \leq y \Leftrightarrow$ there is a path from $x$ to $y$, then $\leq$ is a (weak) partial ordering, as it's reflexive, transitive, and antisymmetric. If you have a partial ordering $(X, \leq)$, then we can create an acyclic directed graph with nodes $X$, and arcs $\{(x,y) : x \leq y\}$.
                 \medskip
 
-                We can perform a topological sorting by using DFS, as it inherently finishes with all the nodes reachable from $x$ before we finish with $x$. We can add a node to the end of a sorted list, once we've finished processing it (by exiting the node). In the example below, our visiting order is 1, 2, 5, 6, 3, 4, 6. However, we want to consider the order we exit them, not the order in which we enter. Thus we get the exit order 5, 7, 2, 1, 4, 3, 6. Therefore we end up with the sort 6, 3, 4, 1, 2, 7, 5.
+                We can perform a topological sorting by using DFS, as it inherently finishes with all the nodes reachable from $x$ before we finish with $x$. We can add a node to the end of a sorted list, once we've finished processing it (by exiting the node). In the example below, our visiting order is 1, 2, 5, 7, 3, 4, 6. However, we want to consider the order we exit them, not the order in which we enter. Thus we get the exit order 5, 7, 2, 1, 4, 3, 6. Therefore we end up with the sort 6, 3, 4, 1, 2, 7, 5.
                 \begin{center}
                     \begin{minipage}{0.485\textwidth}
                         \begin{lstlisting}
@@ -1196,7 +1197,7 @@
                 \item if $f(n) = \Theta(n^E)$ then $T(n) = \Theta(f(n)\text{log}(n))$
                     \subitem informally; if $O(n^E) = O(f(n)) \Rightarrow T(n) = \Theta(f(n)\text{log}(n))$
                 \item if $f(n) = O(n^{E - \epsilon})$ for some $\epsilon > 0$ then $T(n) = \Theta(n^E)$
-                    \subitem informally; if $O(n^E) < O(f(n)) \Rightarrow T(n) = \Theta(n^E$
+                    \subitem informally; if $O(n^E) < O(f(n)) \Rightarrow T(n) = \Theta(n^E)$
             \end{enumerate}
             The use of $\epsilon$ suggests that it is bounded, as we can therefore bound it in a way that suggests $n^E < n^{E+\epsilon}$.
         \subsubsection*{Applying the Master Theorem}
@@ -1206,7 +1207,7 @@
             Consider the worst case number of comparisons for merge sort; $W(n) = 2W(\frac{n}{2}) + (n - 1)$, therefore we have $a = 2$, $b = 2$, and $f(n) = \Theta(n^1)$. We can calculate $E$ to be 1, therefore it's once again the second case, hence $W(n) = \Theta(n\text{log}(n))$.
             \medskip
 
-            Consider the number of arithmetic operations for Strassen's algorithm; $A(n) = 7A(\frac{n}{2}) + 18(\frac{n}{2})^2$. Here we have $a = 7$, $b = 2$, and $f(n) = \Theta(n^2)$. Now, we can calculate $E$ to be $\text{log}_2(7)$, which we can say is greater than 2, as $7 > 4$. Therefore we take the third case, as there is some positive $\epsilon$. As such, we get the worst case as $A(n) = \Theta(n^{\text{log}(7)})$. Note that any improvement to $f(n)$ will not help with the order of the complexity.
+            Consider the number of arithmetic operations for Strassen's algorithm; $A(n) = 7A(\frac{n}{2}) + 18(\frac{n}{2})^2$. Here we have $a = 7$, $b = 2$, and $f(n) = \Theta(n^2)$. Now, we can calculate $E$ to be $\text{log}_2(7)$, which we can say is greater than 2, as $7 > 4$. Therefore we take the third case, as there is some positive $\epsilon$. As such, we get the worst case as $A(n) = \Theta(n^{\text{log}_2(7)})$. Note that any improvement to $f(n)$ will not help with the order of the complexity.
         \subsubsection*{Quicksort}
             In quicksort, we pick some pivot element (take the first element for simplicity). We then split it into two sublists, where the items on the left side of the pivot are less than it, and the ones on the right are greater than it. The first split clearly takes $n - 1$ comparisons. The pseudocode for the split is as follows;
             \begin{lstlisting}
@@ -1536,7 +1537,7 @@
 
             Suppose $D \leq D^\prime$ and $D^\prime \in$ P, then $D \in$ P.
         \subsubsection*{Problem Reduction (NP)}
-            Suppose $D \leq D^\prime$ and $D^\prime \in$ P, then $D \in$ NP.
+            Suppose $D \leq D^\prime$ and $D^\prime \in$ NP, then $D \in$ NP.
             \medskip
 
             Given the first assumption, we can assume that there is some $E^\prime(x, y) \in$ P, and a $p^\prime(n)$ (also p-time) such that $D^\prime(x) \Leftrightarrow \exists y [E^\prime(x, y)]$. And if $E^\prime(x, y)$ then it follows that $|y| \leq p^\prime(|x|)$, also by definition of being reducible, we have $D(x) \Leftrightarrow D^\prime(f(x))$. By combining this, we can say the following;
@@ -1547,7 +1548,7 @@
 
             Note that the reduction order is reflexive, and transitive such that $D \leq D$, and if $D \leq D^\prime \leq D^{\prime\prime}$ then $D \leq D^{\prime\prime}$. For the former, we can prove it by letting the reduction function be $f(x) = x$, and the latter is (probably) done with polynomial function composition, as that keeps it closed within the set of polynomial functions. If both $D \leq D^\prime$, and $D^\prime \leq D$, then we can write $D \sim D^\prime$, which states that they are as hard as each other.
         \subsubsection*{NP-completeness}
-            We identify a decision problem $D$ as being NP-hard if for all problems $D^\prime \in$ NP, we have $D^\prime \leq D$, such that we can reduce $D^\prime$ to $D$. Such an NP-hard problems do not necessarily belong to NP, and that they could be harder. We can state a problem as being NP-complete, if it is an NP problem, and it is NP-hard (such that $D \in$ NP).
+            We identify a decision problem $D$ as being NP-hard if for all problems $D^\prime \in$ NP, we have $D^\prime \leq D$, such that we can reduce $D^\prime$ to $D$. Such NP-hard problems do not necessarily belong to NP, and that they could be harder. We can state a problem as being NP-complete, if it is an NP problem, and it is NP-hard (such that $D \in$ NP).
             \medskip
 
             We take SAT as an NP-complete problem (proved). Instead of proving it directly, we can reduce it as follows. In order to see that $D$ is NPC, we need to show that $D \in$ NP, and that $D^\prime \leq D$ for some NPC complete $D^\prime$. The latter criteria establishes that $D$ is NP-hard, given that $D^\prime$ is also NP-hard.

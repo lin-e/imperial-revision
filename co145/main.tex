@@ -385,7 +385,7 @@
                 \begin{center}
                     $f(x) = f(a) + \frac{f^{(1)}(a)}{1!}(x - a)^1 + \frac{f^{(2)}(a)}{2!}(x - a)^2 + ... = \summation{n = 0}{\infty}{\frac{f^{(n)}(a)}{n!}(x - a)^n}$
                 \end{center}
-                For example, if we take $f(x) = \text{ln}(x)$ around $a$, and differentiate repeatedly;
+                For example, if we take $f(x) = \text{ln}(x)$ around 2, and differentiate repeatedly;
                 \begin{reasoning} % too lazy to make a new environment
                     \proofmath{f(x)}{\text{ln}(x)}{$f(2) = \text{ln}(2)$}
                     \proofmath{f^\prime(x)}{\frac{1}{x}}{$f^\prime(2) = \frac{1}{2}$}
@@ -941,7 +941,7 @@
                 Suppose we have $A \subset V$, and $A = \{\vec{x_1}, \vec{x_2}, ..., \vec{x_k}\}$, if we can generate every vector $\vec{v} \in V$, as a linear combination of vectors in $A$, then $A$ is a \textbf{generating set / span} of the vector space $V$. This is denoted as $V = [A] = [\vec{x_1}, \vec{x_2}, ..., \vec{x_k}]$.
                 \medskip
 
-                We can define a generating set of $V$ as a \textbf{basis} of $V$, if is linearly independent, and minimal. We define a generating set of $V$ minimal if there isn't a smaller set which spans $V$. With a real vector space $V$, and $B \subset V$, $B \neq \emptyset$, $B$ is a basis of $V$ $\Leftrightarrow$ $B$ is a minimal generating set $\Leftrightarrow$ $B$ is a maximal linearly independent subset of $V$.
+                We can define a generating set of $V$ as a \textbf{basis} of $V$, if is linearly independent, and minimal. We say a generating set of $V$ is minimal if there isn't a smaller set which spans $V$. With a real vector space $V$, and $B \subset V$, $B \neq \emptyset$, $B$ is a basis of $V$ $\Leftrightarrow$ $B$ is a minimal generating set $\Leftrightarrow$ $B$ is a maximal linearly independent subset of $V$.
                 \medskip
 
                 It is also equivalent to say that every $\vec{v} \in V$ is a \textbf{unique} linear combination of vectors from $B$;

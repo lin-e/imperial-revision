@@ -1,0 +1,227 @@
+\documentclass[a4paper, 12pt]{article}
+% packages
+\usepackage{amssymb}
+\usepackage[fleqn]{mathtools}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{bussproofs}
+\usepackage{xcolor}
+\usepackage[margin=1.3cm]{geometry}
+\usepackage{logicproof}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{lstautogobble}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
+
+% shorthand for verbatim
+% this clashes with logicproof, so maybe fix this at some point?
+\catcode`~=\active
+\def~#1~{\texttt{#1}}
+
+% code listing
+\lstdefinestyle{main}{
+    numberstyle=\tiny,
+    breaklines=true,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=2,
+    numbers=left,
+    basicstyle=\ttfamily,
+    columns=fixed,
+    fontadjust=true,
+    basewidth=0.5em,
+    autogobble,
+    xleftmargin=3.0ex,
+    mathescape=true
+}
+\newcommand{\dollar}{\mbox{\textdollar}} %
+\lstset{style=main}
+
+% augmented matrix
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+\hskip -\arraycolsep
+\let\@ifnextchar\new@ifnextchar
+\array{#1}}
+\makeatother
+
+% ceiling / floor
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+% custom commands
+\newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
+\newcommand{\defint}[4]{\int_{#1}^{#2} #3 \, \mathrm{d}#4}
+\newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\limit}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\lim_{#1 \to #2}}$}}}
+\newcommand{\summation}[3]{\sum\limits_{#1}^{#2} #3}
+\newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
+\newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
+
+\newcommand{\powerset}[0]{\wp}
+\renewcommand{\emptyset}[0]{\varnothing}
+
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\rowt}[1]{\begin{bmatrix}
+    #1
+\end{bmatrix}^\top}
+
+\newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
+\newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
+\newcommand{\trinaryproof}[4]{\AxiomC{#1} \AxiomC{#2} \AxiomC{#3} \TrinaryInfC{#4} \DisplayProof}
+
+% no indent
+\setlength\parindent{0pt}
+
+% reasoning proofs
+\usepackage{ltablex}
+\usepackage{environ}
+\keepXColumns
+\NewEnviron{reasoning}{
+    \begin{tabularx}{\textwidth}{rlX}
+        \BODY
+    \end{tabularx}
+}
+\newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
+\newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
+\newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
+\newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
+\newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
+
+% reasoning er diagrams
+\newcommand{\nattribute}[4]{
+    \node[draw, state, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\mattribute}[4]{
+    \node[draw, state, accepting, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\dattribute}[4]{
+    \node[draw, state, dashed, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\entity}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 0.5)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -0.5)$) {};
+    \draw
+    ($(#1-c) + (-1, 0.5)$) -- ($(#1-c) + (1, 0.5)$) -- ($(#1-c) + (1, -0.5)$) -- ($(#1-c) + (-1, -0.5)$) -- cycle;
+}
+\newcommand{\relationship}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 1)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -1)$) {};
+    \draw
+    ($(#1-c) + (-1, 0)$) -- ($(#1-c) + (0, 1)$) -- ($(#1-c) + (1, 0)$) -- ($(#1-c) + (0, -1)$) -- cycle;
+}
+
+% actual document
+\begin{document}
+    \section*{CO150 - Recurrence Relations Cribsheet}
+        \subsection*{Prelude}
+            The content discussed here is part of CO150 - Graphs and Algorithms (Computing MEng); taught by Iain Phillips, in Imperial College London during the academic year 2018/19. Raihaan wanted me to do these. Probably copied mostly from the notes.
+            \medskip
+
+            We refer to functions $W : \mathbb{N} \to \mathbb{N}$, and $A : \mathbb{N} \to \mathbb{N}$, as complexity functions. These will normally be solved by repeated expansion.
+        \subsection*{Binary Search}
+            \vspace{-0.5\baselineskip}
+            \begin{align*}
+                W(1) & = 1 \\
+                W(n) & = 1 + W(\floor{\frac{n}{2}}) \\
+                & = 1 + 1 + W(\floor{\frac{n}{4}}) \\
+                & \cdots \\
+                & = 1 + 1 + \cdots + 1 + W(1) \\
+                & = 1 + \floor{\text{log}_2(n)}
+            \end{align*}
+            The number of 1s we get is determined by how many times we can divide $n$ by 2. Allow us to bound $n$ as $2^k \leq n < 2^{k + 1} \Leftrightarrow k \leq \text{log}_2(n) < k + 1$, hence $k = \floor{\text{log}_2(n)}$, and since $W(1) = 1$, $W(n) = 1 + \floor{\text{log}_2(n)}$.
+        \subsection*{Strassen's Algorithm}
+            \vspace{-0.5\baselineskip}
+            \begin{align*}
+                A(0) & = 1 \\
+                A(k) & = 7A(k - 1) + 18(\frac{n}{2})^2 \\
+                & = 7(7A(k - 2) + 18(\frac{n}{4})^2) + 18(\frac{n}{2})^2 \\
+                & = 7^k + 18\frac{n^2}{4}\summation{i = 0}{k - 1}{(\frac{7}{4})^i} \\
+                & = 7^k + 18\frac{n^2}{4} \cdot \frac{(\frac{7}{4})^l - 1}{\frac{7}{4} - 1} \\
+                & = 7^k + 6n^2((\frac{7}{4})^k - 1) \\
+                & = 7^k + 6 \cdot 4^k ((\frac{7}{4})^k - 1) \\
+                & = (1 + 6)7^k - 6 \cdot 4^k \\
+                & = 7 \cdot 7^k - 6 \cdot n^2 \\
+                & = 7n^{\text{log}_2(n)} - 6 \cdot n^2
+            \end{align*}
+            For this, we're assuming $n = 2^k$, so we can easily subdivide the matrix. If this isn't the case, we can easily pad the matrices with 0 rows, or columns. The standard result for the partial sum of a geometric series is applied here.
+        \subsection*{Merge Sort}
+            \vspace{-0.5\baselineskip}
+            \begin{align*}
+                W(1) & = 0 \\
+                W(n) & = n - 1 + W(\ceil{\frac{n}{2}}) + W(\floor{\frac{n}{2}}) \\
+                & = n - 1 + 2W(\frac{n}{2}) \\
+                & = n - 1 + 2(\frac{n}{2} - 1) + 2^2W(\frac{n}{2^2})) \\
+                & = n + n - (1 + 2) + 2^2W(\frac{n}{2^2})) \\
+                & \cdots \\
+                & = n + n + \cdots + n - (1 + 2 + 2^2 + \cdots + 2^{k - 1}) + 2^kW(\frac{n}{2^k})) \\
+                & = kn - (2^k - 1) + 0 \\
+                & = n\text{log}_2(n) - (n - 1) \\
+                & = n\text{log}_2(n) - n + 1 \\
+                & = n\ceil{\text{log}_2(n)} - 2^{\ceil{\text{log}_2(n)}} + 1
+            \end{align*}
+            Note that here we're assuming $n = 2^k$, as it makes it easier. The standard result for a partial sum of a geometric series is used in the penultimate lines, and we take the ceiling, in order to generalise it for all $n$.
+        \subsection*{Master Theorem}
+            Not really a recurrence relation, but it fits here.
+            \medskip
+
+            Given the general form of a divide, and conquer algorithm; $T(n) = aT(\frac{n}{b}) + f(n)$, and critical exponent $E = \text{log}_b(a)$
+            \begin{itemize}
+                \itemsep0em
+                \item if $n^{E + \epsilon} = O(f(n))$ for some $\epsilon > 0$, then $T(n) = \Theta(f(n))$
+                    \subitem informally; if $O(n^E) < O(f(n)) \Rightarrow T(n) = \Theta(f(n))$
+                \item if $f(n) = \Theta(n^E)$ then $T(n) = \Theta(f(n)\text{log}(n))$
+                    \subitem informally; if $O(n^E) = O(f(n)) \Rightarrow T(n) = \Theta(f(n)\text{log}(n))$
+                \item if $f(n) = O(n^{E - \epsilon})$ for some $\epsilon > 0$ then $T(n) = \Theta(n^E)$
+                    \subitem informally; if $O(n^E) < O(f(n)) \Rightarrow T(n) = \Theta(n^E)$
+            \end{itemize}
+        \subsection*{Insertion Sort}
+            \subsubsection*{Worst Case}
+                \vspace{-0.5\baselineskip}
+                \begin{align*}
+                    W(1) & = 0 \\
+                    W(n) & = n - 1 + W(n - 1) \\
+                    & = \summation{i = 0}{n - 1}{i} \\
+                    & = \frac{n(n - 1)}{2}
+                \end{align*}
+                This is no better than the worst case for insertion sort. However, it's fairly rare for this to happen, so we consider the average case.
+            \subsubsection*{Average Case}
+                \vspace{-0.5\baselineskip}
+                \begin{align*}
+                    A(0) & = 0 \\
+                    A(1) & = 0 \\
+                    A(n) & = n - 1 + \frac{1}{n}\summation{s = 0}{n - 1}{(A(s) + A(n - s - 1))} \\
+                    & = n - 1 + \frac{2}{n}\summation{i = 2}{n - 1}{A(i)}
+                \end{align*}
+                This can then be used to prove $A(n)$ is $\Theta(n \text{log}(n))$, but I'm not going to do that, because it's tedious.
+        \subsection*{Word Split Problem}
+            \vspace{-0.5\baselineskip}
+            \begin{align*}
+                W_1(0) & = 0 \\
+                W_1(n) & = n + \summation{i = 0}{n - 1}{W_1(i)} \\
+                & = n + W_1(n - 1) - (n - 1) + W_1(n - 1) \\
+                & = 1 + 2W_1(n - 1) \\
+                & = 2^n - 1
+            \end{align*}
+            Note that the second line of the recurrence relation is justified by observing how all the terms from 0 to $n - 2$ are already present in $W_1(n - 1)$. Not in the notes, just something I wanted to check.
+            \medskip
+
+            Suppose $W_1(n - 1) = n - 1 + \summation{i = 1}{n - 2}{W_1(i)}$. By arithmetic, it follows that $\summation{i = 1}{n - 2}{W_1(i)} = W_1(n - 1) - n + 1$.
+            \begin{reasoning}
+                \proofmath{W_1(n)}{n + \summation{i = 0}{n - 1}{W_1(i)}}{}
+                \proofmath{}{n + \summation{i = 0}{n - 2}{W_1(i)} + W_1(n - 1)}{by def. of $\Sigma$}
+                \proofmath{}{n + W_1(n - 1) - n + 1 + W_1(n - 1)}{by substitution}
+                \proofmath{}{1 + 2W_1(n - 1)}{by arithmetic}
+            \end{reasoning}
+\end{document}
