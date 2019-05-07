@@ -1624,4 +1624,10 @@
             \medskip
 
             To prove the implication the other way, we assume $\text{VRPCD}(f((G, W), B))$. Then it follows that we have a route that starts at the depot, and delivers packages to each node (hence it must visit each node), and return to the depot within the cost $B$. This is a TS tour, and we can justify that we won't visit a node more than once since the graph satisfies the triangle inequality. Hence $\text{MTSPD}((G, W), B)$.
+    \subsection*{Notes from BS, and AVG}
+        \begin{itemize}
+            \itemsep0em
+            \item $f \in O(g) \Leftrightarrow \limit{n}{\infty}\frac{f(n)}{g(n)} = c$, for some $c < \infty$ \hfill Lemma 1.5
+            \item $f \in \Theta(g) \Leftrightarrow \limit{n}{\infty}\frac{f(n)}{g(n)} = c$, for some $0 < c < \infty$ \hfill Lemma 1.8
+        \end{itemize}
 \end{document}
