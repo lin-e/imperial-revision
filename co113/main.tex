@@ -13,7 +13,7 @@
 \usepackage{graphicx}
 \usepackage{lstautogobble}
 \usepackage{hyperref}
-\usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
+\usetikzlibrary{decorations.pathreplacing, arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning, bending}
 
 \catcode`~=\active
 \def~#1~{\texttt{#1}}
@@ -2291,4 +2291,77 @@
                 \medskip
 
                 A programmer can optimise code for cache performance, and we need to consider blocking as a general technique. However, getting absolute optimum performance depends on the platform, as we need to consider how the cache is set up.
+        \subsection*{Lecture 16 / 17 - Caching}
+            Apparently this is taught differently in our course. Oops. Some of the content here will probably have been covered above.
+            \medskip
+
+            The values we use here, are as follows (note that ~address~ means the actual binary representation of the address);
+            \begin{itemize}
+                \itemsep0em
+                \item ~address~ size \hfill $A$
+                    \subitem fairly self explanatory, but we use it to calculate ~T~
+                \item block size \hfill $K$
+                    \subitem unit of transfer between the memory, and cache, and is a power of 2; consists of adjacent bytes for spatial locality
+                \item offset field \hfill lowest $\text{log}_2(K) = O$ bits of ~address~
+                    \subitem tells you which byte within a block, calculated by doing ($~address~ \ ~\%~\ K$)
+                \item cache size \hfill $C$, or $\frac{C}{K}$
+                    \subitem given in bytes, or number of blocks, respectively
+                \item index \hfill next lowest $\text{log}_2(\frac{C}{K}) = I$ bits of ~address~
+                    \subitem a simple hash algorithm to determine which block to place the data in - the size will depend on the hash algorithm
+                \item tag \hfill remaining $A - I - O = T$ bits of ~address~
+                    \subitem for example, both the data in addresses ~\textcolor{red}{11}\textcolor{violet}{01}\textcolor{blue}{00}~, and ~\textcolor{red}{10}\textcolor{violet}{01}\textcolor{blue}{01}~ would be placed in the block indexed ~\textcolor{violet}{01}~ (with ~\textcolor{blue}{00}~, and ~\textcolor{blue}{01}~ as the offset, respectively), therefore we'd tag the block with the remaining bits (~\textcolor{red}{11}~, and ~\textcolor{red}{10}~) to differentiate them
+                \item associativity \hfill $N$
+                    \subitem will be explained further below
+            \end{itemize}
+            Therefore, the address is then broken down into;
+            \begin{center}
+                \begin{tikzpicture}[x=1.5cm]
+                    \draw
+                    (0, 0) -- (6, 0) -- (6, -1) -- (0, -1) -- cycle
+                    (2, 0) -- (2, -1)
+                    (4, 0) -- (4, -1);
+                    \node[] () at (1, -0.5) {tag (\textcolor{red}{$T$})};
+                    \node[] () at (3, -0.5) {index (\textcolor{violet}{$I$})};
+                    \node[] () at (5, -0.5) {offset (\textcolor{blue}{$O$})};
+                    \node[] (t) at (1, 1) {check it's the right data};
+                    \node[] (i) at (3, -2) {where to look in cache};
+                    \node[] (o) at (5, 1) {start byte within block};
+                    \draw
+                    (t) edge[->] (1, 0)
+                    (i) edge[->] (3, -1)
+                    (o) edge[->] (5, 0);
+                \end{tikzpicture}
+            \end{center}
+            However, this naive approach can be problematic. Consider the example, where we have a hash collision - if we were to call ~110100~, and ~100101~ repeatedly, we wouldn't have utilised the cache well, since those would constantly be evicting each other, thus removing any temporal locality.
+            \medskip
+
+            We can generalise our previous approach by having the indices represent sets, instead of individual blocks, such an $N$-associative set will have $N$ blocks per set. Our original approach was a direct mapping, which counts as 1-associative, as opposed to a single set, which would be fully associative. We refer to the block address as the memory address, without the offset (?). This means the amount of bits allocated to the index ($I$) changes, and therefore the bits for the tag ($T$) will also change;
+            \begin{center}
+                $\text{log}_2(\frac{\frac{C}{K}}{N}) = I$, so when $N = 1$, $I = \text{log}_2(\frac{C}{K})$, from before, and when $N = \frac{C}{K}$, $I = 0$
+            \end{center}
+            When we want to read data, and encounter a miss, any empty block in the corresponding set can be used to store data. However, in the case there aren't any free blocks, we tend to replace the least recently used (or not most recently used) block, to maintain temporal locality.
+            \begin{center}
+                \begin{tikzpicture}[x=0.75cm, y=0.75cm]
+                    \draw
+                    (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle
+                    (4, 0) -- (7, 0) -- (7, -1) -- (4, -1) -- cycle
+                    (10, 0) -- (13, 0) -- (13, -1) -- (10, -1) -- cycle
+                    (0, -2) -- (3, -2) -- (3, -3) -- (0, -3) -- cycle
+                    (4, -2) -- (7, -2) -- (7, -3) -- (4, -3) -- cycle
+                    (10, -2) -- (13, -2) -- (13, -3) -- (10, -3) -- cycle
+                    (0, -5) -- (3, -5) -- (3, -6) -- (0, -6) -- cycle
+                    (4, -5) -- (7, -5) -- (7, -6) -- (4, -6) -- cycle
+                    (10, -5) -- (13, -5) -- (13, -6) -- (10, -6) -- cycle;
+                    \node[] () at (8.5, -0.5) {$\cdots$};
+                    \node[] () at (8.5, -2.5) {$\cdots$};
+                    \node[] () at (8.5, -5.5) {$\cdots$};
+                    \node[] () at (1.5, -4) {$\vdots$};
+                    \node[] () at (5.5, -4) {$\vdots$};
+                    \node[] () at (11.5, -4) {$\vdots$};
+                    \draw[decoration={brace, mirror, raise=-10pt},decorate]
+                    (-1,0) -- node[left] {$2^I$ sets} (-1, -6);
+                    \draw[decoration={brace, raise=-10pt},decorate]
+                    (0, 1) -- node[above] {$N$ blocks per set} (13, 1);
+                \end{tikzpicture}
+            \end{center}
 \end{document}
