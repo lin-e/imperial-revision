@@ -2240,7 +2240,7 @@
                 It's also important for us to consider writing to, and from the cache, not just reading. The main problem with writing is that the data between the hierarchies may disagree with each other. On a write-hit, the possible options are to \textbf{write-through} it writes immediately to memory, or to \textbf{write-back}, it writes to the cache, and defers the write until the line is kicked out. This requires a \textbf{dirty bit} to indicate that the line is different from memory.
                 \medskip
 
-                On the other hand, we need to consider what happens when we have a miss on a write. We can either do \textbf{write-allocate}, which loads the address into cache, and updates the line, which is beneficial if there will be more writes to the location, or to do \textbf{no-write-allocate}, which directly writes to memory instead. The typical cache is \textbf{write-back}, and \textbf{write-allocate}, although some machines are occasionally \textbf{write-through}, and \textbf{no-write-allocate}.
+                On the other hand, we need to consider what happens when we have a miss on a write. We can either do \textbf{write-allocate}, which loads the address into cache, and updates the line, which is beneficial if there will be more writes to the location, or to do \textbf{no-write-allocate}, which directly writes to memory instead. The typical cache is \textbf{write-back}, and \textbf{write-allocate}, although some machines are occasionally \textbf{write-through}, and \textbf{no-write-allocate}. The latter essentially bypasses the cache, as if it wasn't there at all.
             \subsubsection*{Code Optimisation for Caches}
                 In order to optimise our code, we should write code that takes advantage of locality, which means that we should aim to access data contiguously, and make sure that any repeated data access is close together in time (to avoid it being evicted from the cache). This can be achieved by proper algorithm choices, and loop transformations (consider the example earlier on).
                 \medskip
@@ -2362,6 +2362,15 @@
                     (-1,0) -- node[left] {$2^I$ sets} (-1, -6);
                     \draw[decoration={brace, raise=-10pt},decorate]
                     (0, 1) -- node[above] {$N$ blocks per set} (13, 1);
+                    \draw[decoration={brace, mirror, raise=-10pt},decorate]
+                    (4, -7) -- node[below] {contains a valid bit, the tag, and $K$ bytes} (7, -7);
                 \end{tikzpicture}
             \end{center}
+            Therefore, the cache size is $C = S \times N \times K$, without including the validity bit, nor the tag.
+            \medskip
+
+            On a cache read, we first locate the set, and check if any of the blocks / lines in the set containing a matching tag. If there is a match, and the valid tag is set, then we can locate the data starting at the offset.
+            \medskip
+
+            The rest of the content is covered in the University of Washington series.
 \end{document}
