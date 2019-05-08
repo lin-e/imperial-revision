@@ -562,7 +562,7 @@
                     \end{tikzpicture}
                 \end{center}
             \subsubsection*{Booth's Algorithm}
-                When we have a string of repeated 1s, we can change $n$ additions into 1 addition, and 1 subtraction. As we're summing a geometric series, when we do repeated additions, such that $m + 2m + 2^2m + ... + 2^{k-1}m = -m + 2^km$. This is much easier to compute, as all we have to do is to do an arithmetic shift on $m$, and a subtraction. However, instead of checking only the LSB ($pr_0$), we also check the previous LSB, let it be $pr_{-1}$. We have the following cases, written $pr_0pr_{-1}$; 00 or 11 - we're in the middle of a string of 0s (or 1s, respectively), no action is needed, 01 - we're at the end of a string of 1s, $pr = pr + mc$ (where $mc$ is the shifted multiplicand), and 10 - we're at the start of a string of 1s, $pr = pr - mc$. Note that in my version of the slides (2018 - 2019 academic year), there is a typo on slide 15. The "corrected" version is below (this is working on $\texttt{0010}_2 \times \texttt{0110}_2$), and $mc$ is \texttt{0010}. Also note that $\text(pr)$ means the left half of the product register;
+                When we have a string of repeated 1s, we can change $n$ additions into 1 addition, and 1 subtraction. As we're summing a geometric series, when we do repeated additions, such that $m + 2m + 2^2m + ... + 2^{k-1}m = -m + 2^km$. This is much easier to compute, as all we have to do is to do an arithmetic shift on $m$, and a subtraction. However, instead of checking only the LSB ($pr_0$), we also check the previous LSB, let it be $pr_{-1}$. We have the following cases, written $pr_0pr_{-1}$; 00 or 11 - we're in the middle of a string of 0s (or 1s, respectively), no action is needed, 01 - we're at the end of a string of 1s, $pr = pr + mc$ (where $mc$ is the shifted multiplicand), and 10 - we're at the start of a string of 1s, $pr = pr - mc$. Note that in my version of the slides (2018 - 2019 academic year), there is a typo on slide 15. The "corrected" version is below (this is working on $\texttt{0010}_2 \times \texttt{0110}_2$), and $mc$ is \texttt{0010}. Also note that $\text{L}(pr)$ means the left half of the product register;
                 \begin{center}
                     \begin{tabular}{c|lr|lr}
                         iteration & \multicolumn{2}{c|}{original} & \multicolumn{2}{c}{Booth's} \\
@@ -593,23 +593,23 @@
                         \hline
                         1 & 1: $rem = rem - div$ & 0000 & 0010 0000 & 1110 0111 \\
                         & 2b: $rem = rem + div$; SLL; $Q_0$ = 0 & 0000 & 0010 0000 & 0000 0111 \\
-                        & c: SR & 0000 & 0001 0000 & 0000 0111 \\
+                        & 3: SR & 0000 & 0001 0000 & 0000 0111 \\
                         \hline
                         2 & 1: $rem = rem - div$ & 0000 & 0001 0000 & 1111 0111 \\
                         & 2b: $rem = rem + div$; SLL; $Q_0$ = 0 & 0000 & 0001 0000 & 0000 0111 \\
-                        & c: SR & 0000 & 0000 1000 & 0000 0111 \\
+                        & 3: SR & 0000 & 0000 1000 & 0000 0111 \\
                         \hline
                         3 & 1: $rem = rem - div$ & 0000 & 0000 1000 & 1111 1111 \\
                         & 2b: $rem = rem + div$; SLL; $Q_0$ = 0 & 0000 & 0000 1000 & 0000 0111 \\
-                        & c: SR & 0000 & 0000 0100 & 0000 0111 \\
+                        & 3: SR & 0000 & 0000 0100 & 0000 0111 \\
                         \hline
                         4 & 1: $rem = rem - div$ & 0000 & 0000 0100 & 0000 0011 \\
                         & 2a: SLL; $Q_0$ = 1 & 0001 & 0000 0100 & 0000 0011 \\
-                        & c: SR & 0001 & 0000 0010 & 0000 0011 \\
+                        & 3: SR & 0001 & 0000 0010 & 0000 0011 \\
                         \hline
                         5 & 1: $rem = rem - div$ & 0001 & 0000 0010 & 0000 0001 \\
                         & 2a: SLL; $Q_0$ = 1 & 0011 & 0000 0010 & 0000 0001 \\
-                        & c: SR & 0011 & 0000 0001 & 0000 0001
+                        & 3: SR & 0011 & 0000 0001 & 0000 0001
                     \end{tabular}
                 \end{center}
                 Similar to multiplication, we can refine our implementation of division by replacing the divisor shift to the right, with a remainder shift to the left. By doing this, we can reduce the 64-bit ALU to 32 bits. As we are shifting the remainder to the left, and we're doing the same shift to the quotient, we can combine the registers like before.
@@ -1224,7 +1224,7 @@
                     \item ~Ri~ \hfill index register, any register, except ~\%esp~, or ~\%rsp~ (~\%ebp~ is also unlikely)
                     \item ~S~ \hfill scale, which is 1, 2, 4, or 8 (depends on array type size)
                 \end{itemize}
-                You can use the instruction ~leal src, dest~, where ~src~ is an expression for the address mode. An example would be ~leal (\%edx, \%ecx, 4), \%eax~, which essentially does ~\%eax = \%eax + 4*\%ecx~
+                You can use the instruction ~leal src, dest~, where ~src~ is an expression for the address mode. An example would be ~leal (\%edx, \%ecx, 4), \%eax~, which essentially does ~\%eax = \%edx + 4*\%ecx~
                 \medskip
 
                 Some arithmetic operations we'll see often are the following. Note that there isn't a distinction between signed, and unsigned, as our arithmetic works regardless;
@@ -1310,7 +1310,7 @@
                     \item ~ZF~ \hfill set if ~a \& b == 0~
                     \item ~SF~ \hfill set if ~a \& b < 0~
                 \end{itemize}
-                There are also manual instructions that can be used to read the values of these condition bits into a register, which is used in the example below, where ~setX~ sets the a single byte to ~0~ or ~1~ based on the combination of condition codes;
+                There are also manual instructions that can be used to read the values of these condition bits into a register, which is used in the example below, where ~setX~ sets a single byte to ~0~ or ~1~ based on the combination of condition codes;
                 \begin{center}
                     \vspace{-1.5\baselineskip}
                     \begin{minipage}[t]{0.485\textwidth}
@@ -1657,7 +1657,7 @@
                 In the IA32 call stack, we have the bottom of the stack at the highest memory address, and the top of the stack at the lowest address. The stack pointer, ~\%esp~ holds the memory address of the top element, which is the lowest stack address. The stack generally grows downwards; therefore as we add things to the stack, the stack pointer gets lower, and as we take things off the stack - it gets higher.
                 \medskip
 
-                When we run the instruction ~pushl src~, we fetch the value from ~src~, decrement ~\%esp~ by 4 (4 bytes for a long), and store the value at the address given by ~\%esp~. On the other hand, when we run the corresponding ~\%popl dest~, we do reverse - we load the value from the address pointed by ~\%esp~, and write that value to ~dest~. ~\%esp~ is then incremented by 4. We should note that the value isn't actually removed - we're just removing the reference to it.
+                When we run the instruction ~pushl src~, we fetch the value from ~src~, decrement ~\%esp~ by 4 (4 bytes for a long), and store the value at the address given by ~\%esp~. On the other hand, when we run the corresponding ~popl dest~, we do reverse - we load the value from the address pointed by ~\%esp~, and write that value to ~dest~. ~\%esp~ is then incremented by 4. We should note that the value isn't actually removed - we're just removing the reference to it.
             \subsubsection*{Call Stacks}
                 In general, a procedure call has a caller, and a callee. The caller first sets up arguments, and then calls the callee (which hands over control). The callee then creates its own local variables, runs some code, and then sets up the return value (to give back to the caller). It then cleans up its own local variables, and then gives control back to the caller. The caller then finds the return value from the callee. The following rules have to be observed;
                 \begin{itemize}
@@ -2170,14 +2170,14 @@
                 \end{center}
                 For good performance, Intel recommends data to be aligned (x86-64 hardware will work regardless of data alignment). For data to be aligned, it means that a primitive object of size $K$ bytes must have a memory address which is divisible by $K$. This is a requirement on some machines. The motivation for this is that we don't want to load, or store values which span word boundaries, as it is inefficient. This is handled by the compiler, but the specific alignment cases (on IA32) are as follows;
                 \begin{center}
-                    \begin{tabular}{c|l|l|l}
-                        size (bytes) & examples & lowest address bits (Linux) & lowest address bits (Windows) \\
+                    \begin{tabular}{c|l|l}
+                        size (bytes) & examples & lowest address bits \\
                         \hline
-                        1 & ~char~ & no restriction & no restriction \\
-                        2 & ~short~ & ~0~$_2$ & ~0~$_2$ \\
-                        4 & ~int, float, char*~ & ~00~$_2$ & ~00~$_2$ \\
-                        8 & ~double~ & ~00~$_2$ & ~000~$_2$ \\
-                        12 & ~long double~ & ~00~$_2$ & ~00~$_2$
+                        1 & ~char~ & no restriction \\
+                        2 & ~short~ & ~0~$_2$ \\
+                        4 & ~int, float, char*~ & ~00~$_2$ \\
+                        8 & ~double~ & ~000~$_2$ \\
+                        16 & ~long double~ & ~0000~$_2$
                     \end{tabular}
                 \end{center}
                 Within the structure, each member has to satisfy it's alignment requirement, but the overall structure has alignment requirement $K$, where $K$ is the largest alignment of any element in the structure. The initial address, and the structure length, must be a multiple of $K$. Note that in the example above, we wouldn't need the 4 empty bytes in IA32 Linux, but we would in IA32 Windows, or x86-64. Therefore sizeof(~S1~) is different in both of them, as in Linux it would be 20, whereas in Windows it would be 24. As a programmer, we can save space by putting the larger data types first.
