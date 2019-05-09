@@ -179,7 +179,7 @@
                         \cline{2-5}
                         & Star Wars & 1977 & 124 & Science Fiction \\
                         \cline{2-5}
-                        & Wayne's World & 1992 & 95 & Comedy \\
+                        & Luis's World & 1992 & 95 & Comedy \\
                         \hline
                     \end{tabular}
                 \end{center}
@@ -563,7 +563,7 @@
                 We can say two FD sets $F_1$, and $F_2$ are equivalent if they each imply the other - if any relation instance satisfying $F_1$ also satisfies $F_2$, they are said to be covers of each other. A cover is canonical / minimal / irreducible if each LHS is unique, and no FD can be deleted from the cover, and still maintain an equivalent FD set. Additionally, no attributes can be deleted from any FD set, and still have an equivalent set. Therefore, the canonical cover has no redundant dependencies, nor attributes.
                 \medskip
 
-                The method for testing whether some attribute, $X$, is extraneous depends on whether it's on the LHS, or RHS. For an attribute $X$ on the LHS, we can say $X$ is extraneous if $\text{RHS} \subseteq \{\text{LHS} - X\}^+$ under the FD set - note that here we are referring to closure on attributes, not FDs. On the other hand (no pun intended, I'm so depressed), an attribute $X$ on the RHS is extraneous if $X \in \text{LHS}^+$ under the FD set, where $X$ is removed from the RHS of all the FDs in the set.
+                The method for testing whether some attribute, $X$, is extraneous depends on whether it's on the LHS, or RHS. For an attribute $X$ on the LHS, we can say $X$ is extraneous if $\text{RHS} \subseteq \{\text{LHS} - X\}^+$ under the FD set - note that here we are referring to closure on attributes, not FDs. On the other hand (no pun intended, I'm so depressed), an attribute $X$ on the RHS is extraneous if $X \in \text{LHS}^+$ under the FD set, where $X$ is removed from the RHS of the FD.
                 \medskip
 
                 To compute a canonical cover $F$ for an FD set, we can use the following algorithm;
@@ -590,9 +590,9 @@
                     \hline
                     Gone with the Wind & 1939 & 231 & Drama & MGM & Vivien Leigh \\
                     \hline
-                    Wayne's World & 1992 & 95 & Comedy & Paramount & Dana Carvey \\
+                    Luis's World & 1992 & 95 & Comedy & Paramount & Dana Carvey \\
                     \hline
-                    Wayne's World & 1992 & 95 & Comedy & Paramount & Mile Myers \\
+                    Luis's World & 1992 & 95 & Comedy & Paramount & Mile Myers \\
                     \hline
                 \end{tabular}
             \end{center}
