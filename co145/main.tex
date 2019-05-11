@@ -1103,13 +1103,13 @@
                 \end{tabularx}
                 By reading the rows with the leading 1s, we have a simple basis; $U = [\vec{b_1}, \vec{b_2}, \vec{b_3}]$
             \subsubsection*{Rank}
-                The rank of a matrix is the number of linearly independet columns, denoted $\text{rk}(\mat{A})$, where $\mat{A} \in \mathbb{R}^{m \times n}$. We are also given that the column rank is the same as the row rank, hence $\text{rk}(\mat{A}) = \text{rk}(\mat{A}^\top)$.
+                The rank of a matrix is the number of linearly independent columns, denoted $\text{rk}(\mat{A})$, where $\mat{A} \in \mathbb{R}^{m \times n}$. We are also given that the column rank is the same as the row rank, hence $\text{rk}(\mat{A}) = \text{rk}(\mat{A}^\top)$.
                 \medskip
 
                 The columns of $\mat{A}$ span a subspace $U \in \mathbb{R}^m$, with $\text{dim}(U) = \text{rk}(\mat{A})$, and the rows span a subspace $W \in \mathbb{R}^n$, with $\text{dim}(W) = \text{rk}(\mat{A})$. A basis of $U$, and $W$, can be found by applying Gaussian elimination to $\mat{A}$, and $\mat{A}^\top$ respectively.
                 \medskip
 
-                $\mat{A} \in \mathbb{R}^{n \times n}$ is invertible (regular) if, and only if, $\text{rk}(\mat{A}) = n$. For all $\mat{A} \in \mathbb{R}^{m \times n}$, and all $\vec{b} \in \mathbb{R}^m$, the equation system $\mat{A}\vec{x} = \vec{b}$ can only be sovled if $\text{rk}(\mat{A}) = \text{rk}(\mat{A} \mid \vec{b})$. The subspace of solutions for $\mat{A}\vec{x} = \vec{0}$ (\textbf{kernel / nullspace}) has dimension $n - \text{rk}(\mat{A})$. A matrix is said to have \textbf{full rank} if $\text{rk}(\mat{A}) = \text{min}(m, n)$, otherwise it is said to be \textbf{rank deficient}.
+                $\mat{A} \in \mathbb{R}^{n \times n}$ is invertible (regular) if, and only if, $\text{rk}(\mat{A}) = n$. For all $\mat{A} \in \mathbb{R}^{m \times n}$, and all $\vec{b} \in \mathbb{R}^m$, the equation system $\mat{A}\vec{x} = \vec{b}$ can only be solved if $\text{rk}(\mat{A}) = \text{rk}(\mat{A} \mid \vec{b})$. The subspace of solutions for $\mat{A}\vec{x} = \vec{0}$ (\textbf{kernel / nullspace}) has dimension $n - \text{rk}(\mat{A})$. A matrix is said to have \textbf{full rank} if $\text{rk}(\mat{A}) = \text{min}(m, n)$, otherwise it is said to be \textbf{rank deficient}.
                 \medskip
 
                 For example, to calculate the rank of $\mat{A}$, as below, we apply Gaussian elimination to row echelon form, and look at the number of pivot columns (which corresponds to the linearly independent columns);
@@ -1133,7 +1133,7 @@
                     \end{bmatrix}$
                 \end{tabularx}
                 As we have two pivot columns, it follows that $\text{rk}(\mat{A}) = 2$.
-            \subsubsection*{Subspsace Intersection}
+            \subsubsection*{Subspace Intersection}
                 Suppose we have two subspaces $U_1 = [\vec{b_1}, \vec{b_2}, ..., \vec{b_k}] \subset V$, and $U_2 = [\vec{c_1}, \vec{c_2}, ..., \vec{c_l}] \subset V$. We're then interested in finding the basis of $U_1 \cap U_2$, which is all the $\vec{x} \in V$, such that $\vec{x} \in U_1 \land \vec{x} \in U_2$. For something to be in $U_1$, or $U_2$, it must be a linear combination of the basis vectors of the respective subspaces; hence we can get the following;
                 \begin{center}
                     $\summation{i = 1}{k}{\lambda_i\vec{b_i}} = \vec{x} = \summation{j = 1}{l}{\mu_j\vec{c_j}} \Leftrightarrow \summation{i = 1}{k}{\lambda_i\vec{b_i}} - \summation{j = 1}{l}{\mu_j\vec{c_j}} = \vec{0}$
@@ -1202,7 +1202,7 @@
                         0 & 0 & 0 & 0 & 1
                     \end{bmatrix}$
                 \end{tabularx}
-                From this, we can determine that $\mu_2 = 0$, and that $\mu_1$ is a free variable, since it doesn't have a corresponding pivot column. Therefore, it follows that $\vec{x} = \mu_1 \vec{c_1}$, hence we've deteremined that the basis of the intersection is as follows;
+                From this, we can determine that $\mu_2 = 0$, and that $\mu_1$ is a free variable, since it doesn't have a corresponding pivot column. Therefore, it follows that $\vec{x} = \mu_1 \vec{c_1}$, hence we've determined that the basis of the intersection is as follows;
                 \begin{center}
                     $U_1 \cap U_2 = [\begin{bmatrix}
                         -1 \\ 1 \\ 2 \\ 0
@@ -1341,7 +1341,7 @@
                     \item $\Phi + \Lambda$, and $\lambda \Phi$ are also linear, for $\lambda \in \mathbb{R}$
                 \end{itemize}
             \subsubsection*{Matrix Representations}
-                Any finite $n$-dimensioanl $\mathbb{R}$-vector space $V$, is isomorphic to another $n$-dimensional $\mathbb{R}$-vector space $W$, especially $\mathbb{R}^n$, if the dimensions match, such that $\text{dim}(V) = \text{dim}(W)$. This allows us to use $\mathbb{R}^n$ without loss of generality. If we define an \textbf{ordered} basis $[\vec{b_1}, \vec{b_2}, ..., \vec{b_n}]$ of $V$, we can construct such an isomorphism.
+                Any finite $n$-dimensional $\mathbb{R}$-vector space $V$, is isomorphic to another $n$-dimensional $\mathbb{R}$-vector space $W$, especially $\mathbb{R}^n$, if the dimensions match, such that $\text{dim}(V) = \text{dim}(W)$. This allows us to use $\mathbb{R}^n$ without loss of generality. If we define an \textbf{ordered} basis $[\vec{b_1}, \vec{b_2}, ..., \vec{b_n}]$ of $V$, we can construct such an isomorphism.
                 \medskip
 
                 Suppose there is some $\mathbb{R}$-vector space $V$, with the ordered basis $B$, as denoted above. For $\vec{x} \in V$, we can obtain a unique linear combination, same as before;
@@ -1469,7 +1469,7 @@
                         (c) edge[->] node[right] {$\Phi_{\bar{C}C} = \Phi_{\bar{C}C}^{-1}$} node[left] {\textcolor{violet}{$\mat{T}^{-1}$}} (cb);
                     \end{tikzpicture}
                 \end{center}
-                We say that two matrices, $\mat{A}, \mat{\bar{A}} \in \mathbb{R}^{m \times n}$ are equivalent if there exists regular matrices $\mat{S} \in \mathbb{R}^{n \times n}$, and $\mat{T} \in \mathbb{R}^{m \times m}$, such that $\mat{\bar{A}} = \mat{T}^{-1}\mat{A}\mat{S}$. We say they are similar if $\mat{A}, \mat{\bar{A}} \in \mathbb{R}^{n \times n}$, has a corresponding regular matrix $\mat{S} \in \mathbb{R}^{n \times n}$, such that $\mat{\bar{A}} = \mat{S}^{-1}\mat{A}\mat{S}$. Therefore, it follows that similarity is a stronger property than equivlance, since all similar matrices are equivalent, but not vice versa.
+                We say that two matrices, $\mat{A}, \mat{\bar{A}} \in \mathbb{R}^{m \times n}$ are equivalent if there exists regular matrices $\mat{S} \in \mathbb{R}^{n \times n}$, and $\mat{T} \in \mathbb{R}^{m \times m}$, such that $\mat{\bar{A}} = \mat{T}^{-1}\mat{A}\mat{S}$. We say they are similar if $\mat{A}, \mat{\bar{A}} \in \mathbb{R}^{n \times n}$, has a corresponding regular matrix $\mat{S} \in \mathbb{R}^{n \times n}$, such that $\mat{\bar{A}} = \mat{S}^{-1}\mat{A}\mat{S}$. Therefore, it follows that similarity is a stronger property than equivalence, since all similar matrices are equivalent, but not vice versa.
                 \medskip
 
                 With $\mathbb{R}$-vector spaces $V, W, X$, mappings $\Phi : V \to W$, $\Psi : W \to X$; we define the composed mapping $\Psi \circ \Phi : V \to X$, to have the transformation matrix $\mat{A}_{\Psi \circ \Phi} = \mat{A}_\Psi \mat{A}_\Phi$
@@ -1550,7 +1550,7 @@
                     \item $\text{det}(\mat{A}) = \summation{k = 1}{n}{(-1)^{k + j}a_{i, k}\text{det}(\mat{A}_{i, k})}$ \hfill expansion along row $i$
                     \item $\text{det}(\mat{A}) = \summation{k = 1}{n}{(-1)^{k + j}a_{k, j}\text{det}(\mat{A}_{k, j})}$ \hfill expansion along column $j$
                 \end{itemize}
-                The checkerboard pattern formed by the signs are as follows, for $\mat{A} \in \mathbb{R}^{n \times n}$;
+                The chequerboard pattern formed by the signs are as follows, for $\mat{A} \in \mathbb{R}^{n \times n}$;
                 \begin{center}
                     $n$ is odd; $\begin{bmatrix}
                         + & - & \cdots & + \\
@@ -1587,7 +1587,7 @@
                     \proofmath{}{\text{det}(\mat{S})^{-1}\cdot\text{det}(\mat{A} -\lambda \mat{I}_n)\cdot\text{det}(\mat{S})}{property of determinants}
                     \proofmath{}{\text{det}(\mat{A} -\lambda \mat{I}_n)}{}
                 \end{reasoning}
-                There are some worked examples in the notes, but this is something that \textbf{needs} to be practiced. The concept itself isn't too difficult, but being able to apply it quickly needs some practice.
+                There are some worked examples in the notes, but this is something that \textbf{needs} to be practised. The concept itself isn't too difficult, but being able to apply it quickly needs some practice.
             \subsubsection*{Diagonalization}
                 The Panopto recording for this lecture wasn't very legible, so it is mostly based from the notes, and some intuition from \textbf{3Blue1Brown}.
                 \smallskip
@@ -1607,13 +1607,13 @@
                         0 & 0 & \cdots & 0 & c_n
                     \end{bmatrix}$
                 \end{center}
-                When we have an endomorphism $\Phi$ of an $n$-dimesional $\mathbb{R}$-vector space $V$, if $\Phi$ is diagonalizable, it follows that the transformation matrix $\mat{A}_\Phi$ is also diagonalizable, and there is a basis in $V$ consisting of the eigenvectors (hence there must be $n$ eigenvectors; the sum of the dimensions of the eigenspaces is $n$). $\Phi$ is only diagonalizable; if the following conditions hold;
+                When we have an endomorphism $\Phi$ of an $n$-dimensional $\mathbb{R}$-vector space $V$, if $\Phi$ is diagonalizable, it follows that the transformation matrix $\mat{A}_\Phi$ is also diagonalizable, and there is a basis in $V$ consisting of the eigenvectors (hence there must be $n$ eigenvectors; the sum of the dimensions of the eigenspaces is $n$). $\Phi$ is only diagonalizable; if the following conditions hold;
                 \begin{itemize}
                     \itemsep0em
                     \item it's characteristic polynomial is in the form $p(\lambda) = (-1)^n(\lambda - c_1)^{r_1} \cdots (\lambda - c_k)^{r_k}$; $r_i \in \mathbb{N}$, $c_i \in \mathbb{R}$
                         \subitem the characteristic equation decomposes into linear factors
                     \item $i \in [1, k]$ - $\text{dim}(\text{Im}(\Phi - c_i \text{id}_V)) = n - r_i \Leftrightarrow \text{dim}(\text{ker}(\Phi - c_i \text{id}_V)) = r_i$ \hfill rank-nullity
-                        \subitem the dimension of the eigenspace $E_{c_i}$ must correspond to the algebraic multiplicity (how many times an eigenvalue appears in the charactersitc polynomial) $r_i$ of the eigenvalue in $p(\lambda)$
+                        \subitem the dimension of the eigenspace $E_{c_i}$ must correspond to the algebraic multiplicity (how many times an eigenvalue appears in the characteristic polynomial) $r_i$ of the eigenvalue in $p(\lambda)$
                         \subitem each eigenvalue $c_i$ will appear $r_i$ times on the diagonal
                 \end{itemize}
                 Suppose we have a diagonalizable matrix $\mat{A} \in \mathbb{R}^{n \times n}$, and the ordered eigenbasis $[\vec{b_1}, ..., \vec{b_n}]$ of $\mat{A}$, with $\mat{A}\vec{b_i} = c_i\vec{b_i}$, with $i \in [1, n]$ then;
@@ -1639,7 +1639,7 @@
                         0 & 0 & 2
                     \end{bmatrix}$
                 \end{center}
-                To check if it's diagonalisable, we first find the characteristic polynomial $p(\lambda) = \text{det}(\mat{A} - \lambda \mat{I}_3)$;
+                To check if it's diagonalizable, we first find the characteristic polynomial $p(\lambda) = \text{det}(\mat{A} - \lambda \mat{I}_3)$;
                 \begin{align*}
                     p(\lambda) & = \text{det}(\mat{A} - \lambda \mat{I}_3) \\
                     & = \begin{vmatrix}
@@ -1677,7 +1677,7 @@
                 \end{bmatrix}]$
                 \medskip
 
-                Likewise, the eigenspace $E_7$ can be computed by doing another Gauassian elimination on $\mat{A} - 7 \mat{I}_3$;
+                Likewise, the eigenspace $E_7$ can be computed by doing another Gaussian elimination on $\mat{A} - 7 \mat{I}_3$;
                 \begin{tabularx}{\textwidth}{lllllll}
                     $\begin{bmatrix}
                         -4 & 2 & -1 \\
@@ -1708,7 +1708,7 @@
                 \end{bmatrix}]$
                 \medskip
 
-                Looking at the characterstic polynomial, it's clear that the algebraic mulitiplicties matches the dimensions of the eigenspaces, therefore we can combine the spectrum as an ordered eigenbasis;
+                Looking at the characteristic polynomial, it's clear that the algebraic multiplicities matches the dimensions of the eigenspaces, therefore we can combine the spectrum as an ordered eigenbasis;
                 \begin{center}
                     $\mat{S} = \begin{bmatrix}
                         -2 & 1 & 1 \\
@@ -1722,13 +1722,13 @@
                 \end{center}
                 Putting a matrix into this form has a great benefit when computing powers; as we are able to say $\mat{A}^k = (\mat{S}\mat{D}\mat{S}^{-1})^k = \mat{S}\mat{D}^k\mat{S}^{-1}$.
             \subsubsection*{Cayley-Hamilton Theorem}
-                The \textbf{Cayley-Hamilton Theorem} states that the endomorphism $\Phi : V \to V$, with a transformation matrix $\mat{A}_\Phi$, on $n$-dimensional $\mathbb{R}$-vector space $V$, and the characterstic polynomial $p$, then $p(\Phi) = 0$ (the zero mapping), and $p(\mat{A}_\Phi) = \mat{0}$ (the zero matrix). The proof for this is non-trivial (pretty much the only time you'll hear that in this degree).
+                The \textbf{Cayley-Hamilton Theorem} states that the endomorphism $\Phi : V \to V$, with a transformation matrix $\mat{A}_\Phi$, on $n$-dimensional $\mathbb{R}$-vector space $V$, and the characteristic polynomial $p$, then $p(\Phi) = 0$ (the zero mapping), and $p(\mat{A}_\Phi) = \mat{0}$ (the zero matrix). The proof for this is non-trivial (pretty much the only time you'll hear that in this degree).
                 \medskip
 
                 Consider the matrix $\mat{A} = \begin{bmatrix}
                     1 & -1 \\
                     2 & 1
-                \end{bmatrix}$, which has the characterstic polynomial $p(\lambda) = \lambda^2 - 2\lambda + 3$ therfore;
+                \end{bmatrix}$, which has the characteristic polynomial $p(\lambda) = \lambda^2 - 2\lambda + 3$ therefore;
                 \begin{align*}
                     &\ \mat{A}^2 - 2\mat{A} + 3\mat{I}_2 = \mat{0} \\
                     \Leftrightarrow &\ -\mat{A}^2 + 2\mat{A} = 3\mat{I}_2 \\
@@ -1761,5 +1761,5 @@
                 \end{itemize}
                 With the same inner product space, we define $d(\vec{x}, \vec{y}) \triangleq ||\vec{x} - \vec{y}||$, as the \textbf{distance} of $\vec{x}, \vec{y} \in V$, with the mapping $d : V \times V \to \mathbb{R}$, and $d : (\vec{x}, \vec{y}) \mapsto d(\vec{x}, \vec{y})$. The mapping is called \textbf{metric}. A metric $d$ is positive definite, symmetric, and satisfies the triangular inequality, such that $d(\vec{x}, \vec{z}) \leq d(\vec{x}, \vec{y}) + d(\vec{y}, \vec{z})$.
                 \medskip
-                
+
 \end{document}
