@@ -1588,5 +1588,178 @@
                     \proofmath{}{\text{det}(\mat{A} -\lambda \mat{I}_n)}{}
                 \end{reasoning}
                 There are some worked examples in the notes, but this is something that \textbf{needs} to be practiced. The concept itself isn't too difficult, but being able to apply it quickly needs some practice.
+            \subsubsection*{Diagonalization}
+                The Panopto recording for this lecture wasn't very legible, so it is mostly based from the notes, and some intuition from \textbf{3Blue1Brown}.
+                \smallskip
 
+                As an "exercise"; consider taking powers of $\mat{A} = \begin{bmatrix}
+                    0 & 1 \\ 1 & 1
+                \end{bmatrix}$, diagonalise it, and find the $n^\text{th}$ power.
+                \smallskip
+
+                $\mat{A} \in \mathbb{R}^{n \times n}$ is diagonal when it is similar to a \textbf{diagonal} matrix. We say a matrix is diagonal if it is in the following form, such that anything \textbf{not} on the leading diagonal is 0;
+                \begin{center}
+                    $\begin{bmatrix}
+                        c_1 & 0 & \cdots & \cdots & 0 \\
+                        0 & c_2 & 0 & \cdots & 0 \\
+                        \vdots & 0 & \ddots & \ddots & \vdots \\
+                        \vdots & \vdots & \ddots & c_{n - 1} & 0 \\
+                        0 & 0 & \cdots & 0 & c_n
+                    \end{bmatrix}$
+                \end{center}
+                When we have an endomorphism $\Phi$ of an $n$-dimesional $\mathbb{R}$-vector space $V$, if $\Phi$ is diagonalizable, it follows that the transformation matrix $\mat{A}_\Phi$ is also diagonalizable, and there is a basis in $V$ consisting of the eigenvectors (hence there must be $n$ eigenvectors; the sum of the dimensions of the eigenspaces is $n$). $\Phi$ is only diagonalizable; if the following conditions hold;
+                \begin{itemize}
+                    \itemsep0em
+                    \item it's characteristic polynomial is in the form $p(\lambda) = (-1)^n(\lambda - c_1)^{r_1} \cdots (\lambda - c_k)^{r_k}$; $r_i \in \mathbb{N}$, $c_i \in \mathbb{R}$
+                        \subitem the characteristic equation decomposes into linear factors
+                    \item $i \in [1, k]$ - $\text{dim}(\text{Im}(\Phi - c_i \text{id}_V)) = n - r_i \Leftrightarrow \text{dim}(\text{ker}(\Phi - c_i \text{id}_V)) = r_i$ \hfill rank-nullity
+                        \subitem the dimension of the eigenspace $E_{c_i}$ must correspond to the algebraic multiplicity (how many times an eigenvalue appears in the charactersitc polynomial) $r_i$ of the eigenvalue in $p(\lambda)$
+                        \subitem each eigenvalue $c_i$ will appear $r_i$ times on the diagonal
+                \end{itemize}
+                Suppose we have a diagonalizable matrix $\mat{A} \in \mathbb{R}^{n \times n}$, and the ordered eigenbasis $[\vec{b_1}, ..., \vec{b_n}]$ of $\mat{A}$, with $\mat{A}\vec{b_i} = c_i\vec{b_i}$, with $i \in [1, n]$ then;
+                \begin{center}
+                    $\mat{S} = \begin{bmatrix}[c|c|c]
+                        \vec{b_1} & \cdots & \vec{b_n}
+                    \end{bmatrix}$, and $\mat{S}^{-1}\mat{A}\mat{S} = \mat{D} = \begin{bmatrix}
+                        c_1 & 0 & \cdots & \cdots & 0 \\
+                        0 & c_2 & 0 & \cdots & 0 \\
+                        \vdots & 0 & \ddots & \ddots & \vdots \\
+                        \vdots & \vdots & \ddots & c_{n - 1} & 0 \\
+                        0 & 0 & \cdots & 0 & c_n
+                    \end{bmatrix}$
+                \end{center}
+                Therefore, $\mat{D}$ is the transformation matrix of $\vec{x} \mapsto \mat{A}\vec{x}$, with respect to the ordered eigenbasis.
+                \medskip
+
+                Consider the following example;
+                \begin{center}
+                    $\mat{A} = \begin{bmatrix}
+                        3 & 2 & -1 \\
+                        2 & 6 & -2 \\
+                        0 & 0 & 2
+                    \end{bmatrix}$
+                \end{center}
+                To check if it's diagonalisable, we first find the characteristic polynomial $p(\lambda) = \text{det}(\mat{A} - \lambda \mat{I}_3)$;
+                \begin{align*}
+                    p(\lambda) & = \text{det}(\mat{A} - \lambda \mat{I}_3) \\
+                    & = \begin{vmatrix}
+                        3 - \lambda & 2 & -1 \\
+                        2 & 6 - \lambda & -2 \\
+                        0 & 0 & 2 - \lambda
+                    \end{vmatrix} \\
+                    & = (2 - \lambda) \begin{vmatrix}
+                        3 - \lambda & 2 \\
+                        2 & 6 - \lambda
+                    \end{vmatrix} \\
+                    & = (2 - \lambda)[(6 - \lambda)(3 - \lambda) - 4] \\
+                    & = (2 - \lambda)(\lambda^2 - 9 \lambda + 14) \\
+                    & = (2 - \lambda)(\lambda - 7)(\lambda - 2) \\
+                    & = (-1)^{3}(\lambda - 2)^2(\lambda - 7)
+                \end{align*}
+                The eigenspace $E_2$ can be computed by doing Gaussian elimination on $\mat{A} - 2 \mat{I}_3$;
+                \begin{tabularx}{\textwidth}{lll}
+                    $\begin{bmatrix}
+                        1 & 2 & -1 \\
+                        2 & 4 & -2 \\
+                        0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ -2R_1 \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & 2 & -1 \\
+                        0 & 0 & 0 \\
+                        0 & 0 & 0
+                    \end{bmatrix}$
+                \end{tabularx}
+                By the Minus-1 Trick, we get $E_2 = [\begin{bmatrix}
+                    -2 \\ 1 \\ 0
+                \end{bmatrix}, \begin{bmatrix}
+                    1 \\ 0 \\ 1
+                \end{bmatrix}]$
+                \medskip
+
+                Likewise, the eigenspace $E_7$ can be computed by doing another Gauassian elimination on $\mat{A} - 7 \mat{I}_3$;
+                \begin{tabularx}{\textwidth}{lllllll}
+                    $\begin{bmatrix}
+                        -4 & 2 & -1 \\
+                        2 & -1 & -2 \\
+                        0 & 0 & -5
+                    \end{bmatrix} \begin{matrix}
+                        {} \\ +\frac{1}{2}R_1 \\ \cdot -\frac{1}{5}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        -4 & 2 & -1 \\
+                        0 & 0 & 0 \\
+                        0 & 0 & 1
+                    \end{bmatrix} \begin{matrix}
+                        \cdot -\frac{1}{4} \\ \leftrightarrow R_3 \\ \leftrightarrow R_2
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & -\frac{1}{2} & \frac{1}{4} \\
+                        0 & 0 & 1 \\
+                        0 & 0 & 0
+                    \end{bmatrix} \begin{matrix}
+                        -\frac{1}{4}R_2 \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}
+                        1 & -\frac{1}{2} & 0 \\
+                        0 & 0 & 1 \\
+                        0 & 0 & 0
+                    \end{bmatrix}$
+                \end{tabularx}
+                By the Minus-1 Trick (and also multiplying to get rid of the fraction), we get $E_7 = [\begin{bmatrix}
+                    1 \\ 2 \\ 0
+                \end{bmatrix}]$
+                \medskip
+
+                Looking at the characterstic polynomial, it's clear that the algebraic mulitiplicties matches the dimensions of the eigenspaces, therefore we can combine the spectrum as an ordered eigenbasis;
+                \begin{center}
+                    $\mat{S} = \begin{bmatrix}
+                        -2 & 1 & 1 \\
+                        1 & 0 & 2 \\
+                        0 & 1 & 0
+                    \end{bmatrix}$, and $\mat{S}^{-1}\mat{A}\mat{S} = \mat{D} = \begin{bmatrix}
+                        2 & 0 & 0 \\
+                        0 & 2 & 0 \\
+                        0 & 0 & 7
+                    \end{bmatrix}$
+                \end{center}
+                Putting a matrix into this form has a great benefit when computing powers; as we are able to say $\mat{A}^k = (\mat{S}\mat{D}\mat{S}^{-1})^k = \mat{S}\mat{D}^k\mat{S}^{-1}$.
+            \subsubsection*{Cayley-Hamilton Theorem}
+                The \textbf{Cayley-Hamilton Theorem} states that the endomorphism $\Phi : V \to V$, with a transformation matrix $\mat{A}_\Phi$, on $n$-dimensional $\mathbb{R}$-vector space $V$, and the characterstic polynomial $p$, then $p(\Phi) = 0$ (the zero mapping), and $p(\mat{A}_\Phi) = \mat{0}$ (the zero matrix). The proof for this is non-trivial (pretty much the only time you'll hear that in this degree).
+                \medskip
+
+                Consider the matrix $\mat{A} = \begin{bmatrix}
+                    1 & -1 \\
+                    2 & 1
+                \end{bmatrix}$, which has the characterstic polynomial $p(\lambda) = \lambda^2 - 2\lambda + 3$ therfore;
+                \begin{align*}
+                    &\ \mat{A}^2 - 2\mat{A} + 3\mat{I}_2 = \mat{0} \\
+                    \Leftrightarrow &\ -\mat{A}^2 + 2\mat{A} = 3\mat{I}_2 \\
+                    \Leftrightarrow &\ \mat{A}\textstyle\frac{1}{3}(-\mat{A} + 2\mat{I}_2) = \mat{I}_2 \\
+                    \Leftrightarrow &\ \mat{A}^{-1} = \textstyle\frac{1}{3}(2\mat{I}_2 -\mat{A})
+                \end{align*}
+            \subsubsection*{Inner Products}
+                Inner products introduce rigour into intuitive geometric properties.
+                \smallskip
+
+                For example, the $n$-dimensional scalar product is defined for $\vec{x}, \vec{y} \in \mathbb{R}^n$, as $\vec{x}^\top\vec{y} = \summation{i = 1}{n}{x_iy_i}$.
+                \smallskip
+
+                However, generally, suppose we have a vector space $V$, and a bilinear mapping $\beta : V \times V \to \mathbb{R}$ (both arguments are linear);
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\beta$ is \textbf{symmetric} \hfill $\forall \vec{x}, \vec{y} \in V [\beta(\vec{x}, \vec{y}) = \beta(\vec{y}, \vec{x})]$
+                    \item $\beta$ is \textbf{positive definite} \hfill $\forall \vec{x} \in V [\vec{x} \neq \vec{0} \Rightarrow \beta(\vec{x}, \vec{x}) > 0]$, and $\beta(\vec{0}, \vec{0}) = 0$
+                    \item if it is both, then it is defined as an \textbf{inner product} on $V$, and written as $\la \vec{x}, \vec{y} \ra$
+                    \item $(V, \la \cdot, \cdot \ra)$ is called an \textbf{inner product space}, amongst other things - if it's the dot / scalar product, then we call it a \textbf{Euclidean vector space}
+                \end{itemize}
+                \medskip
+
+                Suppose we have some inner product space $(V, \la \cdot, \cdot \ra)$, then $||\vec{x}|| \triangleq \sqrt{\la \vec{x}, \vec{x} \ra}$ is the \textbf{length / norm} of $\vec{x} \in V$. The mapping is $||\cdot|| : V \to \mathbb{R}$, such that $||\cdot|| : \vec{x} \mapsto ||\vec{x}||$. When this is in an Euclidean vector space, the norm is the geometric length of the vector. The norm has the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\forall \vec{x} \in V [||\vec{x}|| \geq 0]$, and $||\vec{x}|| = 0 \Leftrightarrow \vec{x} = \vec{0}$
+                    \item $\forall \vec{x} \in V \forall \lambda \in \mathbb{R} [||\lambda\vec{x}|| = |\lambda|\cdot||\vec{x}||]$
+                    \item $\forall \vec{x}, \vec{y} \in V [||\vec{x} + \vec{y}|| \leq ||\vec{x}|| + ||\vec{y}||]$ \hfill \textbf{Minkowski inequality}
+                \end{itemize}
+                With the same inner product space, we define $d(\vec{x}, \vec{y}) \triangleq ||\vec{x} - \vec{y}||$, as the \textbf{distance} of $\vec{x}, \vec{y} \in V$, with the mapping $d : V \times V \to \mathbb{R}$, and $d : (\vec{x}, \vec{y}) \mapsto d(\vec{x}, \vec{y})$. The mapping is called \textbf{metric}. A metric $d$ is positive definite, symmetric, and satisfies the triangular inequality, such that $d(\vec{x}, \vec{z}) \leq d(\vec{x}, \vec{y}) + d(\vec{y}, \vec{z})$.
+                \medskip
+                
 \end{document}
