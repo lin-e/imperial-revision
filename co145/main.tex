@@ -1469,4 +1469,124 @@
                         (c) edge[->] node[right] {$\Phi_{\bar{C}C} = \Phi_{\bar{C}C}^{-1}$} node[left] {\textcolor{violet}{$\mat{T}^{-1}$}} (cb);
                     \end{tikzpicture}
                 \end{center}
+                We say that two matrices, $\mat{A}, \mat{\bar{A}} \in \mathbb{R}^{m \times n}$ are equivalent if there exists regular matrices $\mat{S} \in \mathbb{R}^{n \times n}$, and $\mat{T} \in \mathbb{R}^{m \times m}$, such that $\mat{\bar{A}} = \mat{T}^{-1}\mat{A}\mat{S}$. We say they are similar if $\mat{A}, \mat{\bar{A}} \in \mathbb{R}^{n \times n}$, has a corresponding regular matrix $\mat{S} \in \mathbb{R}^{n \times n}$, such that $\mat{\bar{A}} = \mat{S}^{-1}\mat{A}\mat{S}$. Therefore, it follows that similarity is a stronger property than equivlance, since all similar matrices are equivalent, but not vice versa.
+                \medskip
+
+                With $\mathbb{R}$-vector spaces $V, W, X$, mappings $\Phi : V \to W$, $\Psi : W \to X$; we define the composed mapping $\Psi \circ \Phi : V \to X$, to have the transformation matrix $\mat{A}_{\Psi \circ \Phi} = \mat{A}_\Psi \mat{A}_\Phi$
+                % todo: worked example on page 76/80 of notes
+            \subsubsection*{Determinants}
+                Determinants are only defined for square matrices $\mat{A} \in \mathbb{R}^{n \times n}$, and will be denoted as $\text{det}(\mat{A})$, or $|\mat{A}|$. There are also some properties about determinants of smaller matrices, but I'm skipping that.
+                \begin{center}
+                    $\mat{A} =\begin{bmatrix}
+                        a_{1,1} & a_{1,2} & \cdots & a_{1, n} \\
+                        0 & a_{2,2} & \cdots & a_{2, n} \\
+                        \vdots & \ddots & \ddots & \vdots \\
+                        0 & \cdots & 0 & a_{n, n}
+                    \end{bmatrix}$ is an upper triangular matrix, therefore $\text{det}(\mat{A}) = \prod\limits_{i=1}^{n}{a_{i, i}}$
+                \end{center}
+                We can also apply the following properties of determinants, without proof;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\text{det}(\mat{A}\mat{B}) = \text{det}(\mat{A}) \cdot \text{det}(\mat{B})$
+                    \item $\text{det}(\mat{A}) = 0 \Leftrightarrow \mat{A}$ is singular (hence $\text{det}(\mat{A}) \neq 0 \Leftrightarrow $ if it is regular)
+                    \item $\text{det}(\mat{A}) = \text{det}(\mat{A}^\top)$
+                    \item if $\mat{A}$ is regular; $\text{det}(\mat{A}^{-1}) = \text{det}(\mat{A})^{-1}$
+                    \item similar matrices have the same determinant; therefore all $\mat{A}_\Phi$ of $\Phi : V \to V$ have the same determinant
+                \end{itemize}
+                In order to get the determinant of a matrix by using the triangular form, we can use Gaussian elimination, with the following row operation rules;
+                \begin{itemize}
+                    \itemsep0em
+                    \item adding a multiple of a column/row to another doesn't change $\text{det}(\mat{A})$
+                    \item multiplying a column/row by $\lambda \in \mathbb{R}$ scales $\text{det}(\mat{A})$ by $\lambda$, hence $\text{det}(\lambda\mat{A}) = \lambda^n\text{det}(\mat{A})$
+                    \item swapping two columns/rows changes the sign of $\text{det}(\mat{A})$
+                \end{itemize}
+                For example, consider the following sequence of row operations;
+                \begin{tabularx}{\textwidth}{llllll}
+                    $\begin{vmatrix}
+                        2 & 0 & 1 & 2 & 0 \\
+                        2 & -1 & 0 & 1 & 1 \\
+                        0 & 1 & 2 & 1 & 2 \\
+                        -2 & 0 & 2 & -1 & 2 \\
+                        2 & 0 & 0 & 1 & 1
+                    \end{vmatrix} \begin{matrix}
+                        {} \\ -R_1 \\ {} \\ +R_1 \\ -R_1
+                    \end{matrix}$ & $\leadsto$ & $\begin{vmatrix}
+                        2 & 0 & 1 & 2 & 0 \\
+                        0 & -1 & -1 & -1 & 1 \\
+                        0 & 1 & 2 & 1 & 2 \\
+                        0 & 0 & 3 & 1 & 2 \\
+                        0 & 0 & -1 & -1 & 1
+                    \end{vmatrix} \begin{matrix}
+                        {} \\ {} \\ +R_1 \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{vmatrix}
+                        2 & 0 & 1 & 2 & 0 \\
+                        0 & -1 & -1 & -1 & 1 \\
+                        0 & 0 & 1 & 0 & 3 \\
+                        0 & 0 & 3 & 1 & 2 \\
+                        0 & 0 & -1 & -1 & 1
+                    \end{vmatrix} \begin{matrix}
+                        {} \\ {} \\ {} \\ -3R_3 \\ +R_3
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{vmatrix}
+                        2 & 0 & 1 & 2 & 0 \\
+                        0 & -1 & -1 & -1 & 1 \\
+                        0 & 0 & 1 & 0 & 3 \\
+                        0 & 0 & 0 & 1 & -7 \\
+                        0 & 0 & 0 & -1 & 4
+                    \end{vmatrix} \begin{matrix}
+                        {} \\ {} \\ {} \\ {} \\ +R_4
+                    \end{matrix}$ & $\leadsto$ & $\begin{vmatrix}
+                        2 & 0 & 1 & 2 & 0 \\
+                        0 & -1 & -1 & -1 & 1 \\
+                        0 & 0 & 1 & 0 & 3 \\
+                        0 & 0 & 0 & 1 & -7 \\
+                        0 & 0 & 0 & 0 & -3
+                    \end{vmatrix}$ & $=$ & $2 \cdot -1 \cdot 1 \cdot 1 \cdot -3 = 6$\\
+                \end{tabularx}
+                Another method for calculating the determinant of a matrix is via \textbf{Laplace Expansion}. We define a matrix $\mat{A} \in \mathbb{R}^{n \times n} = (a_{i,j})$, and another matrix $\mat{A}_{i, j} \in \mathbb{R}^{(n - 1) \times (n - 1)}$ as $\mat{A}$ without its $i^\text{th}$ row, nor its $j^\text{th}$ column.
+                \begin{itemize}
+                    \itemsep 0em
+                    \item $\text{det}(\mat{A}) = \summation{k = 1}{n}{(-1)^{k + j}a_{i, k}\text{det}(\mat{A}_{i, k})}$ \hfill expansion along row $i$
+                    \item $\text{det}(\mat{A}) = \summation{k = 1}{n}{(-1)^{k + j}a_{k, j}\text{det}(\mat{A}_{k, j})}$ \hfill expansion along column $j$
+                \end{itemize}
+                The checkerboard pattern formed by the signs are as follows, for $\mat{A} \in \mathbb{R}^{n \times n}$;
+                \begin{center}
+                    $n$ is odd; $\begin{bmatrix}
+                        + & - & \cdots & + \\
+                        - & + & \cdots & - \\
+                        \vdots & \vdots & \ddots & \vdots \\
+                        + & - & \cdots & +
+                    \end{bmatrix}$, or when $n$ is even; $\begin{bmatrix}
+                        + & - & \cdots & - \\
+                        - & + & \cdots & + \\
+                        \vdots & \vdots & \ddots & \vdots \\
+                        - & + & \cdots & +
+                    \end{bmatrix}$
+                \end{center}
+                It's better to expand along rows/columns with as many 0s as possible, as that would reduce the amount of work that needs to be done.
+            \subsubsection*{Eigenvalues, and Eigenvectors}
+                We define $\lambda$ as an eigenvalue for an endomorphism $\Phi : V \to V$, $\Leftrightarrow \exists \vec{v} \in V \vec{0} [\vec{v} \neq \vec{0} \land \Phi(\vec{v}) = \lambda \vec{v}]$. The set of all eigenvectors corresponding to some $\lambda$ in $\mat{A}_\Phi$ is defined as the \textbf{eigenspace} of $\mat{A}_\Phi$, with respect to $\lambda$, and is written as $E_\lambda$. The set of all eigenvalues of $\mat{A}_\Phi$ is called the \textbf{spectrum} of $\mat{A}_\Phi$.
+                \medskip
+
+                We can also say that $\lambda$ is an eigenvalue of $\mat{A}$, when $\text{rk}(\mat{A} - \lambda \mat{I}_n) < n$, hence $\text{det}(\mat{A} - \lambda \mat{I}_n) = 0$.
+                \medskip
+
+                From the latter definition, we can define the characteristic polynomial $p(\lambda) \triangleq \text{det}(\mat{A} - \lambda \mat{I}_n)$. By setting $p(\lambda) = 0$, the roots of our equations are the eigenvalues of $\mat{A}$.
+                \medskip
+
+                To determine the eigenspace of $\mat{A}_\Phi$, with eigenvalue $\lambda$, we take $\text{ker}(\mat{A}_\Phi - \lambda \mat{I}_n)$. Since we defined an eigenvalue to satisfy $\mat{A}_\Phi \vec{x} = \lambda \vec{x} \Leftrightarrow (\mat{A}_\Phi - \lambda \mat{I}_n)\vec{x} = \vec{0}$, so we're simply solving a homogeneous system of equations.
+                \medskip
+
+                We can say that two similar matrices $\mat{A}, \mat{\bar{A}} \in \mathbb{R}^{n \times n}$, have the same characteristic polynomial;
+                \begin{reasoning}
+                    \proofmath{\text{det}(\mat{\bar{A}} - \lambda \mat{I}_n)}{\text{det}(\mat{S}^{-1}\mat{A}\mat{S} - \lambda \mat{I}_n)}{by definition of similar matrices}
+                    \proofmath{}{\text{det}(\mat{S}^{-1}\mat{A}\mat{S} - \lambda \mat{S}^{-1}\mat{I}_n\mat{S})}{$\mat{S}^{-1}\mat{S} = \mat{I}_n$}
+                    \proofmath{}{\text{det}(\mat{S}^{-1}(\mat{A} -\lambda \mat{I}_n)\mat{S})}{distributivity of matrix multiplication}
+                    \proofmath{}{\text{det}(\mat{S}^{-1})\cdot\text{det}(\mat{A} -\lambda \mat{I}_n)\cdot\text{det}(\mat{S})}{property of determinants}
+                    \proofmath{}{\text{det}(\mat{S})^{-1}\cdot\text{det}(\mat{A} -\lambda \mat{I}_n)\cdot\text{det}(\mat{S})}{property of determinants}
+                    \proofmath{}{\text{det}(\mat{A} -\lambda \mat{I}_n)}{}
+                \end{reasoning}
+                There are some worked examples in the notes, but this is something that \textbf{needs} to be practiced. The concept itself isn't too difficult, but being able to apply it quickly needs some practice.
+
 \end{document}

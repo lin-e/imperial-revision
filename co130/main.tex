@@ -179,7 +179,7 @@
                         \cline{2-5}
                         & Star Wars & 1977 & 124 & Science Fiction \\
                         \cline{2-5}
-                        & Luis's World & 1992 & 95 & Comedy \\
+                        & Luis' World & 1992 & 95 & Comedy \\
                         \hline
                     \end{tabular}
                 \end{center}
@@ -590,9 +590,9 @@
                     \hline
                     Gone with the Wind & 1939 & 231 & Drama & MGM & Vivien Leigh \\
                     \hline
-                    Luis's World & 1992 & 95 & Comedy & Paramount & Dana Carvey \\
+                    Luis' World & 1992 & 95 & Comedy & Paramount & Dana Carvey \\
                     \hline
-                    Luis's World & 1992 & 95 & Comedy & Paramount & Mile Myers \\
+                    Luis' World & 1992 & 95 & Comedy & Paramount & Mile Myers \\
                     \hline
                 \end{tabular}
             \end{center}
@@ -604,7 +604,7 @@
                 When we decompose a relation, it's crucial for us to ensure we can recover the original relation by joining the decomposed relations, and also preserve the FDs of the original relation. Note that the latter isn't always possible with BCNF.
                 \medskip
 
-                Given $R$ decomposed into $S$, and $T$, the decomposition is \textbf{lossless} if at least one of the following FDs hold in the closure of FD set of $R$;
+                Given $R$ decomposed into $S$, and $T$, the decomposition is \textbf{lossless} if at least one of the following FDs hold in the closure of the FD set of $R$;
                 \begin{itemize}
                     \itemsep0em
                     \item $\text{attr}(S) \cap \text{attr}(T) \rightarrow \text{attr}(S)$
@@ -797,7 +797,7 @@
                         \hline
                         \multicolumn{3}{|c||}{$L$} & \multicolumn{3}{c||}{$R$} & \multicolumn{4}{c||}{$L$ ~LOJ~ $R$} & \multicolumn{4}{c||}{$L$ ~ROJ~ $R$} & \multicolumn{4}{c|}{$L$ ~FOJ~ $R$} \\
                         \hline
-                        ~a~ & ~b~ & ~c~ & ~a~ & ~b~ & ~c~ & ~a~ & ~b~ & ~c~ & ~d~ & ~a~ & ~b~ & ~c~ & ~d~ & ~a~ & ~b~ & ~c~ & ~d~ \\
+                        ~a~ & ~b~ & ~c~ & ~a~ & ~b~ & ~d~ & ~a~ & ~b~ & ~c~ & ~d~ & ~a~ & ~b~ & ~c~ & ~d~ & ~a~ & ~b~ & ~c~ & ~d~ \\
                         \hline
                         \hline
                         1 & 2 & 3 & 2 & 3 & A & 1 & 2 & 3 & A & 1 & 2 & 3 & A & 1 & 2 & 3 & A \\
