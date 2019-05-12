@@ -147,7 +147,7 @@
                     \item $A \Leftrightarrow B$ \hfill $A$ holds if and only if $B$ holds
                     \item $\forall x (A)$ \hfill the predicate $A$ holds for all $x$
                     \item $\exists x (A)$ \hfill the predicate $A$ holds for some $x$
-                    \item $a \in A$ \hfill the object $a$ is in the set $A$ ($a$ is an element of     \item $A$)
+                    \item $a \in A$ \hfill the object $a$ is in the set $A$ ($a$ is an element of $A$)
                     \item $a \notin A$ \hfill the object $a$ is not in the set $A$
                     \item $=_A$ \hfill tests whether two elements of $A$ are the same
                 \end{itemize}
@@ -179,7 +179,7 @@
                 As both assumptions lead to contradictions, it's possible to write sets which aren't defined. We should only select from a set that we know is defined; $\{x \in A \mid P(x)\}$ - where $A$ is a well-defined set.
         \subsection*{12th October 2018}
             \subsubsection*{Set Comparisons}
-                We can define a set $A$, as being a subset of another set $B$ if every element in $A$ is an element in $B$. This can be formally written as; $A \subseteq B \triangleq \forall x \in A (x \in B)$. Note that we can also say $\forall x (x \in A \Rightarrow x \in B)$, and the two hold the same meaning. It's important to clarify in the latter that we're not the domain of $x$, an we assume there is a universe of possible objects which forms a set. We're also able to define a strict subset such that $A \subset B \triangleq A \subseteq B \land A \neq B$.
+                We can define a set $A$, as being a subset of another set $B$ if every element in $A$ is an element in $B$. This can be formally written as; $A \subseteq B \triangleq \forall x \in A (x \in B)$. Note that we can also say $\forall x (x \in A \Rightarrow x \in B)$, and the two hold the same meaning. It's important to clarify in the latter that we're not specifying the domain of $x$, and we assume there is a universe of possible objects which forms a set. We're also able to define a strict subset such that $A \subset B \triangleq A \subseteq B \land A \neq B$.
                 \medskip
 
                 We can say that any set is a trivial subset of itself, as we'd have $x \in A \Rightarrow x \in A$, which always evaluates to true, from propositional logic. Another trivial example is that $\emptyset$, the empty set, is a subset of every set. Using the second definition of subset, we can say that as $x \in \emptyset$ is false, by definition, and anything follows from falsity, whereas in the first definition we argue that all (0) elements of $\emptyset$ are in some other set.
@@ -192,8 +192,8 @@
                     \item $A \cup B \triangleq \{x \mid x \in A \lor x \in B\}$ \hfill set union
                     \item $A \cap B \triangleq \{x \in A \mid x \in B\}$ \hfill set intersection
                     \item $A \backslash B$ (or $A - B$) $\triangleq \{x \in A \mid x \notin B\}$ \hfill set difference
-                    \item $A \triangle B \triangleq (A \backslash B) \cup (B \backslash A)$ \hfill symmetric set difference))
-                    \item $A \cap B = \emptyset$ \hfill disjoint set
+                    \item $A \triangle B \triangleq (A \backslash B) \cup (B \backslash A)$ \hfill symmetric set difference
+                    \item $A \cap B = \emptyset$ \hfill $A$, and $B$ are disjoint sets
                 \end{itemize}
             \subsubsection*{A Note on Proofs}
                 Instead of writing out the formal definition, where we may lose the intuition, using a natural language (direct) proof is acceptable in this course.

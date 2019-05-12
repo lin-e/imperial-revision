@@ -266,20 +266,12 @@
                 \smallskip
 
                 If we sum this inequality from $i = 2$ to $n$, we can then justify the following - it's important to note that the sums on the left, and right, differ by only the first, and last term (therefore we can reduce it to a partial sum);
-                \medskip
-
-                $\phantom{\Leftrightarrow} \frac{1}{2(3)} + \frac{1}{3(4)} + \frac{1}{4(5)} + ... + \frac{1}{n(n + 1)} < \summation{i = 2}{n}{\frac{1}{i^2}} < \frac{1}{1(2)} + \frac{1}{2(3)} + \frac{1}{3(4)} + ... + \frac{1}{n(n - 1)}$
-                \smallskip
-
-                $\Leftrightarrow T_n - \frac{1}{2} < \summation{i = 2}{n}{\frac{1}{i^2}} < T_{n - 1}$
-                \smallskip
-
-                $\Leftrightarrow T_n + \frac{1}{2} < \summation{i = 1}{n}{\frac{1}{i^2}} < T_{n - 1} + 1$
-                \medskip
-
-                $\Leftrightarrow \frac{3}{2} + \frac{1}{n + 1} < S_n < 2 + \frac{1}{n}$
-                \medskip
-
+                \begin{align*}
+                    &\ \frac{1}{2(3)} + \frac{1}{3(4)} + \frac{1}{4(5)} + ... + \frac{1}{n(n + 1)} < \summation{i = 2}{n}{\frac{1}{i^2}} < \frac{1}{1(2)} + \frac{1}{2(3)} + \frac{1}{3(4)} + ... + \frac{1}{n(n - 1)} \\
+                    \Leftrightarrow &\ T_n - \frac{1}{2} < \summation{i = 2}{n}{\frac{1}{i^2}} < T_{n - 1} \\
+                    \Leftrightarrow &\ T_n + \frac{1}{2} < \summation{i = 1}{n}{\frac{1}{i^2}} < T_{n - 1} + 1 \\
+                    \Leftrightarrow &\ \frac{3}{2} + \frac{1}{n + 1} < S_n < 2 + \frac{1}{n}
+                \end{align*}
                 Therefore, it follows that the partial sums are bounded by $\frac{3}{2}$, and 2. The existence of an upper bound suggests the sequence converges, therefore the series must also converge.
             \subsubsection*{Important Series}
                 These examples will be useful for the comparison tests covered later on. We can use these results to aid us in proving whether some other series converges, or diverges.
@@ -1594,10 +1586,10 @@
 
                 As an "exercise"; consider taking powers of $\mat{A} = \begin{bmatrix}
                     0 & 1 \\ 1 & 1
-                \end{bmatrix}$, diagonalise it, and find the $n^\text{th}$ power.
+                \end{bmatrix}$, diagonalize it, and find the $n^\text{th}$ power.
                 \smallskip
 
-                $\mat{A} \in \mathbb{R}^{n \times n}$ is diagonal when it is similar to a \textbf{diagonal} matrix. We say a matrix is diagonal if it is in the following form, such that anything \textbf{not} on the leading diagonal is 0;
+                $\mat{A} \in \mathbb{R}^{n \times n}$ is diagonalizable when it is similar to a \textbf{diagonal} matrix. We say a matrix is diagonal if it is in the following form, such that anything \textbf{not} on the leading diagonal is 0;
                 \begin{center}
                     $\begin{bmatrix}
                         c_1 & 0 & \cdots & \cdots & 0 \\
@@ -1762,4 +1754,68 @@
                 With the same inner product space, we define $d(\vec{x}, \vec{y}) \triangleq ||\vec{x} - \vec{y}||$, as the \textbf{distance} of $\vec{x}, \vec{y} \in V$, with the mapping $d : V \times V \to \mathbb{R}$, and $d : (\vec{x}, \vec{y}) \mapsto d(\vec{x}, \vec{y})$. The mapping is called \textbf{metric}. A metric $d$ is positive definite, symmetric, and satisfies the triangular inequality, such that $d(\vec{x}, \vec{z}) \leq d(\vec{x}, \vec{y}) + d(\vec{y}, \vec{z})$.
                 \medskip
 
+                We define two vectors $\vec{x}, \vec{y}$ as \textbf{orthogonal} if $\la \vec{x}, \vec{y} \ra = 0$, and is often denoted as $\vec{x} \perp \vec{y}$.
+                \medskip
+
+                With an inner product space $(V, \la \cdot, \cdot \ra)$, and $\vec{x}, \vec{y}, \vec{z} \in V$, we can use the following properties;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item $|\la \vec{x}, \vec{y} \ra| \leq ||\vec{x}|| \cdot ||\vec{y}||$ \hfill Cauchy-Schwarz inequality
+                    \item $||\vec{x} + \vec{y}|| \leq ||\vec{x}|| + ||\vec{y}||$ \hfill Minkowski inequality
+                    \item $d(\vec{x}, \vec{z}) \leq d(\vec{x}, \vec{y}) + d(\vec{y}, \vec{z})$ \hfill triangular inequality
+                    \item $||\vec{x} + \vec{y}|| + ||\vec{x} - \vec{y}|| = 2||\vec{x}||^2 + 2||\vec{y}||^2$ \hfill parallelogram law
+                    \item $4\la \vec{x}, \vec{y} \ra = ||\vec{x} + \vec{y}||^2 - ||\vec{x} - \vec{y}||^2$
+                    \item $\vec{x} \perp \vec{y} \Leftrightarrow ||\vec{x} + \vec{y}||^2 = ||\vec{x}||^2 + ||\vec{y}||^2$
+                \end{enumerate}
+                By property 1, we can define $\theta \in [0, \pi)$, as long as $\vec{x} \neq \vec{0}$, and $\vec{y} \neq \vec{0}$;
+                \begin{center}
+                    $-1 \leq \frac{\la \vec{x}, \vec{y} \ra}{||\vec{x}|| \cdot ||\vec{y}||} \leq 1$, and therefore $\text{cos}(\theta) = \frac{\la \vec{x}, \vec{y} \ra}{||\vec{x}|| \cdot ||\vec{y}||}$
+                \end{center}
+            \subsubsection*{Orthogonal Projections}
+                Suppose we have an $\mathbb{R}$-vector space $V$, and $W \subset V$, we can define a linear mapping $\pi : V \to W$ as a \textbf{projection} if $\pi^2 = \pi \circ \pi = \pi$. As $\pi$ is a linear map, we can define a \textbf{projection matrix}, $\mat{P}_\pi$, which has the property $\mat{P}_\pi = \mat{P}_\pi^2$. This causes all eigenvalues of $\mat{P}_\pi$ to be 0, or 1, and therefore $E_0 = \text{ker}(\mat{P}_\pi)$, and $E_1 = \text{Im}(\mat{P}_\pi)$. To derive projections in $(\mathbb{R}^n, \la \cdot, \cdot \ra)$, we assume the scalar product $\la \vec{x}, \vec{y} \ra = \vec{x}^\top\vec{y}$
+                \medskip
+
+                For the 1-dimensional case (projection to a line), let there be a subspace $W \subset \mathbb{R}^n$, spanned by only $\vec{b}$. When we project some $n$-dimensional vector $\vec{x}$ to $W$, we write $\vec{p} = \pi_W(\vec{x})$. Geometrically, the projection point $\vec{p}$ is closest to $\vec{x}$, such that we minimise $||\vec{x} - \vec{p}||$ - therefore $\vec{p} - \vec{x}$ is orthogonal to $W$, and therefore to the basis of $W$. In one dimension, this is fairly easy to solve, as we simply have $\la \vec{p} - \vec{x}, \vec{b} \ra = (\vec{p} - \vec{x})^\top\vec{b} = 0$.
+                \medskip
+
+                However, we know that $\vec{p}$ must lie on the span of $W$, and with a single basis vector, we have $\vec{p} = \lambda \vec{b}$, where $\lambda \in \mathbb{R}$.
+                \begin{align*}
+                    &\ \vec{x} - \lambda \vec{b} \perp \vec{b} \\
+                    \Leftrightarrow &\ \la \vec{x} - \lambda \vec{b}, \vec{b} \ra = 0 \\
+                    \Leftrightarrow &\ \la \vec{x}, \vec{b} \ra - \lambda \la \vec{b}, \vec{b} \ra = 0 \\
+                    \Leftrightarrow &\ \lambda = \frac{\la \vec{x}, \vec{b} \ra}{\la \vec{b}, \vec{b} \ra} = \frac{\la \vec{x}, \vec{b} \ra}{||\vec{b}||^2}
+                \end{align*}
+                By using the dot product, we get $\vec{p} = \frac{\vec{b}^\top \vec{x}}{||\vec{b}||^2}\vec{b}$, however, knowing that $\vec{p} = \mat{P}_\pi\vec{x}$, we get $\mat{P}_\pi = \frac{\vec{b}\vec{b}^\top}{||\vec{b}||^2}$
+                \medskip
+
+                However, we want to generalise this to more than one dimension. We're still working with $\vec{x} \in \mathbb{R}^n$, but instead we're mapping to a general subspace $W \subset \mathbb{R}^n$, which is spanned by the ordered basis;
+                \begin{center}
+                    $\begin{bmatrix}
+                        \vec{b_1}, \vec{b_2}, ..., \vec{b_m}
+                    \end{bmatrix}$, which can be expressed as a matrix $\mat{B} = \begin{bmatrix}[c|c|c]
+                        \vec{b_1} & \cdots & \vec{b_m}
+                    \end{bmatrix}$
+                \end{center}
+                We can then express the projection in the following form;
+                \begin{center}
+                    $\pi_W(\vec{x}) = \vec{p} \in W \Rightarrow \vec{p} = \summation{i = 1}{m}{\lambda_i \vec{b_i}} = \mat{B}\vec{\lambda}$
+                \end{center}
+                Since we want the minimal distance, the line between $\vec{p} \in W$, and $\vec{x} \in \mathbb{R}^n$, must be orthogonal to all basis vectors; and we get the following homogeneous system of equations (assuming we're in an Euclidean vector space);
+                \begin{center}
+                    $\forall i \in [1, m] [\la \vec{b_i}, \vec{x} - \mat{B}\vec{\lambda} \ra = \vec{b_i}^\top (\vec{x} - \mat{B}\vec{\lambda}) = 0]$
+                    \smallskip
+
+                    $\leadsto$
+                    \smallskip
+
+                    $\begin{bmatrix}
+                        \vec{b_1}^\top \\
+                        \vdots \\
+                        \vec{b_1}^\top \\
+                    \end{bmatrix}(\vec{x} - \mat{A}\vec{\lambda}) = \vec{0} \Leftrightarrow \mat{B}^\top(\vec{x} - \mat{A}\vec{\lambda}) = \vec{0} \Leftrightarrow \mat{B}^\top \mat{B} \vec{\lambda} = \mat{B}^\top \vec{x}$
+                \end{center}
+                However, since we know that the rows / columns of $\mat{B}$ are linearly independent (since they were constructed from basis vectors), we can invert the matrix, such that $\vec{\lambda} = \underbrace{(\mat{B}^\top\mat{B})^{-1}\mat{B}^\top}_\text{pseudo-inverse of $\mat{B}$}\vec{x}$.
+                \smallskip
+
+                Since we've established $\vec{p} = \mat{B}\vec{\lambda}$, it follows that $\pi_W(\vec{x}) = \vec{p} = \mat{B} (\mat{B}^\top\mat{B})^{-1}\mat{B}^\top \vec{x}$. We also get the projection matrix $\mat{P}_\pi = \mat{B} (\mat{B}^\top\mat{B})^{-1}\mat{B}^\top$.
 \end{document}
