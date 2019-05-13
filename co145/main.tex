@@ -1818,4 +1818,15 @@
                 \smallskip
 
                 Since we've established $\vec{p} = \mat{B}\vec{\lambda}$, it follows that $\pi_W(\vec{x}) = \vec{p} = \mat{B} (\mat{B}^\top\mat{B})^{-1}\mat{B}^\top \vec{x}$. We also get the projection matrix $\mat{P}_\pi = \mat{B} (\mat{B}^\top\mat{B})^{-1}\mat{B}^\top$.
+            \subsubsection*{Affine Subspaces}
+                Suppose we have a vector space $V$, and $\vec{x_0} \in V$, and a subspace $U \subset V$, then the following is an \textbf{affine subspace};
+                \begin{center}
+                    $L = \underbrace{\vec{x_0}}_\text{support point} + \underbrace{U}_\text{direction (space)} \triangleq \{\vec{x_0} + \vec{u} \mid \vec{u} \in U\} = \{\vec{v} \mid \exists \vec{u} \in U [\vec{v} = \vec{x_0} + \vec{u}]\} \subset V$
+                \end{center}
+                As we cannot get $\vec{0}$, unless $\vec{x_0} \in U$, an affine subspace generally isn't a (linear) vector subspace for $V$. Suppose we have affine subspaces $L = \vec{x_0} + U$, and $\bar{L} = \vec{\bar{x_0}} + \bar{U}$ of a vector space $V$, then $L \subset \bar{L} \Leftrightarrow U \subset \bar{U} \land (\vec{x_0} - \vec{\bar{x_0}}) \in \bar{U}$. In general, for a $k$-dimensional affine subspace $L = \vec{x_0} + U$, where $U$ has the ordered basis; $\begin{bmatrix}
+                    \vec{b_1}, \vec{b_2}, ..., \vec{b_k}
+                \end{bmatrix}$, then every $\vec{x} \in L$ can be uniquely described in a \textbf{parametric} form (which is also the \textbf{parametric equation} of $L$);
+                \begin{center}
+                    $\vec{x} = \vec{x_0} + \lambda_1 \vec{b_1} + ... + \lambda_k \vec{b_k} = \vec{x_0} + \summation{i = 1}{k}{\lambda_i \vec{b_i}}$
+                \end{center}
 \end{document}
