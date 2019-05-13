@@ -1823,10 +1823,185 @@
                 \begin{center}
                     $L = \underbrace{\vec{x_0}}_\text{support point} + \underbrace{U}_\text{direction (space)} \triangleq \{\vec{x_0} + \vec{u} \mid \vec{u} \in U\} = \{\vec{v} \mid \exists \vec{u} \in U [\vec{v} = \vec{x_0} + \vec{u}]\} \subset V$
                 \end{center}
-                As we cannot get $\vec{0}$, unless $\vec{x_0} \in U$, an affine subspace generally isn't a (linear) vector subspace for $V$. Suppose we have affine subspaces $L = \vec{x_0} + U$, and $\bar{L} = \vec{\bar{x_0}} + \bar{U}$ of a vector space $V$, then $L \subset \bar{L} \Leftrightarrow U \subset \bar{U} \land (\vec{x_0} - \vec{\bar{x_0}}) \in \bar{U}$. In general, for a $k$-dimensional affine subspace $L = \vec{x_0} + U$, where $U$ has the ordered basis; $\begin{bmatrix}
-                    \vec{b_1}, \vec{b_2}, ..., \vec{b_k}
-                \end{bmatrix}$, then every $\vec{x} \in L$ can be uniquely described in a \textbf{parametric} form (which is also the \textbf{parametric equation} of $L$);
+                As we cannot get $\vec{0}$, unless $\vec{x_0} \in U$, an affine subspace generally isn't a (linear) vector subspace for $V$. Suppose we have affine subspaces $L = \vec{x_0} + U$, and $\bar{L} = \vec{\bar{x_0}} + \bar{U}$ of a vector space $V$, then $L \subset \bar{L} \Leftrightarrow U \subset \bar{U} \land (\vec{x_0} - \vec{\bar{x_0}}) \in \bar{U}$. In general, for a $k$-dimensional affine subspace $L = \vec{x_0} + U$, where $U$ has the ordered basis; $[\vec{b_1}, \vec{b_2}, ..., \vec{b_k}]$, then every $\vec{x} \in L$ can be uniquely described in a \textbf{parametric} form (which is also the \textbf{parametric equation} of $L$);
                 \begin{center}
                     $\vec{x} = \vec{x_0} + \lambda_1 \vec{b_1} + ... + \lambda_k \vec{b_k} = \vec{x_0} + \summation{i = 1}{k}{\lambda_i \vec{b_i}}$
                 \end{center}
+                A one-dimensional affine subspace is called a line, a two-dimensional affine subspace is called a plane. In an $n$-dimensional vector space, an $(n - 1)$-dimensional affine subspace is called a \textbf{hyperplane}, which divides the vector space in two.
+                \medskip
+
+                The solution space of an inhomogeneous linear equation system $\mat{A}\vec{x} = \vec{b}$, where $\mat{A} \in \mathbb{R}^{m \times n}$, and $\vec{b} \in \mathbb{R}^m$ is either $\emptyset$, or an affine subspace of $\mathbb{R}^n$, which has dimension $n - \text{rk}(\mat{A})$.
+            \subsubsection*{Intersection of Affine Subspaces}
+                The method for solving this is extremely similar to the one for solving linear subspaces (obviously), except we're solving for the parameters in an inhomogeneous equation system. Let us define the two affine subspaces $L_1$, and $L_2$, and $U_1, U_2 \subset V$;
+                \begin{center}
+                    $L_1 = \vec{x_1} + U_1$, and $U_1$ has ordered basis $[\vec{b_1}, \vec{b_2}, ..., \vec{b_k}]$
+                    \medskip
+
+                    $L_2 = \vec{x_2} + U_2$, and $U_2$ has ordered basis $[\vec{c_1}, \vec{c_2}, ..., \vec{c_m}]$
+                \end{center}
+                Now suppose we want to find the intersection, $L_1 \cap L_2$. Let $\vec{x} \in L_1 \cap L_2 \Leftrightarrow \vec{x} \in L_1 \land \vec{x} \in L_2$, hence;
+                \begin{center}
+                    $\vec{x} = \vec{x_1} + \summation{i = 1}{k}{\lambda_i\vec{b_i}} = \vec{x_2} + \summation{j = 1}{k}{\mu_j\vec{c_j}} \Leftrightarrow \summation{i = 1}{k}{\lambda_i\vec{b_i}} - \summation{j = 1}{k}{\mu_j\vec{c_j}} = \vec{x_2} - \vec{x_1}$
+                \end{center}
+                Which means we can solve for $\lambda_1, ..., \lambda_k, \mu_1, ..., \mu_m$;
+                \begin{center}
+                    $\Leftrightarrow \begin{bmatrix}[c|c|c|c|c|c]
+                        \vec{b_1} & \cdots & \vec{b_k} & -\vec{c_1} & \cdots & -\vec{c_m}
+                    \end{bmatrix} \begin{bmatrix}
+                        \lambda_1 \\ \vdots \\ \lambda_k \\ \mu_1 \\ \vdots \\ \mu_m
+                    \end{bmatrix} = \vec{x_2} - \vec{x_1}$
+                \end{center}
+                For example, suppose we have the following affine subspaces;
+                \begin{center}
+                    $L_1 = \begin{bmatrix}
+                        2 \\ 0 \\ 0 \\ 1
+                    \end{bmatrix} + [\begin{bmatrix}
+                        1 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 1 \\ 1 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 0 \\ 1 \\ 1
+                    \end{bmatrix}]$, and also $L_2 = \begin{bmatrix}
+                        3 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix} + [\begin{bmatrix}
+                        -1 \\ 1 \\ 2 \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        0 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix}]$
+                \end{center}
+                We then assume there exists some $\vec{x} \in L_1 \cap L_2$, and solve;
+                \begin{center}
+                    $\vec{x} = \begin{bmatrix}
+                        2 \\ 0 \\ 0 \\ 1
+                    \end{bmatrix} + \lambda_1 \begin{bmatrix}
+                        1 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix} + \lambda_2 \begin{bmatrix}
+                        0 \\ 1 \\ 1 \\ 0
+                    \end{bmatrix} + \lambda_3 \begin{bmatrix}
+                        0 \\ 0 \\ 1 \\ 1
+                    \end{bmatrix} = \begin{bmatrix}
+                        3 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix} + \mu_1 \begin{bmatrix}
+                        -1 \\ 1 \\ 2 \\ 0
+                    \end{bmatrix} + \mu_2 \begin{bmatrix}
+                        0 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix}$
+                \end{center}
+                We then solve the inhomogeneous equation system, for $\lambda_1, \lambda_2, \lambda_3, \mu_1, \mu_2$. From the reduced row echelon form, we can try to make the solution from the pivot columns (and implicitly set the non-pivot column to 0), and apply the Minus-1 Trick for the zeroes of the solution;
+                \begin{center}
+                    $\begin{bmatrix}
+                        \lambda_1 \\ \lambda_2 \\ \lambda_3 \\ \mu_1 \\ \mu_2
+                    \end{bmatrix} = \begin{bmatrix}
+                        1 \\ 1 \\ -1 \\ 0 \\ 1
+                    \end{bmatrix} + \alpha \begin{bmatrix}
+                        1 \\ -2 \\ 0 \\ -1 \\ 0
+                    \end{bmatrix}$, for any $\alpha \in \mathbb{R}$
+                \end{center}
+                For simplicity, let us take just the $\mu$ solutions, hence $\mu_1 = -\alpha$, and $\mu_2 = 1$. Therefore, we get the solution space for $\vec{x}$;
+                \begin{center}
+                    $\vec{x} = \begin{bmatrix}
+                        3 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix} - \alpha \begin{bmatrix}
+                        -1 \\ 1 \\ 2 \\ 0
+                    \end{bmatrix} + \begin{bmatrix}
+                        0 \\ 1 \\ 0 \\ 0
+                    \end{bmatrix} = \begin{bmatrix}
+                        3 \\ 2 \\ 0 \\ 0
+                    \end{bmatrix} + \psi \begin{bmatrix}
+                        -1 \\ 1 \\ 2 \\ 0
+                    \end{bmatrix}$, for all $\psi \in \mathbb{R}$. Therefore $L_1 \cap L_2 = \begin{bmatrix}
+                        3 \\ 2 \\ 0 \\ 0
+                    \end{bmatrix} + [\begin{bmatrix}
+                        -1 \\ 1 \\ 2 \\ 0
+                    \end{bmatrix}]$
+                \end{center}
+                This solution is a line in $\mathbb{R}^4$. The full Gaussian elimination is done below;
+                \begin{tabularx}{\textwidth}{llll}
+                    $\begin{bmatrix}[ccccc|c]
+                        1 & 0 & 0 & 1 & 0 & 1 \\
+                        1 & 1 & 0 & -1 & -1 & 1 \\
+                        0 & 1 & 1 & -2 & 0 & 0 \\
+                        0 & 0 & 1 & 0 & 0 & -1
+                    \end{bmatrix}\begin{matrix}
+                        {} \\ -R_1 \\ {} \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}[ccccc|c]
+                        1 & 0 & 0 & 1 & 0 & 1 \\
+                        0 & 1 & 0 & -2 & -1 & 0 \\
+                        0 & 1 & 1 & -2 & 0 & 0 \\
+                        0 & 0 & 1 & 0 & 0 & -1
+                    \end{bmatrix}\begin{matrix}
+                        {} \\ {} \\ -R_2 \\ {}
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}[ccccc|c]
+                        1 & 0 & 0 & 1 & 0 & 1 \\
+                        0 & 1 & 0 & -2 & -1 & 0 \\
+                        0 & 0 & 1 & 0 & 1 & 0 \\
+                        0 & 0 & 1 & 0 & 0 & -1
+                    \end{bmatrix}\begin{matrix}
+                        {} \\ {} \\ {} \\ -R_3
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}[ccccc|c]
+                        1 & 0 & 0 & 1 & 0 & 1 \\
+                        0 & 1 & 0 & -2 & -1 & 0 \\
+                        0 & 0 & 1 & 0 & 1 & 0 \\
+                        0 & 0 & 0 & 0 & -1 & -1
+                    \end{bmatrix}\begin{matrix}
+                        {} \\ {} \\ {} \\ \cdot -1
+                    \end{matrix}$ & $\leadsto$ \medskip \\
+
+                    $\begin{bmatrix}[ccccc|c]
+                        1 & 0 & 0 & 1 & 0 & 1 \\
+                        0 & 1 & 0 & -2 & -1 & 0 \\
+                        0 & 0 & 1 & 0 & 1 & 0 \\
+                        0 & 0 & 0 & 0 & 1 & 1
+                    \end{bmatrix}\begin{matrix}
+                        {} \\ +R_4 \\ -R_4 \\ {}
+                    \end{matrix}$ & $\leadsto$ & $\begin{bmatrix}[ccccc|c]
+                        1 & 0 & 0 & 1 & 0 & 1 \\
+                        0 & 1 & 0 & -2 & 0 & 1 \\
+                        0 & 0 & 1 & 0 & 0 & -1 \\
+                        0 & 0 & 0 & 0 & 1 & 1
+                    \end{bmatrix}$
+                \end{tabularx}
+            \subsubsection*{Parallel Affine Subspaces}
+                We say two affine subspaces $L_1$, and $L_2$ are parallel $(L_1 \parallel L_2)$, if either $U_1 \subseteq U_2$, or $U_2 \subseteq U_1$ (not sure if I should use the strict ordering here). If the subspaces don't contain each other, then $L_1 \cap L_2 = \emptyset$.
+                \medskip
+
+                Suppose we have lines $g = \vec{x_1} + U_1$, and $h = \vec{x_2} + U_2$, in $\mathbb{R}^2$, such that $U_1, U_2$ are 1-dimensional subspaces; if $g \cap h \neq \emptyset$. If $\text{dim}(U_1 \cap U_2) = 0$, then we have a single point of intersection, however if $\text{dim}(U_1 \cap U_2) = 1$, then $U_1 = U_2$, so $g = h$.
+                \medskip
+
+                On the other hand, if we have $g \cap h = \emptyset$, then $\text{dim}(U_1 \cap U_2) = 1$, hence $U_1 = U_2$, therefore $g \parallel h$. We cannot have $\text{dim}(U_1 \cap U_2) = 0$ in $\mathbb{R}^2$, since it would suggest no intersection for two non-parallel lines.
+                \medskip
+
+                Consider the same lines in higher dimensions $\mathbb{R}^n$, where $n \geq 3$. If $g \cap h \neq \emptyset$, then they either intersect in a single point, or they are the same line. However, if $g \cap h = \emptyset$, the same case for $\text{dim}(U_1 \cap U_2) = 1$ applies, but $\text{dim}(U_1 \cap U_2) = 0$ now has the definition that they are \textbf{skew} - such that there exists no plane containing the two lines.
+                \medskip
+
+                The (actual) notes contain examples for hyper-planes in higher dimensions, and is worth a read. However, all kinds of intersections are possible for hyper-planes in $\mathbb{R}^n$, where $n > 4$.
+            \subsubsection*{Affine Mappings}
+                Suppose we have two $\mathbb{R}$-vector spaces $V$, and $W$, and a linear mapping $\Phi : V \to W$, and $\phi : \vec{x} \mapsto \vec{a} + \Phi(\vec{x})$, where $\vec{a} \in W$. This is an affine mapping, and $\vec{a}$ is called a translation vector. It follows that $\phi = \tau \circ \Phi$, where $\tau : W \to W$, and is a translation such that $\tau : \vec{x} \mapsto \vec{a} + \vec{x}$.
+            \subsubsection*{Rotations}
+                The start of this will be skipped, since this should've been covered mostly in A Level mathematics. The general rotation matrix in 2-dimensions for $\theta$ anticlockwise is;
+                \begin{center}
+                    $\mat{R}(\theta) = \begin{bmatrix}
+                        \text{cos}(\theta) & -\text{sin}(\theta) \\
+                        \text{sin}(\theta) & \text{cos}(\theta)
+                    \end{bmatrix}$
+                \end{center}
+                The general convention we use is to stand on top of the vector, and look towards the origin (picture it or something, I don't know).
+                \medskip
+
+                In $n$ dimensions, we can generalise it such that we have $V$, an $n$-dimensional Euclidean vector space, with $\Phi : V \to V$, as an automorphism. We can easily justify that a rotation is a linear mapping, as we're doing matrix multiplication (which we can generalise to be a linear mapping). The idea in two dimensions is to fix $n - 2$ dimensions, and restrict such a rotation to a two-dimensional plane in $n$-dimensional spaces.
+                \medskip
+
+                We can generalise the matrix for a rotation restricted to the $i, j$ plane as; $\mat{R}_{i, j}(\theta)$. This is the same as $\mat{I}_n$, but $r_{i, i} = \text{cos}(\theta)$, $r_{i, j} = -\sin{cos}(\theta)$, $r_{j, i} = \text{sin}(\theta)$, and $r_{i, i} = \text{cos}(\theta)$. There is a special case in 3-dimensions, where we restrict it to the $1, 3$ plane ($y$-axis fixed), where $r_{1, 3} = \sin{cos}(\theta)$, $r_{3, 1} = -\text{sin}(\theta)$ (we apparently rotate in the other direction, or something).
+                \medskip
+
+                We can also say the following properties about rotations;
+                \begin{itemize}
+                    \itemsep0em
+                    \item we can compose rotations as the sum \hfill $\mat{R}(\phi)\mat{R}(\theta) = \mat{R}(\phi + \theta)$
+                    \item rotations preserve length \hfill $||\vec{x}|| = ||\mat{R}(\theta)\vec{x}||$
+                    \item rotations preserve distances \hfill $||\vec{x} - \vec{y}|| = ||\mat{R}(\theta)\vec{x} - \mat{R}(\theta)\vec{y}||$
+                    \item rotations in $\mathbb{R}^n$, where $n \geq 3$, aren't commutative (even around the same point) - they are only commutative in two dimensions
+                \end{itemize}
 \end{document}
