@@ -94,7 +94,7 @@
 
             Now, if we had something with two inputs, $A$, and $B$, and a control $C$, we could use $C$ to determine whether $R = A$, or $R = B$. This is done with the boolean equation $R = A \cdot C^\prime + B \cdot C$. This is a \textbf{multiplexer}, which will be used very often in circuit design for other components.
         \subsection*{Lecture 3}
-            Consider an more complex circuit, where we have 3 outputs; $R_1, R_2$, and $R_3$, and 4 inputs; $A, B, C$, and $D$, where $R_n=f_n(A, B, C, D)$. For now, we ignore sequential circuits, where the output can be on either side of the equation. The first step of creating a circuit is to construct a truth table as a starting point. We also need to define a few terms;
+            Consider an more complex circuit, where we have 3 outputs; $R_1, R_2$, and $R_3$, and 3 inputs; $A, B$, and $C$, where $R_n=f_n(A, B, C)$. For now, we ignore sequential circuits, where the output can be on either side of the equation. The first step of creating a circuit is to construct a truth table as a starting point. We also need to define a few terms;
             \begin{itemize}
                 \itemsep0em
                 \item \textbf{minterm} - a boolean product where each input, or its complement, appears exactly once
@@ -112,7 +112,7 @@
                     0 & 0 & 0 & 0 & maxterm $A + B + C$ \\
                     0 & 0 & 1 & 0 & maxterm $A + B + C^\prime$ \\
                     0 & 1 & 0 & 0 & maxterm $A + B^\prime + C$ \\
-                    0 & 1 & 1 & 1 & minterm $A \cdot B \cdot C$ \\
+                    0 & 1 & 1 & 1 & minterm $A^\prime \cdot B \cdot C$ \\
                     1 & 0 & 0 & 0 & maxterm $A^\prime + B + C$ \\
                     1 & 0 & 1 & 1 & minterm $A \cdot B^\prime \cdot C$ \\
                     1 & 1 & 0 & 1 & minterm $A \cdot B \cdot C^\prime$ \\
@@ -122,7 +122,7 @@
             Now, we can evaluate $R$ in two ways;
             \begin{itemize}
                 \itemsep0em
-                \item $R = (A \cdot B \cdot C) + (A \cdot B^\prime \cdot C) + (A \cdot B \cdot C^\prime) + (A \cdot B \cdot C)$ \hfill sum of minterms
+                \item $R = (A^\prime \cdot B \cdot C) + (A \cdot B^\prime \cdot C) + (A \cdot B \cdot C^\prime) + (A \cdot B \cdot C)$ \hfill sum of minterms
                 \item $R = (A + B + C) \cdot (A + B + C^\prime) \cdot (A + B^\prime + C) \cdot (A^\prime + B + C)$ \hfill product of maxterms
             \end{itemize}
             Knowing this, we can convert any truth table into a \textbf{Karnaugh map}
@@ -156,7 +156,7 @@
             A general circuit can be used to generate all possible $n$-input digital circuits. If we were to have inputs $V_1, V_2, ..., V_n$, and have each one come out as two lines, so $V_i$ would come out with $V_i$, and its complement $V_i^\prime$. We can have $2^n$ $n$-input AND gates, which correspond to each possible combination (00...00), (00...01), (00...11), all the way to (11...11). This is hard to visualise (see \textit{Notes04 - Description to Circuit.pdf}), but the general idea is that each AND gate corresponds to a possible minterm, which is joined to a $2^n$-input OR gate, if it's a 1 in the truth table. This is a \textbf{Programmable Array Logic (PAL)} device, and the device can be programmed by sending a current through specific links to connect them to the OR gate.
             \medskip
 
-            The general steps for creating a device from a specified device are as follows;
+            The general steps for creating a device from a specified design are as follows;
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item Construct a truth table
@@ -179,7 +179,7 @@
             While boolean algebra is a good abstraction for the behaviour of logic gates, it has some subtle differences, which can be problematic, and cause bugs. Practically, voltages aren't exact values, and therefore thresholds have to be arbitrarily determined - leading to more issues (such as what happens when the voltage is between the lower, and upper threshold). The main difference is that boolean algebra doesn't consider time delays, which exist despite electrons moving at light-speed. This failure to synchronise events is a common error in hardware design, and therefore we will require a more accurate physical model (note that all models are simply approximations, but we should choose one of a sensible degree of accuracy).
             \medskip
 
-            To define the physical representation of a logic gate, we'll need to reuse some components from A Level Physics.
+            To define the physical representation of a logic gate, we'll need to reuse some content from A Level Physics.
             \begin{itemize}
                 \itemsep0em
                 \item components
@@ -377,7 +377,7 @@
             The content covered in this lecture, is done in Coursework 2, and as such, I will be skipping over a lot of things. In general, if we have $k$ states, we will need to use $n = \ceil{\mathrm{log}_2(k)}$ D-type flip-flops, all connected to the same clock. A general synchronous sequential system would consist of a block of state sequencing logic, which takes in a set of $m$ inputs, as well as the current states of the flip-flops, and has $n$ outputs. The system would also need a block of output logic, which decodes the states into the appropriate outputs. In general, we can say that $Q_i = D_i(I_1, ..., I_m, Q_{1_\text{old}}, ..., Q_{n_\text{old}})\ \forall i \in [1..n]$, where $Q_i$ the updated state of the $i^\text{th}$ flip-flop.
             \medskip
 
-            The J-K flip-flop is a very simple example of such a synchronise circuit, which is detailed above.
+            The J-K flip-flop is a very simple example of such a synchronous circuit, which is detailed above.
             \medskip
 
             In general, if we have "don't cares", we will consider them a logic 1 if they are inside any regions inside a Karnaugh map, and 0 otherwise. While components inside the Karnaugh map don't know about each other, we can reuse components when we implement our circuit in order to save silicon space.
@@ -494,7 +494,7 @@
                 \end{center}
                 As such, we end up with $D = A \oplus B \oplus P$, and $O = A^\prime \cdot (B + P) + B \cdot P$. However, the case where $B$, and $P$ are both 1 is covered by $B \cdot P$, hence we can change the $B + P$ to a $B \oplus P$, which reduces the number of gates, as we can reuse the $B \oplus P$ from the $D$ circuit. This can then be chained in a similar fashion to the $n$-bit full adder. However, in practice, it's more common to negate every bit of $B$, and add it to $A$ with an $n$-bit full adder, that has a carry of 1. This is a twos complement subtractor.
             \subsubsection*{Multiplication}
-                Multiplication in binary is done in a similar way to how multiplication is manually done in denary. For example, if we were to do $a_1a_0 \times b_1b_0$ (where $a_i$ is a digit, hence $a_1a_0 = 10 \times a_1 + a_0$), we'd do $a_1 \times b_1 \times 10^2 + a_1 \times b_0 \times 10^1 + a_0 \times b_1 \times 10^1 + a_0 \times b_0 \times 10^0$. We do the same in binary, but instead of multiplying by $10^n$, we multiply by $2^n$, which is $n$ shift to the left. Hence we'd do $(a_1 \cdot b_1) \Leftarrow 2 + (a_1 \cdot b_0) \Leftarrow 1 + (a_0 \cdot b_0) \Leftarrow 1 + (a_0 \cdot b_0) \Leftarrow 0$, where $a_i$, and $b_i$ are binary digits. This is using ANDs, not multiplying, and the pluses are actual addition with adders. Additional circuits will be needed for signed integers; the sign bit of the output should be the XOR of the sign bits of the two inputs. The scaling of multiplication isn't as elegant as the scaling for addition, and subtraction, as you would need 4 2-bit multipliers, and the shifts would have to be done by powers of 4. This keeps scaling up, and the number of adders required also increases.
+                Multiplication in binary is done in a similar way to how multiplication is manually done in denary. For example, if we were to do $a_1a_0 \times b_1b_0$ (where $a_i$ is a digit, hence $a_1a_0 = 10 \times a_1 + a_0$), we'd do $a_1 \times b_1 \times 10^2 + a_1 \times b_0 \times 10^1 + a_0 \times b_1 \times 10^1 + a_0 \times b_0 \times 10^0$. We do the same in binary, but instead of multiplying by $10^n$, we multiply by $2^n$, which is $n$ shift to the left. Hence we'd do $(a_1 \cdot b_1) \Leftarrow 2 + (a_1 \cdot b_0) \Leftarrow 1 + (a_0 \cdot b_1) \Leftarrow 1 + (a_0 \cdot b_0) \Leftarrow 0$, where $a_i$, and $b_i$ are binary digits. This is using ANDs, not multiplying, and the pluses are actual addition with adders. Additional circuits will be needed for signed integers; the sign bit of the output should be the XOR of the sign bits of the two inputs. The scaling of multiplication isn't as elegant as the scaling for addition, and subtraction, as you would need 4 2-bit multipliers, and the shifts would have to be done by powers of 4. This keeps scaling up, and the number of adders required also increases.
         \subsection*{Lecture 14}
             Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions. Our model will be based on 8 bits.
             \medskip
@@ -880,7 +880,7 @@
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item scale the architecture up to 32-bits, or even higher
-                    \subitem everything will then use four times as many gates, but we aren't reading, or writing, four times as fast
+                    \subitem everything will then use four times as many gates, but we aren't reading, or writing four times as fast
                     \subitem we can also fetch all the bytes for our instructions at the same time
                     \subitem we no longer need to consider carries, as we will have a much larger possible set of numbers to work on
                 \item most computations would need local storage, so we could provide a set of central processor registers, which would be much faster than saving in memory
