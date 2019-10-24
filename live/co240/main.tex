@@ -1,0 +1,316 @@
+\documentclass[a4paper, 12pt]{article}
+% packages
+\usepackage{amssymb}
+\usepackage[fleqn]{mathtools}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{bussproofs}
+\usepackage{xcolor}
+\usepackage[margin=1.3cm]{geometry}
+\usepackage{logicproof}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{lstautogobble}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
+
+% shorthand for verbatim
+% this clashes with logicproof, so maybe fix this at some point?
+\catcode`~=\active
+\def~#1~{\texttt{#1}}
+
+% code listing
+\lstdefinestyle{main}{
+    numberstyle=\tiny,
+    breaklines=true,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=2,
+    numbers=left,
+    basicstyle=\ttfamily,
+    columns=fixed,
+    fontadjust=true,
+    basewidth=0.5em,
+    autogobble,
+    xleftmargin=3.0ex,
+    mathescape=true
+}
+\newcommand{\dollar}{\mbox{\textdollar}} %
+\lstset{style=main}
+
+% augmented matrix
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+\hskip -\arraycolsep
+\let\@ifnextchar\new@ifnextchar
+\array{#1}}
+\makeatother
+
+% ceiling / floor
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+% custom commands
+\newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
+\newcommand{\defint}[4]{\int_{#1}^{#2} #3 \, \mathrm{d}#4}
+\newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\limit}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\lim_{#1 \to #2}}$}}}
+\newcommand{\summation}[3]{\sum\limits_{#1}^{#2} #3}
+\newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
+\newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
+
+\newcommand{\powerset}[0]{\wp}
+\renewcommand{\emptyset}[0]{\varnothing}
+
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\rowt}[1]{\begin{bmatrix}
+    #1
+\end{bmatrix}^\top}
+
+\newcommand{\axiom}[1]{\AxiomC{#1}}
+\newcommand{\unary}[1]{\UnaryInfC{#1}}
+\newcommand{\binary}[1]{\BinaryInfC{#1}}
+\newcommand{\trinary}[1]{\TrinaryInfC{#1}}
+\newcommand{\dproof}[0]{\DisplayProof}
+\newcommand{\bnfsep}[0]{\ |\ }
+
+\newcommand{\violet}[1]{\textcolor{violet}{#1}}
+
+% no indent
+\setlength\parindent{0pt}
+
+% reasoning proofs
+\usepackage{ltablex}
+\usepackage{environ}
+\keepXColumns
+\NewEnviron{reasoning}{
+    \begin{tabularx}{\textwidth}{rlX}
+        \BODY
+    \end{tabularx}
+}
+\newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
+\newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
+\newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
+\newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
+\newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
+
+% reasoning er diagrams
+\newcommand{\nattribute}[4]{
+    \node[draw, state, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\mattribute}[4]{
+    \node[draw, state, accepting, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\dattribute}[4]{
+    \node[draw, state, dashed, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\entity}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 0.5)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -0.5)$) {};
+    \draw
+    ($(#1-c) + (-1, 0.5)$) -- ($(#1-c) + (1, 0.5)$) -- ($(#1-c) + (1, -0.5)$) -- ($(#1-c) + (-1, -0.5)$) -- cycle;
+}
+\newcommand{\relationship}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 1)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -1)$) {};
+    \draw
+    ($(#1-c) + (-1, 0)$) -- ($(#1-c) + (0, 1)$) -- ($(#1-c) + (1, 0)$) -- ($(#1-c) + (0, -1)$) -- cycle;
+}
+
+% actual document
+\begin{document}
+    \section*{CO240 - Models of Computation}
+        \section*{9th October 2019 \hfill Lecture}
+            \subsubsection*{Hilbert's Entscheidungproblem}
+                \textit{Is there an algorithm, when fed any statement in the formal laguage of first-order logic, determines in a finite number of steps whether or not the statement is provable, using the usual rules of first-order logic?}
+
+                From our first-order logic course, we know this isn't provable.
+                What often happens in formal computer science, is that we think something holds, and end up not being able to prove it as the statement is false.
+
+                Entscheidungproblem means \textbf{decision problem}.
+                Given a set $S$ of finite data structures, such as formulae of first-order logic, and a property $P$ of elements in $S$, such as whether the formulae is true or not, we have an associated decision procedure is to find an algorithm that terminates in 0, or 1, when given some $s \in S$, and gives the result 1 $\Leftrightarrow P(s)$ (the property holds for the element).
+            \subsubsection*{Algorithms (Informal)}
+                A question was to ask whether it was possible to prove if such an algorithm didn't exist.
+                However, a formal definition of an algorithm is needed;
+                \begin{itemize}
+                    \itemsep0em
+                    \item finite description of the procedure as elementary operations
+                    \item deterministic; the next step is uniquely determined if there is one (note that we now have probabilistic programming, enough at the time as computers didn't even exist)
+                    \item may not terminate on some data, but we can get a result if it does
+                \end{itemize}
+                This was solved in the 1930s, by Alan Turing's Turing machines, and Church invented lambda calculus.
+                Algorthms are regarded as data, and therefore can be passed on to another algorithm (we use this in compilers, etc.) which can process the algorithm passed as data, and reduced this to the Halting Problem.
+            \subsubsection*{Algorithms (formal)}
+                Any formal definition of an algorithm must be;
+                \begin{itemize}
+                    \itemsep0em
+                    \item precise, meaning no assumptions, and preferably phrased in the language of mathematics
+                    \item simple, going for the absolute basicstyle
+                    \item general in the sense that it covers the whole span of algorithms
+                \end{itemize}
+                Turing discovered the \textbf{Universal Turing machine}, which takes in an input Turing machine, and some data.
+                The universal machine acts as if it were the input Turing machine, operating on the given data, meaning that it can simulate an arbitrary turing machine.
+                The Church-Turing Thesis was a result of this, showing Turing machines were equivalent to Church's lambda calculus, thus anything computable can be computed by a Turing machine.
+            \subsubsection*{The Halting Problem}
+                Given a set $S$ of pairs $(A, D)$, where $A$ is an algorithm, and $D$ is some input datum, $A(D)\downarrow$ holds for $(A, D) \in S$ if $A$ applied to $D$ eventually produces a result.
+                This is unprovable, such that there is no algorithm $H$ for all $(A, D) \in S$;
+                \begin{align*}
+                    H(A, D) & =
+                    \begin{cases}
+                        1 & A(D)\downarrow \\
+                        0 & \text{otherwise}
+                    \end{cases}
+                \end{align*}
+                We can go from the Halting Problem to Entscheidungproblem, in order to prove unsolvability.
+                This is done by encoding pairs $(A, D)$ of the Halting Problem as first-order logic statements $\Phi_{A, D}$ with the special property $\Phi_{A, D} \text{ is provable} \leftrightarrow A(D) \downarrow$.
+                Any algorithm that decides the provability of usch statements is usable to decide the Halting Problem, therefore no such algorithm exists.
+            \subsubsection*{Hilbert's 10th Problem}
+                A simpler proof of the Halting Problem uses Minsky and Lambek's register machines.
+                The universal register machine, functions similar to how the Universal Turing machine, but with a register machine as input.
+                This course is mainly on register machines, but it's important to know Turing machines for historical reasons.
+            \subsubsection*{Special Functions}
+                A computable function is an algorithm that takes data, and sometimes gives a result (partial function).
+                If it does terminate, then it gies this unique result.
+                The question is whether it's possible to give a mathematical description of a computable function, as a special function between sets.
+                At the end of the 1960s, Strachey and Scott in Oxford discovered it was possible to do so.
+                \textbf{Denotational semantics} were introduced, describing the mathematical meaning of algorithms.
+                Scott gave meaning to recursively defined algorhtms as continuous functions between domains (sets with structure).
+            \subsubsection*{Semantics}
+                \begin{lstlisting}
+                    power x n
+                      | n == 0    = 1
+                      | otherwise = x * power x (n - 1)
+                \end{lstlisting}
+                \begin{lstlisting}
+                    power' x n
+                      | n == 0 = 1
+                      | even n = k^2
+                      | odd n  = x*k^2
+                      where
+                        k = power' x (div n 2)
+                \end{lstlisting}
+                The first example, ~power~, takes $O(n)$ steps to execute, whereas the second example, ~power'~, takes $O(\text{log}(n))$ steps.
+                While the two functions are the same in terms of computable functions (since they give the same results), they are clearly different from an operational point of view.
+                They are the same in terms of the high-level inputs and outputs, but aren't the same operationally.
+                Operational semantics are the program's meaning in terms of the steps of computation taken. \\
+
+            \subsubsection*{Syntax of While}
+                In the syntax below, we have $x \in \text{Var}$ to range over variables, and $n \in \mathbb{N}$ for the natural numbers.
+                Note that the first item in $C$ ($x := E$) is an assigment to a variable.
+                \begin{align*}
+                    B \in \text{Bool} & ::= ~true~ \bnfsep ~false~ \bnfsep E = E \bnfsep E < E \bnfsep B \& B \bnfsep \neg B \bnfsep ... \\
+                    E \in \text{Exp} & ::= x \bnfsep n \bnfsep E + E \bnfsep ... \\
+                    C \in \text{Com} & ::= x := E \bnfsep ~if ~ B ~ then ~ C ~ else ~ C \bnfsep C;C \bnfsep ~skip~ \bnfsep ~while ~ B ~ do ~ C
+                \end{align*}
+            \subsubsection*{Syntax of Simple Expressions}
+                Similar to above, the $n \in \mathbb{N}$, and the operators are the same as mathematical operators.
+                Here we will work with abstract syntax trees.
+                \begin{align*}
+                    E \in \text{SimpleExp} & ::= n \bnfsep E + E \bnfsep E \times E \bnfsep ...
+                \end{align*}
+                For example, we can draw out the AST for $(2 + 3) + 4$ as below.
+                Note that the $+$ and numbers in the tree are just syntax.
+                While the brackets aren't needed in mathematics, they are required for the formal syntax tree.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[] (p0) at (0, 0) {$+$};
+                        \node[] (p1) at (-1, -1) {$+$};
+                        \node[] (4) at (1, -1) {$4$};
+                        \node[] (2) at (-2, -2) {$2$};
+                        \node[] (3) at (0, -2) {$3$};
+                        \draw
+                        (p0) -- (p1)
+                        (p0) -- (4)
+                        (p1) -- (2)
+                        (p1) -- (3);
+                    \end{tikzpicture}
+                \end{center}
+                The operational semantics for SimpleExp can be done in two ways; $E \Downarrow n$ (big-step / natural), which ignores the intermediate steps, and gives results immediately, or $E \to ... \to n$ (small-step / structural) semantics, which evaluates an expression step-by-step.
+            \subsubsection*{Big-step}
+                Note that anything in \violet{violet} is mathematical (hence $\violet{n} \in \mathbb{N}$), and $\violet{+}$ is actual numeric addition.
+                \begin{itemize}
+                    \itemsep0em
+                    \item (B-NUM) \hfill
+                            \axiom{}
+                        \unary{$n \Downarrow \violet{n}$}
+                        \dproof
+                    \item (B-ADD) $\violet{n_3 = n_1 + n_2}$ \hfill
+                            \axiom{$E_1 \Downarrow \violet{n_1}$}
+                            \axiom{$E_2 \Downarrow \violet{n_2}$}
+                        \binary{$E_1 + E_2 \Downarrow \violet{n_3}$}
+                        \dproof
+                \end{itemize}
+                For example, we can prove $3 + (2 + 1) \Downarrow \violet{6}$, with the following derivation tree;
+                \begin{center}
+                        \axiom{$3 \Downarrow \violet{3}$}
+                            \axiom{$2 \Downarrow \violet{2}$}
+                            \axiom{$1 \Downarrow \violet{1}$}
+                        \binary{$2 + 1 \Downarrow \violet{3}$}
+                    \binary{$3 + (2 + 1) \Downarrow \violet{6}$}
+                    \dproof
+                \end{center}
+                We have some properties on $\Downarrow$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{determinancy} \hfill $\forall E, n_1, n_2 [E \Downarrow n_1 \land E \downarrow n_2 \Rightarrow n_1 = n_2]$
+                        \subitem this is the idea of something being deterministic, the same comment about probabilistic programming applies here too
+                    \item \textbf{totality} \hfill $\forall E \exists n [E \downarrow n]$
+                        \subitem this holds for SimpleExp, but doesn't hold for the while language, as there can be a loop that doesn't terminate
+                \end{itemize}
+            \subsubsection*{Small-step}
+                \begin{itemize}
+                    \itemsep0em
+                    \item (S-LEFT) \hfill
+                            \axiom{$E_1 \to E_1^\prime$}
+                        \unary{$E_1 + E_2 \to E_1^\prime + E_2$}
+                        \dproof
+                    \item (S-RIGHT) \hfill
+                            \axiom{$E \to E^\prime$}
+                        \unary{$n + E \to n + E^\prime$}
+                        \dproof
+                    \item (S-ADD) $n_3 = n_1 + n_2$ \hfill
+                            \axiom{}
+                        \unary{$n_1 + n_2 \to n_3$}
+                        \dproof
+                \end{itemize}
+                For example, consider the small-step evaluation of;
+                \begin{center}
+                    $(2 + 3) + (4 + 1) \to 5 + (4 + 1) \to 5 + 5 \to 10$
+                \end{center}
+                Note that the \textbf{evaluation path}, as above, is not the same as the \textbf{derivation tree}.
+                \smallskip
+
+                Given a relation $\to$, we can define the reflexive transitive closure of $\to$ as $\to^*$.
+                This has the rules such that $E \to^* E^\prime$ holds directly (such that there are no steps of evaluation needed to get from $E$ to $E^\prime$), or that there is some finite sequence;
+                \begin{center}
+                    $E \to E_1 \to E_2 \to ... \to E_k \to E^\prime$
+                \end{center}
+                We can say that $n$ is the final answer of $E$ if $E \to^* n$.
+                While this definition is intuitive, the "$...$" in the sequence above is informal.
+                Also, it is important to note that $E = E^\prime$ is allowed when $E \to^* E^\prime$, and therefore we can have $n \to^* n$, but $n \not\to n$, since the reflexive transitive closure can do 0, 1, or many steps.
+                We say that some expression $E$ is in \textbf{normal form}, and \textbf{irreducible} if $\neg \exists E^\prime [E \to E^\prime]$.
+                The normal form of expressions are numbers.
+                Similar to $\Downarrow$, we also have some properties on $\to$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{determinancy} \hfill $\forall E, E_1, E_2 [E \to E_1 \land E \to E_2 \Rightarrow E_1 = E_2]$
+                        \subitem with big-step, it was with respect to numbers, but here it is with respect to all the small computational steps
+                    \item \textbf{confluence} \hfill $\forall E, E_1, E_2 [E \to^* E_1 \land E \to^* E_2 \Rightarrow \exists E^\prime [E_1 \to^* E^\prime \land E^2 \to^* E^\prime]]$
+                    \item \textbf{(strong) normalisation}
+                        \subitem tehre are no infinite sequences of expressions, which means that any evaluation path will evntually reach a normal form
+                    \item \textbf{theorem} \hfill $\forall E, n_1, n_2 [E \to^* n_1 \land E \to^* n_2 \rightarrow n_1 = n_2]$
+                \end{itemize}
+                The general theorem, coming back to the denotational semantics, is that $\forall E, n [E \Downarrow n \Leftrightarrow E \to^* n]$.
+
+
+\end{document}
