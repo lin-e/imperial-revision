@@ -172,7 +172,7 @@
                     \end{cases}
                 \end{align*}
                 We can go from the Halting Problem to Entscheidungproblem, in order to prove unsolvability.
-                This is done by encoding pairs $(A, D)$ of the Halting Problem as first-order logic statements $\Phi_{A, D}$ with the special property $\Phi_{A, D} \text{ is provable} \leftrightarrow A(D) \downarrow$.
+                This is done by encoding pairs $(A, D)$ of the Halting Problem as first-order logic statements $\Phi_{A, D}$ with the special property $\Phi_{A, D} \text{ is provable} \Leftrightarrow A(D) \downarrow$.
                 Any algorithm that decides the provability of usch statements is usable to decide the Halting Problem, therefore no such algorithm exists.
             \subsubsection*{Hilbert's 10th Problem}
                 A simpler proof of the Halting Problem uses Minsky and Lambek's register machines.
@@ -262,9 +262,9 @@
                 We have some properties on $\Downarrow$;
                 \begin{itemize}
                     \itemsep0em
-                    \item \textbf{determinancy} \hfill $\forall E, n_1, n_2 [E \Downarrow n_1 \land E \downarrow n_2 \Rightarrow n_1 = n_2]$
+                    \item \textbf{determinancy} \hfill $\forall E, n_1, n_2 [E \Downarrow n_1 \land E \Downarrow n_2 \Rightarrow n_1 = n_2]$
                         \subitem this is the idea of something being deterministic, the same comment about probabilistic programming applies here too
-                    \item \textbf{totality} \hfill $\forall E \exists n [E \downarrow n]$
+                    \item \textbf{totality} \hfill $\forall E \exists n [E \Downarrow n]$
                         \subitem this holds for SimpleExp, but doesn't hold for the while language, as there can be a loop that doesn't terminate
                 \end{itemize}
             \subsubsection*{Small-step}
@@ -308,7 +308,7 @@
                     \item \textbf{confluence} \hfill $\forall E, E_1, E_2 [E \to^* E_1 \land E \to^* E_2 \Rightarrow \exists E^\prime [E_1 \to^* E^\prime \land E^2 \to^* E^\prime]]$
                     \item \textbf{(strong) normalisation}
                         \subitem tehre are no infinite sequences of expressions, which means that any evaluation path will evntually reach a normal form
-                    \item \textbf{theorem} \hfill $\forall E, n_1, n_2 [E \to^* n_1 \land E \to^* n_2 \rightarrow n_1 = n_2]$
+                    \item \textbf{theorem} \hfill $\forall E, n_1, n_2 [E \to^* n_1 \land E \to^* n_2 \Rightarrow n_1 = n_2]$
                 \end{itemize}
                 The general theorem, coming back to the denotational semantics, is that $\forall E, n [E \Downarrow n \Leftrightarrow E \to^* n]$.
 
