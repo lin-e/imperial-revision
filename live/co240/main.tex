@@ -307,10 +307,94 @@
                         \subitem with big-step, it was with respect to numbers, but here it is with respect to all the small computational steps
                     \item \textbf{confluence} \hfill $\forall E, E_1, E_2 [E \to^* E_1 \land E \to^* E_2 \Rightarrow \exists E^\prime [E_1 \to^* E^\prime \land E^2 \to^* E^\prime]]$
                     \item \textbf{(strong) normalisation}
-                        \subitem tehre are no infinite sequences of expressions, which means that any evaluation path will evntually reach a normal form
+                        \subitem there are no infinite sequences of expressions, which means that any evaluation path will evntually reach a normal form
                     \item \textbf{theorem} \hfill $\forall E, n_1, n_2 [E \to^* n_1 \land E \to^* n_2 \Rightarrow n_1 = n_2]$
                 \end{itemize}
                 The general theorem, coming back to the denotational semantics, is that $\forall E, n [E \Downarrow n \Leftrightarrow E \to^* n]$.
+        \section*{10th October 2019 \hfill Tutorial}
+        \begin{enumerate}[1.]
+            \itemsep0em
+            \item Find $n$ such that $(4 + 1) + (2 + 2) \Downarrow \violet{n}$
+                \subitem When you do big-step evaluation, you go up, to the right, and then back down.
+                \subitem
+                            \axiom{$4 \Downarrow \violet{4}$}
+                            \axiom{$1 \Downarrow \violet{1}$}
+                        \binary{$(4 + 1) \Downarrow \violet{5}$}
+                            \axiom{$2 \Downarrow \violet{2}$}
+                            \axiom{$2 \Downarrow \violet{2}$}
+                        \binary{$(2 + 2) \Downarrow \violet{4}$}
+                    \binary{$(4 + 1) + (2 + 2) \Downarrow \violet{9}$}
+                    \dproof
+            \item Prove $(3 + 2) \times (1 + 4) \Downarrow \violet{25}$
+                \subitem
+                            \axiom{$3 \Downarrow \violet{3}$}
+                            \axiom{$2 \Downarrow \violet{2}$}
+                        \binary{$(3 + 2) \Downarrow \violet{5}$}
+                            \axiom{$1 \Downarrow \violet{1}$}
+                            \axiom{$4 \Downarrow \violet{4}$}
+                        \binary{$(1 + 4) \Downarrow \violet{5}$}
+                    \binary{$(3 + 2) \times (1 + 4) \Downarrow \violet{25}$}
+                    \dproof
+            \item Extending big-step semantics for subtraction;
+                \subitem
+                        \axiom{$E_1 \Downarrow \violet{n_1}$}
+                        \axiom{$E_2 \Downarrow \violet{n_2}$}
+                    \binary{$E_3 \Downarrow \violet{n_3}$}
+                    \dproof
+                    \hfill
+                        \axiom{$E_1 \Downarrow \violet{n_1}$}
+                        \axiom{$E_2 \Downarrow \violet{n_2}$}
+                    \binary{$E_3 \Downarrow \violet{n_3}$}
+                    \dproof
+                    \smallskip
+
+                    When $\violet{n_1 \geq n_2}$, then $\violet{n_3 = n_1 - n_2}$
+                    \hfill
+                    When $\violet{n_1 < n_2}$, then $\violet{n_3 =\ ?}$
+                    \smallskip
+
+                    To handle the second case, we can deal with it in a number of ways, to keep it total.
+                    Below are a few methods, and their outcomes;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item $\violet{= n_2 - n_1}$
+                            \subitem this keeps it total, however can lead to unexpected behaviour as the number ends up positive; for example $(5 - 7) + 10 = 12$
+                        \item $\violet{= 0}$
+                            \subitem this also keeps it total, however it also leads to different unexpected beaviour in the sense that $(5 - 7) + 10 = 10$
+                        \item $\violet{=} ~NaN~$
+                            \subitem if we have an error value, ~NaN~ in this case, we have to add rules to propagate this, which can be seen in the example below;
+                            \begin{center}
+                                    \axiom{$E_1 \Downarrow ~NaN~$}
+                                    \axiom{$E_2 \Downarrow \violet{n}$}
+                                \binary{$E_1 \pm E_2 \Downarrow ~NaN~$}
+                                \dproof
+                            \end{center}
+                        \item extend it to all numbers
+                    \end{itemize}
+            \item Sound was broken for this part on Panopto.
+                \subitem $((1 + 2) + (4 + 3)) \to 3 + (4 + 3) \to 3 + 7 \to 10$
+            \setcounter{enumi}{5}
+            \item Suppose ~SimpleExp~ is extended with ?, such that $E \in ~SimpleExp~ ::= ...\bnfsep (E ~ ? ~ E)$,
+                \subitem
+                    Note that the right hand side of $\Downarrow$ has to be a number, and therefore cannot be an expression.
+                    The example below captures the idea of non-determinism, as it can evaluate to either the left or the right expression.
+                \begin{enumerate}[(a)]
+                    \itemsep0em
+                    \item Extending the big-step operation semantics to capture both $(1 + 2) ~ ? ~ 4 \Downarrow \violet{3}$, and also the outcome $(1 + 2) ~ ? ~ 4 \Downarrow \violet{4}$;
+                        \subitem
+                                \axiom{$E_1 \Downarrow \violet{n_1}$}
+                            \unary{$E_1 ~ ? ~ E_2 \Downarrow \violet{n_1}$}
+                            \dproof
+                            \hfill
+                                \axiom{$E_2 \Downarrow \violet{n_2}$}
+                            \unary{$E_1 ~ ? ~ E_2 \Downarrow \violet{n_2}$}
+                            \dproof
+                    \item To give all possible derivation trees, in the case of this question, you just have to give all combinations of the left and right sides.
+                    \item
+                        This isn't deterministic, as in the cases above, $E_1 ~ ? ~ E_2$ can evaluate to either $\violet{n_1}$ or $\violet{n_2}$, and the two have no guarantee of being equal.
+                        However, it is total, as it will evaluate to something, given that all the expressions involved do evaluate to something (since it will always be one of two options).
+                \end{enumerate}
+        \end{enumerate}
 
 
 \end{document}
