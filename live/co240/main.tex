@@ -63,6 +63,8 @@
 
 \newcommand{\powerset}[0]{\wp}
 \renewcommand{\emptyset}[0]{\varnothing}
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
 
 \newcommand{\mat}[1]{\mathbf{#1}}
 \newcommand{\rowt}[1]{\begin{bmatrix}
@@ -75,6 +77,7 @@
 \newcommand{\trinary}[1]{\TrinaryInfC{#1}}
 \newcommand{\dproof}[0]{\DisplayProof}
 \newcommand{\bnfsep}[0]{\ |\ }
+\newcommand{\concsep}[0]{\ ||\ }
 
 \newcommand{\violet}[1]{\textcolor{violet}{#1}}
 
@@ -130,7 +133,7 @@
 % actual document
 \begin{document}
     \section*{CO240 - Models of Computation}
-        \section*{9th October 2019 \hfill Lecture}
+        \subsection*{9th October 2019 \hfill Lecture}
             \subsubsection*{Hilbert's Entscheidungproblem}
                 \textit{Is there an algorithm, when fed any statement in the formal laguage of first-order logic, determines in a finite number of steps whether or not the statement is provable, using the usual rules of first-order logic?}
 
@@ -270,15 +273,15 @@
             \subsubsection*{Small-step}
                 \begin{itemize}
                     \itemsep0em
-                    \item (S-LEFT) \hfill
+                    \item (\textsc{s-left}) \hfill
                             \axiom{$E_1 \to E_1^\prime$}
                         \unary{$E_1 + E_2 \to E_1^\prime + E_2$}
                         \dproof
-                    \item (S-RIGHT) \hfill
+                    \item (\textsc{s-right}) \hfill
                             \axiom{$E \to E^\prime$}
                         \unary{$n + E \to n + E^\prime$}
                         \dproof
-                    \item (S-ADD) $n_3 = n_1 + n_2$ \hfill
+                    \item (\textsc{s-add}) $n_3 = n_1 + n_2$ \hfill
                             \axiom{}
                         \unary{$n_1 + n_2 \to n_3$}
                         \dproof
@@ -312,89 +315,309 @@
                 \end{itemize}
                 The general theorem, coming back to the denotational semantics, is that $\forall E, n [E \Downarrow n \Leftrightarrow E \to^* n]$.
         \section*{10th October 2019 \hfill Tutorial}
-        \begin{enumerate}[1.]
-            \itemsep0em
-            \item Find $n$ such that $(4 + 1) + (2 + 2) \Downarrow \violet{n}$
-                \subitem When you do big-step evaluation, you go up, to the right, and then back down.
-                \subitem
-                            \axiom{$4 \Downarrow \violet{4}$}
-                            \axiom{$1 \Downarrow \violet{1}$}
-                        \binary{$(4 + 1) \Downarrow \violet{5}$}
-                            \axiom{$2 \Downarrow \violet{2}$}
-                            \axiom{$2 \Downarrow \violet{2}$}
-                        \binary{$(2 + 2) \Downarrow \violet{4}$}
-                    \binary{$(4 + 1) + (2 + 2) \Downarrow \violet{9}$}
-                    \dproof
-            \item Prove $(3 + 2) \times (1 + 4) \Downarrow \violet{25}$
-                \subitem
-                            \axiom{$3 \Downarrow \violet{3}$}
-                            \axiom{$2 \Downarrow \violet{2}$}
-                        \binary{$(3 + 2) \Downarrow \violet{5}$}
-                            \axiom{$1 \Downarrow \violet{1}$}
-                            \axiom{$4 \Downarrow \violet{4}$}
-                        \binary{$(1 + 4) \Downarrow \violet{5}$}
-                    \binary{$(3 + 2) \times (1 + 4) \Downarrow \violet{25}$}
-                    \dproof
-            \item Extending big-step semantics for subtraction;
-                \subitem
-                        \axiom{$E_1 \Downarrow \violet{n_1}$}
-                        \axiom{$E_2 \Downarrow \violet{n_2}$}
-                    \binary{$E_3 \Downarrow \violet{n_3}$}
-                    \dproof
-                    \hfill
-                        \axiom{$E_1 \Downarrow \violet{n_1}$}
-                        \axiom{$E_2 \Downarrow \violet{n_2}$}
-                    \binary{$E_3 \Downarrow \violet{n_3}$}
-                    \dproof
-                    \smallskip
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item Find $n$ such that $(4 + 1) + (2 + 2) \Downarrow \violet{n}$
+                    \subitem When you do big-step evaluation, you go up, to the right, and then back down.
+                    \subitem
+                                \axiom{$4 \Downarrow \violet{4}$}
+                                \axiom{$1 \Downarrow \violet{1}$}
+                            \binary{$(4 + 1) \Downarrow \violet{5}$}
+                                \axiom{$2 \Downarrow \violet{2}$}
+                                \axiom{$2 \Downarrow \violet{2}$}
+                            \binary{$(2 + 2) \Downarrow \violet{4}$}
+                        \binary{$(4 + 1) + (2 + 2) \Downarrow \violet{9}$}
+                        \dproof
+                \item Prove $(3 + 2) \times (1 + 4) \Downarrow \violet{25}$
+                    \subitem
+                                \axiom{$3 \Downarrow \violet{3}$}
+                                \axiom{$2 \Downarrow \violet{2}$}
+                            \binary{$(3 + 2) \Downarrow \violet{5}$}
+                                \axiom{$1 \Downarrow \violet{1}$}
+                                \axiom{$4 \Downarrow \violet{4}$}
+                            \binary{$(1 + 4) \Downarrow \violet{5}$}
+                        \binary{$(3 + 2) \times (1 + 4) \Downarrow \violet{25}$}
+                        \dproof
+                \item Extending big-step semantics for subtraction;
+                    \subitem
+                            \axiom{$E_1 \Downarrow \violet{n_1}$}
+                            \axiom{$E_2 \Downarrow \violet{n_2}$}
+                        \binary{$E_3 \Downarrow \violet{n_3}$}
+                        \dproof
+                        \hfill
+                            \axiom{$E_1 \Downarrow \violet{n_1}$}
+                            \axiom{$E_2 \Downarrow \violet{n_2}$}
+                        \binary{$E_3 \Downarrow \violet{n_3}$}
+                        \dproof
+                        \smallskip
 
-                    When $\violet{n_1 \geq n_2}$, then $\violet{n_3 = n_1 - n_2}$
-                    \hfill
-                    When $\violet{n_1 < n_2}$, then $\violet{n_3 =\ ?}$
-                    \smallskip
+                        When $\violet{n_1 \geq n_2}$, then $\violet{n_3 = n_1 - n_2}$
+                        \hfill
+                        When $\violet{n_1 < n_2}$, then $\violet{n_3 =\ ?}$
+                        \smallskip
 
-                    To handle the second case, we can deal with it in a number of ways, to keep it total.
-                    Below are a few methods, and their outcomes;
-                    \begin{itemize}
+                        To handle the second case, we can deal with it in a number of ways, to keep it total.
+                        Below are a few methods, and their outcomes;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $\violet{= n_2 - n_1}$
+                                \subitem this keeps it total, however can lead to unexpected behaviour as the number ends up positive; for example $(5 - 7) + 10 = 12$
+                            \item $\violet{= 0}$
+                                \subitem this also keeps it total, however it also leads to different unexpected beaviour in the sense that $(5 - 7) + 10 = 10$
+                            \item $\violet{=} ~NaN~$
+                                \subitem if we have an error value, ~NaN~ in this case, we have to add rules to propagate this, which can be seen in the example below;
+                                \begin{center}
+                                        \axiom{$E_1 \Downarrow ~NaN~$}
+                                        \axiom{$E_2 \Downarrow \violet{n}$}
+                                    \binary{$E_1 \pm E_2 \Downarrow ~NaN~$}
+                                    \dproof
+                                \end{center}
+                            \item extend it to all numbers
+                        \end{itemize}
+                \item Sound was broken for this part on Panopto.
+                    \subitem $((1 + 2) + (4 + 3)) \to 3 + (4 + 3) \to 3 + 7 \to 10$
+                \setcounter{enumi}{5}
+                \item Suppose ~SimpleExp~ is extended with ?, such that $E \in ~SimpleExp~ ::= ...\bnfsep (E ~ ? ~ E)$,
+                    \subitem
+                        Note that the right hand side of $\Downarrow$ has to be a number, and therefore cannot be an expression.
+                        The example below captures the idea of non-determinism, as it can evaluate to either the left or the right expression.
+                    \begin{enumerate}[(a)]
                         \itemsep0em
-                        \item $\violet{= n_2 - n_1}$
-                            \subitem this keeps it total, however can lead to unexpected behaviour as the number ends up positive; for example $(5 - 7) + 10 = 12$
-                        \item $\violet{= 0}$
-                            \subitem this also keeps it total, however it also leads to different unexpected beaviour in the sense that $(5 - 7) + 10 = 10$
-                        \item $\violet{=} ~NaN~$
-                            \subitem if we have an error value, ~NaN~ in this case, we have to add rules to propagate this, which can be seen in the example below;
-                            \begin{center}
-                                    \axiom{$E_1 \Downarrow ~NaN~$}
-                                    \axiom{$E_2 \Downarrow \violet{n}$}
-                                \binary{$E_1 \pm E_2 \Downarrow ~NaN~$}
+                        \item Extending the big-step operation semantics to capture both $(1 + 2) ~ ? ~ 4 \Downarrow \violet{3}$, and also the outcome $(1 + 2) ~ ? ~ 4 \Downarrow \violet{4}$;
+                            \subitem
+                                    \axiom{$E_1 \Downarrow \violet{n_1}$}
+                                \unary{$E_1 ~ ? ~ E_2 \Downarrow \violet{n_1}$}
                                 \dproof
-                            \end{center}
-                        \item extend it to all numbers
-                    \end{itemize}
-            \item Sound was broken for this part on Panopto.
-                \subitem $((1 + 2) + (4 + 3)) \to 3 + (4 + 3) \to 3 + 7 \to 10$
-            \setcounter{enumi}{5}
-            \item Suppose ~SimpleExp~ is extended with ?, such that $E \in ~SimpleExp~ ::= ...\bnfsep (E ~ ? ~ E)$,
-                \subitem
-                    Note that the right hand side of $\Downarrow$ has to be a number, and therefore cannot be an expression.
-                    The example below captures the idea of non-determinism, as it can evaluate to either the left or the right expression.
-                \begin{enumerate}[(a)]
+                                \hfill
+                                    \axiom{$E_2 \Downarrow \violet{n_2}$}
+                                \unary{$E_1 ~ ? ~ E_2 \Downarrow \violet{n_2}$}
+                                \dproof
+                        \item To give all possible derivation trees, in the case of this question, you just have to give all combinations of the left and right sides.
+                        \item
+                            This isn't deterministic, as in the cases above, $E_1 ~ ? ~ E_2$ can evaluate to either $\violet{n_1}$ or $\violet{n_2}$, and the two have no guarantee of being equal.
+                            However, it is total, as it will evaluate to something, given that all the expressions involved do evaluate to something (since it will always be one of two options).
+                    \end{enumerate}
+            \end{enumerate}
+        \subsection*{16th October 2019 \hfill Lecture}
+            \subsubsection*{States}
+                We define a state as a partial function, which is finite (despite our common assumption that resources are infinite).
+                For example, we can look at a store like;
+                \begin{center}
+                    $s = (a \mapsto 4, b \mapsto 3, ...,x \mapsto 4, y \mapsto 5, z \mapsto 6)$
+                \end{center}
+                We can also denote an update to the store as such, where the value ($x$) is updated to 7, or is inserted into the store, if it didn't exist before.
+                \begin{align*}
+                    S[x \mapsto 7](u) & =
+                    \begin{cases}
+                        7 & \text{if } u = x \\
+                        s(u) & \text{otherwise}
+                    \end{cases}
+                \end{align*}
+                Small-step semantics for the While language are defined with \textbf{configurations}, written in the form $\la E, s \ra$, $\la B, s \ra$, and $\la C, s \ra$, where the expressions $E$, $B$, and $C$ are evaluated with respect to the state $s$.
+                This, $\la E, s \ra$ can be read as "I want the behaviour of $E$ in the context I have variable store $s$".
+            \subsubsection*{Small-step}
+                It's important to note that these are very similar to the rules defined for SimpleExp, but with the addition of the (W-EXP.VAR) case, in which we look up values in the variable store.
+                \begin{itemize}
                     \itemsep0em
-                    \item Extending the big-step operation semantics to capture both $(1 + 2) ~ ? ~ 4 \Downarrow \violet{3}$, and also the outcome $(1 + 2) ~ ? ~ 4 \Downarrow \violet{4}$;
-                        \subitem
-                                \axiom{$E_1 \Downarrow \violet{n_1}$}
-                            \unary{$E_1 ~ ? ~ E_2 \Downarrow \violet{n_1}$}
+                    \item (\sc w-exp.left) \hfill
+                            \axiom{$\la E_1, s \ra \to_e \la E_1^\prime, s^\prime \ra$}
+                        \unary{$\la E_1 + E_2, s \ra \to_e \la E_1^\prime + E_2, s^\prime \ra$}
+                        \dproof
+                    \item (\sc w-exp.right) \hfill
+                            \axiom{$\la E, s \ra \to_e \la E^\prime, s^\prime \ra$}
+                        \unary{$\la n + E, s \ra \to_e \la n + E^\prime, s^\prime \ra$}
+                        \dproof
+                    \item (\sc w-exp.add) $n_3 = n_1 + n_2$ \hfill
+                            \axiom{}
+                        \unary{$\la n_1 + n_2, s \ra \to_e \la n_3, s \ra$}
+                        \dproof
+                    \item (\sc w-exp.var) $s(x) = n$ \hfill
+                            \axiom{}
+                        \unary{$\la x, s \ra \to_e \la n, s \ra$}
+                        \dproof
+                \end{itemize}
+                An important note from the lecturer is that the notation changes all the time, and can vary from text to text.
+                It's much more important to gain an understanding of the concepts, rather than to memorise the notation itself.
+                Consider the small-step evaluation for the following statement;
+                \begin{center}
+                    $\la (4 + x) + (y + 2), (x \mapsto 2, y \mapsto 3) \to_\text{derivation} \la (4 + 2) + (y + 3), s \ra$
+                \end{center}
+                The single $\to_\text{derivation}$ has to be done through the following steps, which we evaluate going up, to the right, and back down;
+                \begin{center}
+                            \axiom{$\la x, s \ra \to \la 2, s \ra$}
+                        \unary{$\la 4 + x, s \ra \to \la 4 + 2, s \ra$}
+                    \unary{$\la (4 + x) + (y + 2), s \ra \to \la (4 + 2) + (y + 2), s \ra$}
+                    \dproof
+                \end{center}
+                The full evaluation chain for the follow statement would be;
+                \begin{center}
+                    $\la (4 + x) + (y + 2), s \ra \to \la (4 + 2) + (y + 2), s \ra \to \la 6 + (y + 2), s \ra \to \la 6 + (3 + 2), s \ra \to \la 6 + 5, s \ra \to \la 11, s \ra$
+                \end{center}
+                The following rules can be extended to the booleans (the $E_1 = E_2$ case) as below; note that there are two cases to the numeric equality step.
+                It is also important to note that when creating rules, the terminal states (~true~ and ~false~) in our case, are \textbf{never} on the left hand side of the step.
+                \begin{itemize}
+                    \itemsep0em
+                    \item LHS isn't fully evaluated ($E_1 = E_2$)
+                        \begin{center}
+                                \axiom{$\la E_1, s \ra \to_e \la E_1^\prime, s^\prime \ra$}
+                            \unary{$\la E_1 = E_2, s \ra \to_b \la E_1^\prime = E_2, s^\prime \ra$}
+                            \dproof
+                        \end{center}
+                    \item LHS is fully evaluated ($n = E$)
+                        \begin{center}
+                                \axiom{$\la E, s \ra \to_e \la E^\prime, s^\prime \ra$}
+                            \unary{$\la n = E, s \ra \to_b \la n = E^\prime, s^\prime \ra$}
+                            \dproof
+                        \end{center}
+                    \item Both sides are fully evaluated ($n_1 = n_2$)
+                        \begin{center}
+                                \axiom{$\violet{n_1 = n_2}$}
+                            \unary{$\la n_1 = n_2, s \ra \to_b \la ~true~, s \ra$}
                             \dproof
                             \hfill
-                                \axiom{$E_2 \Downarrow \violet{n_2}$}
-                            \unary{$E_1 ~ ? ~ E_2 \Downarrow \violet{n_2}$}
+                                \axiom{$\violet{n_1 \neq n_2}$}
+                            \unary{$\la n_1 = n_2, s \ra \to_b \la ~false~, s \ra$}
                             \dproof
-                    \item To give all possible derivation trees, in the case of this question, you just have to give all combinations of the left and right sides.
+                        \end{center}
+                \end{itemize}
+                We can also derive a similar set of rules for boolean composition ($B \& B$).
+                Note that we are not doing any short-circuiting in our evaluation as that would require adding additional rules, however it is possible.
+                \begin{itemize}
+                    \itemsep0em
+                    \item LHS isn't fully evaluated ($B_1 \& B_2$)
+                        \begin{center}
+                                \axiom{$\la B_1, s \ra \to_b \la B_1^\prime, s^\prime \ra$}
+                            \unary{$\la B_1 \& B_2, s \ra \to_b \la B_1^\prime \& B_2, s^\prime \ra$}
+                            \dproof
+                        \end{center}
+                    \item LHS is fully evaluated ($b \& B$)
+                        \begin{center}
+                                \axiom{$\la B, s \ra \to_b \la B^\prime, s^\prime \ra$}
+                            \unary{$\la b \& B, s \ra \to_b \la b \& B^\prime, s^\prime \ra$}
+                            \dproof
+                        \end{center}
+                    \item Both sides are fully evaluated ($b_1 \& b_2$), note that $\violet{b_3 = b_1 \land b_2}$
+                        \begin{center}
+                                \axiom{}
+                            \unary{$\la b_1 \& b_2, s \ra \to_b \la b_3, s \ra$}
+                            \dproof
+                        \end{center}
+                \end{itemize}
+                For assignments, we have another set of rules, which update the variables in the store;
+                \begin{itemize}
+                    \itemsep0em
+                    \item (\textsc{w-ass.exp}) \hfill
+                            \axiom{$\la E, s \ra \to_e \la E^\prime, s^\prime \ra$}
+                        \unary{$\la x := E, s \ra \to_c \la x := E^\prime, s^\prime \ra$}
+                        \dproof
+                    \item (\textsc{w-ass.num}) \hfill
+                            \axiom{}
+                        \unary{$\la x := n, s \ra \to_c \la ~skip~, s[x \mapsto n] \ra$}
+                        \dproof
+                \end{itemize}
+                Similarly for sequential composition ($C;C$), we have the rules as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item (\textsc{w-seq.left}) \hfill
+                            \axiom{$\la C_1, s \ra \to_c \la C_1^\prime, s^\prime \ra$}
+                        \unary{$\la C_1;C_2, s \ra \to_c \la C_1^\prime;C_2, s^\prime \ra$}
+                        \dproof
+                    \item (\textsc{w-seq.skip}) \hfill
+                            \axiom{}
+                        \unary{$\la ~skip~;C_2, s \ra \to_c \la C_2, s \ra$}
+                        \dproof
+                \end{itemize}
+                A more complex set of rules working on commands is the conditional case;
+                \begin{itemize}
+                    \itemsep0em
+                    \item (\textsc{w-cond.true}) \hfill
+                            \axiom{}
+                        \unary{$\la ~if true then ~ C_1 ~ else ~ C_2, s \ra \to_c \la C_1, s \ra$}
+                        \dproof
+                    \item (\textsc{w-cond.false}) \hfill
+                            \axiom{}
+                        \unary{$\la ~if false then ~ C_1 ~ else ~ C_2, s \ra \to_c \la C_2, s \ra$}
+                        \dproof
+                    \item (\textsc{w-cond.bexp}) \hfill
+                            \axiom{$\la B, s \ra \to_b \la B^\prime, s^\prime \ra$}
+                        \unary{$\la ~if ~ B ~ then ~ C_1 ~ else ~ C_2, s \ra \to_c \la ~if ~ B^\prime ~ then ~ C_1 ~ else ~ C_2, s^\prime \ra$}
+                        \dproof
+                \end{itemize}
+                The while case is trickier, and note that the following is \textbf{not} a computation step, but is rather unfolding the command;
+                \begin{itemize}
+                    \itemsep0em
+                    \item (\textsc{w-while}) \hfill
+                            \axiom{}
+                        \unary{$\la ~while ~ B ~ do ~ C, s \ra \to_c \la ~if ~ B ~ then ~ (C; ~while ~ B ~ do ~ C) ~ else skip~, s$}
+                        \dproof
+                \end{itemize}
+            \subsection*{16th October 2019 \hfill Tutorial}
+                \begin{enumerate}[1.]
+                    \itemsep0em
                     \item
-                        This isn't deterministic, as in the cases above, $E_1 ~ ? ~ E_2$ can evaluate to either $\violet{n_1}$ or $\violet{n_2}$, and the two have no guarantee of being equal.
-                        However, it is total, as it will evaluate to something, given that all the expressions involved do evaluate to something (since it will always be one of two options).
+                        Consider the evaluation of $(z := x; x := y); y := z$, and the start state $s = (x \mapsto 5, y \mapsto 7)$;
+                        We end up with the following derivation tree, for the first step;
+
+                        \begin{center}
+                                        \axiom{$\la x, s \ra \to_e \la 5, s \ra$}
+                                    \unary{$\la z := x, s \ra \to_c \la z := 5, s \ra$}
+                                \unary{$\la z := x; x := y, s \ra \to_c \la z := 5; x := y, s \ra$}
+                            \unary{$\la (z := x; x := y); y := z, s \ra \to_c \la (z := 5; x := y); y := z, s \ra$}
+                            \dproof
+                        \end{center}
+                    \item There's a long question on (\textsc{w-while}), but I'm too lazy to type it out.
+                    \item In this question, we analyse operators which have side effects, such as the incrementing operator;
+                        \begin{center}
+                            (\textsc{w-exp.pp})
+                                \axiom{}
+                            \unary{$\la x~++~, s \ra \to_e \la n, s[x \mapsto n^\prime] \ra$}
+                            \dproof
+                            $n = s(x), n^\prime = n + 1$
+                        \end{center}
+                        It first returns the value associated with $x$ in the store $s$, and then reassigns $x$ in the store to the original value $+ 1$.
+
+                        For example, we can evaluate $x := (x~++~) + (x~++~)$ as such;
+                        \begin{align*}
+                            \la x := (x~++~) + (x~++~), (x \mapsto 2) \ra & \to_c \\
+                            \la x := 2 + (x~++~), (x \mapsto 3) \ra & \to_c \\
+                            \la x := 2 + 3, (x \mapsto 4) \ra & \to_c \\
+                            \la x := 5, (x \mapsto 4) & \to_c \\
+                            \la ~skip~, (x \mapsto 5) \ra
+                        \end{align*}
                 \end{enumerate}
-        \end{enumerate}
+            \subsection*{17th October 2019 \hfill Tutorial}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \setcounter{enumi}{4}
+                    \item In this question, we consider the ideas of parallelism, and interleaving;
+                        \begin{itemize}
+                            \item LHS evaluated first \hfill
+                                    \axiom{$\la C_1, s \ra \to_c \la C_1^\prime, s^\prime \ra$}
+                                \unary{$\la C_1 \concsep C_2, s \ra \to_c \la C_1^\prime \concsep C_2, s^\prime \ra$}
+                                \dproof
+                            \item RHS evaluated first \hfill
+                                    \axiom{$\la C_2, s \ra \to_c \la C_2^\prime, s^\prime \ra$}
+                                \unary{$\la C_1 \concsep C_2, s \ra \to_c \la C_1 \concsep C_2^\prime, s^\prime \ra$}
+                                \dproof
+                            \item Collapsing after both sides are complete \hfill
+                                    \axiom{}
+                                \unary{$\la ~skip~ \concsep ~skip~, s \ra \to_c \la ~skip~, s \ra$}
+                                \dproof
+                        \end{itemize}
+                        Note that this is an example of non-determinism, as we can see with the following example.
+                        Consider the program $(x := 1) \concsep (x := 2; x := x + 2)$, with an initial state of $s = (x \mapsto 0)$, this can be evaulated to any of the three outcomes, where $x \mapsto$ 1, 3, or 4.
+                    \item
+                        Here we want to show that there can be $C$ which doesn't hold for $\la C, s \ra \to^*_c \la ~skip~, s^\prime \ra$.
+                        Let $C = ~while true do skip~$;
+                        \begin{align*}
+                            \la ~while true do skip~, s \ra & \to \\
+                            \la ~if true~\ (~skip~; ~while true do skip~), s \ra & \to_c \\
+                            \la ~skip~; ~while true do skip~, s \ra & \to_c \\
+                            \la ~while true do skip~, s \ra
+                        \end{align*}
 
+                        Now let us assume that there is some finite evaulation path that takes $n$ steps, such that $\la C, s \ra \to^* \la ~skip~, s^\prime \ra$, it follows that it can also take $n - 3$ steps, as it takes 3 steps in our evaulation above.
+                        However, as this is deterministic, we have a contradiction.
 
+                \end{enumerate}
 \end{document}
