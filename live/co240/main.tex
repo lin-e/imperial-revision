@@ -80,6 +80,8 @@
 \newcommand{\concsep}[0]{\ ||\ }
 
 \newcommand{\violet}[1]{\textcolor{violet}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
 
 % no indent
 \setlength\parindent{0pt}
@@ -243,15 +245,16 @@
                 Note that anything in \violet{violet} is mathematical (hence $\violet{n} \in \mathbb{N}$), and $\violet{+}$ is actual numeric addition.
                 \begin{itemize}
                     \itemsep0em
-                    \item (B-NUM) \hfill
+                    \item (\textsc{b-num}) \hfill
                             \axiom{}
                         \unary{$n \Downarrow \violet{n}$}
                         \dproof
-                    \item (B-ADD) $\violet{n_3 = n_1 + n_2}$ \hfill
+                    \item (\textsc{b-add}) \hfill
                             \axiom{$E_1 \Downarrow \violet{n_1}$}
                             \axiom{$E_2 \Downarrow \violet{n_2}$}
                         \binary{$E_1 + E_2 \Downarrow \violet{n_3}$}
                         \dproof
+                        $\violet{n_3 = n_1 + n_2}$
                 \end{itemize}
                 For example, we can prove $3 + (2 + 1) \Downarrow \violet{6}$, with the following derivation tree;
                 \begin{center}
@@ -265,7 +268,7 @@
                 We have some properties on $\Downarrow$;
                 \begin{itemize}
                     \itemsep0em
-                    \item \textbf{determinancy} \hfill $\forall E, n_1, n_2 [E \Downarrow n_1 \land E \Downarrow n_2 \Rightarrow n_1 = n_2]$
+                    \item \textbf{determinacy} \hfill $\forall E, n_1, n_2 [E \Downarrow n_1 \land E \Downarrow n_2 \Rightarrow n_1 = n_2]$
                         \subitem this is the idea of something being deterministic, the same comment about probabilistic programming applies here too
                     \item \textbf{totality} \hfill $\forall E \exists n [E \Downarrow n]$
                         \subitem this holds for SimpleExp, but doesn't hold for the while language, as there can be a loop that doesn't terminate
@@ -306,7 +309,7 @@
                 Similar to $\Downarrow$, we also have some properties on $\to$;
                 \begin{itemize}
                     \itemsep0em
-                    \item \textbf{determinancy} \hfill $\forall E, E_1, E_2 [E \to E_1 \land E \to E_2 \Rightarrow E_1 = E_2]$
+                    \item \textbf{determinacy} \hfill $\forall E, E_1, E_2 [E \to E_1 \land E \to E_2 \Rightarrow E_1 = E_2]$
                         \subitem with big-step, it was with respect to numbers, but here it is with respect to all the small computational steps
                     \item \textbf{confluence} \hfill $\forall E, E_1, E_2 [E \to^* E_1 \land E \to^* E_2 \Rightarrow \exists E^\prime [E_1 \to^* E^\prime \land E^2 \to^* E^\prime]]$
                     \item \textbf{(strong) normalisation}
@@ -615,7 +618,6 @@
                         \la ~skip~; ~while true do skip~, s \ra & \to_c \\
                         \la ~while true do skip~, s \ra
                     \end{align*}
-
                     Now let us assume that there is some finite evaluation path that takes $n$ steps, such that $\la C, s \ra \to^* \la ~skip~, s^\prime \ra$, it follows that it can also take $n - 3$ steps, as it takes 3 steps in our evaluation above.
                     However, as this is deterministic, we have a contradiction.
             \end{enumerate}
@@ -627,6 +629,156 @@
             Our base case for this language would be $\forall n . P(n)$; (essentially we want to prove that $P$ holds for an arbitrary $n \in \mathbb{N}$).
             Our first inductive case for this language would be to prove that $P(E_1 + E_2)$, assuming that $P(E_1)$, and $P(E_2)$ both hold.
             Similarly, for the second inductive case, we want to prove $P(E_1 \times E_2)$, with the same assumptions.
-            \subsubsection*{Determinancy}
+            \subsubsection*{Determinacy}
+                Formally, we want to prove the property on expressions $P(E) \triangleq \forall n_1, n_2 . [E \Downarrow n_1 \land E \Downarrow n_2 \Rightarrow n_1 = n_2]$.
+                This states that a simple expression cannot evaluate to more than one answer.
+                \smallskip
 
+                For the base case, we take an arbitrary $n$, and prove $P(n)$.
+                We also take arbitrary $n_1, n_2$, and assume that $n \Downarrow n_1$, and also $n \Downarrow n_2$.
+                However, with our rules for SimpleExp, the only way this can happen is if $n = n_1$, and also $n = n_2$, hence $n_1 = n_2$, therefore $P(n)$ holds for all $n$.
+                \smallskip
+
+                Now we can do the inductive case for $+$.
+                We first assume that $P(E_1)$ and $P(E_2)$ hold, with the goal of proving $P(E_1 + E_2)$.
+                We again take arbitrary $n_1, n_2$, and assume that $\blue{E_1 + E_2 \Downarrow n_1}$ and $\red{E_1 + E_2 \Downarrow n_1}$.
+                By pattern matching, with the case (\textsc{b-add}), we get the results that $\blue{E_1 \Downarrow n_{1,1}}$ and $\blue{E_2 \Downarrow n_{2,1}}$, with $\blue{n_{1,1} + n_{2,1} = n_1}$, as well as $\red{E_1 \Downarrow n_{1,2}}$ and $\red{E_2 \Downarrow n_{2,2}}$, with $\red{n_{1,2} + n_{2,2} = n_2}$.
+                However, due to our assumption that $P(E_1)$, and $P(E_2)$ both hold - we can say $n_{1,1} = n_{1,2}$, and $n_{2,1} = n_{2,2}$.
+                Hence, we can conclude that $n_1 = n_2$.
+                \smallskip
+
+                The inductive case for $\times$ is similar.
+        \subsection*{23rd October 2019 \hfill Tutorial}
+            \subsubsection*{Binary Trees}
+                \begin{align*}
+                    bT & ::= ~Node~ \bnfsep ~Branch~(bT, bT)
+                \end{align*}
+                We also define the following functions on these trees;
+                \begin{align*}
+                    \text{leaves}(~Node~) & = 1 \\
+                    \text{leaves}(~Branch~(T_1, T_2)) & = \text{leaves}(T_1) + \text{leaves}(T_2) \\
+                    \text{branches}(~Node~) & = 0 \\
+                    \text{branches}(~Branch~(T_1, T_2)) & = \text{branches}(T_1) + \text{branches}(T_2) + 1
+                \end{align*}
+                Our goal here is to prove $P(T) \triangleq \text{leaves}(T) = \text{branches}(T) + 1$ holds for all $T$.
+                \smallskip
+
+                The base case here is to prove $P(~Node~)$, which is to prove $\text{leaves}(~Node~) = \text{branches}(~Node~) + 1$.
+                By our function definitions, we have $1 = 0 + 1$, which is correct, hence we've proven the base case.
+                \smallskip
+
+                For the inductive step, we want to prove $P(~Branch~(T_1, T_2))$, which is to prove $\text{leaves}(~Branch~(T_1, T_2)) = \text{branches}(~Branch~(T_1, T_2)) + 1$.
+                We are to assume $P(T_1)$ and $P(T_2)$ hold, which means that $\text{leaves}(T_1) = \text{branches}(T_1) + 1$, and similar for $T_2$.
+                We use our function definitions to unfold $\text{leaves}(~Branch~(T_1, T_2)) = \text{branches}(~Branch~(T_1, T_2)) + 1$, into $\text{leaves}(T_1) + \text{leaves}(T_2) = \text{branches}(T_1) + \text{branches}(T_2) + 1 + 1$.
+                However, with our assumptions that $P(T_1)$, and $P(T_2)$ hold, we can do substitutions to obtain $\text{branches}(T_1) + 1 + \text{branches}(T_2) + 1 = \text{branches}(T_1) + \text{branches}(T_2) + 1 + 1$ - which is valid. \hfill $\blacksquare$
+            \subsubsection*{Totality}
+                This question refers back to SimpleExp.
+                \medskip
+
+                For totality, we want to show $\forall E . P(E)$, where $P(E) \triangleq \exists n . E \Downarrow n$
+                \smallskip
+
+                Our base case is $E = n_1$, where $n_1$ is an arbitrary $\mathbb{N}$.
+                To prove $P(n_1)$, we have $\exists n . n_1 \Downarrow n$.
+                By the rule (\textsc{b-num}), we have
+                    \axiom{}
+                \unary{$n_1 \Downarrow n_1$}
+                \dproof,
+                and therefore our $n$ is $n_1$.
+                \smallskip
+
+                Our inductive case $+$ (ignoring $\times$, as it is similar), is to prove $P(E_1 + E_2)$, which is $\exists n . E_1 + E_2 \Downarrow n$.
+                By our inductive hypothesis, we are have $P(E_1) \land P(E_2)$, hence $\exists n_1 . E_1 \Downarrow n_1 \land \exists n_2 . E_2 \Downarrow n_2$.
+                By using (\textsc{b-add}), we have $n_3 = n_1 + n_2$;
+                \begin{center}
+                        \axiom{$E_1 \Downarrow n_1$}
+                        \axiom{$E_2 \Downarrow n_2$}
+                    \binary{$E_1 + E_2 \Downarrow n_3$}
+                    \dproof
+                \end{center}
+        \subsection*{24th October 2019 \hfill Lecture}
+            Note that the slides weren't recorded on Panopto.
+            \subsubsection*{Determinacy}
+                We first define the property as follows;
+                \begin{center}
+                    $P(E) \triangleq \forall E_1, E_2 . E \to E_1 \land E \to E_2 \Rightarrow E_1 = E_2$
+                \end{center}
+                Our base case is to take $E = n$, where $n$ is an arbitrary $\mathbb{N}$.
+                However, note that we don't actually need to do anything to prove $P(n)$, as there aren't any steps to do from $n$, therefore the LHS of the implication never happens.
+                \smallskip
+
+                In the inductive $+$ case, we take $E = E_1^\prime + E_2^\prime$.
+                Our inductive hypothesis allows us to assume $P(E_1^\prime) \land P(E_2^\prime)$.
+                We first assume that $E_1^\prime + E_2^\prime \to E_1 \land E_1^\prime + E_2^\prime \to E_2$, for arbitrary $E_1, E_2$.
+                From here, we can analyse each case, and pattern match those to the small-step evaluation rules;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $E_1^\prime = n_1$ and $E_2^\prime = n_2$ \hfill (\textsc{s-add})
+                        \subitem Hence $E_1 = \violet{n_1 + n_2 = n_3} = E_2$
+                    \item $E_1^\prime = n_1$ and $E_2^\prime \neq n_2$ \hfill (\textsc{s-right})
+                        \subitem $E_2^\prime \to E_2^{\prime\prime}$, and $E_1 = n_1 + E_2^{\prime\prime}$
+                        \subitem $E_2^\prime \to E_2^{\prime\prime\prime}$, and $E_2 = n_1 + E_2^{\prime\prime\prime}$
+                        \subitem By our inductive hypothesis $P(E_2^\prime)$, we have $E_2^{\prime\prime} = E_2^{\prime\prime}$ hence $E_1 = E_2$
+                    \item $E_1^\prime \neq n$ \hfill (\textsc{s-left})
+                        \subitem $E_1^\prime \to E_1^{\prime\prime}$, and $E_1 = E_1^{\prime\prime} + E_2^\prime$
+                        \subitem $E_1^\prime \to E_1^{\prime\prime\prime}$, and $E_2 = E_1^{\prime\prime\prime} + E_2^\prime$
+                        \subitem By our inductive hypothesis $P(E_1^\prime)$, we have $E_1^{\prime\prime} = E_1^{\prime\prime}$ hence $E_1 = E_2$
+                \end{itemize}
+            \subsubsection*{Confluence}
+                We first define the property as follows;
+                \begin{center}
+                    $P(n) \triangleq \forall E_1, E_2, E . E \to_n E_1 \land E \to^* E_2 \Rightarrow \exists E^\prime . E_1 \to^* E^\prime \land E_2 \to^* E^\prime$
+                \end{center}
+                Note that we aren't doing structural induction, but rather mathematical induction on $n$.
+                \medskip
+
+                In our base case we want to prove $P(0)$.
+                As $n = 0$, we have $E = E_1$, and therefore we can let $E^\prime = E_2$.
+                This is justified such that we can do no steps to get from $E$ to $E_1$, and then however many steps from there to $E_2$ - better shown in the diagram below;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node (e) at (0, 0) {$E_{(1)}$};
+                        \node (e2) at (3, 0) {$E_2$};
+                        \node () at (1.6, 0.1) {*};
+                        \draw
+                        (e) edge[out=200, in=160, distance=1cm, loop, left] node{0} (e)
+                        (e) edge[bend left=22.5] (1.5, 0)
+                        (1.5, 0) edge[->, bend right=22.5] (e2);
+                    \end{tikzpicture}
+                \end{center} 
+                In the inductive case, we want to prove $P(k + 1)$, assuming $P(k)$.
+                Because we're in a case where there's one or more steps, we can add a $E_1^\prime$ in our path, which is $k$ steps away from $E$.
+                As we've assumed $P(k)$, it follows that there's some $E^{\prime\prime}$, such that $E_1^\prime \to^* E^{\prime\prime} \land E_2 \to^* E^{\prime\prime}$.
+                This can be shown in the following diagram;
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=1.5cm]
+                        \node (e) at (0, 0) {$E$};
+                        \node (e1p) at (-1, -1) {$E_1^\prime$};
+                        \node (e1) at (-2, -2) {$E_1$};
+                        \node (e2) at (2, -2) {$E_2$};
+                        \node (epp) at (0, -2) {$E^{\prime\prime}$};
+                        \node () at (1.1, -0.9) {*};
+                        \node () at (1.1, -1.9) {*};
+                        \node () at (-0.4, -1.4) {*};
+                        \draw
+                        (e) edge[->, above] node{$k$} (e1p)
+                        (e1p) edge[->] (e1)
+                        (e) edge[bend right=22.5] (1, -1)
+                        (1, -1) edge[->, bend left=22.5] (e2)
+                        (e2) edge[bend left=22.5] (1, -2)
+                        (1, -2) edge[->, bend right=22.5] (epp)
+                        (e1p) edge[bend left=22.5] (-0.5, -1.5)
+                        (-0.5, -1.5) edge[->, bend right=22.5] (epp);
+                    \end{tikzpicture}
+                \end{center}
+                Now we can analyse the two cases;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $E_1^\prime = E^{\prime\prime}$
+                        \subitem As we have $E_2 \to^* E^{\prime\prime}$, we get $E_2 \to^* E_1$, hence we can say $E^\prime = E_1$.
+                    \item $E_1^\prime \neq E^{\prime\prime}$
+                        \subitem
+                            As they aren't the same, we can add a step in the path, hence $E_1^\prime \to E_1 \to^* E^{\prime\prime}$ ($E_1$ must be the next step due to determinacy).
+                            Since we get $E_1 \to^* E^{\prime\prime}$, we can say $E^\prime = E^{\prime\prime}$.
+                \end{itemize}
 \end{document}
