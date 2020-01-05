@@ -781,4 +781,64 @@
                             As they aren't the same, we can add a step in the path, hence $E_1^\prime \to E_1 \to^* E^{\prime\prime}$ ($E_1$ must be the next step due to determinacy).
                             Since we get $E_1 \to^* E^{\prime\prime}$, we can say $E^\prime = E^{\prime\prime}$.
                 \end{itemize}
+        \subsection*{30th October 2019 \hfill Lecture}
+            \subsubsection*{SimpleExp}
+                In this part of the lecture, our goal is to connect $\Downarrow$, and $\to^*$ for SimpleExp.
+                Formally, we want to show;
+                \begin{center}
+                    $\forall E, n . E \Downarrow n \Leftrightarrow E \to^* n$
+                \end{center}
+
+                We first do the direction from $\Downarrow$ to $\to^*$, with the property $P(E) \triangleq \forall n . E \Downarrow n \Rightarrow E \to^* n$;
+                \medskip
+
+                There is almost no work to be done in the base case, where $E = n$, for some arbitrary $n \in \mathbb{N}$, as the big-step rule states that $n \Downarrow n$, and it takes 0 steps for $n$ to get to itself (in small-step).
+                \smallskip
+
+                For the inductive $+$ case, once again we are ignoring $\times$ as the results are quite similar, we take $E = E_1 + E_2$, with the inductive hypothesis $P(E_1) \land P(E_2)$.
+                If we take some arbitrary $n$, such that $E \Downarrow n$, our rules for big-step require there to be some $n_1, n_2$ which statisfy $E_1 \Downarrow n_1$, $E_2 \Downarrow n_2$, and $n = n_1 + n_2$ (\textsc{b-add}).
+                Additionally, due to our inductive hypothesis, we also get $E_1 \to^* n_1$, and also $E_2 \to^* n_2$.
+                Since we have $E_1 \to^* n_1$, we can apply lemma 1, using (\textsc{s-left}), $r$ times, such that we have $E_1 + E_2 \to^* n_1 + E_2$.
+                Similarly with lemma 2, using (\textsc{s-right}), we have $E_1 + E_2 \to^* n_1 + n_2$.
+                Finally, due to (\textsc{s-add}), $E_1 + E_2 \to^* n$.
+            \subsubsection*{While}
+                In the second part of the lecture, we're revisiting the rules for the While language, which has the BNFs as follows;
+                \begin{align*}
+                    B \in \text{Bool} & ::= ~true~ \bnfsep ~false~ \bnfsep E = E \bnfsep E < E \bnfsep B \& B \bnfsep \neg B \bnfsep ... \\
+                    E \in \text{Exp} & ::= x \bnfsep n \bnfsep E + E \bnfsep ... \\
+                    C \in \text{Com} & ::= x := E \bnfsep ~if ~ B ~ then ~ C ~ else ~ C \bnfsep C;C \bnfsep ~skip~ \bnfsep ~while ~ B ~ do ~ C
+                \end{align*}
+                This has the following big-step rules;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \hfill
+                            \axiom{$\la E, s \ra \Downarrow \la n, s^\prime \ra$}
+                        \unary{$\la x := E, s \ra \Downarrow \la s^\prime [x \mapsto n] \ra$}
+                        \dproof
+                    \item \hfill
+                            \axiom{$\la C_1, s \ra \Downarrow \la s^\prime \ra$}
+                            \axiom{$\la C_2, s^\prime \ra \Downarrow \la s^{\prime\prime} \ra$}
+                        \binary{$\la C_1; C_2, s \ra \Downarrow \la s^{\prime\prime} \ra$}
+                        \dproof
+                    \item \hfill
+                            \axiom{$\la B, s \ra \Downarrow \la ~true~, s^\prime \ra$}
+                            \axiom{$\la C_1, s^\prime \ra \Downarrow \la s^{\prime\prime} \ra$}
+                        \binary{$\la ~if ~ B ~ then ~ C_1 ~ else ~ C_2, s \ra \Downarrow \la s^{\prime\prime} \ra$}
+                        \dproof
+                    \item \hfill
+                            \axiom{$\la B, s \ra \Downarrow \la ~false~, s^\prime \ra$}
+                            \axiom{$\la C_2, s^\prime \ra \Downarrow \la s^{\prime\prime} \ra$}
+                        \binary{$\la ~if ~ B ~ then ~ C_1 ~ else ~ C_2, s \ra \Downarrow \la s^{\prime\prime} \ra$}
+                        \dproof
+                    \item \hfill
+                            \axiom{$\la B, s \ra \Downarrow \la ~true~, s^\prime \ra$}
+                            \axiom{$\la C, s^\prime \ra \Downarrow \la s^{\prime\prime} \ra$}
+                            \axiom{$\la ~while ~ B ~ do ~ C, s^{\prime\prime} \Downarrow \la s^{\prime\prime\prime} \ra$}
+                        \trinary{$\la ~while ~ B ~ do ~ C, s \ra \Downarrow \la s^{\prime\prime\prime} \ra$}
+                        \dproof
+                    \item \hfill
+                            \axiom{$\la B, s \ra \Downarrow \la ~false~, s^\prime \ra$}
+                        \unary{$\la ~while ~ B ~ do ~ C, s \ra \Downarrow \la s^\prime \ra$}
+                        \dproof
+                \end{itemize}
 \end{document}
