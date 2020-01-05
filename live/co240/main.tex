@@ -135,7 +135,7 @@
     \section*{CO240 - Models of Computation}
         \subsection*{9th October 2019 \hfill Lecture}
             \subsubsection*{Hilbert's Entscheidungproblem}
-                \textit{Is there an algorithm, when fed any statement in the formal laguage of first-order logic, determines in a finite number of steps whether or not the statement is provable, using the usual rules of first-order logic?}
+                \textit{Is there an algorithm, when fed any statement in the formal language of first-order logic, determines in a finite number of steps whether or not the statement is provable, using the usual rules of first-order logic?}
 
                 From our first-order logic course, we know this isn't provable.
                 What often happens in formal computer science, is that we think something holds, and end up not being able to prove it as the statement is false.
@@ -152,7 +152,7 @@
                     \item may not terminate on some data, but we can get a result if it does
                 \end{itemize}
                 This was solved in the 1930s, by Alan Turing's Turing machines, and Church invented lambda calculus.
-                Algorthms are regarded as data, and therefore can be passed on to another algorithm (we use this in compilers, etc.) which can process the algorithm passed as data, and reduced this to the Halting Problem.
+                Algorithms are regarded as data, and therefore can be passed on to another algorithm (we use this in compilers, etc.) which can process the algorithm passed as data, and reduced this to the Halting Problem.
             \subsubsection*{Algorithms (formal)}
                 Any formal definition of an algorithm must be;
                 \begin{itemize}
@@ -162,7 +162,7 @@
                     \item general in the sense that it covers the whole span of algorithms
                 \end{itemize}
                 Turing discovered the \textbf{Universal Turing machine}, which takes in an input Turing machine, and some data.
-                The universal machine acts as if it were the input Turing machine, operating on the given data, meaning that it can simulate an arbitrary turing machine.
+                The universal machine acts as if it were the input Turing machine, operating on the given data, meaning that it can simulate an arbitrary Turing machine.
                 The Church-Turing Thesis was a result of this, showing Turing machines were equivalent to Church's lambda calculus, thus anything computable can be computed by a Turing machine.
             \subsubsection*{The Halting Problem}
                 Given a set $S$ of pairs $(A, D)$, where $A$ is an algorithm, and $D$ is some input datum, $A(D)\downarrow$ holds for $(A, D) \in S$ if $A$ applied to $D$ eventually produces a result.
@@ -176,18 +176,18 @@
                 \end{align*}
                 We can go from the Halting Problem to Entscheidungproblem, in order to prove unsolvability.
                 This is done by encoding pairs $(A, D)$ of the Halting Problem as first-order logic statements $\Phi_{A, D}$ with the special property $\Phi_{A, D} \text{ is provable} \Leftrightarrow A(D) \downarrow$.
-                Any algorithm that decides the provability of usch statements is usable to decide the Halting Problem, therefore no such algorithm exists.
+                Any algorithm that decides the provability of such statements is usable to decide the Halting Problem, therefore no such algorithm exists.
             \subsubsection*{Hilbert's 10th Problem}
                 A simpler proof of the Halting Problem uses Minsky and Lambek's register machines.
                 The universal register machine, functions similar to how the Universal Turing machine, but with a register machine as input.
                 This course is mainly on register machines, but it's important to know Turing machines for historical reasons.
             \subsubsection*{Special Functions}
                 A computable function is an algorithm that takes data, and sometimes gives a result (partial function).
-                If it does terminate, then it gies this unique result.
+                If it does terminate, then it gives this unique result.
                 The question is whether it's possible to give a mathematical description of a computable function, as a special function between sets.
                 At the end of the 1960s, Strachey and Scott in Oxford discovered it was possible to do so.
                 \textbf{Denotational semantics} were introduced, describing the mathematical meaning of algorithms.
-                Scott gave meaning to recursively defined algorhtms as continuous functions between domains (sets with structure).
+                Scott gave meaning to recursively defined algorithms as continuous functions between domains (sets with structure).
             \subsubsection*{Semantics}
                 \begin{lstlisting}
                     power x n
@@ -209,7 +209,7 @@
 
             \subsubsection*{Syntax of While}
                 In the syntax below, we have $x \in \text{Var}$ to range over variables, and $n \in \mathbb{N}$ for the natural numbers.
-                Note that the first item in $C$ ($x := E$) is an assigment to a variable.
+                Note that the first item in $C$ ($x := E$) is an assignment to a variable.
                 \begin{align*}
                     B \in \text{Bool} & ::= ~true~ \bnfsep ~false~ \bnfsep E = E \bnfsep E < E \bnfsep B \& B \bnfsep \neg B \bnfsep ... \\
                     E \in \text{Exp} & ::= x \bnfsep n \bnfsep E + E \bnfsep ... \\
@@ -310,11 +310,11 @@
                         \subitem with big-step, it was with respect to numbers, but here it is with respect to all the small computational steps
                     \item \textbf{confluence} \hfill $\forall E, E_1, E_2 [E \to^* E_1 \land E \to^* E_2 \Rightarrow \exists E^\prime [E_1 \to^* E^\prime \land E^2 \to^* E^\prime]]$
                     \item \textbf{(strong) normalisation}
-                        \subitem there are no infinite sequences of expressions, which means that any evaluation path will evntually reach a normal form
+                        \subitem there are no infinite sequences of expressions, which means that any evaluation path will eventually reach a normal form
                     \item \textbf{theorem} \hfill $\forall E, n_1, n_2 [E \to^* n_1 \land E \to^* n_2 \Rightarrow n_1 = n_2]$
                 \end{itemize}
                 The general theorem, coming back to the denotational semantics, is that $\forall E, n [E \Downarrow n \Leftrightarrow E \to^* n]$.
-        \section*{10th October 2019 \hfill Tutorial}
+        \subsection*{10th October 2019 \hfill Tutorial}
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item Find $n$ such that $(4 + 1) + (2 + 2) \Downarrow \violet{n}$
@@ -363,7 +363,7 @@
                             \item $\violet{= n_2 - n_1}$
                                 \subitem this keeps it total, however can lead to unexpected behaviour as the number ends up positive; for example $(5 - 7) + 10 = 12$
                             \item $\violet{= 0}$
-                                \subitem this also keeps it total, however it also leads to different unexpected beaviour in the sense that $(5 - 7) + 10 = 10$
+                                \subitem this also keeps it total, however it also leads to different unexpected behaviour in the sense that $(5 - 7) + 10 = 10$
                             \item $\violet{=} ~NaN~$
                                 \subitem if we have an error value, ~NaN~ in this case, we have to add rules to propagate this, which can be seen in the example below;
                                 \begin{center}
@@ -551,73 +551,82 @@
                         \unary{$\la ~while ~ B ~ do ~ C, s \ra \to_c \la ~if ~ B ~ then ~ (C; ~while ~ B ~ do ~ C) ~ else skip~, s$}
                         \dproof
                 \end{itemize}
-            \subsection*{16th October 2019 \hfill Tutorial}
-                \begin{enumerate}[1.]
-                    \itemsep0em
-                    \item
-                        Consider the evaluation of $(z := x; x := y); y := z$, and the start state $s = (x \mapsto 5, y \mapsto 7)$;
-                        We end up with the following derivation tree, for the first step;
+        \subsection*{16th October 2019 \hfill Tutorial}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item
+                    Consider the evaluation of $(z := x; x := y); y := z$, and the start state $s = (x \mapsto 5, y \mapsto 7)$;
+                    We end up with the following derivation tree, for the first step;
 
-                        \begin{center}
-                                        \axiom{$\la x, s \ra \to_e \la 5, s \ra$}
-                                    \unary{$\la z := x, s \ra \to_c \la z := 5, s \ra$}
-                                \unary{$\la z := x; x := y, s \ra \to_c \la z := 5; x := y, s \ra$}
-                            \unary{$\la (z := x; x := y); y := z, s \ra \to_c \la (z := 5; x := y); y := z, s \ra$}
+                    \begin{center}
+                                    \axiom{$\la x, s \ra \to_e \la 5, s \ra$}
+                                \unary{$\la z := x, s \ra \to_c \la z := 5, s \ra$}
+                            \unary{$\la z := x; x := y, s \ra \to_c \la z := 5; x := y, s \ra$}
+                        \unary{$\la (z := x; x := y); y := z, s \ra \to_c \la (z := 5; x := y); y := z, s \ra$}
+                        \dproof
+                    \end{center}
+                \item There's a long question on (\textsc{w-while}), but I'm too lazy to type it out.
+                \item In this question, we analyse operators which have side effects, such as the incrementing operator;
+                    \begin{center}
+                        (\textsc{w-exp.pp})
+                            \axiom{}
+                        \unary{$\la x~++~, s \ra \to_e \la n, s[x \mapsto n^\prime] \ra$}
+                        \dproof
+                        $n = s(x), n^\prime = n + 1$
+                    \end{center}
+                    It first returns the value associated with $x$ in the store $s$, and then reassigns $x$ in the store to the original value $+ 1$.
+
+                    For example, we can evaluate $x := (x~++~) + (x~++~)$ as such;
+                    \begin{align*}
+                        \la x := (x~++~) + (x~++~), (x \mapsto 2) \ra & \to_c \\
+                        \la x := 2 + (x~++~), (x \mapsto 3) \ra & \to_c \\
+                        \la x := 2 + 3, (x \mapsto 4) \ra & \to_c \\
+                        \la x := 5, (x \mapsto 4) & \to_c \\
+                        \la ~skip~, (x \mapsto 5) \ra
+                    \end{align*}
+            \end{enumerate}
+        \subsection*{17th October 2019 \hfill Tutorial}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \setcounter{enumi}{4}
+                \item In this question, we consider the ideas of parallelism, and interleaving;
+                    \begin{itemize}
+                        \item LHS evaluated first \hfill
+                                \axiom{$\la C_1, s \ra \to_c \la C_1^\prime, s^\prime \ra$}
+                            \unary{$\la C_1 \concsep C_2, s \ra \to_c \la C_1^\prime \concsep C_2, s^\prime \ra$}
                             \dproof
-                        \end{center}
-                    \item There's a long question on (\textsc{w-while}), but I'm too lazy to type it out.
-                    \item In this question, we analyse operators which have side effects, such as the incrementing operator;
-                        \begin{center}
-                            (\textsc{w-exp.pp})
+                        \item RHS evaluated first \hfill
+                                \axiom{$\la C_2, s \ra \to_c \la C_2^\prime, s^\prime \ra$}
+                            \unary{$\la C_1 \concsep C_2, s \ra \to_c \la C_1 \concsep C_2^\prime, s^\prime \ra$}
+                            \dproof
+                        \item Collapsing after both sides are complete \hfill
                                 \axiom{}
-                            \unary{$\la x~++~, s \ra \to_e \la n, s[x \mapsto n^\prime] \ra$}
+                            \unary{$\la ~skip~ \concsep ~skip~, s \ra \to_c \la ~skip~, s \ra$}
                             \dproof
-                            $n = s(x), n^\prime = n + 1$
-                        \end{center}
-                        It first returns the value associated with $x$ in the store $s$, and then reassigns $x$ in the store to the original value $+ 1$.
+                    \end{itemize}
+                    Note that this is an example of non-determinism, as we can see with the following example.
+                    Consider the program $(x := 1) \concsep (x := 2; x := x + 2)$, with an initial state of $s = (x \mapsto 0)$, this can be evaluated to any of the three outcomes, where $x \mapsto$ 1, 3, or 4.
+                \item
+                    Here we want to show that there can be $C$ which doesn't hold for $\la C, s \ra \to^*_c \la ~skip~, s^\prime \ra$.
+                    Let $C = ~while true do skip~$;
+                    \begin{align*}
+                        \la ~while true do skip~, s \ra & \to \\
+                        \la ~if true~\ (~skip~; ~while true do skip~), s \ra & \to_c \\
+                        \la ~skip~; ~while true do skip~, s \ra & \to_c \\
+                        \la ~while true do skip~, s \ra
+                    \end{align*}
 
-                        For example, we can evaluate $x := (x~++~) + (x~++~)$ as such;
-                        \begin{align*}
-                            \la x := (x~++~) + (x~++~), (x \mapsto 2) \ra & \to_c \\
-                            \la x := 2 + (x~++~), (x \mapsto 3) \ra & \to_c \\
-                            \la x := 2 + 3, (x \mapsto 4) \ra & \to_c \\
-                            \la x := 5, (x \mapsto 4) & \to_c \\
-                            \la ~skip~, (x \mapsto 5) \ra
-                        \end{align*}
-                \end{enumerate}
-            \subsection*{17th October 2019 \hfill Tutorial}
-                \begin{enumerate}[1.]
-                    \itemsep0em
-                    \setcounter{enumi}{4}
-                    \item In this question, we consider the ideas of parallelism, and interleaving;
-                        \begin{itemize}
-                            \item LHS evaluated first \hfill
-                                    \axiom{$\la C_1, s \ra \to_c \la C_1^\prime, s^\prime \ra$}
-                                \unary{$\la C_1 \concsep C_2, s \ra \to_c \la C_1^\prime \concsep C_2, s^\prime \ra$}
-                                \dproof
-                            \item RHS evaluated first \hfill
-                                    \axiom{$\la C_2, s \ra \to_c \la C_2^\prime, s^\prime \ra$}
-                                \unary{$\la C_1 \concsep C_2, s \ra \to_c \la C_1 \concsep C_2^\prime, s^\prime \ra$}
-                                \dproof
-                            \item Collapsing after both sides are complete \hfill
-                                    \axiom{}
-                                \unary{$\la ~skip~ \concsep ~skip~, s \ra \to_c \la ~skip~, s \ra$}
-                                \dproof
-                        \end{itemize}
-                        Note that this is an example of non-determinism, as we can see with the following example.
-                        Consider the program $(x := 1) \concsep (x := 2; x := x + 2)$, with an initial state of $s = (x \mapsto 0)$, this can be evaulated to any of the three outcomes, where $x \mapsto$ 1, 3, or 4.
-                    \item
-                        Here we want to show that there can be $C$ which doesn't hold for $\la C, s \ra \to^*_c \la ~skip~, s^\prime \ra$.
-                        Let $C = ~while true do skip~$;
-                        \begin{align*}
-                            \la ~while true do skip~, s \ra & \to \\
-                            \la ~if true~\ (~skip~; ~while true do skip~), s \ra & \to_c \\
-                            \la ~skip~; ~while true do skip~, s \ra & \to_c \\
-                            \la ~while true do skip~, s \ra
-                        \end{align*}
+                    Now let us assume that there is some finite evaluation path that takes $n$ steps, such that $\la C, s \ra \to^* \la ~skip~, s^\prime \ra$, it follows that it can also take $n - 3$ steps, as it takes 3 steps in our evaluation above.
+                    However, as this is deterministic, we have a contradiction.
+            \end{enumerate}
+        \subsection*{23rd October 2019 \hfill Lecture}
+            For this lecture, we're using continuing to use the SimpleExp language for induction (refer back to \textbf{CO141}).
+            \begin{align*}
+                E \in \text{SimpleExp} & ::= n \bnfsep E + E \bnfsep E \times E \bnfsep ...
+            \end{align*}
+            Our base case for this language would be $\forall n . P(n)$; (essentially we want to prove that $P$ holds for an arbitrary $n \in \mathbb{N}$).
+            Our first inductive case for this language would be to prove that $P(E_1 + E_2)$, assuming that $P(E_1)$, and $P(E_2)$ both hold.
+            Similarly, for the second inductive case, we want to prove $P(E_1 \times E_2)$, with the same assumptions.
+            \subsubsection*{Determinancy}
 
-                        Now let us assume that there is some finite evaulation path that takes $n$ steps, such that $\la C, s \ra \to^* \la ~skip~, s^\prime \ra$, it follows that it can also take $n - 3$ steps, as it takes 3 steps in our evaulation above.
-                        However, as this is deterministic, we have a contradiction.
-
-                \end{enumerate}
 \end{document}
