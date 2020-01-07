@@ -75,6 +75,8 @@
 \newcommand{\unary}[1]{\UnaryInfC{#1}}
 \newcommand{\binary}[1]{\BinaryInfC{#1}}
 \newcommand{\trinary}[1]{\TrinaryInfC{#1}}
+\newcommand{\quaternary}[1]{\QuaternaryInfC{#1}}
+\newcommand{\quinary}[1]{\QuinaryInfC{#1}}
 \newcommand{\dproof}[0]{\DisplayProof}
 \newcommand{\bnfsep}[0]{\ |\ }
 \newcommand{\concsep}[0]{\ ||\ }
@@ -841,4 +843,36 @@
                         \unary{$\la ~while ~ B ~ do ~ C, s \ra \Downarrow \la s^\prime \ra$}
                         \dproof
                 \end{itemize}
+            After this point, there isn't any sound on the Panopto recording; the remainder of the lecture goes over heaps found in the coursework.
+        \subsubsection*{6th November 2019 \hfill Tutorial}
+            The lecture starts off going over questions in the coursework.
+            Note that the question concerning $\neg$ can be done in a single case, with a side condition;
+            \begin{center}
+                    \axiom{$\la B, s, h \ra \Downarrow \la b, s^\prime, h^\prime \ra$}
+                \unary{$\la \neg B, s, h \ra \Downarrow \la b^\prime, s^\prime, h^\prime \ra$}
+                \dproof
+                \violet{$b^\prime = \neg b$}
+            \end{center}
+            The next part concerns question 1 from last year's exam, which invovles the language \textsc{ForWithBreak};
+            \begin{align*}
+                C & ::= ~skip~ \bnfsep ~break~ \bnfsep x := E \bnfsep ~if ~ B ~ then ~ C ~ else ~ C \bnfsep ~for ~ x ~ in ~ [E, E] ~ do ~ C \bnfsep C ; C \\
+                \mathcal{O} & ::= \mathcal{N} \bnfsep \mathcal{B}
+            \end{align*}
+            Writing out the big-step rules is too much effort; refer to the exam paper for the trees.
+            \bigskip
+
+            The ~for~ loop iterates between the values in the range, substituting $x$ for each of the values iteratively, to be used in $C$.
+            The way ~break~ works is by terminating sequential commands; for example, if we had $C = ~break~; C_2$, it would evaluate to $\mathcal{B}$, and skipping the execution of $C_2$.
+            However, if a ~break~ is encountered within a ~for~ loop, such that $\la C, s \ra \Downarrow_c \la \mathcal{B}, s^\prime \ra$, we terminate the loop, and then the program continues normally, such that the loop command evaluates to $\la \mathcal{N}, s^\prime \ra$.
+        \subsection*{7th November 2019 \hfill Lecture}
+            In a register machine, we operate on registers with idealised natural numbers (hence we don't consider physical limitations such as overflow).
+            The elementary operations available to us are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item add 1 to a register
+                \item jumps
+                \item test whether a register is 0 (+ conditionals)
+                \item subtract 1 from a non-zero register
+            \end{itemize}
+            Formally, a register machine is defined 
 \end{document}
