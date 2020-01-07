@@ -259,5 +259,326 @@
                     \end{tikzpicture}
                 \end{center}
             \subsubsection*{Syntax Analysis}
-                
+                This is also known as parsing.
+                Languages have a grammatical structure specified by grammatical rules in a \textbf{context-free grammar} such as BNF (\textbf{Backus-Naur Form}).
+                The output of the analyser is a data structure which represents the program structure; an \textbf{abstract syntax tree}.
+                The writer of the compiler must design the AST carefully such that it is easy to build, as well as easy to use by the code generator.
+                \smallskip
+
+                A language specification consists of the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{syntax} \hfill grammatical structure
+                        \subitem in order to determine that a program is syntactically correct, one must determine how the rules were used to construct it
+                    \item \textbf{semantics} \hfill meaning
+                \end{itemize}
+                For example, we can encode the rules for a statement as follows (anything in quotes is a terminal), in BNF;
+                \begin{center}
+                    stat $\to$ 'if' '(' exp ')' stat 'else' stat
+                \end{center}
+                Each BNF production is a valid way for a non-terminal (LHS) to be expanded (RHS) into a combination of terminals and non-terminals.
+                Only terminals can appear in the final results (they are lexical tokens).
+                \smallskip
+
+                To prove the following is a valid example of stat, we'd need to show that a can be derived from exp, and that both b and c can be dervied from stat.
+                \begin{center}
+                    if ( a ) b else c
+                \end{center}
+            \subsubsection*{Context-Free Grammars}
+                Formally, a context-free grammar consists of the following four components;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $S$ \hfill a non-terminal start symbol
+                    \item $P$ \hfill a set of productions
+                    \item $t$ \hfill a set of tokens (terminals)
+                    \item $nt$ \hfill a set of non-terminals
+                \end{itemize}
+                For example, consider the following BNF, and their associated components;
+                \begin{align*}
+                    \text{bin} \to &\ \text{bin '+' dig} \bnfsep \text{bin '-' dig} \bnfsep \text{dig} \\
+                    \text{dig} \to &\ \text{'0'} \bnfsep \text{'1'} \\
+                    t = &\ \{ \text{'+'}, \text{'-'}, \text{'0'}, \text{'1'}\} \\
+                    nt = &\ \{ \text{bin}, \text{dig}\} \\
+                    S = &\ \text{bin}
+                \end{align*}
+                A string of only terminals (\textbf{sentinal form}) can be derived using the grammar by beginning with the start symbol, and repeatedly replacing each non-terminal with the RHS from a corresponding production.
+                We refer to the set of all sentinal forms derived from the start symbol as the \textbf{language} of a grammar.
+                \smallskip
+
+                We can prove that some string is in the language of a grammar by constructing a \textbf{parse tree}.
+                For example, to prove that $\text{"1+1-0"} \in L(G)$, and $\text{"1+1"} \in L(G)$ we can use the following trees;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (b1) at (0, 0) {bin};
+                        \node (b2) at (-1, -1) {bin};
+                        \node (b3) at (-2, -2) {bin};
+                        \node (d1) at (1, -1) {dig};
+                        \node (d2) at (0, -2) {dig};
+                        \node (d3) at (-2, -3) {dig};
+                        \node (o1) at (-2, -4) {'1'};
+                        \node (o2) at (0, -3) {'1'};
+                        \node (z) at (1, -2) {'0'};
+                        \node (m) at (0, -1) {'-'};
+                        \node (p) at (-1, -2) {'+'};
+
+                        \draw
+                        (b1) -- (d1) -- (z)
+                        (b1) -- (m)
+                        (b2) -- (d2) -- (o2)
+                        (b2) -- (p)
+                        (b1) -- (b2) -- (b3) -- (d3) -- (o1);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}[x=2cm]
+                        \node (b1) at (0, 0) {bin};
+                        \node (b2) at (-1, -1) {bin};
+                        \node (d1) at (1, -1) {dig};
+                        \node (d2) at (-1, -2) {dig};
+                        \node (o1) at (-1, -3) {'1'};
+                        \node (o2) at (1, -2) {'1'};
+                        \node (p) at (0, -1) {'+'};
+
+                        \draw
+                        (b1) -- (d1) -- (o2)
+                        (b1) -- (p)
+                        (b1) -- (b2) -- (d2) -- (o1);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Ambiguity}
+                A grammar is referred to as \textbf{ambiguous} if its language contains strings which can be generated in two different ways.
+                Essentially, there exists some string in $L(G)$ which has two different parse trees.
+                Consider string "1 + a - 3" in the following grammar, and the parse tree(s) associated;
+                \begin{center}
+                    exp $\to$ exp '+' exp \vline\ exp '-' exp \vline\ const \vline\ ident
+                \end{center}
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (e1) at (0, 0) {exp};
+                        \node (e2) at (-1, -1) {exp};
+                        \node (e3) at (1, -1) {exp};
+                        \node (e4) at (0, -2) {exp};
+                        \node (e5) at (2, -2) {exp};
+                        \node (c1) at (-1, -2) {const};
+                        \node (c2) at (2, -3) {const};
+                        \node (i) at (0, -3) {ident};
+                        \node (p) at (0, -1) {'+'};
+                        \node (m) at (1, -2) {'-'};
+                        \node (o) at (-1, -3) {'1'};
+                        \node (a) at (0, -4) {'a'};
+                        \node (t) at (2, -4) {'2'};
+                        \draw
+                        (e1) -- (e2) -- (c1) -- (o)
+                        (e1) -- (p)
+                        (e1) -- (e3) -- (e4) -- (i) -- (a)
+                        (e3) -- (m)
+                        (e3) -- (e5) -- (c2) -- (t);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}[x=2cm]
+                        \node (e1) at (0, 0) {exp};
+                        \node (e2) at (-1, -1) {exp};
+                        \node (e3) at (1, -1) {exp};
+                        \node (e4) at (-2, -2) {exp};
+                        \node (e5) at (0, -2) {exp};
+                        \node (c1) at (1, -2) {const};
+                        \node (c2) at (-2, -3) {const};
+                        \node (i) at (0, -3) {ident};
+                        \node (p) at (-1, -2) {'+'};
+                        \node (m) at (0, -1) {'-'};
+                        \node (o) at (-2, -4) {'1'};
+                        \node (a) at (0, -4) {'a'};
+                        \node (t) at (1, -3) {'2'};
+                        \draw
+                        (e1) -- (e2) -- (e4) -- (c2) -- (o)
+                        (e1) -- (m)
+                        (e1) -- (e3) -- (c1) -- (t)
+                        (e2) -- (p)
+                        (e2) -- (e5) -- (i) -- (a);
+                    \end{tikzpicture}
+                \end{center}
+                While the string is still valid, and in the language, our issue is with the ambiguity, as we want to generate a program uniquely.
+                The reason our grammar is broken is due to the recursive use of the non-terminal exp on both sides, which means we're given a choice of which side to expand when generating.
+            \subsubsection*{Associativity and Precedence}
+                For our example language, we're using all left-associative operators.
+                We also want to maintain that '*' and '/' have higher precedence than '+' and '-'.
+                One way of doing this is to split the grammar into layers, by having seperate non-terminals for precedence levels.
+                This method can be done with the following unambiguous grammar for arithmetic expressions;
+                \begin{align*}
+                    \text{exp} & \to \text{exp '+' term} \bnfsep \text{exp '-' term} \bnfsep \text{term} \\
+                    \text{term} & \to \text{term '*' factor} \bnfsep \text{term '/' factor} \bnfsep \text{factor} \\
+                    \text{factor} & \to \text{const} \bnfsep \text{ident}
+                \end{align*}
+                Now, we can unambiguously generate the parse tree (and thus the unique abstract syntax tree) for "9+5*2";
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (e1) at (0, 0) {exp};
+                        \node (e2) at (-1, -1) {exp};
+                        \node (t1) at (1, -1) {term};
+                        \node (t2) at (-1, -2) {term};
+                        \node (t3) at (0, -2) {term};
+                        \node (f1) at (2, -2) {factor};
+                        \node (f2) at (-1, -3) {factor};
+                        \node (f3) at (0, -3) {factor};
+                        \node (c1) at (2, -3) {const};
+                        \node (c2) at (-1, -4) {const};
+                        \node (c3) at (0, -4) {const};
+                        \node (p) at (0, -1) {'+'};
+                        \node (m) at (1, -2) {'*'};
+                        \node (n) at (-1, -5) {'9'};
+                        \node (f) at (0, -5) {'5'};
+                        \node (t) at (2, -4) {'2'};
+                        \draw
+                        (e1) -- (e2) -- (t2) -- (f2) -- (c2) -- (n)
+                        (e1) -- (p)
+                        (e1) -- (t1) -- (t3) -- (f3) -- (c3) -- (f)
+                        (t1) -- (m)
+                        (t1) -- (f1) -- (c1) -- (t);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}[x=2cm]
+                        \node (e1) at (0, 0) {exp};
+                        \node (e2) at (-1, -1) {exp};
+                        \node (p) at (0, -1) {'+'};
+                        \node (e3) at (1, -1) {exp};
+                        \node (c1) at (-1, -2) {const};
+                        \node (e4) at (0, -2) {exp};
+                        \node (m) at (1, -2) {'*'};
+                        \node (e5) at (2, -2) {exp};
+                        \node (n) at (-1, -3) {'9'};
+                        \node (c2) at (0, -3) {const};
+                        \node (c3) at (2, -3) {const};
+                        \node (f) at (0, -4) {'5'};
+                        \node (t) at (2, -4) {'2'};
+                        \draw
+                        (e1) -- (e2) -- (c1) -- (n)
+                        (e1) -- (p)
+                        (e1) -- (e3) -- (e4) -- (c2) -- (f)
+                        (e3) -- (m)
+                        (e3) -- (e5) -- (c3) -- (t);
+                    \end{tikzpicture}
+                \end{center}
+                It's important to note that the \textbf{abstract} syntax tree doesn't need this in contrast, as only the parse tree needs it.
+            \subsubsection*{Parsers}
+                The parser checks that the input is grammatically correct, and builds an AST representing the structure.
+                In general, there are two classes of parsing algorithms;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{top-down / predictive} \hfill we are using recursive descent
+                    \item \textbf{bottom-up} \hfill also known as shift-reduce
+                \end{itemize}
+                For this, we will use the input "~begin S; S; end~", with the following grammar;
+                \begin{align*}
+                    \text{stat} & \to ~'begin'~\ \text{statlist} \bnfsep ~'S'~ \\
+                    \text{statlist} & \to ~'end'~ \bnfsep \text{stat}\ ~';'~\ \text{statlist}
+                \end{align*}
+                When we start top-down parsing, we start with the non-terminal stat.
+                The first token we identify is the ~'begin'~, thus our tree becomes the following;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (s) at (0, 0) {stat};
+                        \node (b) at (-1, -1) {~'begin'~};
+                        \node (sl) at (1, -1) {statlist};
+
+                        \draw
+                        (s) edge[->] (b)
+                        (s) edge[->] (sl);
+                    \end{tikzpicture}
+                \end{center}
+                However, as the next symbol isn't the terminal ~'end'~, we have to use an alternative.
+                As we only have one alternative, we can predict it, and thus the tree becomes;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (s) at (0, 0) {stat};
+                        \node (b) at (-1, -1) {~'begin'~};
+                        \node (sl) at (1, -1) {statlist};
+                        \node (s2) at (0, -2) {stat};
+                        \node (sc) at (1, -2) {~';'~};
+                        \node (sl2) at (2, -2) {statlist};
+
+                        \draw
+                        (s) edge[->] (b)
+                        (s) edge[->] (sl)
+                        (sl) edge[->] (s2)
+                        (sl) edge[->] (sc)
+                        (sl) edge[->] (sl2);
+                    \end{tikzpicture}
+                \end{center}
+                As the next symbols are the terminal ~'S'~, and the terminal ~';'~, we can tick them off, thus the tree becomes;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (s) at (0, 0) {stat};
+                        \node (b) at (-1, -1) {~'begin'~};
+                        \node (sl) at (1, -1) {statlist};
+                        \node (s2) at (0, -2) {stat};
+                        \node (sc) at (1, -2) {~';'~};
+                        \node (sl2) at (2, -2) {statlist};
+                        \node (st) at (0, -3) {~'S'~};
+
+                        \draw
+                        (s) edge[->] (b)
+                        (s) edge[->] (sl)
+                        (sl) edge[->] (s2)
+                        (sl) edge[->] (sc)
+                        (sl) edge[->] (sl2)
+                        (s2) edge[->] (st);
+                    \end{tikzpicture}
+                \end{center}
+                This process continues, until we reach the final tree;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (s) at (0, 0) {stat};
+                        \node (b) at (-1, -1) {~'begin'~};
+                        \node (sl) at (1, -1) {statlist};
+                        \node (s2) at (0, -2) {stat};
+                        \node (sc) at (1, -2) {~';'~};
+                        \node (sl2) at (2, -2) {statlist};
+                        \node (st) at (0, -3) {~'S'~};
+                        \node (s3) at (1, -3) {stat};
+                        \node (sc2) at (2, -3) {~';'~};
+                        \node (sl3) at (3, -3) {statlist};
+                        \node (st2) at (1, -4) {~'S'~};
+                        \node (e) at (3, -4) {~'end'~};
+
+                        \draw
+                        (s) edge[->] (b)
+                        (s) edge[->] (sl)
+                        (sl) edge[->] (s2)
+                        (sl) edge[->] (sc)
+                        (sl) edge[->] (sl2)
+                        (s2) edge[->] (st)
+                        (sl2) edge[->] (s3)
+                        (sl2) edge[->] (sc2)
+                        (sl2) edge[->] (sl3)
+                        (s3) edge[->] (st2)
+                        (sl3) edge[->] (e);
+                    \end{tikzpicture}
+                \end{center}
+                On the other hand, bottom-up parsing tries to use all the RHSs (whereas top-down tries to match a non-terminal by trying each of the RHSs), and replaces it with a non-terminal, by using the production in reverse.
+                Bottom-up succeeds when the whole input is replaced by the start symbol.
+                \smallskip
+
+                In general, we push the current symbol onto the stack (or the reduction if we can reduce it).
+                For example, once we encounter ~'S'~, we can reduce it to stat, and similarly once we encounter ~'end'~, we can reduce it to statlist.
+
+                \begin{tabular}{|r|c|l|l|l|}
+                    \hline
+                    stack & current symbol & remaining tokens & S/R & note \\
+                    \hline
+                    & ~'begin'~ & ~'S'~ ~';'~ ~'S'~ ~';'~ ~'end'~ & S & nothing to do yet \\
+                    ~'begin'~ & \violet{~'S'~} & ~';'~ ~'S'~ ~';'~ ~'end'~ & R & terminal for stat \\
+                    ~'begin'~ & \blue{stat} & ~';'~ ~'S'~ ~';'~ ~'end'~ & S & no more work \\
+                    ~'begin'~ \blue{stat} & ~';'~ & ~'S'~ ~';'~ ~'end'~ & S & nothing to do yet \\
+                    ~'begin'~ \blue{stat} ~';'~ & \violet{~'S'~} & ~';'~ ~'end'~ & R & terminal for stat \\
+                    ~'begin'~ stat ~';'~ & \blue{stat} & ~';'~ ~'end'~ & S & no more work \\
+                    ~'begin'~ stat ~';'~ \blue{stat} & ~';'~ & ~'end'~ & S & nothing to do yet \\
+                    ~'begin'~ stat ~';'~ stat ~';'~ & \violet{~'end'~} & & R & terminal for statlist \\
+                    ~'begin'~ stat ~';'~ stat ~';'~ & \blue{statlist} & & & \\
+                    ~'begin'~ stat ~';'~ \violet{stat} \violet{~';'~} & \violet{statlist} & & R & match for statlist \\
+                    ~'begin'~ stat ~';'~ & \blue{statlist} & & & \\
+                    ~'begin'~ \violet{stat} \violet{~';'~} & \violet{statlist} & & R & match for statlist \\
+                    ~'begin'~ & \blue{statlist} & & & \\
+                    \violet{~'begin'~} & \violet{statlist} & & R & match for stat \\
+                    & \blue{stat} & & & complete \\
+                    \hline
+                \end{tabular}
 \end{document}
