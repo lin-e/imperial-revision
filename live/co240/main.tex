@@ -14,7 +14,8 @@
 \usepackage{lstautogobble}
 \usepackage{hyperref}
 \usepackage{multirow}
-\usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
+\usepackage{tipa}
+\usetikzlibrary{decorations.pathreplacing, arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
 
 % shorthand for verbatim
 % this clashes with logicproof, so maybe fix this at some point?
@@ -63,13 +64,28 @@
 
 \newcommand{\powerset}[0]{\wp}
 \renewcommand{\emptyset}[0]{\varnothing}
+
+\makeatletter
+\newsavebox{\@brx}
+\newcommand{\llangle}[1][]{\savebox{\@brx}{\(\m@th{#1\langle}\)}%
+  \mathopen{\copy\@brx\kern-0.5\wd\@brx\usebox{\@brx}}}
+\newcommand{\rrangle}[1][]{\savebox{\@brx}{\(\m@th{#1\rangle}\)}%
+  \mathclose{\copy\@brx\kern-0.5\wd\@brx\usebox{\@brx}}}
+\makeatother
+\newcommand{\lla}{\llangle}
+\newcommand{\rra}{\rrangle}
 \newcommand{\la}{\langle}
 \newcommand{\ra}{\rangle}
+\newcommand{\crnr}[1]{\text{\textopencorner} #1 \text{\textcorner}}
 
 \newcommand{\mat}[1]{\mathbf{#1}}
 \newcommand{\rowt}[1]{\begin{bmatrix}
     #1
 \end{bmatrix}^\top}
+
+\newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
+\newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
+\newcommand{\trinaryproof}[4]{\AxiomC{#1} \AxiomC{#2} \AxiomC{#3} \TrinaryInfC{#4} \DisplayProof}
 
 \newcommand{\axiom}[1]{\AxiomC{#1}}
 \newcommand{\unary}[1]{\UnaryInfC{#1}}
@@ -78,9 +94,9 @@
 \newcommand{\quaternary}[1]{\QuaternaryInfC{#1}}
 \newcommand{\quinary}[1]{\QuinaryInfC{#1}}
 \newcommand{\dproof}[0]{\DisplayProof}
+
 \newcommand{\bnfsep}[0]{\ |\ }
 \newcommand{\concsep}[0]{\ ||\ }
-
 \newcommand{\violet}[1]{\textcolor{violet}{#1}}
 \newcommand{\blue}[1]{\textcolor{blue}{#1}}
 \newcommand{\red}[1]{\textcolor{red}{#1}}
@@ -798,7 +814,7 @@
                 \smallskip
 
                 For the inductive $+$ case, once again we are ignoring $\times$ as the results are quite similar, we take $E = E_1 + E_2$, with the inductive hypothesis $P(E_1) \land P(E_2)$.
-                If we take some arbitrary $n$, such that $E \Downarrow n$, our rules for big-step require there to be some $n_1, n_2$ which statisfy $E_1 \Downarrow n_1$, $E_2 \Downarrow n_2$, and $n = n_1 + n_2$ (\textsc{b-add}).
+                If we take some arbitrary $n$, such that $E \Downarrow n$, our rules for big-step require there to be some $n_1, n_2$ which satisfy $E_1 \Downarrow n_1$, $E_2 \Downarrow n_2$, and $n = n_1 + n_2$ (\textsc{b-add}).
                 Additionally, due to our inductive hypothesis, we also get $E_1 \to^* n_1$, and also $E_2 \to^* n_2$.
                 Since we have $E_1 \to^* n_1$, we can apply lemma 1, using (\textsc{s-left}), $r$ times, such that we have $E_1 + E_2 \to^* n_1 + E_2$.
                 Similarly with lemma 2, using (\textsc{s-right}), we have $E_1 + E_2 \to^* n_1 + n_2$.
@@ -853,7 +869,7 @@
                 \dproof
                 \violet{$b^\prime = \neg b$}
             \end{center}
-            The next part concerns question 1 from last year's exam, which invovles the language \textsc{ForWithBreak};
+            The next part concerns question 1 from last year's exam, which involves the language \textsc{ForWithBreak};
             \begin{align*}
                 C & ::= ~skip~ \bnfsep ~break~ \bnfsep x := E \bnfsep ~if ~ B ~ then ~ C ~ else ~ C \bnfsep ~for ~ x ~ in ~ [E, E] ~ do ~ C \bnfsep C ; C \\
                 \mathcal{O} & ::= \mathcal{N} \bnfsep \mathcal{B}
@@ -865,14 +881,129 @@
             The way ~break~ works is by terminating sequential commands; for example, if we had $C = ~break~; C_2$, it would evaluate to $\mathcal{B}$, and skipping the execution of $C_2$.
             However, if a ~break~ is encountered within a ~for~ loop, such that $\la C, s \ra \Downarrow_c \la \mathcal{B}, s^\prime \ra$, we terminate the loop, and then the program continues normally, such that the loop command evaluates to $\la \mathcal{N}, s^\prime \ra$.
         \subsection*{7th November 2019 \hfill Lecture}
-            In a register machine, we operate on registers with idealised natural numbers (hence we don't consider physical limitations such as overflow).
-            The elementary operations available to us are as follows;
-            \begin{itemize}
-                \itemsep0em
-                \item add 1 to a register
-                \item jumps
-                \item test whether a register is 0 (+ conditionals)
-                \item subtract 1 from a non-zero register
-            \end{itemize}
-            Formally, a register machine is defined 
+            \subsubsection*{Register Machines}
+                In a register machine, we operate on registers with idealised natural numbers (hence we don't consider physical limitations such as overflow).
+                The elementary operations available to us are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item add 1 to a register
+                    \item jumps
+                    \item test whether a register is 0 (+ conditionals)
+                    \item subtract 1 from a non-zero register
+                \end{itemize}
+                Formally, a register machine is specified with finitely many registers ($R_0, R_1, \dots, R_n$), and a finite list of instructions, of the following form;
+                \begin{center}
+                    \begin{tabular}{|l|l|}
+                        \hline
+                        label: body & description \\
+                        \hline
+                        $L_i: R^+ \to L^\prime$ & Add 1 to the contents of $R$, and jump to $L^\prime$ \\
+                        $L_i: R^- \to L^\prime, L^{\prime\prime}$ & If $R > 0$, subtract 1 from $R$, and jump to $L^\prime$, else jump to $L^{\prime\prime}$ \\
+                        ~HALT~ & Terminate the program \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                A register machine's configuration is written in the following form;
+                \begin{center}
+                    $c = (\ell, r_0, \dots, r_n)$
+                \end{center}
+                We define a computation of a register machine as a sequence of configurations; $c_0, c_1, \dots$, where $c_0$ is the initial configuration, and $c_{i + 1}$ is determined by the previous ($c_i$) configuration.
+                This sequence \textbf{can} be infinite, if the program does not halt.
+                A program halts if it reaches the ~HALT~ instruction (a \textbf{proper} halt), or there is a jump to an instruction that does not exist (an \textbf{erroneous} halt).
+            \subsubsection*{Graphical Representation}
+                We can also represent these instructions graphically, instead of as a list of instructions.
+                Note that $[L]$ means the body of the instruction with label $L$.
+                \begin{center}
+                    \begin{tabular}{|l|c|}
+                        \hline
+                        instruction & representation \\
+                        \hline
+                        \begin{tikzpicture}
+                            \node () at (0, 0) {$R^+ \to L$};
+                        \end{tikzpicture} &
+                        \begin{tikzpicture}
+                            \node (r) at (0, 0) {$R^+$};
+                            \node (l) at (2, 0) {$[L]$};
+                            \draw
+                            (r) edge[->] (l);
+                        \end{tikzpicture} \\
+                        \hline
+                        \begin{tikzpicture}
+                            \node () at (0, 0) {$R^- \to L, L^\prime$};
+                        \end{tikzpicture} &
+                        \begin{tikzpicture}
+                            \node (r) at (0, 0) {$R^-$};
+                            \node (l) at (2, 0.5) {$[L]$};
+                            \node (lp) at (2, -0.5) {$[L^\prime]$};
+                            \draw
+                            (r) edge[->] (l)
+                            (r) edge[->>] (lp);
+                        \end{tikzpicture} \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Partial Functions}
+                We define a partial function from a set $X$ to a set $Y$, as any subset $f \subseteq X \times Y$, such that $(x, y) \in f \land (x, y^\prime) \in f \Rightarrow y = y^\prime$.
+                \smallskip
+
+                Additional notation is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f(x) = y$ \hfill $(x, y) \in f$
+                    \item $f(x) \downarrow$ \hfill $\exists y \in Y . [f(x) = y]$
+                        \subitem $x$ maps to something in $y$, under $f$
+                    \item $f(x) \uparrow$ \hfill $\neg \exists y \in Y . [f(x) = y]$
+                        \subitem $x$ doesn't map to something in $y$, under $f$
+                    \item $X \rightharpoonup Y$ is the set of all \textbf{partial} functions from $X$ to $Y$, whereas $X \to Y$ is the set of all \textbf{total} functions
+                        \subitem a partial function $f$ is total if $\forall x \in X . [f(x) \downarrow]$
+                \end{itemize}
+                We define a function $f \in \mathbb{N}^n \rightharpoonup \mathbb{N}$ as computable if there is a register machine with at least $n + 1$ registers such that for all $(x_1, \dots, x_n) \in \mathbb{N}^n$, starting at the configuration $c = (0, 0, x_1, \dots, x_n, 0, \dots, 0)$ halts with $R_0 = y$ if and only if $f(x_1, \dots, x_n) = y$.
+                \medskip
+
+                Register machines can be constructed to prove the computability of functions.
+                For example, multiplication can be done with an auxiliary register; every time $x$ is reduced by 1, $y$ is copied into the auxiliary register, as well as $R_0$, and then $y$ is restored from the auxiliary register.
+        \subsection*{13th November 2019 \hfill Lecture}
+            \subsubsection*{Numerical Coding of Pairs}
+                The goal is to get a bijection between pairs of natural numbers, and the natural numbers themselves, for example the representation gives us the equivalence $27 = ~0b11011~ = \lla 0, 13 \rra = \la 2, 3 \ra$;
+                \begin{align*}
+                    \lla x, y \rra & \triangleq 2^x (2y + 1) & \text{bijection between } \mathbb{N} \times \mathbb{N} \text{ and } \mathbb{N}^+ \\
+                    \la x, y \ra & \triangleq 2^x (2y + 1) - 1 & \text{bijection between } \mathbb{N} \times \mathbb{N} \text{ and } \mathbb{N}
+                \end{align*}
+                We can convert $\lla x, y \rra$ to binary as first $y$ in binary, followed by a ~1~, and then followed by $x$ ~0~s, as we shift it by $x$ bits.
+                Similarly, $\la x, y \ra$ can be thought of as $y$ in binary, followed by a ~0~, and then $x$ ~1~s (since we can subtract ~1~ from ~1~ and $x$ ~0~s).
+            \subsubsection*{Numerical Coding of Lists}
+                $List\ \mathbb{N}$ is defined as the set of all finite lists of natural numbers, with the following rules;
+                \begin{itemize}
+                    \itemsep0em
+                    \item the empty list: \hfill $[] \in List\ \mathbb{N}$
+                    \item the cons list: \hfill $x \in \mathbb{N} \land \ell \in List\ \mathbb{N} \Rightarrow x :: \ell \in List\ \mathbb{N}$
+                    \item shorthand notation: \hfill $[x_1, x_2, \dots, x_n] \triangleq x_1 :: (x_2 :: (\dots :: (x_n :: []) \dots )$
+                \end{itemize}
+                Our notation will use $\crnr{\ell} \in \mathbb{N}$ to represent the natural number representing the list $\ell \in List\ \mathbb{N}$;
+                \begin{align*}
+                    \crnr{[]} & \triangleq 0 \\
+                    \crnr{x :: \ell} & \triangleq \lla x, \crnr{\ell} \rra = 2^x (2 \cdot \crnr{\ell} + 1)
+                \end{align*}
+                Therefore, we can say $\crnr{[x_1, x_2, \dots, x_n]} = \lla x_1, \lla x_2, \lla \dots \lla x_n, 0 \rra \dots \rra \rra \rra$
+                \medskip
+
+                We can also obtain the following result;
+                \begin{center}
+                    ~0b~$\crnr{[x_1, x_2, \dots, x_n]} = ~1~\underbrace{~0~\cdots~0~}_\text{$x_n$ ~0~s}~1~\underbrace{~0~\cdots~0~}_\text{$x_{n-1}$ ~0~s} \cdots ~1~\underbrace{~0~\cdots~0~}_\text{$x_1$ ~0~s}$
+                \end{center}
+            \subsubsection*{Numerical Coding of Programs}
+                Consider some register machine program $P$;
+                \begin{align*}
+                    L_0 & : b_0 \\
+                    L_1 & : b_1 \\
+                    \vdots \\
+                    L_n & : b_n
+                \end{align*}
+                The program's encoding is $\crnr{P} \triangleq \crnr{[\crnr{b_0}, \crnr{b_1}, \dots, \crnr{n_n}]}$.
+                The bodies can be encoded as such;
+                \begin{align*}
+                    \crnr{R_i^+ \to L_j} & \triangleq \lla 2i, j \rra \\
+                    \crnr{R_i^- \to L_j, L_k} & \triangleq \lla 2i + 1, \la j, k \ra \rra \\
+                    \crnr{~HALT~} & \triangleq 0
+                \end{align*}
 \end{document}
