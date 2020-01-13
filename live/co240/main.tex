@@ -476,8 +476,7 @@
                 \end{center}
                 The following rules can be extended to the booleans (the $E_1 = E_2$ case) as below; note that there are two cases to the numeric equality step.
                 It is also important to note that when creating rules, the terminal states (~true~ and ~false~) in our case, are \textbf{never} on the left hand side of the step.
-                \begin{itemize}
-                    \itemsep0em
+                \begin{itemize} 
                     \item LHS isn't fully evaluated ($E_1 = E_2$)
                         \begin{center}
                                 \axiom{$\la E_1, s \ra \to_e \la E_1^\prime, s^\prime \ra$}
@@ -1053,4 +1052,208 @@
                             \end{tikzpicture}
                         \end{center}
                 \end{itemize}
+                With these gadgets, we can then chain them to produce other gadgets.
+                For example, we can copy the value of $R_i$ into $R_j$ (such that $R_j$'s old value is replaced with $R_i$'s), by first zeroing $R_j$ with the first gadget, and then adding $R_i$ to it, with the second gadget.
+                \smallskip
+
+                Another important gadget is one to perform the push operation, which essentially performs $x :: \ell$.
+                The following gadget pushes $X$ to $L$, such that $X = x, L = \ell, X^\prime = 0, L^\prime = \lla x, \ell \rra = 2^x (2 \ell + 1)$, where $X^\prime$ and $L^\prime$ are the values of $X$ and $L$ after the gadget, respectively.
+                These work with the numerical coding of lists.
+                The proof for this is in the notes, in \textit{Lecture 6 - Universal RM.pdf}.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=1.5cm]
+                        \node (en) at (0, 0) {entry};
+                        \node (sp1) at (1, 0) {$S^+$};
+                        \node (lm) at (2, 0) {$L^-$};
+                        \node (sm) at (3, 0) {$S^-$};
+                        \node (xm) at (4, 0) {$X^-$};
+                        \node (ex) at (5, 0) {exit};
+                        \node (sp2) at (1.5, -1) {$S^+$};
+                        \node (lp) at (3, -1) {$L^+$};
+                        \draw
+                        (en) edge[->] (sp1)
+                        (sp1) edge[->] (lm)
+                        (lm) edge[->] (sp2)
+                        (sp2) edge[->] (sp1)
+                        (lm) edge[->>] (sm)
+                        (sm) edge[->>] (xm)
+                        (xm) edge[->>] (ex)
+                        (xm) edge[->, bend right=30] (lm)
+                        (sm) edge[->, bend left=30] (lp)
+                        (lp) edge[->, bend left=30] (sm)
+                        (0.5, 0.5) -- (4.5, 0.5) -- (4.5, -1.5) -- (0.5, -1.5) -- cycle;
+                    \end{tikzpicture}
+                \end{center}
+        \subsection*{20th November 2019 \hfill Lecture}
+            Continuing on from last week's lecture, we look at the gadget to perform the pop operation, which has two outcomes.
+            In the first outcome, where the list is empty $L = \ell = 0$, then we return with $X^\prime = 0$.
+            On the other hand, we return $X^\prime = x$, and $L^\prime = \ell$, if the inital state is $L = \lla x, \ell \rra$.
+            \begin{center}
+                \begin{tikzpicture}[x=1.5cm, y=1.5cm]
+                    \node (en) at (0, 0) {entry};
+                    \node (xm) at (1, 0) {$X^-$};
+                    \node (lm1) at (2, 0) {$L^-$};
+                    \node (lp1) at (2, 1) {$L^+$};
+                    \node (lm2) at (3, 1) {$L^-$};
+                    \node (sp) at (3, 0) {$S^+$};
+                    \node (sm1) at (4, 1) {$S^-$};
+                    \node (sm2) at (5, 1) {$S^-$};
+                    \node (lp2) at (4, 0) {$L^+$};
+                    \node (xp) at (3.5, 2) {$X^+$};
+                    \node (em) at (2, -1) {empty};
+                    \node (do) at (5, -1) {done};
+                    \draw
+                    (en) edge[->] (xm)
+                    (xm) edge[->, loop, out=120, in=60, distance=1cm] (xm)
+                    (xm) edge[->>] (lm1)
+                    (lm1) edge[->>] (em)
+                    (lm1) edge[->] (lp1)
+                    (lp1) edge[->] (lm2)
+                    (lm2) edge[->>] (sm1)
+                    (sm1) edge[->] (sm2)
+                    (sm2) edge[->] (lp2)
+                    (sm2) edge[->>] (do)
+                    (sm1) edge[->>] (xp)
+                    (xp) edge[->] (lm2)
+                    (lm2) edge[->, bend left=30] (sp)
+                    (sp) edge[->, bend left=30] (lm2)
+                    (0.5, 2.5) -- (5.5, 2.5) -- (5.5, -0.5) -- (0.5, -0.5) -- cycle;
+                \end{tikzpicture}
+            \end{center}
+            \subsubsection*{The Universal Register Machine}
+                This gadgets used in the universal register machine are \textbf{copy}, \textbf{push}, and \textbf{pop}.
+                The universal register machine is an interpreter of the Godel number of programs.
+                It starts with $R_0 = 0$, which is designed to be the return value of the program, $R_1 = e = \crnr{P}$ (the code of a program), and $R_2 = a = \crnr{[a_1, \dots, a_n]}$ (a list of arguments).
+                The goal of the universal register machine is to carry out the computation of $P$ starting with $R_0 = 0, R_1 = a_1, \dots R_n = a_n$, and all other registers at 0.
+                The mnemonics of the registers in $U$ are as follows (anything else can be used as a scratch register);
+                \begin{enumerate}[${R}_1 \equiv$]
+                    \itemsep0em
+                    \setcounter{enumi}{-1}
+                    \item ??? \hfill result of simulated computation (if any)
+                    \item $P$ \hfill \textbf{p}rogram code of the register machine to be simulated
+                    \item $A$ \hfill list of \textbf{a}rguments / register contents of the simulated machine
+                    \item $PC$ \hfill \textbf{p}rogram \textbf{counter} - current instruction label
+                    \item $N$ \hfill label number(s) of the \textbf{n}ext instruction(s), also code for current instruction
+                    \item $C$ \hfill code of the \textbf{c}urrent instruction body
+                    \item $R$ \hfill value of the \textbf{r}egister to be used by current instruction
+                    \item $S$ \hfill auxiliary register
+                    \item $T$ \hfill auxiliary register
+                \end{enumerate}
+                The overall execution structure of the universal register machine is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item copy $PC^\text{th}$ instruction of $P$ to $N$ (halt if $PC > \text{length of list}$), and go to step 2.
+                    \item if $N = 0$, then halt, otherwise $N = \lla y, z \rra$, then set $C = y, N = z$, and go to step 3.
+                        \subitem if $C = 2i$ then instruction is $R_i^+ \to L_z$
+                        \subitem if $C = 2i + 1$ then instruction is $R_i^- \to L_j, L_k$, where $z = \la j, k \ra$
+                        \subitem note that in this case, when we say $R_i$, we're refering to the register in the \textbf{simulated} machine not the \textbf{universal} machine.
+                    \item copy $i^\text{th}$ item of $A$ to $R$, and go to step 4
+                    \item execute the current instruction on $R$, update the $PC$ to the next label, restore the register value to $A$, and go to step 1
+                \end{enumerate}
+                The universal register machine can be represented graphically as below.
+                For a full explanation of how the steps work in detail, the lecture explains it well.
+                Note that the single $N^+$ converts between the single and double angle encodings, since the single angle encoding is used for $\la j, k \ra$.
+                \begin{center}
+                    \begin{tikzpicture}[x=3cm, y=2cm]
+                        \node (s) at (0, 0) {~START~};
+                        \node[draw] (pur0a) at (1, 0) {\shortstack{push $R_0$ \\ to $A$}};
+                        \node[draw] (copt) at (2, 0) {\shortstack{copy $P$ \\ to $T$}};
+                        \node[draw] (potn) at (3, 0) {\shortstack{pop $T$ \\ to $N$}};
+                        \node[draw] (poar0) at (4, 0) {\shortstack{pop $A$ \\ to $R_0$}};
+                        \node (h) at (5, 0) {~HALT~};
+                        \node[draw] (posr) at (0, -1) {\shortstack{pop $S$ \\ to $R$}};
+                        \node (pcm) at (3, -1) {$PC^-$};
+                        \node[draw] (ponc) at (4, -1) {\shortstack{pop $N$ \\ to $C$}};
+                        \node[draw] (pura) at (0, -2) {\shortstack{push $R$ \\ to $A$}};
+                        \node[draw] (conpc) at (1, -2) {\shortstack{copy $N$ \\ to $PC$}};
+                        \node (rp) at (3, -2) {$R^+$};
+                        \node (cm1) at (4, -2) {$C^-$};
+                        \node[draw] (poar) at (5, -2) {\shortstack{pop $A$ \\ to $R$}};
+                        \node (rm) at (0, -3) {$R^-$};
+                        \node[draw] (ponpc) at (1, -3) {\shortstack{pop $N$ \\ to $PC$}};
+                        \node (np) at (3, -3) {$N^+$};
+                        \node (cm2) at (4, -3) {$C^-$};
+                        \node (purs) at (5, -3) {\shortstack{push $R$ \\ to $S$}};
+                        \draw
+                        (s) edge[->] (pur0a)
+                        (pur0a) edge[-{open triangle 60}] (copt)
+                        (copt) edge[-{open triangle 60}] (potn)
+                        (potn) edge[-{open triangle 60}, above] node{e} (poar0)
+                        (poar0) edge[-{open triangle 60}, bend left=30, above] node{e} (h)
+                        (poar0) edge[-{open triangle 60}, bend right=30, below] node{d} (h)
+                        (posr) edge[-{open triangle 60}, below] node{e} (copt)
+                        (pcm) edge[->, bend left=30] (potn)
+                        (potn) edge[-{open triangle 60}, bend left=30, right] node{d} (pcm)
+                        (ponc) edge[-{open triangle 60}, left] node{e} (poar0)
+                        (pcm) edge[->>] (ponc)
+                        (posr) edge[-{open triangle 60}, bend right=30, left] node{d} (pura)
+                        (pura) edge[-{open triangle 60}, bend right=30] (posr)
+                        (ponc) edge[-{open triangle 60}, bend left=30, above] node{d} (poar)
+                        (conpc) edge[-{open triangle 60}] (pura)
+                        (rp) edge[->] (conpc)
+                        (cm1) edge[->>] (rp)
+                        (poar) edge[-{open triangle 60}, bend right=30, above] node{e} (cm1)
+                        (poar) edge[-{open triangle 60}, bend left=30, below] node{d} (cm1)
+                        (rm) edge[->] (pura)
+                        (rm) edge[->>, bend left=15] (conpc)
+                        (cm1) edge[->] (cm2)
+                        (purs) edge[-{open triangle 60}] (poar)
+                        (ponpc) edge[-{open triangle 60}, bend right=30, above] node{e} (rm)
+                        (ponpc) edge[-{open triangle 60}, bend left=30, below] node{d} (rm)
+                        (np) edge[->] (ponpc)
+                        (cm2) edge[->>] (np)
+                        (cm2) edge[->] (purs);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Halting Problem}
+                We define a register machine $H$ to decide the Halting Problem, if for all $e, a_1, \dots, a_n \in \mathbb{N}$, starting $H$ with the configuration $(\ell, 0, e, \crnr{[a_1, \dots, a_n]})$ (where $\ell$ is some starting label), the computation of $H$ always halts with $R_0 = 0$ or $1$.
+                $R_0 = 1$ iff the register machine with index $e$ eventually halts with $R_0 = 0, R_1 = a_1, \dots, R_n = a_n$.
+                Clearly, simulation doesn't work; if the program with index $e$ doesn't halt, then $H$ cannot halt if it simulates it.
+                \medskip
+
+                We can prove this machine cannot exist by contradiction.
+                Let us first add two steps, after the program starts - we name this new machine $H^\prime$;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item $Z = R_1$ \hfill $Z$ is some unused register
+                    \item push $Z$ to $R_2$ \hfill adding the program as an argument
+                \end{enumerate}
+                Then, every normal ~HALT~ or erroneous halt is replaced with the following loop;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=1.5cm]
+                        \node (s) at (0, 0) {};
+                        \node (r0m) at (1, 0) {$R_0^-$};
+                        \node (r0p) at (2, 0) {$R_0^+$};
+                        \node (h) at (1, -1) {~HALT~};
+                        \draw
+                        (s) edge[-{open triangle 60}] (r0m)
+                        (r0m) edge[->, bend left=30] (r0p)
+                        (r0p) edge[->, bend left=30] (r0m)
+                        (r0m) edge[->>] (h);
+                    \end{tikzpicture}
+                \end{center}
+                Let us now call this new register machine, based off of $H^\prime$, $C$, with program index $c \in \mathbb{N}$.
+                \medskip
+
+                As such, $C$ starting with $R_1 = c$ eventually halts iff $H^\prime$ starting with $R_1 = c$ halts with $R_0 = 0$ iff $H$ starting with $R_1 = c, R_2 = \crnr{[c]}$ halts with $R_0$ iff $C$ starting wtih $R_1 = c$ does not halt.
+        \subsection*{21st November 2019 \hfill Lecture}
+            For each $e \in \mathbb{N}$, let $\phi_e \in \mathbb{N} \rightharpoonup \mathbb{N}$ be the partial function computed by the register machine with index $e$. $\phi_e(x) = y$ holds iff the register machine halts with $R_0 = y$, after starting with $R_0 = 0, R_1 = x$.
+            \medskip
+
+            Let $f \in \mathbb{N} \rightharpoonup \mathbb{N}$ be the partial function $\{(x, 0) \bnfsep \phi_x(x) \uparrow\}$, such that
+            \begin{align*}
+                f(x) & =
+                \begin{cases}
+                    0 & \text{if } \phi_x(x) \uparrow \text{ (uncomputable)} \\
+                    \text{undefined} & \text{if } \phi_x(x) \downarrow \text{ (computable)}
+                \end{cases}
+            \end{align*}
+            If we assume that $f$ is computable, then $f = \phi_e$, for some $e \in \mathbb{N}$.
+            We can consider each case;
+            \begin{itemize}
+                \itemsep0em
+                \item $\phi_e(e) \uparrow$, then $f(e) = 0$, by definition of $f$, which therefore means $f\phi_e(e) = 0$, but then it is computable hence $\phi_e(e) \downarrow$
+                \item $\phi_e(e) \downarrow$, then $f(e) = \text{undefined}$, hence $\phi_e(e) \uparrow$
+            \end{itemize}
+            As both cases lead to a contradiction, the entire assumption fails, hence $f$ isn't computable.
 \end{document}
