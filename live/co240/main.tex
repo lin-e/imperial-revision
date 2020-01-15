@@ -1087,7 +1087,7 @@
         \subsection*{20th November 2019 \hfill Lecture}
             Continuing on from last week's lecture, we look at the gadget to perform the pop operation, which has two outcomes.
             In the first outcome, where the list is empty $L = \ell = 0$, then we return with $X^\prime = 0$.
-            On the other hand, we return $X^\prime = x$, and $L^\prime = \ell$, if the inital state is $L = \lla x, \ell \rra$.
+            On the other hand, we return $X^\prime = x$, and $L^\prime = \ell$, if the initial state is $L = \lla x, \ell \rra$.
             \begin{center}
                 \begin{tikzpicture}[x=1.5cm, y=1.5cm]
                     \node (en) at (0, 0) {entry};
@@ -1146,7 +1146,7 @@
                     \item if $N = 0$, then halt, otherwise $N = \lla y, z \rra$, then set $C = y, N = z$, and go to step 3.
                         \subitem if $C = 2i$ then instruction is $R_i^+ \to L_z$
                         \subitem if $C = 2i + 1$ then instruction is $R_i^- \to L_j, L_k$, where $z = \la j, k \ra$
-                        \subitem note that in this case, when we say $R_i$, we're refering to the register in the \textbf{simulated} machine not the \textbf{universal} machine.
+                        \subitem note that in this case, when we say $R_i$, we're referring to the register in the \textbf{simulated} machine not the \textbf{universal} machine.
                     \item copy $i^\text{th}$ item of $A$ to $R$, and go to step 4
                     \item execute the current instruction on $R$, update the $PC$ to the next label, restore the register value to $A$, and go to step 1
                 \end{enumerate}
@@ -1235,7 +1235,7 @@
                 Let us now call this new register machine, based off of $H^\prime$, $C$, with program index $c \in \mathbb{N}$.
                 \medskip
 
-                As such, $C$ starting with $R_1 = c$ eventually halts iff $H^\prime$ starting with $R_1 = c$ halts with $R_0 = 0$ iff $H$ starting with $R_1 = c, R_2 = \crnr{[c]}$ halts with $R_0$ iff $C$ starting wtih $R_1 = c$ does not halt.
+                As such, $C$ starting with $R_1 = c$ eventually halts iff $H^\prime$ starting with $R_1 = c$ halts with $R_0 = 0$ iff $H$ starting with $R_1 = c, R_2 = \crnr{[c]}$ halts with $R_0$ iff $C$ starting with $R_1 = c$ does not halt.
         \subsection*{21st November 2019 \hfill Lecture}
             For each $e \in \mathbb{N}$, let $\phi_e \in \mathbb{N} \rightharpoonup \mathbb{N}$ be the partial function computed by the register machine with index $e$. $\phi_e(x) = y$ holds iff the register machine halts with $R_0 = y$, after starting with $R_0 = 0, R_1 = x$.
             \medskip
@@ -1256,4 +1256,26 @@
                 \item $\phi_e(e) \downarrow$, then $f(e) = \text{undefined}$, hence $\phi_e(e) \uparrow$
             \end{itemize}
             As both cases lead to a contradiction, the entire assumption fails, hence $f$ isn't computable.
+            \medskip
+
+            A similar application can be done to sets; take a subset $S \subseteq \mathbb{N}$, the \textbf{characteristic function} of $S$, $\chi_S \in \mathbb{N} \to \mathbb{N}$, is defined as follows;
+            \begin{align*}
+                \chi_S(x) & =
+                \begin{cases}
+                    1 & \text{if } x \in S \\
+                    0 & \text{if } x \notin S
+                \end{cases}
+            \end{align*}
+            A subset $S$ is called RM decidable if its characteristic function $\chi_S$ is a register machine computable function.
+            Therefore, $S$ is decidable if there is some register machine $M$ such that for all $x \in \mathbb{N}$, $M$ eventually terminates with $R_0 = \chi_S(x)$, when starting with $R_0 = 0, R_1 = 1$.
+            \subsubsection*{Turing Machines}
+                Informally a Turing machine is a head with a state, on a tape with symbols.
+                The head operates on the tape at the current symbol, depending on its state, and writes it back to the tape.
+                Finally, it can either move the tape left, right, or terminate.
+                It has the following characteristics;
+                \begin{itemize}
+                    \itemsep0em
+                    \item finitely many states
+                    \item finitely many symbols
+                \end{itemize}
 \end{document}
