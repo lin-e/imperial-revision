@@ -1270,12 +1270,62 @@
             Therefore, $S$ is decidable if there is some register machine $M$ such that for all $x \in \mathbb{N}$, $M$ eventually terminates with $R_0 = \chi_S(x)$, when starting with $R_0 = 0, R_1 = 1$.
             \subsubsection*{Turing Machines}
                 Informally a Turing machine is a head with a state, on a tape with symbols.
-                The head operates on the tape at the current symbol, depending on its state, and writes it back to the tape.
-                Finally, it can either move the tape left, right, or terminate.
                 It has the following characteristics;
                 \begin{itemize}
                     \itemsep0em
+                    \item the machine starts in state $s$ with the tape head pointing to the first symbol of the finite input string (everything else is blank)
+                    \item the machine computes in steps, depending on the current state of the head, and the symbol being scanned by the tape head
+                    \item an action is to overwrite the current tape cell with a symbol, move left or right one cell, and change state
                     \item finitely many states
                     \item finitely many symbols
                 \end{itemize}
+                Formally, a Turing machine is specified by a quadruple $M = (Q, \Sigma, s, \delta)$, where;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $Q$ \hfill a finite set of machine states
+                    \item $\Sigma$ \hfill a finite set of tape symbols (containing a \textbf{blank} - \textvisiblespace)
+                    \item $s \in Q$ \hfill an initial state
+                    \item $\delta \in (Q \times \Sigma) \rightharpoonup (Q \times \Sigma \times \{L, R\})$ \hfill a partial transition function
+                        \subitem this takes the current state, the current symbol, and possibly creates the next state, the next symbol, and a movement to the left or right
+                        \subitem note that it is a partial function; if it reaches something it cannot do, the machine halts
+                \end{itemize}
+                We can then formally define a configuration $(q, w, u)$ as;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $q \in Q$ \hfill the current state
+                    \item $w \in \Sigma^*$ \hfill a finite (possibly empty) string of tape symbols to the left of the head
+                    \item $u \in \Sigma^*$ \hfill a finite (possibly empty) string of tape symbols under and to the right of the head
+                \end{itemize}
+                An initial configuration is $(s, \epsilon, u)$, for an initial state, and a string of tape symbols $u$.
+                \medskip
+
+                We can define elementary functions $\text{first} : \Sigma^* \to \Sigma \times \Sigma^*$, and $\text{last} : \Sigma^* \to \Sigma \times \Sigma^*$ as follows, which split off the first and last symbols of a string.
+                \begin{align*}
+                    \text{first}(w) & =
+                    \begin{cases}
+                        (a, v) & \text{if } w = a v \\
+                        (\text{\textvisiblespace}, \epsilon) & \text{if } w = \epsilon \\
+                    \end{cases} \\
+                    \text{last}(w) & =
+                    \begin{cases}
+                        (a, v) & \text{if } w = v a \\
+                        (\text{\textvisiblespace}, \epsilon) & \text{if } w = \epsilon \\
+                    \end{cases}
+                \end{align*}
+                From this, we can define the computation of a Turing Machine $M = (Q, \Sigma, s, \delta)$, $(q, w, u) \to_M (q^\prime, w^\prime, u^\prime)$ by;
+                \begin{itemize}
+                    \item
+                            \axiom{$\text{first}(u) = (a, u^\prime)$}
+                            \axiom{$\delta(q, a) = (q^\prime, a^\prime, L)$}
+                            \axiom{$\text{last}(w) = (b, w^\prime)$}
+                        \trinary{$(q, w, u) \to_M (q^\prime, w^\prime, b a^\prime u^\prime)$}
+                        \dproof
+                    \item
+                            \axiom{$\text{first}(u) = (a, u^\prime)$}
+                            \axiom{$\delta(q, a) = (q^\prime, a^\prime, R)$}
+                        \binary{$(q, w, u) \to_M (q^\prime, w a^\prime, u^\prime)$}
+                        \dproof
+                \end{itemize}
+                If $(q, w, u)$ has no computation step, it is a \textbf{normal form}, this happens when $\delta(q, a)$ isn't defined for $\text{first}(u) = (a, u^\prime)$.
+                The computation for a Turing Machine $M$ is a sequence of configurations $c_0, c_1, c_2, \dots$, where $c_0 = (s, \epsilon, u)$ is an initial configuration, and $c_i \to_M c_{i + 1}$ holds for all $i$. This computation does not halt if the sequence is infinite, but does halt if the sequence is finite and the last element is a normal form.
 \end{document}
