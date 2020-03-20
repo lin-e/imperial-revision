@@ -1328,4 +1328,199 @@
                 \end{itemize}
                 If $(q, w, u)$ has no computation step, it is a \textbf{normal form}, this happens when $\delta(q, a)$ isn't defined for $\text{first}(u) = (a, u^\prime)$.
                 The computation for a Turing Machine $M$ is a sequence of configurations $c_0, c_1, c_2, \dots$, where $c_0 = (s, \epsilon, u)$ is an initial configuration, and $c_i \to_M c_{i + 1}$ holds for all $i$. This computation does not halt if the sequence is infinite, but does halt if the sequence is finite and the last element is a normal form.
+        \subsection*{27th November 2019 \hfill Lecture}
+            \subsubsection*{The $\lambda$-Calculus}
+                This can be considered the "simplest programming language", where it is defined as follows;
+                \begin{center}
+                    $\violet{M} ::= x \bnfsep \lambda x.\ \violet{M} \bnfsep \violet{M}\ \violet{M}$
+                \end{center}
+                \begin{itemize}
+                    \itemsep0em
+                    \item $x$ \hfill a variable
+                    \item $\lambda x . \violet{M}$ \hfill an abstraction (single-parameter function, where $\violet{M}$ is the body)
+                    \item $\violet{M}\ \violet{M}$ \hfill an application
+                \end{itemize}
+                For example, $\lambda x.\ (2x + 1)$ is equivalent to ~x => 2*x + 1~ in Scala.
+            \subsubsection*{Syntax}
+                A variable is bound in $\violet{M}$ if it has a corresponding $\lambda$ (binder), for example (bound variables in \red{red}, free variables in \blue{blue});
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\lambda x.\ \red{x}$
+                    \item $\lambda x.\ \blue{y}$
+                    \item $\lambda x.\ \lambda y.\ \lambda z.\ \red{x} \red{y} $ \hfill with \textbf{contraction}, it can also be written as $\lambda xyz.\ \red{x} \red{y}$
+                    \item $((\lambda x.\ \red{x} \blue{y})(\lambda y.\ \blue{x} \red{y}))(\lambda xy.\ \red{x} \red{y} \blue{z})$ \hfill application is \textbf{left-associative}
+                    \item $(\lambda x.\ (\lambda y.\ \red{x} \red{y}) \blue{y})(\lambda z.\ \red{z} \blue{x})$
+                \end{itemize}
+                A \textbf{closed term} has no free variables.
+                Formally, we can define free variables on the structure of $\violet{M}$ as follows;
+                \begin{align*}
+                    \text{FV}(x) & = \{x\} & \text{all variables are free by themselves} \\
+                    \text{FV}(\lambda x.\ \violet{M}) & = \text{FV}(\violet{M}) \setminus \{x\} \\
+                    \text{FV}(\violet{M} \violet{N}) & = \text{FV}(\violet{M}) \cup \text{FV}(\violet{N})
+                \end{align*}
+                In terms of programming languages, we can consider bound variables as function parameters.
+                \begin{lstlisting}
+                    function (x, y) {
+                        return x + y;
+                    }
+                \end{lstlisting}
+                Can be written as $\lambda xy.\ x + y$ (assuming we had some sort of arithmetic plus operator).
+                On the other hand, free variables are "declared" in a higher-up scope, for example;
+                \begin{lstlisting}
+                    function (x, y) {
+                        return (x + y) % z;
+                    }
+                \end{lstlisting}
+            \subsubsection*{Tutorial}
+                \begin{enumerate}[(a)]
+                    \itemsep0em
+                    \item Doing this as one question; the colours are as follows; \violet{binding occurrences}, \red{bound occurrences}, and \blue{free occurrences};
+                        \medskip
+
+                        $(\lambda \violet{x} \violet{y}.\ \red{y} (\lambda \violet{x}.\ \red{x} \red{y}) \blue{z})(\blue{x}(\lambda \violet{z} \violet{x}.\ \red{x} \red{z} \blue{y}))$
+                    \item Not really bothered to write this out, the main point is to consider scoping.
+                \end{enumerate}
+            \subsubsection*{$\alpha$-equivalence}
+                The process of renaming bound variables is called $\alpha$-equivalence.
+                Syntactically, the functions on lines 1 and 2 are different, but they are semantically the same;
+                \begin{lstlisting}
+                    function(x, y) { return x + y; }
+                    function(a, b) { return a + b; }
+                \end{lstlisting}
+                The functions can be represented as the following $\lambda$-terms, omitting the plus; $\lambda xy.\ x y$ and $\lambda ab.\ a b$ respectively.
+                In the $\lambda$-calculus, they are the same, despite being represented differently, they are computed the same, therefore;
+                \begin{center}
+                    $\lambda xy.\ x y =_\alpha \lambda ab.\ a b$
+                \end{center}
+                Intuitively, $\violet{M} =_\alpha \violet{N}$ iff one can be obtained from the other (obviously both ways) by reaming the bound variables.
+                They must also have the same set of free variables.
+                The general strategy is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item Are they of the same structure?
+                    \item Do all of the free variables match?
+                    \item Can you rename the bound variables so that they match?
+                \end{itemize}
+            \subsubsection*{Substitution}
+                In the $\lambda$-calculus, we use the syntax $M[N / x]$, to replace $x$ with $N$ in $M$.
+                \begin{itemize}
+                    \itemsep0em
+                    \item $x[y / x]$ \hfill $y$
+                        \subitem the $x$ is replaced with a $y$
+                    \item $z[y / x]$ \hfill $z$
+                        \subitem there is no $x$ to replace
+                    \item $(x y)(y z)[y / x]$ \hfill $(y y)(y z)$
+                        \subitem substitution occurs in both sub-parts
+                    \item $(\lambda z.\ x z)[y / x]$ \hfill $\lambda z.\ y z$
+                        \subitem $x$ is free
+                    \item $(\lambda x.\ x y)[y / x]$ \hfill $\lambda x.\ x y$
+                        \subitem in $\alpha$-equivalence, the bound $x$ can be renamed to anything, and therefore no substitution can be done, since this is the same as $(\lambda t.\ t y)[y / x]$
+                    \item $(\lambda y.\ x y)[y / x]$ \hfill $\lambda z.\ y z$
+                        \subitem rename the bound variable (and binder)
+                \end{itemize}
+                Formally, this is set out as;
+                \begin{align*}
+                    x[\violet{M} / y] & = \begin{cases}
+                        \violet{M} & x = y \\
+                        x & x \neq y
+                    \end{cases} \\
+                    (\lambda x.\ \violet{N})[\violet{M} / y] & = \begin{cases}
+                        \lambda x.\ \violet{N} & x = y \\
+                        \lambda z.\ \violet{N}[z / x][M / y] & x \neq y
+                    \end{cases} & z \notin \text{FV}(\violet{N}) \setminus \{x\}, z \notin \text{FV}(\violet{M}), z \neq y
+                    \intertext{
+                        This new $z$ is not in the free variables of $N$, is not in the free variables of $M$ (otherwise it would bind).
+                        It cannot be $y$, but it can be $x$, as we don't have to rename all the time.
+                        In short it must be different from all the free variables you can see in this expression.
+                    }
+                    (\violet{M_1} \violet{M_2})[\violet{M} / y] & = (\violet{M_1}[\violet{M} / y])(\violet{M_2}[\violet{M} / y])
+                \end{align*}
+            \subsubsection*{$\beta$-reduction}
+                For computation, we have the following rules.
+                Note that we don't need to go into this much detail when we do our reductions, as they tend to be quite clear.
+                The final rule allows for us to use $\alpha$-equivalences in our reduction.
+                \begin{itemize}
+                    \itemsep0em
+                    \item
+                            \axiom{}
+                        \unary{$(\lambda x.\ \violet{M})\violet{N} \to_\beta \violet{M}[\violet{N} / x]$}
+                        \dproof
+                        \hfill
+                        take this $\violet{N}$ to be the function parameter, put it in the body
+                        \subitem An abstraction followed by an application is called a redex - it can be reduced (the part before the $\to_\beta$).
+                    \item
+                        \axiom{$\violet{M} \to_\beta \violet{M^\prime}$}
+                        \unary{$\lambda x.\ \violet{M} \to_\beta \lambda x.\ \violet{M^\prime}$}
+                        \dproof
+                    \item
+                            \axiom{$\violet{M} \to_\beta \violet{M^\prime}$}
+                        \unary{$\violet{M} \violet{N} \to_\beta \violet{M^\prime} \violet{N}$}
+                        \dproof
+                    \item
+                            \axiom{$\violet{N} \to_\beta \violet{N^\prime}$}
+                        \unary{$\violet{M} \violet{N} \to_\beta \violet{M} \violet{N^\prime}$}
+                        \dproof
+                    \item
+                            \axiom{$\violet{M} =_\alpha \violet{M^\prime}$}
+                            \axiom{$\violet{M^\prime} \to_\beta \violet{N^\prime}$}
+                            \axiom{$\violet{N^\prime} =_\alpha \violet{N}$}
+                        \trinary{$\violet{M^\prime} \to_\beta \violet{N^\prime}$}
+                        \dproof
+                \end{itemize}
+                An example of this is as follows, note how it all ends up at $yy$ - \textbf{confluence};
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm]
+                        \node (o) at (0, 0) {$(\lambda x.\ x x)((\lambda x.\ y) z)$};
+                        \node (ol) at (-2, -2) {$((\lambda x.\ y) z)((\lambda x.\ y) z)$};
+                        \node (or) at (4, -4) {$(\lambda x.\ x x) y$};
+                        \node (oll) at (-4, -4) {$y ((\lambda x.\ y) z)$};
+                        \node (olr) at (0, -4) {$((\lambda x.\ y) z) y$};
+                        \node (e) at (0, -6) {$y y$};
+
+                        \draw
+                        (o) edge[->] node[above]{$\beta$} (ol)
+                        (o) edge[->] node[above]{$\beta$} (or)
+                        (ol) edge[->] node[above]{$\beta$} (oll)
+                        (ol) edge[->] node[above]{$\beta$} (olr)
+                        (oll) edge[->] node[above]{$\beta$} (e)
+                        (olr) edge[->] node[right]{$\beta$} (e)
+                        (or) edge[->] node[above]{$\beta$} (e);
+                    \end{tikzpicture}
+                \end{center}
+                We denote multi-step $\beta$-reduction as $\to_\beta^*$.
+                \begin{itemize}
+                    \itemsep0em
+                    \item
+                            \axiom{$\violet{M} =_\alpha \violet{M^\prime}$}
+                        \unary{$\violet{M} \to_\beta^* \violet{M^\prime}$}
+                        \dproof
+                        \hfill reflexivity, $\alpha$-conversion
+                    \item
+                            \axiom{$\violet{M} \to_\beta \violet{M^{\prime\prime}}$}
+                            \axiom{$\violet{M^{\prime\prime}} \to_\beta \violet{M^\prime}$}
+                        \binary{$\violet{M} \to_\beta^* \violet{M^\prime}$}
+                        \dproof
+                        \hfill transitivity
+                \end{itemize}
+                The concept of \textbf{confluence} can be formally written as the following theorem (Church-Rosser);
+                \begin{center}
+                    $\forall \violet{M}, \violet{M_1}, \violet{M_2}.\ \violet{M} \to_\beta^* \violet{M_1} \land \violet{M} \to_\beta^* \violet{M_2} \Rightarrow \exists \violet{M^\prime}.\ \violet{M_1} \to_\beta^* \violet{M^\prime} \land \violet{M_2} \to_\beta^* \violet{M^\prime}$
+                \end{center}
+                If you keep reducing a redex, you can eventually reach the same point, as seen above.
+                \medskip
+
+                $\lambda$-terms are in $\beta$-normal form if they contain no redexes.
+                \begin{align*}
+                    \text{is\_in\_nf}(\violet{M}) & \triangleq \forall \violet{M^\prime}.\ \violet{M} \not\to_\beta \violet{M^\prime} \\
+                    \text{has\_nf}(\violet{M}) & \triangleq \exists \violet{M^\prime}.\ \violet{M} \to_\beta^* \violet{M^\prime} \land \text{is\_in\_nf}(\violet{M^\prime})
+                \end{align*}
+                $\beta$-normal forms are unique;
+                \begin{center}
+                    $\forall \violet{M}, \violet{N_1}, \violet{N_2}.\ \violet{M} \to_\beta^* \violet{N_1} \land \violet{M} \to_\beta^* \violet{N_2} \land \text{is\_in\_nf}(\violet{N_1}) \land \text{is\_in\_nf}(\violet{N_1}) \Rightarrow \violet{N_1} =_\alpha \violet{N_2}$
+                \end{center}
+                The proof of this can be done with Church-Rosser.
+                Obtain such an $\violet{N}$ such that both $\violet{N_1} \to_\beta^* \violet{N}$ and $\violet{N_2} \to_\beta^* \violet{N}$.
+                However, since $\violet{N_1}$ is in $\beta$-normal form, and $\violet{N_1} \to_\beta^* \violet{N}$, it follows that $\violet{N_1} =_\alpha \violet{N}$.
+                The same can be said for $\violet{N_2}$, and therefore we obtain $\violet{N_2} =_\alpha \violet{N}$.
+                As we have both these equivalences, we end up with $\violet{N_1} =_\alpha \violet{N} =_\alpha \violet{N_2}$.
 \end{document}
