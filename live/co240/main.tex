@@ -1856,4 +1856,12 @@
                 \begin{center}
                     $fact \triangleq F\ (\lambda f.\ \lambda n.\ ifz\ n\ \underline{1}\ (mult\ n\ (f\ (pred\ n))))$
                 \end{center}
+            \subsubsection*{$\eta$-equivalence}
+                $(\lambda x.\ f\ x) \neq_\beta f$, despite always having the case $(\lambda x.\ f\ x)\ M =_\beta f\ M$.
+                However, there is no way to capture this with $\beta$-reduction.
+                This can be captured with the following rule;
+                \begin{center}
+                        \axiom{$x \notin \text{FV}(\violet{M})$}
+                    \unary{$\lambda x.\ \violet{M}\ x =_\eta \violet{M}$}
+                \end{center}
 \end{document}
