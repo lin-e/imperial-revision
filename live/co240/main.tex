@@ -1523,4 +1523,89 @@
                 However, since $\violet{N_1}$ is in $\beta$-normal form, and $\violet{N_1} \to_\beta^* \violet{N}$, it follows that $\violet{N_1} =_\alpha \violet{N}$.
                 The same can be said for $\violet{N_2}$, and therefore we obtain $\violet{N_2} =_\alpha \violet{N}$.
                 As we have both these equivalences, we end up with $\violet{N_1} =_\alpha \violet{N} =_\alpha \violet{N_2}$.
+        \subsection*{28th November 2019 \hfill Lecture}
+            \subsubsection*{$\beta$-equivalence}
+                We can define $=_\beta$ as the smallest equivalence relation containing $\to_\beta$, or as $\to_\beta^*$ with symmetry.
+                This can be formally defined as the following;
+                \begin{center}
+                    $\violet{M_1} =_\beta \violet{M_2} \Leftrightarrow \exists \violet{M^\prime}.\ \violet{M_1} \to_\beta^* \violet{M^\prime} \land \violet{M_2} \to_\beta^* \violet{M^\prime} $
+                \end{center}
+                We can say two $\lambda$-terms are $\beta$-equivalent if we can find some $\lambda$-term such that both terms multi-step reduce to it.
+                All the $\lambda$-terms in the diagram drawn in the previous lecture are $\beta$-equivalent.
+            \subsubsection*{Normalisation}
+                \begin{itemize}
+                    \itemsep0em
+                    \item not all $\lambda$-terms have a normal form, for example
+                        \subitem $(\lambda x.\ x x)(\lambda x.\ x x) \to_\beta (\lambda x.\ x x)(\lambda x.\ x x) \to_\beta \cdots$
+                    \item the order of reduction matters, for example
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \node (o) at (0, 0) {$(\lambda x.\ y)((\lambda x.\ x x)(\lambda x.\ x x))$};
+                                \node (ol) at (-2, -2) {$y$};
+                                \node (or) at (2, -2) {$(\lambda x.\ y)((\lambda x.\ x x)(\lambda x.\ x x))$};
+                                \node (orl) at (0, -4) {$y$};
+                                \node (orr) at (4, -4) {$(\lambda x.\ y)((\lambda x.\ x x)(\lambda x.\ x x))$};
+                                \node (orrl) at (2, -6) {$\vdots$};
+                                \node (orrr) at (6, -6) {$\vdots$};
+
+                                \draw
+                                (o) edge[->] node[above]{$\beta$} (ol)
+                                (o) edge[->] node[above]{$\beta$} (or)
+                                (or) edge[->] node[above]{$\beta$} (orl)
+                                (or) edge[->] node[above]{$\beta$} (orr)
+                                (orr) edge[->] node[above]{$\beta$} (orrl)
+                                (orr) edge[->] node[above]{$\beta$} (orrr);
+                            \end{tikzpicture}
+                        \end{center}
+                \end{itemize}
+            \subsubsection*{Reduction Strategies}
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{normal order}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item evaluate the leftmost redex not contained in another redex
+                            \item always reduces to a normal form (if one exists)
+                            \item can perform computation in unevaluated function bodies (passes unevaluated functions as function arguments)
+                        \end{itemize}
+                        \begin{align*}
+                            & (\violet{(\lambda x y.\ x y x) t} u)((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                            \to_\beta\ & (\violet{(\lambda y.\ t y t) u})((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                            \to_\beta\ & (t u t)(\violet{(\lambda x y z.\ x ((\lambda x.\ x x) y)) v} ((\lambda x.\ x y) w)) \\
+                            \to_\beta\ & (t u t)(\violet{(\lambda y z.\ v ((\lambda x.\ x x) y)) ((\lambda x.\ x y) w)}) \\
+                            \to_\beta\ & (t u t)(\lambda z.\ v (\violet{(\lambda x.\ x x) ((\lambda x.\ x y) w)})) \\
+                            \to_\beta\ & (t u t)(\lambda z.\ v (\violet{(\lambda x.\ x y) w}) ((\lambda x.\ x y) w))) \\
+                            \to_\beta\ & (t u t)(\lambda z.\ v ((w y) (\violet{(\lambda x.\ x y) w}))) \\
+                            \to_\beta\ & (t u t)(\lambda z.\ v ((w y) (w y)))
+                        \end{align*}
+                    \item \textbf{call by name}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item do not reduce under $\lambda$ (do not reduce inside function bodies that haven't been fully evaluated), and do not evaluate function arguments until you have to
+                            \item does not always reduce a term to its normal form
+                            \item used in \textit{Haskell} etc.
+                        \end{itemize}
+                        \begin{align*}
+                            & (\violet{(\lambda x y.\ x y x) t} u)((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                            \to_\beta\ & (\violet{(\lambda y.\ t y t) u})((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                            \to_\beta\ & (t u t)(\violet{(\lambda x y z.\ x ((\lambda x.\ x x) y)) v} ((\lambda x.\ x y) w)) \\
+                            \to_\beta\ & (t u t)(\violet{(\lambda y z.\ v ((\lambda x.\ x x) y)) ((\lambda x.\ x y) w)}) \\
+                            \to_\beta\ & (t u t)(\lambda z.\ v ((\lambda x.\ x x) ((\lambda x.\ x y) w)))
+                        \end{align*}
+                    \item \textbf{call by value}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item do not reduce under $\lambda$, and fully evaluate function arguments before plugging them in
+                            \item finds normal forms less often
+                            \item most popular strategy, evaluates function arguments only once
+                        \end{itemize}
+                        \begin{align*}
+                            & (\violet{(\lambda x y.\ x y x) t} u)((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                            \to_\beta\ & (\violet{(\lambda y.\ t y t) u})((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                            \to_\beta\ & (t u t)((\lambda x y z.\ x ((\lambda x.\ x x) y)) v (\violet{(\lambda x.\ x y) w})) \\
+                            \to_\beta\ & (t u t)(\violet{(\lambda x y z.\ x ((\lambda x.\ x x) y)) v} (w y)) \\
+                            \to_\beta\ & (t u t)(\violet{(\lambda y z.\ v ((\lambda x.\ x x) y)) (w y)}) \\
+                            \to_\beta\ & (t u t)(\lambda z.\ v ((\lambda x.\ x x) (w y))) \\
+                        \end{align*}
+                \end{itemize}
 \end{document}
