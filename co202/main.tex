@@ -14,7 +14,8 @@
 \usepackage{lstautogobble}
 \usepackage{hyperref}
 \usepackage{multirow}
-\usetikzlibrary{arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
+\usepackage{tipa}
+\usetikzlibrary{decorations.pathreplacing, arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
 
 % shorthand for verbatim
 % this clashes with logicproof, so maybe fix this at some point?
@@ -55,16 +56,30 @@
 % custom commands
 \newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
 \newcommand{\defint}[4]{\int_{#1}^{#2} #3 \, \mathrm{d}#4}
+\newcommand{\pdif}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
 \newcommand{\limit}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\lim_{#1 \to #2}}$}}}
-\newcommand{\summation}[3]{\sum\limits_{#1}^{#2} #3}
+\newcommand{\summation}[2]{\sum\limits_{#1}^{#2}}
 \newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
 \newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
 
 \newcommand{\powerset}[0]{\wp}
 \renewcommand{\emptyset}[0]{\varnothing}
 
-\newcommand{\mat}[1]{\mathbf{#1}}
+\makeatletter
+\newsavebox{\@brx}
+\newcommand{\llangle}[1][]{\savebox{\@brx}{\(\m@th{#1\langle}\)}%
+  \mathopen{\copy\@brx\kern-0.5\wd\@brx\usebox{\@brx}}}
+\newcommand{\rrangle}[1][]{\savebox{\@brx}{\(\m@th{#1\rangle}\)}%
+  \mathclose{\copy\@brx\kern-0.5\wd\@brx\usebox{\@brx}}}
+\makeatother
+\newcommand{\lla}{\llangle}
+\newcommand{\rra}{\rrangle}
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+
+\newcommand{\mat}[1]{\boldsymbol{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand{\rowt}[1]{\begin{bmatrix}
     #1
 \end{bmatrix}^\top}
@@ -77,9 +92,15 @@
 \newcommand{\unary}[1]{\UnaryInfC{#1}}
 \newcommand{\binary}[1]{\BinaryInfC{#1}}
 \newcommand{\trinary}[1]{\TrinaryInfC{#1}}
+\newcommand{\quaternary}[1]{\QuaternaryInfC{#1}}
+\newcommand{\quinary}[1]{\QuinaryInfC{#1}}
 \newcommand{\dproof}[0]{\DisplayProof}
 
+\newcommand{\bnfsep}[0]{\ |\ }
+\newcommand{\concsep}[0]{\ ||\ }
 \newcommand{\violet}[1]{\textcolor{violet}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
 
 % no indent
 \setlength\parindent{0pt}
