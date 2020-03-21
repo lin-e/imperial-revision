@@ -1799,5 +1799,61 @@
                     \item make this into a function that takes $m$ and $n$ \hfill $plus \triangleq \lambda m n s z.\ m\ s\ (n\ s\ z)$
                 \end{enumerate}
         \subsection*{5th December 2019 \hfill Lecture}
-            
+            \subsubsection*{Multiplication}
+                For short, let us define $n$ applications of $s$ as follows; $s^n$, allowing for the following;
+                \begin{align*}
+                    \underline{m} & = \lambda s z.\ s^m\ z \\
+                    \underline{n} & = \lambda s z.\ s^n\ z \\
+                    \underline{m + n} & = \lambda s z.\ s^{m + n}\ z
+                \end{align*}
+                To encode multiplication, we only partially unpack $\underline{n}$, using $(n\ s)$, instead of $(n\ s\ z)$ in place of $s$ in $\underline{m}$ (similar strategy to what we did for addition).
+                \begin{align*}
+                    m\ (n\ s) =\ & (\lambda s z.\ s^m\ z)(n\ s) \\
+                    =\ & (\lambda s z.\ s^m\ z)(\lambda z.\ s^n\ z) \\
+                    =_\beta\ & (\lambda z.\ (\lambda z.\ s^n\ z)^m\ z) \\
+                    \to_\beta\ & (\lambda z.\ (\lambda z.\ s^n\ z)^{m - 1}\ (s^n\ z)) \\
+                    \to_\beta\ & (\lambda z.\ (\lambda z.\ s^n\ z)^{m - 2}\ (s^{2 \cdot n}\ z)) \\
+                    \to_\beta^*\ & (\lambda z.\ s^{m \cdot n}\ z) \\
+                    \underline{m \cdot n} =\ & \lambda s z.\ s^{m \cdot n}\ z \\
+                    =\ & \lambda s.\ m\ (n\ s) \\
+                    mult \triangleq\ & \lambda m n s.\ m\ (n\ s)
+                \end{align*}
+            \subsubsection*{Combinators}
+                \textbf{Combinators} are closed $\lambda$-terms.
+                The most important ones are $I$, $K$, and $S$;\
+                \begin{align*}
+                    I & \triangleq \lambda x.\ x & \text{identity} \\
+                    I & : \alpha \to \alpha \\
+                    K & \triangleq \lambda x y.\ x & \text{true / selector} \\
+                    K & : \alpha \to \beta \to \alpha \\
+                    S & \triangleq \lambda x y z.\ x z (y z) \\
+                    S & : \underbrace{(\alpha \to \beta \to \gamma)}_x \to \underbrace{(\alpha \to \beta)}_y \to \underbrace{\alpha}_z \to \gamma
+                \end{align*}
+                All of the $\lambda$-calculus we have covered can be done with the $SKI$ combinators ($I$ is also $SKK$).
+            \subsubsection*{Recursion}
+                For an example of recursion, we will be using the factorial.
+                \begin{align*}
+                    fact\ n \triangleq\ & \text{if } (n = 0) \text{ then } 1 \text{ else } n \cdot fact\ (n - 1) \\
+                    ifz\ \underline{n}\ x\ y =_\beta\ & \begin{cases}
+                        x & n = 0 \\
+                        y & n > 0
+                    \end{cases} \\
+                    fact =_\beta\ & \lambda n.\ ifz\ n\ \underline{1}\ (mult\ n\ (fact\ (pred\ n))) \\
+                    =_\beta\ & \underbrace{(\lambda f.\ \lambda n.\ ifz\ n\ \underline{1}\ (mult\ n\ (f\ (pred\ n))))}_F\ fact
+                \end{align*}
+                In mathematics, if $f(x) = x$, then $x$ is a \textbf{fixpoint} of $f$.
+                As such, we have $fact$ being a fixpoint of $F$.
+                \begin{align*}
+                    Y \triangleq\ & \lambda f.\ (\lambda x.\ f\ (x x)) (\lambda x.\ f\ (x x)) \\
+                    Y\ f \triangleq\ & (\lambda f.\ (\lambda x.\ f\ (x x)) (\lambda x.\ f\ (x x)))\ f \\
+                    \to_\beta\ & (\lambda x.\ f\ (x x)) (\lambda x.\ f\ (x x)) \\
+                    \to_\beta\ & f\ ((\lambda x.\ f\ (x x))\ (\lambda x.\ f\ (x x))) \\
+                    =_\beta\ & f\ (Y\ f)
+                \end{align*}
+                Therefore, $Y\ f$ is a fixpoint of $f$.
+                The $Y$ combinator is the \textbf{fixpoint operator}.
+                As such, we can define the factorial as;
+                \begin{center}
+                    $fact \triangleq F\ (\lambda f.\ \lambda n.\ ifz\ n\ \underline{1}\ (mult\ n\ (f\ (pred\ n))))$
+                \end{center}
 \end{document}
