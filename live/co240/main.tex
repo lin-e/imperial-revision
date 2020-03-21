@@ -1608,4 +1608,196 @@
                             \to_\beta\ & (t u t)(\lambda z.\ v ((\lambda x.\ x x) (w y))) \\
                         \end{align*}
                 \end{itemize}
+        \subsection*{4th December 2019 \hfill Lecture}
+            \subsubsection*{Definability}
+                A partial function $f : \mathbb{N}^n \rightharpoonup \mathbb{N}$ (takes $n$ arguments) is $\lambda$-definable iff there exists a closed $\lambda$-term (no free variables) $\violet{M}$ with the following properties ($\underline{n}$ is the encoding of the natural number $n$ in the $\lambda$-calculus);
+                \begin{center}
+                    $f(x_1, \dots, x_n) = y \Leftrightarrow \violet{M} \underline{x_1} \dots \underline{x_n} =_\beta y$ and $f(x_1, \dots, x_n) \uparrow \Leftrightarrow \violet{M} \underline{x_1} \dots \underline{x_n}$ has no normal form
+                \end{center}
+                The Church-Turing Thesis states that if $f$ is computable iff $f$ is register-machine-computable, Turing-machine-computable, or $\lambda$-definable, which means that these models of computation are equivalent.
+            \subsubsection*{Constructors}
+                Note that the constructors are written in the syntax of \textit{Coq}.
+                An ~Inductive~ type can have recursion.
+                \begin{itemize}
+                    \itemsep0em
+                    \item Booleans \hfill ~true, false~
+                        \begin{lstlisting}
+                            Inductive Bool : Set =
+                             | true  : Bool
+                             | false : Bool
+                        \end{lstlisting}
+                        Very simple type, with no underlying recursion - only two values.
+                    \item Pairs \hfill ~(a, b)~
+                        \begin{lstlisting}
+                            Inductive Pair : Set =
+                             | pair : elt -> elt -> Pair
+                        \end{lstlisting}
+                        Despite pairs containing arbitrary data, there is only one way of constructing pairs (~elt~ means element).
+                        The notation is that ~(a, b)~ means ~pair a b~.
+                    \item Lists \hfill ~[e$_\texttt{1}$, ..., e$_\texttt{n}$]~
+                        \begin{lstlisting}
+                            Inductive List : Set
+                             | nil  : List
+                             | cons : elt -> List -> List
+                        \end{lstlisting}
+                        A list can either be empty (~nil~), or be a head element ~elt~ with a tail ~List~.
+                        This is very similar to \textit{Haskell}, so no further explanation \textbf{should} be needed.
+                    \item Binary trees \hfill I'm not drawing this out.
+                        \begin{lstlisting}
+                            Inductive Tree : Set =
+                             | leaf   : elt -> Tree
+                             | branch : Tree -> elt -> Tree -> Tree
+                        \end{lstlisting}
+                        A binary tree is either a single ~leaf~, or a ~branch~ which takes in the left subtree, an element, and the right subtree.
+                    \item Natural numbers \hfill ~0, 1, 2, ...~
+                        \begin{lstlisting}
+                            Inductive Nat : Set =
+                             | z : Nat
+                             | S : Nat -> Nat
+                        \end{lstlisting}
+                        This is Peano arithmetic, see \textbf{CO142}.
+                        The notation is that ~z~ is 0, ~S z~ is 1, ~S (S z)~ is 2, and so on.
+                \end{itemize}
+            \subsubsection*{Encoding Values}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item all values are $\lambda$-abstractions, one $\lambda$ per constructor
+                    \item the abstraction body is the formal definition of the value
+                    \item any non-inductive parameters have to be encoded themselves
+                \end{enumerate}
+                \begin{itemize}
+                    \itemsep0em
+                    \item Booleans
+                        \smallskip
+
+                        First shorten constructors to $t$ and $f$, giving us a $\lambda$ per constructor.
+                        The abstraction bodies are as follows;
+                        \begin{align*}
+                            \underline{~true~} & = \lambda t f.\ t \\
+                            \underline{~false~} & = \lambda t f.\ f
+                        \end{align*}
+                    \item Pairs
+                        \smallskip
+
+                        First shorten constructor to $p$, giving us a single $\lambda$.
+                        The abstraction body is as follows;
+                        \begin{align*}
+                            \underline{~pair a b~} & = \lambda p.\ p\ \underline{a}\ \underline{b}
+                        \end{align*}
+                    \item Lists
+                        \smallskip
+
+                        First shorten constructors to $n$ and $c$, giving us a $\lambda$ per constructor.
+                        \begin{align*}
+                            \underline{~cons x (cons y (cons z nil))~} & = \lambda c n.\ c\ \underline{x}\ (c\ \underline{y}\ (c\ \underline{z}\ n)
+                        \end{align*}
+                    \item Binary trees
+                        \smallskip
+
+                        Same method as previously, etc.
+                        \begin{align*}
+                            \underline{~branch (leaf 1) 0 (leaf 2)~} & = \lambda b l.\ b\ (l\ \underline{1})\ \underline{0}\ (l\ \underline{2})
+                        \end{align*}
+                \end{itemize}
+            \subsubsection*{Unpacking}
+                Unpacking is the process of using application to remove the $\lambda$s from an encoded value to get the body of the abstraction;
+                \begin{align*}
+                    (\lambda t f.\ t)\ \violet{t}\ \violet{f} & \to_\beta^* t \\
+                    (\lambda p.\ p\ \underline{a}\ \underline{b})\ \violet{p} & \to_\beta^* p\ \underline{a}\ \underline{b} \\
+                    (\lambda c n.\ c\ \underline{x}\ (c\ \underline{y}\ (c\ \underline{z}\ n)))\ \violet{c}\ \violet{n} & \to_\beta^* c\ \underline{x}\ (c\ \underline{y}\ (c\ \underline{z}\ n)) \\
+                    (\lambda b l.\ b\ (l\ \underline{1})\ \underline{0}\ (l\ \underline{2}))\ \violet{b}\ \violet{l} & \to_\beta^* b\ (l\ \underline{1})\ \underline{0}\ (l\ \underline{2})
+                \end{align*}
+            \subsubsection*{Encoding Constructors}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item one $\lambda$ per constructor
+                    \item prepend any parameter $\lambda$s to the constructor $\lambda$s
+                    \item abstraction body follows the constructor type, with all inductive parameters unpacked
+                \end{enumerate}
+                \begin{align*}
+                    T & = \lambda t f.\ t & ~true~ \\
+                    F & = \lambda t f.\ f & ~false~ \\
+                    P & = \lambda a b p.\ p\ a\ b & ~pair~ \\
+                    N & = \lambda c n.\ n & ~nil~ \\
+                    C & = \lambda e l c n.\ c\ e\ (l\ c\ n) & ~cons~
+                    \intertext{note how the ~cons~ constructor has $(l\ c\ n)$, as the inductive parameter must be unpacked}
+                    L & = \lambda e b l.\ l\ e & ~leaf~ \\
+                    B & = \lambda t_1 e t_2 b l.\ b\ (t_1\ b\ l)\ e\ (t_2\ b\ l) & ~branch~
+                \end{align*}
+                A proof of this working for ~cons~ is as follows (note the use of $\to_\beta^*$ to denote multiple steps - important for exam);
+                \begin{align*}
+                    & C\ \underline{x}\ (C\ \underline{y}\ N) \\
+                    \triangleq\ & C\ \underline{x}\ ((\lambda e l c n.\ c\ e\ (l\ c\ n))\ \underline{y}\ N) \\
+                    \to_\beta^*\ & C\ \underline{x}\ (\lambda c n.\ c\ \underline{y}\ (N\ c\ n)) \\
+                    \triangleq\ & C\ \underline{x}\ (\lambda c n.\ c\ \underline{y}\ ((\lambda c n.\ n)\ c\ n)) \\
+                    \to_\beta^*\ & C\ \underline{x}\ (\lambda c n.\ c\ \underline{y}\ n) \\
+                    \triangleq\ & (\lambda e l c n.\ c\ e\ (l\ c\ n))\ \underline{x}\ (\lambda c n.\ c\ \underline{y}\ n) \\
+                    \to_\beta^*\ & (\lambda c n.\ c\ \underline{x}\ ((\lambda c n.\ c\ \underline{y}\ n)\ c\ n)) \\
+                    \to_\beta^*\ & \lambda c n.\ c\ \underline{x}\ (c\ \underline{y}\ n)
+                \end{align*}
+            \subsubsection*{Encoding Operations}
+                The idea is to manipulate the encoding body by inserting a function in place of the constructor.
+                For example, with a pair $\lambda p.\ p\ a\ b$, if we want the first element, we want $a$, otherwise we want $b$ if we want the second element.
+                \begin{align*}
+                    Fst & = \lambda p.\ p\ (\lambda a b.\ a) \\
+                    Snd & = \lambda p.\ p\ (\lambda a b.\ b)
+                \end{align*}
+                For example;
+                \begin{align*}
+                    & Fst (\lambda p.\ p\ \underline{0}\ \underline{1}) \\
+                    \triangleq\ & (\lambda p.\ p\ (\lambda a b.\ a)) (\lambda p.\ p\ \underline{0}\ \underline{1}) \\
+                    \to_\beta\ & (\lambda p.\ p\ \underline{0}\ \underline{1}) (\lambda a b.\ a) \\
+                    \to_\beta\ & (\lambda a b.\ a)\ \underline{0}\ \underline{1} \\
+                    \to_\beta^*\ & \underline{0}
+                \end{align*}
+                Similarly for the head and tail of a list, we have;
+                \begin{align*}
+                    Hd & = \lambda l.\ l\ (\lambda e l.\ e)\ \_ \\
+                    Tl & = \lambda l.\ l\ (\lambda e l.\ (\lambda c n.\ l))\ \_
+                \end{align*}
+                Note the use of the $\_$, since the constructor for a list has two parameters, we want to discard the $n$ (~nil~) constructor, since it doesn't make sense to use this on the empty list.
+                It's also important to note that we also need the additional $c n$ parameters for the tail to pack the list.
+                However, now we have $Hd\ N =_\beta Tl\ N =_\beta \_$, since both those functions are total (in terms of $\lambda$-definability).
+                Therefore this must be adjusted to not have a normal form.
+            \subsubsection*{Constructor Recognisers}
+                In order to do this, we have to employ constructor recognisers, which are mechanisms designed to recognise the lead constructor then branch using that mechanism.
+                A use case for this is for $Hd$ to recognise whether it's being applied to the empty list (and thus diverge), or to proceed otherwise.
+                \begin{align*}
+                    isNil & = \lambda l.\ l\ (\lambda e l.\ \underline{false})\ (\underline{true}) \\
+                    isCons & = \lambda l.\ l\ (\lambda e l.\ \underline{true})\ (\underline{false})
+                    \intertext{this can now be used for branching as follows;}
+                    ifNil & = \lambda x y l.\ l\ (\lambda e l.\ y)\ x
+                    \intertext{give it some term without a normal form (diverges) as follows;}
+                    D & = (\lambda x.\ x x)(\lambda x.\ x x)
+                    \intertext{we can now create partial functions that can diverge (which is the correct use)}
+                    PHd & = ifNil\ D\ Hd \\
+                    PTl & = ifNil\ D\ Tl
+                \end{align*}
+            \subsubsection*{Encoding Natural Numbers}
+                The Church numerals are encoded as follows;
+                \begin{align*}
+                    \underline{0} & = \lambda s z.\ z \\
+                    \underline{1} & = \lambda s z.\ s\ z \\
+                    \underline{2} & = \lambda s z.\ s\ (s\ z) \\
+                    \underline{3} & = \lambda s z.\ s\ (s\ (s\ z)) \\
+                    & \cdots \\
+                    \underline{n} & = \lambda s z.\ \underbrace{s\ (\dots\ (s}_n\ z)\ \dots\ )
+                \end{align*}
+                In order to encode addition of two natural numbers, $m$ and $n$, we want;
+                \begin{align*}
+                    \underline{m} =\ & \lambda s z.\ \underbrace{s\ (\dots(s}_m\ \red{z})\dots) \\
+                    \underline{n} =\ & \lambda s z.\ \blue{\underbrace{s\ (\dots(s}_n\ z)\dots)} \\
+                    plus\ \underline{m}\ \underline{n} =_\beta\ & \lambda s z.\ \underbrace{s\ (\dots(s}_{m + n}\ z)\dots)
+                \end{align*}
+                Ideally, we want to substitute the \blue{blue} part of $\underline{n}$ into the \red{red} part of $\underline{m}$.
+                To achieve this, we can do the following steps;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item unpack to obtain the body of $\underline{n}$ \hfill $\underline{n}\ s\ z =_\beta \underbrace{s(\dots(s}_n\ z)\dots)$
+                    \item unpack $\underline{m}$ with the unpacked $\underline{n}$ in place of $z$ \hfill $\underline{m}\ s\ (\underline{n}\ s\ z) =_\beta \underbrace{s(\dots(s}_{m + n}\ z)\dots)$
+                    \item pack into a Church numeral \hfill $\lambda s z.\ \underline{m}\ s\ (\underline{n}\ s\ z) =_\beta \underline{m + n}$
+                    \item make this into a function that takes $m$ and $n$ \hfill $plus \triangleq \lambda m n s z.\ m\ s\ (n\ s\ z)$
+                \end{enumerate}
+        \subsection*{5th December 2019 \hfill Lecture}
+            
 \end{document}
