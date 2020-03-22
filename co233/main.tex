@@ -777,22 +777,94 @@
                 \end{align*}
                 This is in Jordan Normal Form.
                 For some $\lambda_i$ eigenvalue, and $\ell_i \leq m_i$, the sum of the sizes of the blocks is $m_i$, and the number of blocks is $\ell_i$.
-                \begin{align*}
-                    \mat{J} & = \begin{bmatrix}
-                        \mat{J_1} \\
-                        & \ddots \\
-                        & & \mat{J_p}
-                    \end{bmatrix} \\
-                    \mat{J_i} & = \begin{bmatrix}
-                        \lambda_i & 1 \\
-                        & \lambda_i & \ddots \\
-                        & & \ddots & 1 \\
-                        & & & \lambda_i
-                    \end{bmatrix}
-                \end{align*}
                 If $\lambda_i$ is an eigenvalue of $\mat{A}$ with algebraic multiplicity $m_i$, then the nullity of $(\mat{A} - \lambda_i \mat{I})^{m_i} = m_i$.
                 \medskip
 
                 \textbf{Definition}: $\vec{v} \in \mathbb{R}^m$ is a generalised eigenvector for $\lambda_i$ if $(\mat{A} - \lambda_i \mat{I})^{m_i} \vec{v} = \vec{0}$.
                 The maximum iterations is $m_i$, but can be less.
+        \subsection*{23rd January 2020}
+            In general;
+            \begin{itemize}
+                \itemsep0em
+                \item $\forall j\ [\ell_j = m_j] \Rightarrow \mat{A}$ is diagonalisable
+                \item $\exists j\ [\ell_j < m_j] \Rightarrow \mat{A}$ is diagonalisable or \textbf{almost} diagonalisable
+            \end{itemize}
+            The following is a very poor explanation of what the form looks like, because I don't know how to draw blocks in \LaTeX.
+            See Panopto at timestamp 13:17 for a proper drawing.
+            \begin{align*}
+                \mat{A} & = \begin{bmatrix}
+                    \mat{B_{\lambda_1}} \\
+                    & \ddots \\
+                    & & \mat{B_{\lambda_t}}
+                \end{bmatrix} \\
+                \mat{B_j} & = \begin{bmatrix}
+                    \mat{J_j} \\
+                    & \ddots \\
+                    & & \mat{J_j}
+                \end{bmatrix} & \text{all $\mat{J_j}$ can be of different sizes, $\mat{B_j} \in \mathbb{R}^{m_j \times m_j}$} \displaybreak \\
+                \mat{J_i} & = \begin{bmatrix}
+                    \lambda_i & 1 \\
+                    & \lambda_i & \ddots \\
+                    & & \ddots & 1 \\
+                    & & & \lambda_i
+                \end{bmatrix}
+            \end{align*}
+            \subsubsection*{Spectral Decomposition of Symmetric Matrices}
+                In almost all areas of computer science, symmetric matrices are the dominant paradigm.
+                All the eigenvalues of real symmetric matrices are real, and are always diagonalisable.
+                A symmetric matrix is always a square matrix $\mat{A} \in \mathbb{R}^{n \times n}$, which also satisfies $\mat{A}^\top = \mat{A}$, meaning it is symmetric along the diagonal (the elements above the diagonal determine the elements below, and vice versa).
+                We are to prove the following properties;
+                \begin{enumerate}[(i)]
+                    \itemsep0em
+                    \item All eigenvalues of $\mat{A}$ are real.
+                        \medskip
+
+                        First assume that $\vec{v} \in \mathbb{C}^n$, as we don't yet know that it is real, therefore we can have the case $\lambda \in \mathbb{C}$.
+                        \begin{align*}
+                            \mat{A}\vec{v} & = \lambda\vec{v} & \Rightarrow \\
+                            \vec{v}^{*^\top}\mat{A}\vec{v} & = \lambda \vec{v}^{*^\top}\vec{v} \\
+                            & = \lambda || \vec{v} ||^2 & (1) \\
+                            \vec{v}^{*^\top}\mat{A}\vec{v} & = \left(\vec{v}^{*^\top}\mat{A}\right)\vec{v} \\
+                            & = \left((\mat{A}\vec{v})^\top\right)^* \vec{v}
+                            \intertext{briefly proving the above;}
+                            \left((\mat{A}\vec{v})^\top\right)^* & = \left(\vec{v}^\top\mat{A}^\top\right)^* & \text{taking the transpose inside the bracket} \\
+                            & = \left(\vec{v}^\top\right)^* \mat{A}^* & \text{taking the conjugate inside and $\mat{A}^\top = \mat{A}$} \\
+                            & = \left(\vec{v}^\top\right)^* \mat{A} & \text{$\mat{A}$ is real valued matrix}
+                            \intertext{continuing on;}
+                            & = \left((\lambda\vec{v})^\top\right)^* \vec{v} & \text{$\vec{v}$ is an eigenvector} \\
+                            & = \lambda^* \left(\vec{v}^\top\right)^* \vec{v} & \text{transposing a scalar does nothing} \\
+                            & = \lambda^* || \vec{v} ||^2 & (2)
+                        \end{align*}
+                        By comparing results, $(1) = (2)$, hence $\lambda^* = \lambda$ (dividing through by $|| \vec{v} ||^2$ is allowed, since we know it is non-zero by properties of vector norms, and $\vec{v} \neq \vec{0}$ by properties of eigenvectors).
+                        As the complex conjugate of $\lambda$ is the same as $\lambda$, we can conclude that $\lambda \in \mathbb{R}$.
+                    \item Eigenvectors corresponding to different eigenvalues of $\mat{A}$ are perpendicular.
+                        \medskip
+
+                        Note that with the above result, we know that $\vec{v} \in \mathbb{R}^n$, as there is no possible way to obtain complex values with a real valued matrix and a real valued eigenvalue.
+                        \begin{align*}
+                            \mat{A}\vec{v_1} & = \lambda_1 \vec{v_1} \\
+                            \mat{A}\vec{v_2} & = \lambda_2 \vec{v_2} \\
+                            \lambda_1 & \neq \lambda_2 \\
+                            \vec{v_2}^\top\mat{A}\vec{v_1} & = \lambda_1 \vec{v_2}^\top \vec{v_1} \\
+                            & = \lambda_1 (\vec{v_1} \cdot \vec{v_2}) & (1) \\
+                            \vec{v_2}^\top\mat{A}\vec{v_1} & = \left(\vec{v_2}^\top\mat{A}\right)\vec{v_1} \\
+                            & = (\mat{A}\vec{v_2})^\top\vec{v_1} & \text{adding a transpose and $\mat{A}^\top = \mat{A}$} \\
+                            & = \lambda_2 \vec{v_2}^\top \vec{v_1} & \text{$\vec{v_2}$ is an eigenvector} \\
+                            & = \lambda_2 (\vec{v_1} \cdot \vec{v_2}) & (2)
+                        \end{align*}
+                        Similarly, comparing results (1) and (2), we get
+                        \begin{align*}
+                            \lambda_1 (\vec{v_1} \cdot \vec{v_2}) & = \lambda_2 (\vec{v_1} \cdot \vec{v_2}) & \Leftrightarrow \\
+                            \lambda_1 (\vec{v_1} \cdot \vec{v_2}) - \lambda_2 (\vec{v_1} \cdot \vec{v_2}) & = 0 \\
+                            (\lambda_1 - \lambda_2)(\vec{v_1} \cdot \vec{v_2}) & = 0 & \Leftrightarrow \\
+                            \lambda_1 & = \lambda_2 \\
+                            \text{or } \vec{v_1} \cdot \vec{v_2} & = 0
+                        \end{align*}
+                        The former is not possible due to the condition that they are different eigenvalues, therefore $\vec{v_1} \cdot \vec{v_2} = 0$.
+                        As neither are the zero vector, by definition of eigenvectors, $\cos \theta = 0$, therefore they are perpendicular.
+                    \item (Tutorial 3) If $\lambda_j$ is an eigenvalue of $\mat{A}$ then $\ell_j = m_j$, therefore $\mat{A}$ is diagonalisable.
+                        \medskip
+
+                        Come back to this in two weeks?
+                \end{enumerate}
 \end{document}
