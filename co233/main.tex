@@ -179,20 +179,135 @@
                 \end{center}
                 If we take a vector $\vec{v} \in \mathbb{R}^n$, the Euclidean norm (or the $\ell_2$-norm) is defined as such;
                 \begin{center}
-                    $||\vec{v}||_2 = \sqrt{\summation{i=1}{n} v_i^2}$
+                    $|| \vec{v} ||_2 = \sqrt{\summation{i=1}{n} v_i^2}$
                 \end{center}
                 A norm, a mapping $|| \cdot || : \mathbb{R}^n \to \mathbb{R}^+$, must satisfy these 3 axioms;
                 \begin{enumerate}[(i)]
                     \itemsep0em
-                    \item $||\vec{v}|| > 0$ given that $\vec{v} \neq \vec{0}$
-                    \item $||\lambda \vec{v}|| = |\lambda|\ ||\vec{v}||$
-                    \item $||\vec{v} + \vec{w} || \leq ||\vec{v}|| + ||\vec{w}||$ (triangular inequality)
+                    \item $|| \vec{v} || > 0$ given that $\vec{v} \neq \vec{0}$
+                    \item $||\lambda \vec{v}|| = |\lambda|\ || \vec{v} ||$
+                    \item $||\vec{v} + \vec{w} || \leq || \vec{v} || + ||\vec{w}||$ (triangular inequality)
                 \end{enumerate}
                 Some other ($\ell_p$) norms are defined as follows;
                 \begin{align*}
-                    \ell_1\text{-norm } ||\vec{v}||_1 & = \summation{i=1}{n}|v_i| \\
-                    \ell_\infty\text{-norm } ||\vec{v}||_\infty & = \text{max} \{|v_i| : 1 \leq i \leq n\} \\
-                    \ell_p\text{-norm } ||\vec{v}||_p & = (\summation{i=1}{n} |v_i|^p)^\frac{1}{p}
+                    \ell_1\text{-norm } || \vec{v} ||_1 & = \summation{i=1}{n}|v_i| \\
+                    \ell_\infty\text{-norm } || \vec{v} ||_\infty & = \text{max} \{|v_i| : 1 \leq i \leq n\} \\
+                    \ell_p\text{-norm } || \vec{v} ||_p & = \left(\summation{i=1}{n} |v_i|^p\right)^\frac{1}{p}
                 \end{align*}
+                In each dimension, we have the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $n = 1$
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $|| \vec{v} ||_1 = | v | = | v |$
+                            \item $|| \vec{v} ||_2 = \sqrt{v^2} = | v |$
+                            \item $|| \vec{v} ||_\infty = \text{max} \{| v |\} = | v |$
+                        \end{itemize}
+                    \item $n = 2$
+                        \smallskip
 
+                        We can represent this geometrically as such;
+                        \begin{center}
+                            \begin{tikzpicture}[x=0.25cm, y=0.25cm]
+                                \node at (4, -1) {$v_1$};
+                                \node at (-1, 3) {$v_2$};
+                                \node at (5, 4) {$\vec{v}$};
+
+                                \draw (0, 0) circle (5);
+                                \draw (0, 0) edge[->] (4, 0);
+                                \draw (0, 0) edge[->] (0, 3);
+                                \draw (0, 0) edge[->] (4, 3);
+                            \end{tikzpicture}
+                        \end{center}
+                        In our case $|| \vec{v} ||_\infty = \text{max}\{ | v_1 |, | v_2 | \} = | v_1 |$, but the point is that it's either of the "sides" of the triangle.
+                        Obviously, $|| \vec{v} ||_2 \geq || \vec{v} ||_\infty$, as it's the hypotenuse of the triangle, and similarly, $|| \vec{v} ||_1 \geq || \vec{v} ||_2$, due to the triangle inequality.
+                        Therefore we have $|| \vec{v} ||_1 \geq || \vec{v} ||_2 \geq || \vec{v} ||_\infty$.
+                        \smallskip
+
+                        Even if the orthonormal base changes, the Euclidean norm stays the same, whereas the other norms can change.
+                        As such, we can say the $\ell_2$-norm is invariant under an \textbf{orthogonal transformation} (a basis change from an orthonormal bases to another orthonormal bases).
+                    \item $n =\ ?$ (general)
+                        \smallskip
+
+                        The goal is to prove $|| \vec{v} ||_\infty \leq || \vec{v} ||_2 \leq || \vec{v} ||_1$.
+                        If we first take the squares of all of them, such that we have the following;
+                        \begin{align*}
+                            || \vec{v} ||_1^2 & = \left(\summation{i = 1}{n} | v_i |\right)^2 \\
+                            || \vec{v} ||_2^2 & = \summation{i = 1}{n} | v_i |^2 \\
+                            || \vec{v} ||_\infty^2 & = (\text{max}\{| v_i | : 1 \leq i \leq n\})^2 \\
+                        \end{align*}
+                        Since the $\ell_\infty$-norm corresponds to a single $v_i$, it's obvious that the following inequality holds (since the $\ell_2$-norm squared has all the other terms squared, as well as the $\ell_\infty$-norm squared);
+                        \begin{center}
+                            $|| \vec{v} ||_2^2 = \summation{i = 1}{n} | v_i |^2 \geq (\text{max}\{| v_i | : 1 \leq i \leq n\})^2 = || \vec{v} ||_\infty^2 \Rightarrow || \vec{v} ||_2 \geq || \vec{v} ||_\infty$
+                        \end{center}
+                        To prove the other inequality, we see that the square of the sum of absolutes is greater than the sum of the squares, as the square of the sum contains the cross terms (which will be positive).
+                        \begin{center}
+                            $|| \vec{v} ||_2^2 = \summation{i = 1}{n} | v_i |^2 \leq \left(\summation{i = 1}{n} | v_i |\right)^2 = || \vec{v} ||_\infty^1 \Rightarrow || \vec{v} ||_2 \leq || \vec{v} ||_1$
+                        \end{center}
+                        As such, we can conclude that $|| \vec{v} ||_\infty \leq || \vec{v} ||_2 \leq || \vec{v} ||_1$ in any dimension. \hfill $\blacksquare$
+                \end{itemize}
+                \subsubsection*{Tutorial Question}
+                    Find the locus of vectors such that $|| \vec{v} ||_p \leq 1$, for $p = \red{1}, \blue{2}, \violet{\infty}$ in $n = 2$;
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node at (1.75, 0) {$x$};
+                            \node at (0, 1.75) {$y$};
+
+                            \draw[violet] (-1, 1) -- (1, 1) -- (1, -1) -- (-1, -1) -- cycle;
+                            \draw[blue] (0, 0) circle (1);
+                            \draw[red] (0, 1) -- (1, 0) -- (0, -1) -- (-1, 0) -- cycle;
+                            \draw
+                            (0, 0) edge[->] (1.5, 0)
+                            (0, 0) edge[->] (0, 1.5);
+                        \end{tikzpicture}
+                    \end{center}
+                    Imagine they're all shaded from the border to the origin.
+                \subsubsection*{$\ell_p$-norm}
+                    Our goal is to show that as $p \to \infty$, we get the definition of the $\ell_\infty$-norm previously stated.
+                    Take a vector $\vec{v} \in \mathbb{R}^n$, where both $\vec{v}$ and $n$ are fixed.
+                    \begin{center}
+                        $|| \vec{v} ||_p^p = \summation{i = 1}{n} | v_i |^p$
+                    \end{center}
+                    Obviously, this is greater than or equal to $|| \vec{v} ||_\infty^p$, as it would only be a single $| v_i |^p$.
+                    Similarly, it must be less than or equal to $n | v_i |^p$, as $v_i$ is the maximum of all the components.
+                    \begin{center}
+                        $|| \vec{v} ||_\infty^p \leq || \vec{v} ||_p^p = \summation{i = 1}{n} | v_i |^p \leq n || \vec{v} ||_\infty^p$
+                    \end{center}
+                    Taking everything to the power of $\frac{1}{p}$, we obtain the following result (note that $p > 0$ hence the signs don't change);
+                    \begin{center}
+                        $|| \vec{v} ||_\infty \leq || \vec{v} ||_p = \leq n^\frac{1}{p} || \vec{v} ||_\infty$
+                    \end{center}
+                    As $p \to \infty$, since $n \geq 2$ ($n = 1$ is shown to collapse to the same component), we have $n^\frac{1}{p} \to 1$, which sandwiches the middle term.
+                \subsubsection*{Some Proposition ($\ell_\infty$-norm vs $\ell_2$-norm)}
+                    The proposition is as follows; for a vector $\vec{v} \in \mathbb{R}^n$, $|| \vec{v} ||_2 \leq \sqrt{n} || \vec{v} ||_\infty$.
+                    To show this, we know that each of $| v_i |$ is less than or equal to $|| \vec{v} ||_\infty$, by definition of the maximum.
+                    The same can be said for $| v_i |^2$, vs $|| \vec{v} ||_\infty^2$.
+                    Taking square roots, we have the following;
+                    \begin{center}
+                        $|| \vec{v} ||_2^2 = \summation{i = 1}{n} | v_i |^2 \leq n || \vec{v} ||_\infty^2 \Rightarrow || \vec{v} ||_2 \leq \sqrt{n} || \vec{v} ||_\infty$
+                    \end{center}
+                    To show this holds similarly for $|| \vec{v} ||_1 \leq \sqrt{n} || \vec{v} ||_2$, we employ the Cauchy-Schwarz inequality, which states $| \vec{x} \cdot \vec{y} | \leq || \vec{x} ||_2 || \vec{y} ||_2$.
+                    The Cauchy-Schwarz inequality uses the fact that $\vec{x} \cdot \vec{y} = || \vec{x} ||_2 || \vec{y} ||_2 \cos \theta$.
+                    To do this, we need to define a sign function $\text{sgn} : \mathbb{R} \to \{1, -1\}$ as follows;
+                    \begin{align*}
+                        \text{sgn}\ x & = \begin{cases}
+                            1 & x \geq 0 \\
+                            -1 & x < 0
+                        \end{cases}
+                        \intertext{We also need to craft a vector $\vec{w}$, as follows;}
+                        w_i & = \frac{\text{sgn}\ v_i}{\sqrt{n}} & 1 \leq i \leq n \\
+                        \vec{v} \cdot \vec{w} & = \summation{i = 1}{n} v_i w_i \\
+                        & = \summation{i = 1}{n} \frac{v_i \cdot \text{sgn}\ v_i}{\sqrt{n}} & \text{product of same sign becomes positive} \\
+                        & = \summation{i = 1}{n} \frac{| v_i |}{\sqrt{n}} \\
+                        & = \sqrt{n} \summation{i = 1}{n} | v_i | \\
+                        & = \sqrt{n} || \vec{v} ||_1 \\
+                        || \vec{w} ||_2 & = \summation{i = 1}{n} \frac{\pm 1}{\sqrt{n}}^2 \\
+                        & = \summation{i = 1}{n} \frac{1}{n} \\
+                        & = 1
+                    \end{align*}
+                    By \violet{Cauchy-Schwarz}, we get;
+                    \begin{center}
+                        $\sqrt{n} || \vec{v} ||_1 = \violet{| \vec{v} \cdot \vec{w} | \leq || \vec{v} ||_2 || \vec{w} ||_2} = || \vec{v} ||_2$
+                    \end{center}
 \end{document}
