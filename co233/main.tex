@@ -536,4 +536,263 @@
                     $g_{\mat{D}\mat{C}}f_{\mat{C}\mat{B}} = (g \circ f)_{\mat{D}\mat{B}}$
                 \end{center}
                 This then goes into change of basis, but see last year's \textbf{CO145}.
+        \subsection*{22nd January 2020}
+            \subsubsection*{Tutorial Question}
+                $f : \mathbb{R}^2 \to \mathbb{R}^2$ is a linear map, and $\mat{E} = (\vec{e_1}, \vec{e_2})$ is an ordered basis.
+                \begin{align*}
+                    f(\vec{e_1}) & = 5\vec{e_1} - 6\vec{e_2} \\
+                    f(\vec{e_2}) & = 3\vec{e_1} + \vec{e_2}
+                \end{align*}
+                We only care about what the linear map does to the ordered basis, as anything else can be done by linearity.
+                \begin{enumerate}[(i)]
+                    \itemsep0em
+                    \item Find $f_{\mat{E}\mat{E}}$, the matrix representation of $f$ in $\mat{E}$ - note that this has the same input space as the output space, but it can be different.
+                        \medskip
+
+                        The first column can be done by reading the entry for for $f(\vec{e_1})$, and similarly for the second column as follows;
+                        \begin{center}
+                            $f_{\mat{E}\mat{E}} = \begin{bmatrix}
+                                5 & 3 \\
+                                -6 & 1
+                            \end{bmatrix}$
+                        \end{center}
+                    \item If we have another ordered basis $\mat{D} = (\vec{d_1}, \vec{d_2})$, where $\vec{d_1} = \vec{e_1} - \vec{e_2}$ and $\vec{d_2} = \vec{e_1} + \vec{e_2}$, find $f_{\mat{D}\mat{D}}$.
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \node (rel) at (0, 0) {$\mathbb{R}_{\mat{E}}^2$};
+                                \node (rer) at (2, 0) {$\mathbb{R}_{\mat{E}}^2$};
+                                \node (rdl) at (0, -2) {$\mathbb{R}_{\mat{D}}^2$};
+                                \node (rdr) at (2, -2) {$\mathbb{R}_{\mat{D}}^2$};
+
+                                \draw
+                                (rdl) edge[->] node[left]{$\mat{I}_{\mat{E}\mat{D}}$} (rel)
+                                (rel) edge[->] node[above]{$f_{\mat{E}\mat{E}}$} (rer)
+                                (rer) edge[->] node[right] {$\mat{I}_{\mat{D}\mat{E}} = (\mat{I}_{\mat{E}\mat{D}})^{-1}$} (rdr)
+                                (rdl) edge[->] node[above]{$f_{\mat{D}\mat{D}}$} (rdr);
+                            \end{tikzpicture}
+                        \end{center}
+                        $\mat{I}_{\mat{E}\mat{D}}$ can easily be obtained by reading the entries for $\vec{d_1}$ for the first column, and similarly for $\vec{d_2}$ in the second column;
+                        \begin{align*}
+                            \mat{I}_{\mat{E}\mat{D}} & = \begin{bmatrix}
+                                1 & 1 \\
+                                -1 & 1
+                            \end{bmatrix} \\
+                            \mat{I}_{\mat{D}\mat{E}} & = (\mat{I}_{\mat{E}\mat{D}})^{-1} \\
+                            & = \frac{1}{2} \begin{bmatrix}
+                                1 & -1 \\
+                                1 & 1
+                            \end{bmatrix} \\
+                            f_{\mat{D}\mat{D}} & = \mat{I}_{\mat{D}\mat{E}} f_{\mat{E}\mat{E}} \mat{I}_{\mat{E}\mat{D}} \\
+                            & = \frac{1}{2} \begin{bmatrix}
+                                1 & -1 \\
+                                1 & 1
+                            \end{bmatrix} \begin{bmatrix}
+                                5 & 3 \\
+                                -6 & 1
+                            \end{bmatrix} \begin{bmatrix}
+                                1 & 1 \\
+                                -1 & 1
+                            \end{bmatrix} \\
+                            & = \frac{1}{2} \begin{bmatrix}
+                                1 & 13 \\
+                                -5 & 3
+                            \end{bmatrix}
+                        \end{align*}
+                \end{enumerate}
+            \subsubsection*{Eigenvalues + Generalised Eigenvectors}
+                Working with a matrix $\mat{A} \in \mathbb{C}^{m \times m}$.
+                For an eigenvector $\vec{v} \in \mathbb{C}^m \setminus \{ \vec{0} \}$, and an eigenvalue $\lambda \in \mathbb{C}$, $\mat{A}\vec{v} = \lambda\vec{v} \Rightarrow (\mat{A} - \lambda\mat{I})\vec{v} = \vec{0} \Rightarrow | \mat{A} - \lambda\mat{I} | = 0 \Rightarrow P_{\mat{A}}(\lambda) = 0$ (characteristic polynomial).
+                This complex polynomial will be of degree $m$, and it will have precisely $m$ roots (including multiplicity).
+                Suppose $P_{\mat{A}}(\lambda) = 0$, then $(\mat{A} - \lambda\mat{I})\vec{v} = \vec{0}$ has a solution where $\vec{v} \neq \vec{0}$.
+                \medskip
+
+                Assume we have $\lambda_1, \dots, \lambda_t$ distinct eigenvalues, meaning that $P_{\mat{A}}(\lambda_i) = 0$ for $1 \leq i \leq t$.
+                This means we can write the characteristic polynomial as;
+                \begin{center}
+                    $P_{\mat{A}}(\lambda) = (\lambda - \lambda_1)^{m_1}(\lambda - \lambda_2)^{m_2} \dots (\lambda - \lambda_t)^{m_t}$
+                \end{center}
+                Where $m_i$ is the \textbf{algebraic multiplicity} of $\lambda_i$. $m_i \in \mathbb{N}$, and also $1 \leq m_i \leq m$, as it must not exceed the dimension of the matrix.
+                On the other hand, the \textbf{geometric multiplicity} of $\lambda_i$ is $\ell_i$, which is the \textbf{nullity} of $(\mat{A} - \lambda_i\mat{I})$.
+                The nullity is the dimension of the kernel / null-space. $1 \leq \ell_i \leq m_i$, as we already have at least one non-zero solution from $(\mat{A} - \lambda_i\mat{I})\vec{v} = \vec{0}$.
+                \medskip
+
+                In the nice case, we have $\ell_i = m_i$, for $1 \leq i \leq t$, which means the matrix is diagonalisable.
+                We have $m_i$ linearly independent vectors $(\vec{v_{i, 1}}, \vec{v_{i, 2}, \dots, \vec{v_{i, m_i}}})$ which satisfy
+                \begin{center}
+                    $\mat{A}\vec{v_{i, j}} = \lambda_i\vec{v_{i, j}}$ for $1 \leq j \leq m_i$
+                \end{center}
+                If we take these eigenvectors as an ordered basis;
+                \begin{center}
+                    $\mat{B} = [\vec{v_{1, 1}}, \vec{v_{1, 2}}, \dots, \vec{v_{1, m_1}}, \vec{v_{2, 1}}, \vec{v_{2, 2}}, \dots, \vec{v_{2, m_2}}, \dots \vec{v_{t, 1}}, \vec{v_{t, 2}}, \dots, \vec{v_{t, m_t}}]$
+                \end{center}
+                We also want to note that $\summation{i = 1}{t} m_i = m$, as that is the degree of the characteristic polynomial.
+                Multiplying the basis by the original matrix, we get;
+                \begin{center}
+                    $\mat{A}\mat{B} = [\lambda_1\vec{v_{1, 1}}, \lambda_1\vec{v_{1, 2}}, \dots, \lambda_1\vec{v_{1, m_1}}, \lambda_2\vec{v_{2, 1}}, \lambda_2\vec{v_{2, 2}}, \dots, \lambda_2\vec{v_{2, m_2}}, \dots \lambda_t\vec{v_{t, 1}}, \lambda_t\vec{v_{t, 2}}, \dots, \lambda_t\vec{v_{t, m_t}}]$
+                \end{center}
+                Since all the columns of $\mat{B}$ are linearly independently, by our definition, the inverse $\mat{B}^{-1}$ exists.
+                Therefore, we can write
+                \begin{center}
+                    $\mat{B}^{-1}\mat{A}\mat{B} = \begin{bmatrix}
+                        \lambda_1 \\
+                        & \ddots \\
+                        & & \lambda_1 \\
+                        & & & \lambda_2 \\
+                        & & & & \ddots \\
+                        & & & & & \lambda_2 \\
+                        & & & & & & \ddots \\
+                        & & & & & & & \lambda_t \\
+                        & & & & & & & & \ddots \\
+                        & & & & & & & & & \lambda_t
+                    \end{bmatrix}$
+                    (everything else is 0)
+                \end{center}
+                Which has $m_1$ instances of $\lambda_1$, followed by $m_2$ instances of $\lambda_2$, and so on, until $m_t$ instances of $\lambda_t$.
+            \subsubsection*{Example for $\ell_i = m_i$}
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        4 & 0 & 1 \\
+                        2 & 3 & 2 \\
+                        1 & 0 & 4
+                    \end{bmatrix} \\
+                    | \mat{A} - \lambda\mat{I} | & = (\lambda - 3)^2(\lambda - 5) \\
+                    \lambda_1 & = 3 & \text{two linearly independently eigenvectors} \\
+                    \vec{v_{1, 1}} & = \begin{bmatrix}
+                        0 \\ 1 \\ 0
+                    \end{bmatrix} \\
+                    \vec{v_{1, 2}} & = \begin{bmatrix}
+                        -1 \\ 0 \\ 1
+                    \end{bmatrix} \\
+                    \lambda_2 & = 5 \\
+                    \vec{v_{2, 1}} & = \begin{bmatrix}
+                        1 \\ 2 \\ 1
+                    \end{bmatrix} \displaybreak \\
+                    \mat{B} & = \begin{bmatrix}
+                        0 & -1 & 1 \\
+                        1 & 0 & 2 \\
+                        0 & 1 & 1
+                    \end{bmatrix} \\
+                    \mat{B}^{-1} & = \frac{1}{2} \begin{bmatrix}
+                        -2 & 2 & -2 \\
+                        -1 & 0 & 1 \\
+                        1 & 0 & 1
+                    \end{bmatrix} \\
+                    \mat{B}^{-1}\mat{A}\mat{B} & = \begin{bmatrix}
+                        3 & 0 & 0 \\
+                        0 & 3 & 0 \\
+                        0 & 0 & 5
+                    \end{bmatrix}
+                \end{align*}
+            \subsubsection*{Trivial Example for $\ell_i < m_i$}
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        0 & 0 \\
+                        0 & 1
+                    \end{bmatrix} \\
+                    | \mat{A} - \lambda\mat{I} | & = \lambda^2 \\
+                    \lambda_1 & = 0 \\
+                    \vec{v_1} & = \begin{bmatrix}
+                        1 \\ 0
+                    \end{bmatrix} & \text{only solution, hence } \ell_1 = 1 < 2 = m_1 \\
+                    (\mat{A} - 0\mat{I}) \begin{bmatrix}
+                        0 \\ 1
+                    \end{bmatrix} & = \begin{bmatrix}
+                        0 & 0 \\
+                        0 & 1
+                    \end{bmatrix} \begin{bmatrix}
+                        0 \\ 1
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        1 \\ 0
+                    \end{bmatrix}
+                    \intertext{although this vector is not mapped to zero, it is mapped to something that \textbf{will} be mapped to zero}
+                    (\mat{A} - 0\mat{I})^2 \begin{bmatrix}
+                        0 \\ 1
+                    \end{bmatrix} & = (\mat{A} - 0\mat{I}) (\mat{A} - 0\mat{I}) \begin{bmatrix}
+                        0 \\ 1
+                    \end{bmatrix} \\
+                    & = (\mat{A} - 0\mat{I}) \begin{bmatrix}
+                        1 \\ 0
+                    \end{bmatrix} \\
+                    & = \vec{0}
+                \end{align*}
+                We say $\begin{bmatrix}
+                    0 \\ 1
+                \end{bmatrix}$ is a generalised eigenvector for $\lambda_1 = 0$.
+                A vector which is not mapped by $(\mat{A} - \lambda\mat{I})$ to $\vec{0}$, but is $\vec{0}$ when iterated once more.
+            \subsubsection*{Less Trivial Example}
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        1 & 1 & 1 \\
+                        0 & 1 & 0 \\
+                        0 & 0 & 1
+                    \end{bmatrix} \\
+                    | \mat{A} - \lambda\mat{I} | & = (1 - \lambda)^3 \\
+                    \lambda_1 & = 1 & m_1 = 3 \\
+                    (\mat{A} - \mat{I})\vec{x} & = \vec{0} & \Leftrightarrow \\
+                    \begin{bmatrix}
+                        0 & 1 & 1 \\
+                        0 & 0 & 0 \\
+                        0 & 0 & 0
+                    \end{bmatrix} \vec{x} & = \vec{0}
+                    \intertext{this has rank 1, and therefore by rank-nullity theorem (rank + nullity = 3), has 2 linearly independent solutions, therefore $\ell_1 = 2 < 3 = m_1$}
+                    \vec{v_1} & = \begin{bmatrix}
+                        0 \\ 1 \\ -1
+                    \end{bmatrix} \displaybreak \\
+                    \vec{v_2} & = \begin{bmatrix}
+                        1 \\ 0 \\ 0
+                    \end{bmatrix}
+                    \intertext{to find the generalised eigenvector $\vec{v_3}$, we want to find some vector that is mapped by $(\mat{A} - 1 \mat{I})$ to the eigenspace, which is some linear combination of $\vec{v_1}$ and $\vec{v_2}$}
+                    (\mat{A} - \mat{I}) \vec{v_3} & = \alpha_1 \vec{v_1} + \alpha_2 \vec{v_2} & \Leftrightarrow \\
+                    \begin{bmatrix}
+                        0 & 1 & 1 \\
+                        0 & 0 & 0 \\
+                        0 & 0 & 0
+                    \end{bmatrix} \begin{bmatrix}
+                        x_1 \\ x_2 \\ x_3
+                    \end{bmatrix} & = \begin{bmatrix}
+                        0 \\ \alpha_1 \\ -\alpha_1
+                    \end{bmatrix} + \begin{bmatrix}
+                        \alpha_2 \\ 0 \\ 0
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        x_2 + x_3 \\ 0 \\ 0
+                    \end{bmatrix} & \Leftrightarrow \\
+                    \alpha_1 & = 0 \\
+                    x_2 + x_3 & = \alpha_2 & \text{let } x_2 = 0 \Rightarrow x_3 = \alpha_2 = 1 \\
+                    \vec{v_3} & = \begin{bmatrix}
+                        0 \\ 0 \\ 1
+                    \end{bmatrix} \\
+                    \mat{B} & = [\vec{v_1}, \vec{v_2}, \vec{v_3}] \\
+                    & = \begin{bmatrix}
+                        0 & 1 & 0 \\
+                        1 & 0 & 0 \\
+                        -1 & 0 & 1
+                    \end{bmatrix} \\
+                    \mat{B}^{-1}\mat{A}\mat{B} & = \begin{bmatrix}
+                        1 & 0 & 0 \\
+                        0 & 1 & 1 \\
+                        0 & 0 & 1
+                    \end{bmatrix} & \text{the extra 1 is from $\vec{v_2}$?}
+                \end{align*}
+                This is in Jordan Normal Form.
+                For some $\lambda_i$ eigenvalue, and $\ell_i \leq m_i$, the sum of the sizes of the blocks is $m_i$, and the number of blocks is $\ell_i$.
+                \begin{align*}
+                    \mat{J} & = \begin{bmatrix}
+                        \mat{J_1} \\
+                        & \ddots \\
+                        & & \mat{J_p}
+                    \end{bmatrix} \\
+                    \mat{J_i} & = \begin{bmatrix}
+                        \lambda_i & 1 \\
+                        & \lambda_i & \ddots \\
+                        & & \ddots & 1 \\
+                        & & & \lambda_i
+                    \end{bmatrix}
+                \end{align*}
+                If $\lambda_i$ is an eigenvalue of $\mat{A}$ with algebraic multiplicity $m_i$, then the nullity of $(\mat{A} - \lambda_i \mat{I})^{m_i} = m_i$.
+                \medskip
+
+                \textbf{Definition}: $\vec{v} \in \mathbb{R}^m$ is a generalised eigenvector for $\lambda_i$ if $(\mat{A} - \lambda_i \mat{I})^{m_i} \vec{v} = \vec{0}$.
+                The maximum iterations is $m_i$, but can be less.
 \end{document}
