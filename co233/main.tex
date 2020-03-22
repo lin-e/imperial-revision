@@ -181,7 +181,7 @@
                 \begin{center}
                     $|| \vec{v} ||_2 = \sqrt{\summation{i=1}{n} v_i^2}$
                 \end{center}
-                A norm, a mapping $|| \cdot || : \mathbb{R}^n \to \mathbb{R}^+$, must satisfy these 3 axioms;
+                A norm, a mapping $||\ || : \mathbb{R}^n \to \mathbb{R}^+$, must satisfy these 3 axioms;
                 \begin{enumerate}[(i)]
                     \itemsep0em
                     \item $|| \vec{v} || > 0$ given that $\vec{v} \neq \vec{0}$
@@ -314,7 +314,7 @@
             Note that this recording has \textbf{no audio}, and therefore will just be the board transcribed.
             I honestly have no idea what he was doing in this lecture, it seems to just jump from topic to topic.
             \subsubsection*{Equivalence of Norms?}
-                Take any two norms on $\mathbb{R}^n$; $|| \cdot ||_a$, and $|| \cdot ||_b$.
+                Take any two norms on $\mathbb{R}^n$; $||\ ||_a$, and $||\ ||_b$.
                 \begin{center}
                     $\exists r, s \in \mathbb{R}^+\ \forall \vec{v} \in \mathbb{R}^n\ [r || \vec{v} ||_b \leq || \vec{v} ||_a \leq s || \vec{v} ||_b]$
                 \end{center}
@@ -334,7 +334,7 @@
                 This is componentwise convergence, such that $\forall i \in [1, n]\ [v_i^{(m)} \to v_i]$.
             \subsubsection*{Matrix Norms}
                 Vectors are a type of matrix.
-                For a matrix $\mat{A} \in \mathbb{R}^{m \times n}$, the following properties of its norms must hold, where $|| \cdot || : \mathbb{R}^{m \times n} \to \mathbb{R}_{\geq 0}$;
+                For a matrix $\mat{A} \in \mathbb{R}^{m \times n}$, the following properties of its norms must hold, where $||\ || : \mathbb{R}^{m \times n} \to \mathbb{R}_{\geq 0}$;
                 \begin{enumerate}[(i)]
                     \itemsep0em
                     \item $|| \mat{A} || > 0$ given that $\mat{A} \neq \mat{0}$
@@ -345,9 +345,9 @@
                 \begin{center}
                     \begin{tikzpicture}
                         \node (v) at (0, 0) {$\vec{v} \in \mathbb{R}^n$};
-                        \node at (0, -0.75) {$|| \cdot ||_a$};
+                        \node at (0, -0.75) {$||\ ||_a$};
                         \node (av) at (6, 0) {$\mat{A} \vec{v} \in \mathbb{R}^m$};
-                        \node at (6, -0.75) {$|| \cdot ||_b$};
+                        \node at (6, -0.75) {$||\ ||_b$};
                         \node at (3, 0) {$\mat{A}$};
                         \draw
                         (v) edge[->] (2, 0)
@@ -358,7 +358,7 @@
 
                     $|| \mat{A} \vec{v} ||_b \leq || \mat{A} || || \vec{v} ||_a$
                 \end{center}
-                For the following example, take $(a_{i,j}) = \mat{A} \in \mathbb{R}^{m \times n}$;
+                For the following example, take $(a_{i, j}) = \mat{A} \in \mathbb{R}^{m \times n}$;
                 \begin{align*}
                     a_j & = \begin{bmatrix}
                         a_{1, j} \\ a_{2, j} \\ \vdots \\ a_{m, j}
@@ -386,4 +386,154 @@
                     || \mat{A} ||_F & = \sqrt{4 + 9 + 1 + 16 + 1 + 9 + 1 + 25 + 2 + 0 + 4 + 4} \\
                     & = 2 \sqrt{19}
                 \end{align*}
+                Let there be two vector norms, $||\ ||_a$ on $\mathbb{R}^n$ and $||\ ||_b$ on $\mathbb{R}$.
+                If $||\ ||$ (matrix norm) satisfies
+                \begin{center}
+                    $\forall \mat{A} \in \mathbb{R}^{m \times n}, x \in \mathbb{R}^n\ [|| \mat{A}\vec{x} ||_b \leq || \mat{A} || || \vec{x} ||_a]$
+                \end{center}
+                then $||\ ||$ is \textbf{consistent} with $||\ ||_a$ and $||\ ||_b$.
+                Additionally if $a = b$, then $||\ ||$ is \textbf{compatible} with $||\ ||_a$.
+                This gives us the following propositions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $||\ ||_1$ (matrix norm) is compatible with $||\ ||_1$ (vector norm)
+                    \item $||\ ||_2$ (matrix norm) is compatible with $||\ ||_2$ (vector norm)
+                    \item $||\ ||_\infty$ (matrix norm) is compatible with $||\ ||_\infty$ (vector norm)
+                    \item $||\ ||_F$ (matrix norm) is compatible with $||\ ||_2$ (vector norm) $\Rightarrow || \mat{A}\vec{x} ||_2 \leq || \mat{A} ||_F || \vec{x} ||_2$
+                \end{itemize}
+                Given a vector norm $||\ ||$ on $\mathbb{R}^n$ then the matrix norm $||\ ||$ subordinate to vector norm $||\ ||$ is defined by
+                \begin{center}
+                    $|| \mat{A} || = \max \{ || \mat{A}\vec{x} || : || \vec{x} || \leq 1 \} \violet{\ = \max \{ || \mat{A}\vec{x} || : || \vec{x} || = 1 \} = \max \{ || \mat{A}\frac{\vec{x}}{|| \vec{x} ||} || : \vec{x} \neq \vec{0} \}}$
+                \end{center}
+                Using this, we can prove property (iii) (see above).
+                We claim that $|| \mat{A} + \mat{B} || \leq || \mat{A} || + || \mat{B} ||$ for matrix norm $||\ ||$ subordinate to vector norm $||\ ||$.
+                \begin{align*}
+                    || \mat{A} + \mat{B} || & = \max \{ || (\mat{A} + \mat{B})\vec{x} || : || \vec{x} || \leq 1 \} \\
+                    & = \max \{ || \mat{A}\vec{x} + \mat{B}\vec{x} || : || \vec{x} || \leq 1 \} \\
+                    & \leq \max \{ || \mat{A}\vec{x} || + || \mat{B}\vec{x} || : || \vec{x} || \leq 1 \} & \text{triangle inequality for $||\ ||$} \\
+                    & \leq \max \{ || \mat{A}\vec{x} || : || \vec{x} || \leq 1 \} + \max \{ || \mat{B}\vec{x} || : || \vec{x} || \leq 1 \} & \text{maximise independently} \\
+                    & = || \mat{A} || + || \mat{B} || & \blacksquare
+                \end{align*}
+                We are also able to prove property (iv), which we claim to be $|| \mat{B}\mat{A} || \leq || \mat{B} || || \mat{A} ||$.
+                \begin{align*}
+                    || \mat{B}\mat{A} || & = \max \{ || \mat{B}\mat{A}\vec{x} || : || \vec{x} || \leq 1 \} \\
+                    || \mat{B}\mat{A}\vec{x} || & = || \mat{B}(\mat{A}\vec{x}) || \\
+                    || \mat{A}\vec{x} || & \leq || \mat{A} || || \vec{x} || & \text{matrix norm subordinate to vector norm}
+                    \intertext{
+                        To show the line above, we consider the two cases, $\vec{x} \neq \vec{0}$ and $\vec{x} = \vec{0}$.
+                        If $\vec{x} = \vec{0}$, no work needs to be done, as it is trivial.
+                        I have no idea why this works, but he wrote it.
+                    }
+                    \text{show } \left|\left| \mat{A}\frac{\vec{x}}{|| \vec{x} ||} \right|\right| & \leq || \mat{A} || \\
+                    \text{but } \left|\left| \frac{\vec{x}}{|| \vec{x} ||} \right|\right| & = 1 & \Rightarrow \\
+                    || \mat{A}\vec{x} || & \leq || \mat{A} || || \vec{x} ||
+                    \intertext{Continuing on, we have}
+                    || \mat{B}\mat{A}\vec{x} || & = || \mat{B}(\mat{A}\vec{x}) || \\
+                    & \leq || \mat{B} || || \mat{A}\vec{x} || \\
+                    & \leq || \mat{B} || || \mat{A} || || \vec{x} || \\
+                    || \mat{B}\mat{A} || & = \max \{ || \mat{B}\mat{A}\vec{x} || : || \vec{x} || \leq 1 \} \\
+                    & \leq \max \{ || \mat{B} || || \mat{A} || || \vec{x} || : || \vec{x} || \leq 1 \} \\
+                    & = || \mat{B} || || \mat{A} || \max \{ || \vec{x} || : || \vec{x} || \leq 1 \} & \text{obviously 1, as bounded on top}\\
+                    & = || \mat{B} || || \mat{A} || & \blacksquare
+                \end{align*}
+            \subsubsection*{Complex Vectors}
+                \begin{align*}
+                    \mathbb{C}^n & = \left\{ \vec{v} = \begin{bmatrix}
+                        v_1 \\ \vdots \\ v_n
+                    \end{bmatrix} : v_i \in \mathbb{C} \right\} \\
+                    z \in \mathbb{C} & = a + ib & a \in \mathbb{R}, b \in \mathbb{R}, i = \sqrt{-1} \\
+                    z^* & = a - ib \\
+                    | z | & = \sqrt{a^2 + b^2}
+                \end{align*}
+                Take a linear map $f : \mathbb{C}^n \to \mathbb{C}^m$, the same properties hold;
+                \begin{align*}
+                    f(a \vec{v} + b \vec{w}) & = af(\vec{v}) + bf(\vec{w}) & a, b \in \mathbb{C}
+                \end{align*}
+                We also want to define something similar to the dot product in $\mathbb{R}^n$;
+                \begin{align*}
+                    \vec{v} \cdot \vec{w} & = || \vec{v} ||_2 || \vec{w} ||_2 \cos \theta_{\vec{v},\vec{w}} \\
+                    \vec{v} \cdot \vec{v} & = \sqrt{|| \vec{v} ||_2^2} \\
+                    & = || \vec{v} ||_2 \\
+                    <\vec{v}, \vec{w}> & = \summation{i = 1}{n} v_i^* w_i \\
+                    <\vec{v}, \vec{v}> & = \summation{i = 1}{n} v_i^* v_i \\
+                    & = \summation{i = 1}{n} | v_i |^2
+                \end{align*}
+                The standard basis in $\mathbb{R}^n$ is defined as $(\vec{e_1}, \dots, \vec{e_n})$ where
+                \begin{center}
+                    $\vec{e_j} = \begin{bmatrix}
+                        0 \\ 0 \\ \vdots \\ 1 \\ \vdots \\ 0
+                    \end{bmatrix} \begin{matrix}
+                        1^\text{st} \\ 2^\text{nd} \\ \vdots \\ j^\text{th} \\ \vdots \\ n^\text{th}
+                    \end{matrix}$
+                \end{center}
+                For any vector $\vec{v} \in \mathbb{C}^n$, it can be written in the standard basis as such;
+                \begin{align*}
+                    \vec{v} & = \begin{bmatrix}
+                        v_1 \\ \vdots \\ v_n
+                    \end{bmatrix} \\
+                    & = v_1\vec{e_1} + \dots + v_n\vec{e_n}
+                \end{align*}
+            \subsubsection*{Basis Change, Again}
+                Let the linear map $f : \mathbb{R}^n \to \mathbb{R}^m$.
+                \begin{align*}
+                    \mat{B} & = (\vec{b_1}, \dots, \vec{b_n}) & \text{an ordered basis of } \mathbb{R}^n \\
+                    \mat{D} & = (\vec{d_1}, \dots, \vec{d_m}) & \text{an ordered basis of } \mathbb{R}^m
+                \end{align*}
+                Find the matrix $\mat{A}$ ($\mat{A} := f_{\mat{D}\mat{B}}$)representing $f$ with respect to (?) $\mat{B}$ and $\mat{D}$.
+                \begin{align*}
+                    \vec{v} & = \begin{bmatrix}
+                        v_1 \\ \vdots \\ v_n
+                    \end{bmatrix} & \text{coordinates of a point } \vec{p} \in \mathbb{R}^n \\
+                    \vec{p} & = \summation{j = 1}{n} v_j \vec{b_j} \\
+                    \mat{A}\vec{v} & & \text{should be coordinate of } f(\vec{p}) \in \mathbb{R}^m \\
+                    f(\vec{p}) & = \summation{i = 1}{m} (\mat{A}\vec{v})_i \vec{d_i} \\
+                    f(\vec{b_j}) \in \mathbb{R}^m & = \summation{i = 1}{m} a_{i, j}\vec{d_i} & 1 \leq j \leq n
+                \end{align*}
+                Take $\mat{B} \in \mathbb{R}^{m \times n}$, where $\mat{B} = [\vec{b_1}, \vec{b_2}, \dots, \vec{b_n}]$, and $e_1, \dots, \vec{e_m}$ being the standard basis (see previous).
+                \begin{align*}
+                    \mat{B}\vec{e_j} & = \mat{B} \begin{bmatrix}
+                        0 \\ \vdots \\ 0 \\ 1 \\ 0 \\ \vdots \\0
+                    \end{bmatrix} \begin{matrix}
+                        \phantom{0} \\ \phantom{\vdots} \\ \phantom{0} \\ \leftarrow j^\text{th} \\ \phantom{0} \\ \phantom{\vdots} \\ \phantom{0}
+                    \end{matrix} \\
+                    & = b_{1, j}\vec{e_1} + ... + b_{m, j}\vec{e_m}
+                \end{align*}
+                Suppose $m = n$ and also $f = \text{id}$ (identity), but $\mat{B}$ and $\mat{D}$ are different.
+                The matrix $(\text{id})_{\mat{D} \mat{B}}$ represents a change of basis from $\mat{B}$ to $\mat{D}$.
+                The point $\vec{p} \in \mathbb{R}^n$ has coordinates $\vec{x} \in \mathbb{R}^n$ with respect to $\mat{B}$, and $\vec{y} \in \mathbb{R}^n$ with respect to $\mat{D}$.
+                \begin{center}
+                    $\mat{D}\vec{y} = \vec{p} = \mat{B}\vec{x} = x_1\vec{b_1} + \dots + x_n\vec{b_n}$
+                \end{center}
+                From this we gather $\mat{D}\vec{y} = \mat{B}\vec{x}$, therefore $\vec{y} = \mat{D}^{-1}\mat{B}\vec{x} = (\text{id})_{\mat{D}\mat{B}}\vec{x}$, which means that
+                \begin{center}
+                    $(\text{id})_{\mat{D}\mat{B}} = \mat{D}^{-1}\mat{B}$
+                \end{center}
+                Some stuff on functions between bases?
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node (rn) at (0, 0) {$\mathbb{R}^n$};
+                        \node (rm) at (2, 0) {$\mathbb{R}^m$};
+                        \node (rk) at (4, 0) {$\mathbb{R}^k$};
+                        \node (b) at (0, -0.5) {$\mat{B}$};
+                        \node (c) at (2, -0.5) {$\mat{C}$};
+                        \node (d) at (4, -0.5) {$\mat{D}$};
+
+                        \draw
+                        (rn) edge[->] node[above]{$f$} (rm)
+                        (rm) edge[->] node[above]{$g$} (rk);
+                    \end{tikzpicture}
+                    \\
+                    \begin{tikzpicture}
+                        \node (rnb) at (0, 0) {$\mathbb{R}_{\mat{B}}^n$};
+                        \node (rmc) at (2, 0) {$\mathbb{R}_{\mat{C}}^m$};
+                        \node (rkd) at (4, 0) {$\mathbb{R}_{\mat{D}}^k$};
+
+                        \draw
+                        (rnb) edge[->] node[above]{$f_{\mat{C}\mat{B}}$} (rmc)
+                        (rmc) edge[->] node[above]{$g_{\mat{D}\mat{C}}$} (rkd);
+                    \end{tikzpicture}
+                    \\
+                    $g_{\mat{D}\mat{C}}f_{\mat{C}\mat{B}} = (g \circ f)_{\mat{D}\mat{B}}$
+                \end{center}
+                This then goes into change of basis, but see last year's \textbf{CO145}.
 \end{document}
