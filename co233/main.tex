@@ -867,4 +867,230 @@
 
                         Come back to this in two weeks?
                 \end{enumerate}
+                To conclude, we get all the eigenvectors and we normalise them (divide by the $\ell_2$-norm), and we can assume they are pairwise orthogonal.
+                There is an orthonormal basis for $\mathbb{R}^n$ consisting of eigenvectors of $\mathbb{A}$; $(\vec{v_1}, \dots, \vec{v_n})$, where $\vec{v_j} \in \mathbb{R}^n$.
+                This has the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\mat{A}\vec{v_j} = \lambda_j \vec{v_j}$
+                    \item $\vec{v_i} \bot \vec{v_j}$, when $i \neq j$ \hfill perpendicular
+                    \item $|| \vec{v_i} || = 1$ for $i = 1, \dots, n$
+                \end{itemize}
+            \subsubsection*{Examples}
+                For an example in $\mathbb{R}^{2 \times 2}$;
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        1 & 2 \\
+                        2 & 1
+                    \end{bmatrix} \\
+                    | \mat{A} - \lambda\mat{I} | & = (1 - \lambda)^2 - 4 \\
+                    \lambda_1 & = 3 \\
+                    \lambda_2 & = -1 \\
+                    \vec{v_1} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 \\ 1
+                    \end{bmatrix} & \text{normalise straight away} \\
+                    \vec{v_2} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 \\ -1
+                    \end{bmatrix} \\
+                    \mat{V} & = [\vec{v_1}, \vec{v_2}] & \text{orthonormal basis of } \mathbb{R}^2 \\
+                    & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 & 1 \\
+                        1 & -1
+                    \end{bmatrix} \\
+                    \mat{A}\mat{V} & = [\mat{A}\vec{v_1}, \mat{A}\vec{v_2}] \\
+                    & = [3 \vec{v_1}, - \vec{v_2}]
+                    \intertext{For a symmetric matrix, if we have a matrix $\mat{V}$ representing the orthonormal basis of the eigenvectors, $\mat{V}^{-1} = \mat{V}^\top$}
+                    \mat{V}^{-1}\mat{A}\mat{V} & = \mat{V}^\top\mat{A}\mat{V} \\
+                    & = \mat{V}^\top [3 \vec{v_1}, - \vec{v_2}] \\
+                    & = \begin{bmatrix}
+                        \vec{v_1}^\top \\
+                        \vec{v_2}^\top
+                    \end{bmatrix} [3 \vec{v_1}, - \vec{v_2}] \\
+                    & = \begin{bmatrix}
+                        3 & 0 \\
+                        0 & -1
+                    \end{bmatrix} & \text{dot product with unit length ($\vec{v_1} \bot \vec{v_2}$)}
+                \end{align*}
+                For an example in $\mathbb{R}^{3 \times 3}$;
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        1 & 1 & 3 \\
+                        1 & 3 & 1 \\
+                        3 & 1 & 1
+                    \end{bmatrix}
+                    \intertext{now he just shows some intuition on getting an eigenvalue?}
+                    | \mat{A} - \lambda\mat{I} | & = \begin{vmatrix}
+                        1 - \lambda & 1 & 3 \\
+                        1 & 3 - \lambda & 1 \\
+                        3 & 1 & 1 - \lambda
+                    \end{vmatrix} \\
+                    & = \begin{vmatrix}
+                        5 - \lambda & 1 & 3 \\
+                        5 - \lambda & 3 - \lambda & 1 \\
+                        5 - \lambda & 1 & 1 - \lambda
+                    \end{vmatrix} & \vec{c_1}^\prime = \vec{c_1} + \vec{c_2} + \vec{c_3} \\
+                    & = 0 \\
+                    \lambda_1 & = 5 \\
+                    \text{trace}(\mat{A}) & = \lambda_1 + \lambda_2 + \lambda_3 \\
+                    & = 5 & \Rightarrow \\
+                    \lambda_2 + \lambda_3 & = 0 \\
+                    | \mat{A} | & = \lambda_1 \lambda_2 \lambda_3 \\
+                    & = -20 & \Rightarrow \\
+                    \lambda_2 \lambda_3 & = -4 \\
+                    \lambda_2 & = 2 \\
+                    \lambda_3 & = -2 \\
+                    \vec{v_1} & = \frac{1}{\sqrt{3}} \begin{bmatrix}
+                        1 \\ 1 \\ 1
+                    \end{bmatrix} \\
+                    \vec{v_2} & = \frac{1}{\sqrt{6}} \begin{bmatrix}
+                        1 \\ -2 \\ 1
+                    \end{bmatrix} \\
+                    \vec{v_3} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 \\ 0 \\ 1
+                    \end{bmatrix} \\
+                    \mat{V} & = [\vec{v_1}, \vec{v_2}, \vec{v_3}] \\
+                    \mat{V}^{-1} & = \mat{V}^\top \\
+                    \mat{V}^{-1}\mat{A}\mat{V} & = \mat{V}^\top\mat{A}\mat{V} \\
+                    & = \begin{bmatrix}
+                        5 & 0 & 0 \\
+                        0 & 2 & 0 \\
+                        0 & 0 & -2
+                    \end{bmatrix} & \text{spectral decomposition of a symmetric matrix}
+                \end{align*}
+            \subsubsection*{Proof of $\mat{V}^{-1} = \mat{V}^\top$}
+                We define $\mat{B} \in \mathbb{R}^{n \times n}$ as an \textbf{orthogonal matrix} if all columns $\vec{b_j}$ for $1 \leq j \leq n$ form an orthonormal basis of $\mathbb{R}^n$, such that the two properties hold;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\vec{b_j} \cdot \vec{b_i} = 0$ when $i \neq j$
+                    \item $\vec{b_j} \cdot \vec{b_j} = 1$
+                \end{itemize}
+                We want to prove that $\mat{B}^{-1} = \mat{B}^\top$:
+                \begin{align*}
+                    \mat{B} & = [\vec{b_1}, \dots, \vec{b_n}] \\
+                    \mat{B}^\top & = \begin{bmatrix}
+                        \vec{b_1}^\top \\
+                        \vdots \\
+                        \vec{b_n}^\top
+                    \end{bmatrix} \\
+                    \mat{B}^\top\mat{B} & = \begin{bmatrix}
+                        \vec{b_1}^\top \\
+                        \vdots \\
+                        \vec{b_n}^\top
+                    \end{bmatrix} [\vec{b_1}, \dots, \vec{b_n}] \\
+                    & = \begin{bmatrix}
+                        1 & 0 & \cdots & 0 \\
+                        0 & 1 & \ddots & \vdots \\
+                        \vdots & \ddots & \ddots & 0 \\
+                        0 & \cdots & 0 & 1
+                    \end{bmatrix} \\
+                    & = \mat{I}_n
+                \end{align*}
+            \subsubsection*{Preservation of Length}
+                The length of a vector $\vec{x}$ is preserved under orthogonal transformation;
+                \begin{align*}
+                    (\mat{V}\vec{x}) \cdot (\mat{V}\vec{x}) & = (\mat{V}\vec{x})^\top (\mat{V}\vec{x}) \\
+                    & = \vec{x}^\top \mat{V}^\top \mat{V} \vec{x} \\
+                    & = \vec{x}^\top \mat{V}^{-1} \mat{V} \vec{x} \\
+                    & = \vec{x}^\top \vec{x} \\
+                    & = \vec{x} \cdot \vec{x}
+                \end{align*}
+            \subsubsection*{Geometric Intuition}
+                Take a real symmetric matrix $\mat{A} \in \mathbb{R}^{n \times n}$, such that $\mat{A}^\top = \mat{A}$.
+                Assume we have processed it to get the eigenvalues $\lambda_1, \dots, \lambda_n$, such that $\mat{V}^\top\mat{A}\mat{V} = \text{diag}(\lambda_1, \dots, \lambda_n)$, and $\mat{V}$ is an orthonormal matrix formed of the eigenvectors.
+                \medskip
+
+                Take a vector $\vec{x}$ from the input space, to $\mat{A}\vec{x}$ in the output space, mapped by $\mat{A}$;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (0, 0.5) {input space};
+                        \node at (6, 0.5) {output space};
+
+                        \node (x) at (0, 0) {$\vec{x}$};
+                        \node (ax) at (6, 0) {$\mat{A}\vec{x}$};
+
+                        \draw
+                        (1, 0.15) -- (1, -0.15)
+                        (1, 0) edge[->] node[above] {$\mat{A} = f_{\mat{E}\mat{E}}$} (5, 0);
+
+                        \node (rel) at (1, -1) {$\mathbb{R}_{\mat{E}}^n$};
+                        \node (rer) at (5, -1) {$\mathbb{R}_{\mat{E}}^n$};
+                        \node (rvl) at (1, -3) {$\mathbb{R}_{\mat{V}}^n$};
+                        \node (rvr) at (5, -3) {$\mathbb{R}_{\mat{V}}^n$};
+
+                        \draw
+                        (rvl) edge[->] node[left]{$\mat{I}_{\mat{E}\mat{V}} = \violet{\mat{V}}$} (rel)
+                        (rel) edge[->] node[above]{$f_{\mat{E}\mat{E}} = \violet{\mat{A}}$} (rer)
+                        (rer) edge[->] node[right] {$\mat{I}_{\mat{V}\mat{E}} = (\mat{I}_{\mat{E}\mat{D}})^{-1} = \violet{\mat{V}^{-1}}$} (rvr)
+                        (rvl) edge[->] node[above]{$f_{\mat{D}\mat{D}} = \violet{\mat{V}^{-1}\mat{A}\mat{V}}$} (rvr);
+                    \end{tikzpicture}
+                \end{center}
+                Consider a unit sphere, created by $|| \vec{x} || = 1$, where $\vec{x} \in \mathbb{R}^3$.
+                The transformations $\mat{V}^{-1} = \mat{V}^\top$ and $\mat{V}$ are rotations as they preserve length.
+                Take a point $\vec{x}$ on the surface of this unit sphere, applying $\mat{V}^{-1}$ to it simply rotates it to another point on the surface of the sphere (going from $\mathbb{R}_{\mat{E}}^3$ to $\mathbb{R}_{\mat{V}}^3$) in the input space.
+                Let this point have coordinates $\vec{u}$ with respect to $\mat{V}$.
+                Under the diagonal map $\text{diag}(\lambda_1, \dots, \lambda_n)$, we get the following;
+                \begin{center}
+                    $u_1 \vec{v_1} + \dots + u_n \vec{v_n} \mapsto \lambda_1 u_1 \vec{v_1} + \dots + \lambda_n u_n \vec{v_n}$
+                \end{center}
+                As $\vec{u}$ is on the sphere, we can say;
+                \begin{center}
+                    $|| \vec{u} ||_2^2 = u_1^1 + \dots + u_n^2 = 1$
+                \end{center}
+                Therefore, the mapped point $\vec{y}$ can be written as $\begin{bmatrix}
+                    \lambda_1 u_1 \\ \vdots \\ \lambda_n u_n
+                \end{bmatrix}$, satisfying (in three dimensions);
+                $$\frac{y_1^2}{\lambda_1^2} + \frac{y_2^2}{\lambda_2^2} + \frac{y_3^2}{\lambda_3^2} = 1$$
+                This gives a locus of an ellipsoid.
+            \subsubsection*{Rank-Nullity Theorem}
+                Take a matrix $\mat{A} \in \mathbb{R}^{m \times n}$.
+                \begin{align*}
+                    \text{Im}(\mat{A}) \subseteq \mathbb{R}^m & = \{ \mat{A}\vec{x} : \vec{x} \in \mathbb{R}^n\} \\
+                    \text{dim}(\text{Im}(\mat{A})) & = \text{column rank of } \mat{A} \\
+                    \text{Null}(\mat{A}) \subseteq \mathbb{R}^n & = \{ \vec{v} : \mat{A}\vec{v} = \vec{0} \} & \text{same as kernel} \\
+                    \text{rk}(\text{column space}) & = \text{rk}(\text{row space}) \\
+                    \text{row space } \mat{A} & = \text{column space } \mat{A}^\top
+                \end{align*}
+                For elementary row operations, we have the following property;
+                \begin{enumerate}[(I)]
+                    \itemsep0em
+                    \item they are invertible.
+                        \medskip
+
+                        If there is one of the three elementary row operations $R$ that takes $\mat{A} \leadsto \mat{B}$, then $\exists R^{-1}$ that takes $\mat{B} \leadsto \mat{A}$.
+                        \smallskip
+
+                        If $\mat{A} \leadsto \mat{B}$, then $\mat{B} = \mat{M_R}\mat{A}$.
+                        We obtain $\mat{M_R}$ by applying $R$ to $\mat{I}_m$, such that $\mat{I}_m \leadsto \mat{M_R}$.
+                \end{enumerate}
+                A reduction to row echelon form can be written as follows (with $-$ as a pivot, and $\times$ being any number);
+                $$\mat{A} \overset{R_1}{\leadsto} \cdots \overset{R_t}{\leadsto} \mat{C} = \begin{bmatrix}
+                    - & \times & \times & \times & \times & \times \\
+                    0 & - & \times & \times & \times & \times \\
+                    0 & 0 & 0 & - & \times & \times \\
+                    0 & 0 & 0 & 0 & - & \times \\
+                    0 & 0 & 0 & 0 & 0 & - \\
+                    \hline
+                    0 & 0 & 0 & 0 & 0 & 0
+                \end{bmatrix}$$
+                In general it creates a staircase of the pivots, and everything below it is 0.
+                Note that the example above is just a random example, as long as the general structure remains, it's fine.
+                \medskip
+
+                An ERO doesn't change the row space, as it is operating on the rows.
+                Swapping rows, multiplying by a non-zero number, and adding rows will not change anything.
+                The claim is that while the column space can change, the rank of the column space doesn't change.
+                \begin{align*}
+                    \mat{A} & = [\vec{a_1}, \dots, \vec{a_n}] \\
+                    \mat{A} \overset{R}{\leadsto} \mat{M_R}\mat{A} & = [\mat{M_R}\vec{a_1}, \dots, \mat{M_R}\vec{a_n}] \\
+                    \mat{M_{R^{-1}}} & = (\mat{M_R})^{-1} & \text{therefore $\mat{M_R}$ is invertible}
+                    \intertext{taking some linear combination of the vectors in $\mat{A}$}
+                    \lambda_1 \vec{a_{i_1}} + \dots + \lambda_1 \vec{a_{i_t}} & = 0 & \Leftrightarrow \\
+                    \mat{M_R}(\lambda_1 \vec{a_{i_1}} + \dots + \lambda_1 \vec{a_{i_t}}) & = 0
+                \end{align*}
+                This is due to the fact that multiplying a set of linearly independent vectors by an invertible matrix preserves independence.
+                From this it follows that the dimension of the columns of $\mat{A}$ is equal to the dimension of the columns of $\mat{M_R}\mat{A}$, since $\mat{M_R}$ is invertible.
+                Therefore neither the row rank nor the column rank changes.
+                \medskip
+
+                Since $\mat{C}$ is in REF, the row rank is equal to the column rank, which is equal to the number of pivots, let it be $r$, then $\text{rk}(\mat{A}) = r$.
 \end{document}
