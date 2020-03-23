@@ -1743,4 +1743,242 @@
                     x_1 & = -1 \\
                     x_2 & = 2
                 \end{align*}
+        \subsection*{6th February 2020}
+            \subsubsection*{Using Cholesky Decomposition for LSM}
+                While it's easy in some cases to solve with an inverse, we have a symmetric positive definite matrix in $\mat{A}^\top\mat{A}$.
+                Therefore we have the following steps;
+                \begin{itemize}
+                    \itemsep0em
+                    \item goal is to solve $\mat{A}^\top\mat{A}\vec{x} = \mat{A}^\top\vec{b}$
+                    \item let $\mat{A}^\top\mat{A} = \mat{L}\mat{L}^\top$, therefore we have $\mat{L}\mat{L}^\top\vec{x} = \mat{A}^\top\vec{b}$
+                    \item let $\vec{y} = \mat{L}^\top\vec{x}$
+                    \item find $\vec{y}$ with forward substitution in $\mat{L}\vec{y} = \mat{A}^\top\vec{b}$
+                    \item find $\vec{x}$ with backward substitution in $\vec{y} = \mat{L}^\top\vec{x}$
+                \end{itemize}
+            \subsubsection*{First Application (Linear Regression) + Example}
+                A simple application for this is to consider $m$ samples of pairs $(a_i, b_i)$.
+                We want to find an affine line $y = s_1 x + s_0$, such that;
+                \begin{center}
+                    $\summation{i = 1}{m} e_i^2$ is minimised, where the error term $e_i = | (s_1 a_i + s_0) - b_i |$
+                \end{center}
+                In this case, we only have two unknowns, and therefore we can write the following;
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        1 & a_1 \\
+                        1 & a_2 \\
+                        \vdots & \vdots \\
+                        1 & a_m
+                    \end{bmatrix} \\
+                    \vec{b} & = \begin{bmatrix}
+                        b_1 \\ b_2 \\ \vdots \\ b_m
+                    \end{bmatrix} \\
+                    \vec{z} & = \begin{bmatrix}
+                        s_0 \\ s_1
+                    \end{bmatrix} \\
+                    \mat{A}\vec{z} & = \vec{b} & \Rightarrow \displaybreak \\
+                    \begin{bmatrix}
+                        1 & a_1 \\
+                        1 & a_2 \\
+                        \vdots & \vdots \\
+                        1 & a_m
+                    \end{bmatrix} \begin{bmatrix}
+                        s_0 \\ s_1
+                    \end{bmatrix} & = \begin{bmatrix}
+                        s_0 + a_1 s_1 \\
+                        s_0 + a_2 s_1 \\
+                        \vdots \\
+                        s_0 + a_m s_1
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        b_1 \\ b_2 \\ \vdots \\ b_m
+                    \end{bmatrix}
+                \end{align*}
+                However, being able to solve it exactly is unlikely, especially for large datasets.
+                In a real example, we have the following;
+                \begin{align*}
+                    (a_1, b_1) & = (1, 6), (2, 5), (3, 7), (4, 10) \\
+                    \mat{A} & = \begin{bmatrix}
+                        1 & 1 \\
+                        1 & 2 \\
+                        1 & 3 \\
+                        1 & 4
+                    \end{bmatrix} \\
+                    \mat{b} & = \begin{bmatrix}
+                        6 \\ 5 \\ 7 \\ 10
+                    \end{bmatrix} \\
+                    \mat{A}^\top\mat{A} & = \begin{bmatrix}
+                        1 & 1 & 1 & 1 \\
+                        1 & 2 & 3 & 4
+                    \end{bmatrix} \begin{bmatrix}
+                        1 & 1 \\
+                        1 & 2 \\
+                        1 & 3 \\
+                        1 & 4
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        4 & 10 \\
+                        10 & 30
+                    \end{bmatrix} \\
+                    \mat{A}^\top\vec{b} & = \begin{bmatrix}
+                        1 & 1 & 1 & 1 \\
+                        1 & 2 & 3 & 4
+                    \end{bmatrix} \begin{bmatrix}
+                        6 \\ 5 \\ 7 \\ 10
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        28 \\ 77
+                    \end{bmatrix}
+                    \intertext{by doing Gaussian elimination, we get the following results}
+                    s_0 & = \frac{7}{2} \\
+                    s_1 & = \frac{7}{5}
+                \end{align*}
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \node (p1) at (1, 6) {$\times$};
+                        \node (p2) at (2, 5) {$\times$};
+                        \node (p3) at (3, 7) {$\times$};
+                        \node (p4) at (4, 10) {$\times$};
+
+                        \draw[dashed] (0, 3.5) -- (5, 10.5);
+
+                        \draw[step=1, line width=0.1, black!50!white] (0,0) grid (5,11);
+
+                        \foreach \xtick in {0,...,5} {\pgfmathsetmacro\result{\xtick} \node at (\xtick,-0.5) {\pgfmathprintnumber{\result}}; }
+                        \foreach \ytick in {0,...,11} {\pgfmathsetmacro\result{\ytick} \node at (-0.5, \ytick) {\pgfmathprintnumber{\result}}; }
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Higher Dimensions}
+                In order to generalise this to higher dimensions, for each $(a_i, b_i)$, we now have a vector $\vec{a_i} \in \mathbb{R}^n$, and a scalar $b_i \in \mathbb{R}$, for $i = 1, \dots, m$.
+                The affine line is now no longer as simple, and is therefore written as;
+                \begin{center}
+                    $y = \vec{x}^\top\vec{s} + s_0 = \vec{x} \cdot \vec{s} + s_0 = s_0 + \summation{j = 1}{n} x_j s_j $, where $\vec{s} \in \mathbb{R}^n$, and $s_0 \in \mathbb{R}$.
+                \end{center}
+                Setting this out, we have the following;
+                \begin{align*}
+                    \vec{a_i} & = \begin{bmatrix}
+                        a_{i, 1} \\ \vdots \\ a_{i, n}
+                    \end{bmatrix} & \text{for } i = 1, \dots, m \\
+                    \mat{A} & = \begin{bmatrix}
+                        1 & a_{1, 1} & \cdots & a_{1, n} \\
+                        1 & a_{2, 1} & \cdots & a_{2, n} \\
+                        \vdots & \vdots & \ddots & \vdots \\
+                        1 & a_{2, 1} & \cdots & a_{m, n}
+                    \end{bmatrix} \\
+                    \vec{b} & = \begin{bmatrix}
+                        b_1 \\ b_2 \\ \vdots \\ b_m
+                    \end{bmatrix} \\
+                    \vec{z} & = \begin{bmatrix}
+                        s_0 \\ \vec{s}
+                    \end{bmatrix} & \vec{s} \in \mathbb{R}^n
+                \end{align*}
+            \subsubsection*{Second Application (Polynomial Regression)}
+                Another application of this is to suppose data is $(y_i, t_i)$, where $y_i \in \mathbb{R}$ and $t_i \in \mathbb{R}$ (considered as "time" - but is any continuous variable).
+                We hypothesise the following;
+                \begin{center}
+                    $y(t) = \summation{j = 1}{n} P_j f_j(t)$
+                \end{center}
+                where $P_j$s are the parameters of the model, and $f_j$s are basic functions, for \textbf{example}; $f_1(t) = 1, f_2(t) = t, \dots, f_n(t) = t^{n - 1}$.
+                This is called \textbf{polynomial regression}.
+                We know (we're given) $f_j$s, but we want to find the $P_j$s.
+                \begin{align*}
+                    \mat{A}\vec{x} & = \vec{y} \\
+                    \mat{A} & = (a_{i, j}) \\
+                    a_{i, j} & = f_j(t_i) \\
+                    \vec{x} & = \begin{bmatrix}
+                        P_1 \\ P_2 \\ \vdots \\ P_m
+                    \end{bmatrix}
+                \end{align*}
+                An example of this is to determine height ($h$), and the coefficient of gravity ($g$).
+                We hypothesise that the distance with respect to time, away from the start, is
+                $$y(t) = h - g \frac{t^2}{2}$$
+                We assume that $h$ and $g$ are the unknown parameters, and define the basic functions as follows (note that the pairs $(y_i, t_i)$ can be obtained with experiments);
+                \begin{align*}
+                    f_1(t) & = 1 \\
+                    f_2(t) & = -\frac{t^2}{2} \\
+                    \mat{A} & = \begin{bmatrix}
+                        1 & -\frac{t_1^2}{2} \\
+                        \vdots & \vdots \\
+                        1 & -\frac{t_m^2}{2}
+                    \end{bmatrix} \\
+                    \vec{x} & = \begin{bmatrix}
+                        h \\ g
+                    \end{bmatrix} \\
+                    \vec{y} & = \begin{bmatrix}
+                        y_1 \\ \vdots \\ y_m
+                    \end{bmatrix}
+                \end{align*}
+                This can now be solved with the standard LSM.
+            \subsubsection*{QR Decomposition}
+                We define $\mat{Q} \in \mathbb{R}^{m \times n}$ to be an orthogonal matrix if $\mat{Q} = [\vec{q_1}, \dots, \vec{q_n}]$, the column vectors are unit vectors with respect to the $\ell_2$-norm, and are pairwise orthogonal.
+                This is only possible if $n \leq m$.
+                It's important to note that $\mat{Q}^\top\mat{Q} = \mat{I}_n$, and $\mat{Q}\mat{Q}^\top = \mat{I}_m$.
+                \medskip
+
+                The goal is to find $\mat{Q}$ and $\mat{R}$ such that $\mat{A} = \mat{Q}\mat{R}$, where $\mat{Q}$ is an orthogonal matrix, and $\mat{R}$ is an upper triangular matrix.
+                It's trivial to see that $\mat{R} = \mat{Q}^\top\mat{A}$, due to the previously mentioned property.
+                This is used to easily solve the following (since $\mat{R}$ is upper triangular, we can employ backward substitution);
+                \begin{center}
+                    $\mat{A}\vec{x} = \vec{b} \Rightarrow \mat{Q}\mat{R}\vec{x} = \vec{b} \Rightarrow \mat{R}\vec{x} = \mat{Q}^\top\vec{b}$
+                \end{center}
+            \subsubsection*{Gram-Schmidt Process}
+                Suppose we have a set of linearly independent vectors $\vec{a_1}, \dots, \vec{a_n} \in \mathbb{R}^m$.
+                The Gram-Schmidt process is as follows;
+                \begin{align*}
+                    \vec{u_1} & = \vec{a_1} & \vec{e_1} & = \frac{\vec{u_1}}{|| \vec{u_1} ||} \\
+                    \vec{u_2} & = \vec{a_2} - (\vec{e_1} \cdot \vec{a_2}) \vec{e_1} & \vec{e_2} & = \frac{\vec{u_2}}{|| \vec{u_2} ||} \\
+                    \vec{u_3} & = \vec{a_3} - (\vec{e_1} \cdot \vec{a_3}) \vec{e_1} - (\vec{e_2} \cdot \vec{a_3}) \vec{e_2} & \vec{e_2} & = \frac{\vec{u_3}}{|| \vec{u_3} ||} \\
+                    & \vdots & & \vdots \\
+                    \vec{u_n} & = \vec{a_n} - \summation{j = 1}{n - 1} (\vec{e_j} \cdot \vec{a_n}) \vec{e_j} & \vec{e_n} & = \frac{\vec{u_n}}{|| \vec{u_n} ||}
+                \end{align*}
+                Geometrically, we can visualise it as the following;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (3.3, -0.3) {$\vec{a_1} = \vec{u_1}$};
+                        \node at (1.3, -0.3) {$\vec{e_1}$};
+                        \node at (2.3, 2.3) {$\vec{a_2}$};
+                        \node at (-0.3, 2.3) {$\vec{u_2}$};
+                        \node at (-0.3, 1.3) {$\vec{e_2}$};
+
+                        \draw
+                        (0, 0) edge[->] (3, 0)
+                        (0, 0) edge[->] (2, 2)
+                        (0, 0) edge[->] (0, 2)
+                        (0, 0) edge[->] (0, 1)
+                        (0, 0) edge[->] (1, 0);
+
+                        \draw[dashed] (2, 2) -- (2, 0);
+                    \end{tikzpicture}
+                \end{center}
+                In general, for $1 \leq j \leq n$, we have
+                \begin{center}
+                    $\vec{a_j} = (\vec{e_1} \cdot \vec{a_j}) \vec{e_1} + (\vec{e_2} \cdot \vec{a_j}) \vec{e_2} + \dots + (\vec{e_j} \cdot \vec{a_j}) \vec{e_j}$
+                \end{center}
+            \subsubsection*{First Method for QR Decomposition (Gram-Schmidt Process)}
+                Take a matrix $\mat{A} \in \mathbb{R}^{m \times n}$, where $\mat{A} = [\vec{a_1}, \dots, \vec{a_n}]$, assuming that $\vec{a_1}, \dots, \vec{a_n}$ are linearly independent.
+                We then apply Gram-Schmidt to $\vec{a_1}, \dots, \vec{a_n}$ as described above to get $\mat{Q}_0 = (\vec{e_1}, \dots, \vec{e_n})$, where.
+                Note that for $1 \leq j \leq n$, $\vec{e_j} \cdot \vec{e_j} = 1$, and for $j \neq k$, $\vec{e_j} \cdot \vec{e_k} = 0$.
+                Let $\mat{Q} = [\vec{e_1}, \dots, \vec{e_n}]$, which is orthogonal.
+                While we can see that $\mat{R} = \mat{Q}^\top\mat{A}$, we can write this as;
+                \begin{center}
+                    $\mat{R} = \begin{bmatrix}
+                        \vec{e_1} \cdot \vec{a_1} & \vec{e_1} \cdot \vec{a_2} & \vec{e_1} \cdot \vec{a_3} & \cdots & \vec{e_1} \cdot \vec{a_n} \\
+                        & \vec{e_2} \cdot \vec{a_2} & \vec{e_2} \cdot \vec{a_3} & \cdots & \vec{e_2} \cdot \vec{a_n} \\
+                        & & \vec{e_3} \cdot \vec{a_3} & \cdots & \vec{e_3} \cdot \vec{a_n} \\
+                        & & & \ddots & \vdots \\
+                        & & & & \vec{e_n} \cdot \vec{a_n}
+                    \end{bmatrix} \in \mathbb{R}^{n \times n}$
+                \end{center}
+                We claim that the diagram below is valid when $\mat{A}$ represents the linear map $f: \mathbb{R}^n \to \mathbb{R}^m$, in the standard basis.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node (rn) at (0, 0) {$\mathbb{R}_{\mat{E}_n}^n$};
+                        \node (rm) at (4, 0) {$\mathbb{R}_{\mat{E}_m}^m$};
+                        \node (im) at (4, -2) {$\text{Im}(\mat{A})_{\mat{Q}_0}$};
+
+                        \draw
+                        (rn) edge[->] node[above]{$f_{\mat{E}_m\mat{E}_n} = \violet{\mat{A}}$} (rm)
+                        (rn) edge[->] node[left]{$f_{\mat{Q}_0\mat{E}_n} = \violet{\mat{R}}\hspace{1cm}$} (im)
+                        (im) edge[->] node[right]{$\text{Id}_{\mat{E}_m\mat{Q}_0} = \violet{\mat{Q}}$} (rm);
+                    \end{tikzpicture}
+                \end{center}
 \end{document}
