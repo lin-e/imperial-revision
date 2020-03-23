@@ -1610,4 +1610,137 @@
                 The \violet{violet} part only holds iff $\vec{x_r} - \vec{x_r^\prime} = \vec{x_n^\prime} - \vec{x_n}$.
                 As they are both in their respective subspaces of $\text{Im}(\mat{A})$ and $\text{ker}(\mat{A}^\top)$, they must both be $\vec{0}$, as shown above.
                 This gives the result $\vec{x_r} = \vec{x_r^\prime} \land \vec{x_n} = \vec{x_n^\prime}$, hence proving uniqueness.
+        \subsection*{5th February 2020}
+            \subsubsection*{Positive Definiteness}
+                The conditions for positive definiteness ($\forall \vec{x} \neq \vec{0}\ [\vec{x}^\top\mat{A}\vec{x} > 0]$) of $\mat{A}$ are as follows ;
+                \begin{itemize}
+                    \itemsep0em
+                    \item all diagonal elements of $\mat{A}$ must be $> 0$
+                        \medskip
+
+                        Take $\vec{x} = \vec{e_i}$, which is all 0, other than the $i^\text{th}$ entry being 1.
+                        Then $\vec{e_i}^\top\mat{A}\vec{e_i} = a_{i, i}$, which has to be greater than 0.
+                    \item all principal minors of $\mat{A}$ must be positive definite.
+                        \medskip
+
+                        For $1 \leq k \leq n$, $\mat{A^{(k)}} \in \mathbb{R}^{k \times k}$ denotes the top left square submatrix of $\mat{A}$.
+                        \begin{align*}
+                            \vec{x} & = \begin{bmatrix}
+                                \vec{y} \\ \vec{0}
+                            \end{bmatrix} & \text{where } \vec{y} \in \mathbb{R}^k, \vec{0} \in \mathbb{R}^{n - k} \\
+                            \vec{x}^\top\mat{A}\vec{x} & = \begin{bmatrix}
+                                \vec{y} \\ \vec{0}
+                            \end{bmatrix}^\top \mat{A} \begin{bmatrix}
+                                \vec{y} \\ \vec{0}
+                            \end{bmatrix} \\
+                            & = \vec{y}^\top\mat{A^{(k)}}\vec{y}
+                        \end{align*}
+                        So for any $\vec{y} \neq \vec{0}$, $\vec{x} \neq \vec{0}$, thus $\vec{y}^\top\mat{A^{(k)}}\vec{y} > 0 \Leftrightarrow \vec{x}^\top\mat{A}\vec{x} > 0$
+                    \item $| a_{i, j} | < \max \{ a_{i, i}, a_{j, j} \}$
+                        \medskip
+
+                        For any entry not on the diagonal, there are two corresponding entries on the diagonal (one corresponding to the row, the other to the column);
+                        \begin{align*}
+                            \mat{A} & = \begin{bmatrix}
+                                \ddots & & & & \\
+                                & a_{i, i} & \cdots & a_{i, j} & \\
+                                & & \ddots & \vdots & \\
+                                & & & a_{j, j} & \\
+                                & & & & \ddots
+                            \end{bmatrix} \\
+                            \text{take } \vec{x} & = \vec{e_i} + \vec{e_j} \\
+                            \vec{x}^\top\mat{A}\vec{x} & =(\vec{e_i} \pm \vec{e_j})^\top\mat{A}(\vec{e_i} \pm \vec{e_j}) \\
+                            & = \left(\vec{e_i}^\top \pm \vec{e_j}^\top\right)\mat{A}(\vec{e_i} \pm \vec{e_j}) \\
+                            & = \vec{e_i}^\top\mat{A}\vec{e_i} + \vec{e_j}^\top\mat{A}\vec{e_j} \pm \vec{e_i}^\top\mat{A}\vec{e_j} \pm \vec{e_j}^\top\mat{A}\vec{e_i} \\
+                            & = a_{i, i} + a_{j, j} \pm 2 a_{i, j} & \text{$\mat{A}$ is symmetric} \\
+                            & > 0 & \Rightarrow \\
+                            -a_{i, j} & < \frac{a_{i, i} + a_{j, j}}{2} & \text{diagonal terms are positive} \\
+                            \text{or } a_{i, j} & < \frac{a_{i, i} + a_{j, j}}{2} & \Rightarrow \\
+                            | a_{i, j} | & < \max \{ a_{i, i}, a_{j, j} \}
+                        \end{align*}
+                    \item all positive eigenvalues
+                \end{itemize}
+                For an example, take the following;
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        1 & -1 & 3 \\
+                        -1 & 10 & -1 \\
+                        -3 & -1 & 2
+                    \end{bmatrix}
+                \end{align*}
+                However, we see that $| -3 | = 3 > 2 = \max \{1, 2\}$, hence $\mat{A}$ is not positive definite
+            \subsubsection*{Least Square Method}
+                For a matrix $\mat{A} \in \mathbb{R}^{m \times n}$, where $n$ is commonly the dimension of the data, and $m$ the number of samples (such that each row is an entry), we can write $\mat{A}$ as;
+                \begin{center}
+                    $\mat{A} = \begin{bmatrix}
+                        \vec{a^1} \\ \vec{a^2} \\ \vdots \\ \vec{a^m}
+                    \end{bmatrix}$ (all rows)
+                \end{center}
+                The goal of the LSM is to find a $\vec{x} \in \mathbb{R}^n$, such that $|| \mat{A}\vec{x} - \vec{b} ||_2$ is minimised (which is equivalent to minimising $|| \mat{A}\vec{x} - \vec{b} ||_2^2$, as it is positive).
+                From previous results, we can take $\vec{b} = \vec{b_r} + \vec{b_n}$, therefore we can minimise the following;
+                \begin{align*}
+                    || \mat{A}\vec{x} - \vec{b_r} - \vec{b_n} ||_2^2 & = ((\mat{A}\vec{x} - \vec{b_r}) - \vec{b_n}) \cdot ((\mat{A}\vec{x} - \vec{b_r}) - \vec{b_n}) \\
+                    & = (\mat{A}\vec{x} - \vec{b_r}) \cdot (\mat{A}\vec{x} - \vec{b_r}) + \vec{b_n} \cdot \vec{b_n} - 2 \overbrace{(\mat{A}\vec{x} - \vec{b_r})}^{\in \text{Im}(\mat{A})} \cdot \hspace{-0.4cm} \underbrace{\vec{b_n}}_{\in \text{ker}(\mat{A}^\top)} & (1) \\
+                    & = (\mat{A}\vec{x} - \vec{b_r}) \cdot (\mat{A}\vec{x} - \vec{b_r}) + \vec{b_n} \cdot \vec{b_n} & (2)
+                \end{align*}
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item the dot product is bilinear in both variables, hence we can expand out
+                    \item range space of $\mat{A}$ is perpendicular to the null space of $\mat{A}^\top$, hence the dot product is 0
+                \end{enumerate}
+                Therefore, we want to minimise $(\mat{A}\vec{x} - \vec{b_r}) \cdot (\mat{A}\vec{x} - \vec{b_r}) + \vec{b_n} \cdot \vec{b_n}$.
+                However, we have no control over $\vec{b_n}$, therefore we want to solve for $\mat{A}\vec{x} = \vec{b_r}$.
+                This will always have a solution, as $\vec{b_r} \in \text{Im}(\mat{A})$, which means that such a $\vec{x}$ exists by definition of the range space.
+                We then claim the following;
+                \begin{center}
+                    $\mat{A}\vec{x} = \vec{b_r} \Leftrightarrow \mat{A}^\top\mat{A}\vec{x} = \mat{A}^\top\mat{b}$
+                \end{center}
+                Therefore, if the left hand side of the double implication has a solution, which we know it does, then the right hand side must also have a solution.
+                The proof for this is done in both directions;
+                \begin{align*}
+                    \intertext{proving "$\Rightarrow$"}
+                    \text{suppose } \mat{A}\vec{x} & = \vec{b_r} & \Rightarrow \\
+                    \violet{\mat{A}^\top\mat{A}\vec{x}} & = \mat{A}^\top\vec{b_r} & \text{pre-multiply} \\
+                    & = \mat{A}^\top(\vec{b_r} + \vec{b_n}) & \text{in null space, hence } \mat{A}^\top\vec{b_n} = \vec{0} \\
+                    & = \violet{\mat{A}^\top\vec{b}} & \blacksquare
+                    \intertext{proving "$\Leftarrow$"}
+                    \text{suppose } \mat{A}^\top\mat{A}\vec{x} & = \mat{A}^\top\vec{b} & \Rightarrow \\
+                    \mat{A}^\top\mat{A}\vec{x} - \mat{A}^\top(\vec{b_r} + \vec{b_n}) & = \vec{0} & \Rightarrow \\
+                    \mat{A}^\top(\mat{A}\vec{x} - \vec{b_r} - \vec{b_n}) & = \vec{0} & \Rightarrow \\
+                    \mat{A}\vec{x} - \vec{b_r} - \vec{b_n} & \in \text{ker}(\mat{A}^\top) & \text{property of adding in subspace}, \Rightarrow \\
+                    \mat{A}\vec{x} - \vec{b_r} & \in \text{ker}(\mat{A}^\top) & \text{and} \\
+                    \mat{A}\vec{x} - \vec{b_r} & \in \text{Im}(\mat{A}^\top) & \text{adding two elements of the range space}, \Rightarrow \\
+                    \mat{A}\vec{x} - \vec{b_r} & = \vec{0} & \Rightarrow \\
+                    \violet{\mat{A}\vec{x}} & = \violet{\vec{b_r}} & \blacksquare
+                \end{align*}
+                An example of using this is as follows (note that $\mat{A}\vec{x} = \vec{b}$ is inconsistent);
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        2 & 2 \\
+                        1 & 2 \\
+                        2 & 0
+                    \end{bmatrix} \\
+                    \vec{b} & = \begin{bmatrix}
+                        0 \\ 5 \\ -1
+                    \end{bmatrix}
+                    \intertext{find $\vec{x}$ such that $\mat{A}\vec{x} = \vec{b_r}$}
+                    \mat{A}^\top\mat{A}\vec{x} & = \mat{A}^\top\vec{b} & \Rightarrow \\
+                    \begin{bmatrix}
+                        9 & 6 \\
+                        6 & 8
+                    \end{bmatrix} \begin{bmatrix}
+                        x_1 \\ x_2
+                    \end{bmatrix} & = \begin{bmatrix}
+                        2 & 1 & 2 \\
+                        2 & 2 & 0
+                    \end{bmatrix} \begin{bmatrix}
+                        0 \\ 5 \\ -1
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        3 \\ 10
+                    \end{bmatrix}
+                    \intertext{we know this is positive definite, and therefore there is a solution}
+                    x_1 & = -1 \\
+                    x_2 & = 2
+                \end{align*}
 \end{document}
