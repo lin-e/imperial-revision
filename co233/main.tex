@@ -1212,7 +1212,7 @@
                         (0, 0) edge[->] (0, 1)
                         (0, 0) edge[->] (1, 1)
                         (0, 0) edge[->] (-1, 1);
-                        \draw[rotate=45] (0, 0) circle (1.5 and 3);
+                        \draw[rotate=-45] (0, 0) circle (1.5 and 3);
                     \end{tikzpicture}
                 \end{center}
                 Starting with our coordinates in the basis $(\vec{x_1}, \vec{x_2})$, the matrix $\mat{V}^\top$ performs a rotation to the new basis $(\vec{v_1}, \vec{v_2})$.
@@ -1300,4 +1300,314 @@
                         0 & 0
                     \end{bmatrix} [\vec{v_1}, \vec{v_2}]
                 \end{align*}
+        \subsection*{30th January 2020}
+            Note that this lecture has no audio recording for some of the first part.
+            To recap; the goal of SVD is to find the following, such that $\mat{A} = \mat{U}\mat{S}\mat{V}^\top$
+            \begin{itemize}
+                \itemsep0em
+                \item $\mat{A} \in \mathbb{R}^{m \times n}$
+                \item $\mat{U} \in \mathbb{R}^{m \times m}$ \hfill $\mat{U}^\top = \mat{U}$
+                \item $\mat{V} \in \mathbb{R}^{n \times n}$ \hfill $\mat{V}^\top = \mat{V}$
+                \item $\sigma_1 \geq \sigma_2 \geq \dots \geq \sigma_r > \sigma_{r + 1} = \dots = \sigma_p = 0$ \hfill $p = \min \{m, n\}$, $r = \text{rk}(\mat{A})$
+                \item $\mat{S} \in \mathbb{R}^{m \times n} = \text{diag}(\sigma_1, \sigma_2, \dots, \sigma_r, 0, \dots, 0)$
+            \end{itemize}
+            \subsubsection*{Example}
+                While normally $n \leq m$, we have the following example for $m < n$, where we work with $\mat{A}\mat{A}^\top \in \mathbb{R}^{m \times m}$;
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        3 & 2 & 2 \\
+                        2 & 3 & -2
+                    \end{bmatrix} \\
+                    \mat{A}^\top & = \begin{bmatrix}
+                        3 & 2 \\
+                        2 & 3 \\
+                        2 & -2
+                    \end{bmatrix} \\
+                    \mat{A}\mat{A}^\top & = \mat{U}\mat{S}\mat{S}^\top\mat{U}^\top \\
+                    \mat{A}\mat{A}^\top & = \begin{bmatrix}
+                        17 & 8 \\
+                        8 & 17
+                    \end{bmatrix} \\
+                    \lambda_1 + \lambda_2 & = \text{trace} \\
+                    & = 34 \\
+                    \lambda_1 \lambda_2 & = \text{determinant} \\
+                    & = 225 \\
+                    \lambda_1 & = 25 \\
+                    \sigma_1 & = 5 \\
+                    \lambda_2 & = 9 \\
+                    \sigma_2 & = 3 \\
+                    \vec{u_2} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 \\ -1
+                    \end{bmatrix} \\
+                    \vec{u_1} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 \\ 1
+                    \end{bmatrix} & \text{orthogonal to $\vec{u_2}$} \displaybreak \\
+                    \mat{U} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 & 1 \\
+                        1 & -1
+                    \end{bmatrix} \\
+                    \mat{A} & = \mat{U}\mat{S}\mat{V}^\top & \Rightarrow \\
+                    \mat{A}^\top & = \mat{V}\mat{S}^\top\mat{U}^\top & \Rightarrow \\
+                    \mat{A}^\top\mat{U} & = \mat{V}\mat{S}^\top & \Rightarrow \\
+                    [\mat{A}^\top\vec{u_1}, \mat{A}^\top\vec{u_2}] & = [5\vec{v_1}, 3\vec{v_2}] & \Rightarrow \\
+                    \vec{v_1} & = \frac{1}{5} \mat{A}^\top\vec{u_1} \\
+                    & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 \\ 1 \\ 0
+                    \end{bmatrix} \\
+                    \vec{v_2} & = \frac{1}{3} \mat{A}^\top\vec{u_2} \\
+                    & = \frac{1}{3\sqrt{2}} \begin{bmatrix}
+                        1 \\ -1 \\ 4
+                    \end{bmatrix} \\
+                    \vec{v_3} & = \vec{v_1} \times \vec{v_2} & \text{orthogonal to both} \\
+                    & = \frac{1}{3} \begin{bmatrix}
+                        2 \\ -2 \\ -1
+                    \end{bmatrix}
+                \end{align*}
+            \subsubsection*{General Strategy}
+                $$\underbrace{\mat{A}^\top\mat{A}}_{\shortstack{symmetric \\ +ve semi-definite}} = \mat{V}\mat{S}^\top\underbrace{\mat{U}^\top\mat{U}}_{\mat{I}} \mat{S}\mat{V}^\top = \mat{V}\underbrace{\mat{S}^\top\mat{S}}_{\in \mathbb{R}^{n \times n}} \mat{V}^\top$$
+                Solve for the spectral decomposition of $\mat{A}^\top\mat{A}$ to get $\mat{V}$, and $\lambda_1 = \sigma_1^2, \lambda_2 = \sigma_2^2, \dots, \lambda_r = \sigma_r^2$.
+                From here we can do the following;
+                \begin{align*}
+                    \mat{A} & = \mat{U}\mat{S}\mat{V}^\top & \Rightarrow \\
+                    \mat{A}\mat{V} & = \mat{U}\mat{S} & \Rightarrow \\
+                    \mat{A}\vec{v_i} & = \sigma_i \vec{u_i} & (1 \leq i \leq r), \Rightarrow \\
+                    \vec{u_i} & = \frac{\mat{A}\vec{v_i}}{\sigma_i}
+                \end{align*}
+                For the remaining vectors, $\vec{u_{r + 1}}, \dots, \vec{u_n}$ find vectors to form an orthonormal basis.
+                Use systems of linear equations in dimensions higher than 3, if the dimension is 3, just use the cross product.
+                Solve $\vec{u_{r + 1}}$ to $\vec{u_n}$ with
+                \begin{center}
+                    $\mat{A}^\top\mat{A}\vec{u_j} = \vec{0}$ for $r + 1 \leq j \leq n$
+                \end{center}
+                such that $(\vec{u_1}, \dots, \vec{u_r}, \vec{u_{r + 1}}, \dots, \vec{u_n})$ forms an orthonormal basis.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (0, 3) {input space};
+
+                        \node at (1.2, 0) {$\vec{x_1}$};
+                        \node at (0, 1.2) {$\vec{x_2}$};
+                        \node at (1.2, 1.2) {$\vec{v_1}$};
+                        \node at (-1.2, 1.2) {$\vec{v_2}$};
+
+                        \draw
+                        (0, 0) edge[->] (1, 0)
+                        (0, 0) edge[->] (0, 1)
+                        (0, 0) edge[->] (1, 1)
+                        (0, 0) edge[->] (-1, 1);
+                        \draw (0, 0) circle (2);
+                    \end{tikzpicture}
+                    \ \ \ \ \
+                    \begin{tikzpicture}
+                        \node at (0, 3) {output space};
+
+                        \node at (1.2, 0) {$\vec{y_1}$};
+                        \node at (0, 1.2) {$\vec{y_2}$};
+                        \node at (1.2, 1.2) {$\vec{u_1}$};
+                        \node at (-1.2, 1.2) {$\vec{u_2}$};
+
+                        \draw
+                        (0, 0) edge[->] (1, 0)
+                        (0, 0) edge[->] (0, 1)
+                        (0, 0) edge[->] (1, 1)
+                        (0, 0) edge[->] (-1, 1);
+                        \draw[rotate=-45] (0, 0) circle (1.5 and 3);
+                    \end{tikzpicture}
+                \end{center}
+                Using the same example as before, because I'm too lazy to draw this again, we see that $\vec{v_i} \mapsto \sigma_i \vec{v_i} = \vec{u_i}$.
+                $\vec{v_1}$ is called the \textbf{principal component}, as it is the direction of the biggest change (since we have an ordering on $\sigma$).
+                \medskip
+
+                A brief note on why $\mat{S}\mat{S}^\top$ gives a square matrix;
+                \begin{align*}
+                    \mat{S} & = \begin{bmatrix}
+                        \sigma_1 \\
+                        & \ddots \\
+                        & & \sigma_r \\
+                        \hline
+                        0 & \cdots & 0 \\
+                        \vdots & \ddots & \vdots \\
+                        0 & \cdots & 0
+                    \end{bmatrix} \\
+                    \mat{S}^\top & = \begin{bmatrix}[ccc|ccc]
+                        \sigma_1 & & & 0 & \cdots & 0\\
+                        & \ddots & & \vdots & \ddots & \vdots \\
+                        & & \sigma_r & 0 & \cdots & 0
+                    \end{bmatrix} \\
+                    \mat{S}^\top\mat{S} & = \mat{S}\mat{S}^\top & \text{by symmetry} \\
+                    & = \begin{bmatrix}
+                        \sigma_1^2 \\
+                        & \ddots \\
+                        & & \sigma_r^2
+                    \end{bmatrix}
+                \end{align*}
+            \subsubsection*{Cholesky Factorisation / Decomposition of Symmetric Positive Definite Matrices}
+                Take a matrix $\mat{A} \in \mathbb{R}^{n \times n}$, with $\mat{A} = \mat{A}^\top$ and $\mat{A}$ is positive \violet{(semi-)}definite.
+                Then the following holds
+                \begin{center}
+                    $\exists \mat{L} \in \mathbb{R}^{n \times n}\ [\mat{A} = \mat{L}\mat{L}^\top]$
+                \end{center}
+                where $\mat{L}$ is a lower triangular matrix, with all diagonal elements being positive \violet{(non-zero)};
+                \begin{center}
+                    $\mat{L} = \begin{bmatrix}
+                        l_{1, 1} & 0 & \cdots & 0 \\
+                        \times & l_{2, 2} & \ddots & \vdots \\
+                        \vdots & \ddots & \ddots & 0 \\
+                        \times & \cdots & \times & l_{n, n}
+                    \end{bmatrix}$
+                \end{center}
+                This is a general result to the following, in the real numbers; $a > 0 \Rightarrow \exists l > 0\ [a = l^2]$.
+                This algorithm is done with brute force, by setting $\mat{A} = (a_{i, j})$, $\mat{L} = (l_{i, j})$, and $\mat{A} = \mat{L}\mat{L}^\top$.
+                The following is a simple example of this algorithm, with a $3 \times 3$ matrix;
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        1 & -1 & 1 \\
+                        -1 & 10 & -1 \\
+                        1 & -1 & 5
+                    \end{bmatrix} \\
+                    & = \mat{L}\mat{L}^\top \\
+                    \mat{L} & = \begin{bmatrix}
+                        l_{1, 1} & 0 & 0 \\
+                        l_{2, 1} & l_{2, 2} & 0 \\
+                        l_{3, 1} & l_{3, 2} & l_{3, 3} \\
+                    \end{bmatrix} \\
+                    \mat{L}^\top & = \begin{bmatrix}
+                        l_{1, 1} & l_{2, 1} & l_{3, 1} \\
+                        0 & l_{2, 2} & l_{3, 2} \\
+                        0 & 0 & l_{3, 3}
+                    \end{bmatrix}
+                    \intertext{by multiplying out $\mat{L}\mat{L}^\top$, we can solve per column, starting with the first}
+                    l_{1, 1}^2 & = 1 & \Rightarrow \\
+                    l_{1, 1} & = 1 & \text{taking positive square root} \\
+                    l_{2, 1}l_{1, 1} & = -1 & \Rightarrow \\
+                    l_{2, 1} & = -1 \\
+                    l_{3, 1}l_{1, 1} & = 1 & \Rightarrow \\
+                    l_{3, 1} & = 1
+                    \intertext{second column}
+                    l_{2, 1}^2 + l_{2, 2}^2 & = 10 & \Rightarrow \\
+                    l_{2, 2} & = 3 \\
+                    l_{3, 1}l_{2, 1} + l_{3, 2}l_{2, 2} & = -1 & \Rightarrow\\
+                    -1 + 3 l_{3, 2} & = -1 & \Rightarrow \\
+                    l_{3, 2} & = 0
+                    \intertext{third (final) column}
+                    l_{3, 1}^2 + l_{3, 2}^2 + l_{3, 3}^2 & = 5 & \Rightarrow \\
+                    1 + 0 + l_{3, 3}^2 & = 5 & \Rightarrow \\
+                    l_{3, 3} & = 2
+                    \intertext{setting the matrix}
+                    \mat{L} & = \begin{bmatrix}
+                        1 & 0 & 0 \\
+                        -1 & 3 & 0 \\
+                        1 & 0 & 2
+                    \end{bmatrix}
+                \end{align*}
+                This can be used to easily solve the following;
+                \begin{align*}
+                    \mat{A}\vec{x} & = \vec{b} & \Leftrightarrow \\
+                    \mat{L}\mat{L}^\top\vec{x} & = \vec{b} & \Leftrightarrow \\
+                    \mat{L}\vec{y} & = \vec{b} & \text{let } \vec{y} = \mat{L}^\top\vec{x}
+                    \intertext{This is trivial to solve with forward substitution ($y_1$ can be solved easily, then substituted into the next equation to get $y_2$ and so on) as we have a lower triangular matrix}
+                    b_1 & = l_{1, 1}y_1 + 0 + \dots + 0 \\
+                    b_2 & = l_{2, 1}y_1 + l_{2, 2}y_2 + 0 + \dots + 0 \\
+                    b_3 & = l_{3, 1}y_1 + l_{3, 2}y_2 + l_{3, 3}y_3 + 0 + \dots + 0 \\
+                    & \vdots \\
+                    b_n & = l_{n, 1}y_1 + \dots + l_{n, n}y_n
+                    \intertext{If $\mat{L}$ is lower triangular, then $\mat{L}^\top$ must be upper triangular, and thus can be solved with backwards substitution (such that $x_n$ is used to solve $x_{n - 1}$, and so on)}
+                    \mat{U} & = \mat{L}^\top \\
+                    y_n & = 0 + \dots + 0 + u_{n, n}x_n \\
+                    y_{n - 1} & = 0 + \dots + 0 + u_{n - 1, n - 1}x_{n - 1} + u_{n - 1, n}x_n \\
+                    & \vdots \\
+                    y_1 & = u_{1, 1}x_1 + \dots + u_{1, n}x_n
+                \end{align*}
+            \subsubsection*{Rank-Nullity Theorem, Again}
+                For a matrix $\mat{A} \in \mathbb{R}^{m \times n}$, the nullity of $\mat{A}$ (dimension of the kernel of $\mat{A}$) is $n - \text{rk}(\mat{A})$.
+                To recap, a reduction to reduced row echelon form (RREF) is being in row echelon form, with the additional properties that all the pivots must be 1, and all other numbers in a column with a pivot are 0.
+                \medskip
+
+                Applying the rank-nullity theorem to $\mat{A}^\top$, where $\mat{A}^\top \in \mathbb{R}^{n \times m}$;
+                \begin{align*}
+                    \text{nullity}(\mat{A}^\top) + \text{rk}(\mat{A}^\top) & = m & \Rightarrow \\
+                    \text{dim}(\text{ker}(\mat{A}^\top)) + \text{rk}(\mat{A}) & = m & \text{rk}(\mat{A}) = \text{rk}(\mat{A}^\top), \Rightarrow \\
+                    \text{dim}(\text{ker}(\mat{A}^\top)) + \text{dim}(\text{Im}(\mat{A})) & = m & \text{rk}(\mat{A}) = \text{dim}(\text{Im}(\mat{A}))
+                    \intertext{It's important to now note that these are both subspaces of $\mathbb{R}^m$}
+                    \text{Im}(\mat{A}) & \subseteq \mathbb{R}^m & \text{output space of $\mat{A}$} \\
+                    \text{ker}(\mat{A}^\top) & \subseteq \mathbb{R}^m \\
+                \end{align*}
+                Working through an example matrix, we can observe the following;
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        1 & 1 \\
+                        1 & 0 \\
+                        1 & -1
+                    \end{bmatrix} \\
+                    \mat{A}^\top & = \begin{bmatrix}
+                        1 & 1 & 1 \\
+                        1 & 0 & -1
+                    \end{bmatrix} \\
+                    \text{Im}(\mat{A}) & = \left\{ x_1 \begin{bmatrix}
+                        1 \\ 1 \\ 1
+                    \end{bmatrix} + x_2 \begin{bmatrix}
+                        1 \\ 0 \\ -1
+                    \end{bmatrix} : x_1, x_2 \in \mathbb{R} \right\}
+                    \intertext{geometrically, Im$(\mat{A})$ is a plane going through the origin - intuitively, we can represent this with a normal (take cross product)}
+                    & = \left\{ \vec{v} : \vec{v} \cdot \begin{bmatrix}
+                        -1 \\ 2 \\ -1
+                    \end{bmatrix} = 0 \right\} \\
+                    \text{ker}(\mat{A}^\top) & = \{ \vec{w} : \mat{A}^\top\vec{w} = \vec{0} \} \\
+                    \begin{bmatrix}
+                        1 & 1 & 1 \\
+                        1 & 0 & -1
+                    \end{bmatrix} \begin{bmatrix}
+                        w_1 \\ w_2 \\ w_3
+                    \end{bmatrix} & = \vec{0} & \Rightarrow \\
+                    \begin{bmatrix}
+                        1 \\ 1 \\ 1
+                    \end{bmatrix} \cdot \vec{w} & = 0 \\
+                    \text{and } \begin{bmatrix}
+                        1 \\ 0 \\ -1
+                    \end{bmatrix} \cdot \vec{w} & = 0
+                    \intertext{therefore $\vec{w}$ is orthogonal to both those matrices, hence we can take the cross product, which we already know}
+                    \vec{w} & = k \begin{bmatrix}
+                        -1 \\ 2 \\ -1
+                    \end{bmatrix} & k \in \mathbb{R}
+                \end{align*}
+                We can then conclude the following;
+                $$\vec{w} \in \text{ker}(\mat{A}^\top) \Leftrightarrow \vec{w} \cdot \begin{bmatrix}
+                    1 \\ 1 \\ 1
+                \end{bmatrix} = 0 = \vec{w} \cdot \begin{bmatrix}
+                    1 \\ 0 \\ -1
+                \end{bmatrix} \Leftrightarrow \forall \vec{y} \in \text{Im}(\mat{A})\ [\vec{w} \cdot \vec{y} = 0]$$
+                This gives the result that $\vec{w}$ is in the null space of $\mat{A}^\top$ iff it is orthogonal to every vector in the image space of $\mat{A}$.
+                \medskip
+
+                Our conjecture is the following; $\text{ker}(\mat{A}^\top)\ \bot\ \text{Im}(\mat{A})$, which is the same as saying
+                \begin{center}
+                    $\vec{v} \in \text{ker}(\mat{A}^\top) \Leftrightarrow \forall \vec{y} \in \text{Im}(\mat{A})\ [\vec{y} \cdot \vec{v} = 0]$
+                \end{center}
+                This can be proven generally as follows;
+                \begin{align*}
+                    & \vec{v} \in \text{ker}(\mat{A}^\top) \\
+                    \Leftrightarrow\ & \mat{A}^\top\vec{v} = \vec{0} & \text{by definition of the null space / kernel} \\
+                    \Leftrightarrow\ & \forall i \in [1, n]\ [\vec{a_i} \cdot \vec{v} = 0] & (1) \\
+                    \Leftrightarrow\ & \forall \vec{x} \in \mathbb{R}^n\ \left[\left(\summation{i = 1}{n} x_i \vec{a_i} \right) \cdot \vec{v} = 0\right] & \text{generalise to any linear combination} \\
+                    \Leftrightarrow\ & \vec{y} \in \text{Im}(\mat{A})\ [\vec{y} \cdot \vec{v} = 0] & \blacksquare
+                \end{align*}
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item row $i$ of $\mat{A}^\top \in \mathbb{R}^{n \times m}$ is the same as column $i$ of $\mat{A} \in \mathbb{R}^{m \times n}$, transposed, and all of the components must become 0
+                \end{enumerate}
+                We say that $\mathbb{R}^m$ is the direct sum of $\text{ker}(\mat{A}^\top)$ and $\text{Im}(\mat{A})$.
+                We can get the following result, following what was proven earlier;
+                \begin{center}
+                    $\vec{v} \in \text{Im}(\mat{A}) \land \vec{v} \in \text{ker}(\mat{A}^\top) \Leftrightarrow \vec{v} \cdot \vec{v} = 0 \Leftrightarrow \vec{v} = \vec{0}$
+                \end{center}
+                We want to prove the result for any vector $\vec{x} \in \mathbb{R}^m$, there exists a unique vector $\vec{x_r} \in \text{Im}(\mat{A})$ and $\vec{x_n} \in \text{ker}(\mat{A}^\top)$, such that $\vec{x} = \vec{x_r} + \vec{x_n}$, or formally;
+                \begin{center}
+                    $\forall \vec{x} \in \mathbb{R}^m\ \exists ! \vec{x_r} \in \text{Im}(\mat{A}), \vec{x_n} \in \text{ker}(\mat{A}^\top)\ [\vec{x} = \vec{x_r} + \vec{x_n}]$
+                \end{center}
+                By taking the union of a basis of $\text{Im}(\mat{A})$, let it be $(\vec{v_1}, \dots, \vec{v_r})$, and a basis of $\text{ker}(\mat{A}^\top)$, let it be $(\vec{v_{r + 1}}, \dots, \vec{v_m})$, we get a basis of $\mathbb{R}^m$: $(\vec{v_1}, \dots, \vec{v_r}, \vec{v_{r + 1}}, \dots, \vec{v_m})$.
+                This gives us the following result;
+                $$\vec{x} \in \mathbb{R}^m = \summation{i = 1}{m} x_i \vec{v_i} = \underbrace{\summation{i = 1}{r} x_i \vec{v_i}}_{\in \text{Im}(\mat{A})} + \underbrace{\summation{i = r + 1}{m} x_i \vec{v_i}}_{\in \text{ker}(\mat{A}^\top)} = \vec{x_r} + \vec{x_n}$$
+                In order to prove uniqueness, we assume $\vec{x} = \violet{\vec{x_r} + \vec{x_n} = \vec{x_r^\prime} + \vec{x_n^\prime}}$.
+                The \violet{violet} part only holds iff $\vec{x_r} - \vec{x_r^\prime} = \vec{x_n^\prime} - \vec{x_n}$.
+                As they are both in their respective subspaces of $\text{Im}(\mat{A})$ and $\text{ker}(\mat{A}^\top)$, they must both be $\vec{0}$, as shown above.
+                This gives the result $\vec{x_r} = \vec{x_r^\prime} \land \vec{x_n} = \vec{x_n^\prime}$, hence proving uniqueness.
 \end{document}
