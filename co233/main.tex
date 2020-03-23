@@ -1093,4 +1093,211 @@
                 \medskip
 
                 Since $\mat{C}$ is in REF, the row rank is equal to the column rank, which is equal to the number of pivots, let it be $r$, then $\text{rk}(\mat{A}) = r$.
+        \subsection*{29th January 2020}
+            \subsubsection*{Properties of Symmetric Matrices}
+                Take $\mat{A} \in \mathbb{R}^{n \times n}$, such that $\mat{A}^\top = \mat{A}$.
+                \medskip
+
+                All eigenvalues of $\mat{A}$ are positive \violet{(non-negative)} iff $\forall \vec{x} \in \mathbb{R}^{n} \setminus \{ \vec{0} \}\ [\vec{x}^\top\mat{A}\vec{x} > 0 \violet{(\geq 0)}]$.
+                $\vec{x}^\top\mat{A}\vec{x}$ is called a quadratic form.
+                For example;
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        a & b \\
+                        b & c
+                    \end{bmatrix} \\
+                    \vec{x} & = \begin{bmatrix}
+                        x_1 \\ x_2
+                    \end{bmatrix} \\
+                    \vec{x}^\top\mat{A}\vec{x} & = \begin{bmatrix}
+                        x_1 & x_2
+                    \end{bmatrix} \begin{bmatrix}
+                        a & b \\
+                        b & c
+                    \end{bmatrix} \begin{bmatrix}
+                        x_1 \\ x_2
+                    \end{bmatrix} \\
+                    & = ax_1^2 + 2bx_1x_2 + cx_2^2 \\
+                    & = k \\
+                    \text{assume } x_2 & \neq 0 \\
+                    \frac{\vec{x}^\top\mat{A}\vec{x}}{x_2^2} & = ay^2 + 2b^y + c & \text{where } y = \frac{x_1}{x_2} \\
+                    & > 0 & \text{focusing on the positive case}
+                \end{align*}
+                If $\vec{x}^\top\mat{A}\vec{x} > 0$, then we have an ellipse, with slanted major / minor axes.
+                This uses a similar result to the result with the sphere's orthonormal basis being formed from the eigenvectors.
+                \medskip
+
+                Considering this algebraically, if the quadratic in $y$ is always greater than 0, then it must have no roots, hence the discriminant must be negative.
+                Therefore we have the case where $(2b)^2 - 4ac < 0$, so $b^2 - ac < 0$, and $a > 0$.
+                \medskip
+
+                Using the properties of the trace and the determinant, we can state the following;
+                \begin{align*}
+                    \lambda_1 + \lambda_2 & = a + c \\
+                    \lambda_1 \lambda_2 & = ac - b^2
+                \end{align*}
+                We want both $ac - b^2$ and $a + b$ to be positive.
+                The former is shown with the result for the discriminant, as if $b^2 - ac$ is negative, then $ac - b^2$ must be positive.
+                The latter then follows as $c$ is positive only if $a$ is positive (due to $ac > b^2 \geq 0$), which we have previously.
+                This shows it holds for the simple case.
+                \medskip
+
+                The proof for any $n > 1$ is as follows;
+                \begin{align*}
+                    \mat{S} & = \text{diag}(\lambda_1, \dots, \lambda_n) \\
+                    & = \mat{V}^\top\mat{A}\mat{V} & \Rightarrow \\
+                    \mat{A} & = \mat{V}\mat{S}\mat{V}^\top & \Rightarrow \\
+                    \vec{x}^\top\mat{A}\vec{x} & = \vec{x}^\top\mat{V}\mat{S}\mat{V}^\top\vec{x} \\
+                    & = \vec{z}^\top\mat{S}\vec{z} & \text{where } \vec{z} = \mat{V}^\top\vec{x} \text{(which preserves $\ell_2$-norm)} \\
+                    & = \summation{i = 1}{n} \lambda_i z_i^2
+                \end{align*}
+                To say $\vec{x}^\top\mat{A}\vec{x}$ is positive for any non-zero $\vec{x}$ is to say that $\summation{i = 1}{n} \lambda_i z_i^2$ is positive for any non-zero $\vec{v}$.
+                \smallskip
+
+                Then obviously all the eigenvalues ($\lambda_i$) must be positive iff $\summation{i = 1}{n} \lambda_i z_i^2$ is positive.
+            \subsubsection*{Singular Value Decomposition (SVD)}
+                This works for a \textbf{general} matrix (not necessarily square).
+                Take any matrix $\mathbb{R}^{m \times n}$.
+                \begin{center}
+                    $\exists \mat{V} \in \mathbb{R}^{n \times n}, \mat{U} \in \mathbb{R}^{m \times m}, \sigma_1 \geq \sigma_2 \geq \dots \geq \sigma_r > \sigma_{r + 1} = \dots = \sigma_p = 0$
+                \end{center}
+                Where $\mat{V}$, $\mat{U}$ are orthogonal matrices, $p = \min (m, n)$, and $r = \text{rk}(\mat{A})$.
+                We have a finitely decreasing sequence of $\sigma$.
+                This allows us to write the following (assuming $n \leq m$);
+                \begin{center}
+                    $\mat{A} = \mat{U}\mat{S}\mat{V}^\top$, where $\mat{S} = \begin{bmatrix}
+                        \sigma_1 \\
+                        & \sigma_2 \\
+                        & & \ddots \\
+                        & & & \sigma_r \\
+                        & & & & 0 \\
+                        & & & & & \ddots \\
+                        & & & & & & 0 \\
+                        \hline
+                        0 & & & \dots & & & 0 \\
+                        \vdots & & & \ddots & & & \vdots \\
+                        0 & & & \dots & & & 0 \\
+                    \end{bmatrix}$
+                \end{center}
+                This is the singular value decomposition of $\mat{A}$, and $\sigma_1, \dots, \sigma_r$ are the singular values of $\mat{A}$.
+                $\sigma_1$ is the largest singular value of $\mat{A}$, which is the $\ell_2$ matrix norm of $\mat{A}$ ($|| \mat{A} ||_2$).
+                The geometric intuition of this, in two dimensions, is as follows;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (0, 3) {input space};
+
+                        \node at (1.2, 0) {$\vec{x_1}$};
+                        \node at (0, 1.2) {$\vec{x_2}$};
+                        \node at (1.2, 1.2) {$\vec{v_1}$};
+                        \node at (-1.2, 1.2) {$\vec{v_2}$};
+
+                        \draw
+                        (0, 0) edge[->] (1, 0)
+                        (0, 0) edge[->] (0, 1)
+                        (0, 0) edge[->] (1, 1)
+                        (0, 0) edge[->] (-1, 1);
+                        \draw (0, 0) circle (2);
+                    \end{tikzpicture}
+                    \ \ \ \ \
+                    \begin{tikzpicture}
+                        \node at (0, 3) {output space};
+
+                        \node at (1.2, 0) {$\vec{y_1}$};
+                        \node at (0, 1.2) {$\vec{y_2}$};
+                        \node at (1.2, 1.2) {$\vec{u_1}$};
+                        \node at (-1.2, 1.2) {$\vec{u_2}$};
+
+                        \draw
+                        (0, 0) edge[->] (1, 0)
+                        (0, 0) edge[->] (0, 1)
+                        (0, 0) edge[->] (1, 1)
+                        (0, 0) edge[->] (-1, 1);
+                        \draw[rotate=45] (0, 0) circle (1.5 and 3);
+                    \end{tikzpicture}
+                \end{center}
+                Starting with our coordinates in the basis $(\vec{x_1}, \vec{x_2})$, the matrix $\mat{V}^\top$ performs a rotation to the new basis $(\vec{v_1}, \vec{v_2})$.
+
+                Take some point $\vec{x}$ on the unit circle with coordinates $\begin{bmatrix}
+                    x_1 \\ x_2
+                \end{bmatrix}$, we obtain the new coordinates $\begin{bmatrix}
+                    v_1 \\ v_2
+                \end{bmatrix} = \mat{V}^\top\vec{x}$.
+
+                We still maintain $|| \vec{x} || = 1$ and $|| \vec{v} || = 1$.
+
+                We're now in the basis of $(\vec{u_1}, \vec{u_2})$.
+                We can say that $u_1 = \sigma_1 v_1$, $u_2 = \sigma_2 v_2$ (and so on, for higher dimensions).
+                This implies the following result;
+                $$\frac{u_1^2}{\sigma_1^2} + \frac{u_2^2}{\sigma_2^2} = v_1^2 + v_2^2 = 1$$
+                Hence we obtain an ellipse.
+            \subsubsection*{Example}
+                \begin{align*}
+                    \mat{A} \in \mathbb{R}^{3 \times 2} & = \begin{bmatrix}
+                        1 & -1 \\
+                        -1 & 1 \\
+                        1 & -1
+                    \end{bmatrix} \\
+                    \text{rk}(\mat{A}) & = 1 \\
+                    \mat{A} & = \mat{U}\mat{S}\mat{V}^\top \\
+                    \mat{S} \in \mathbb{R}^{3 \times 2} & = \text{diag}(\sigma_1, \sigma_2, \dots) \\
+                    \mat{A}^\top & = \left(\mat{V}^\top\right)^\top\mat{S}^\top\mat{U}^\top \\
+                    & = \mat{V}\mat{S}^\top\mat{U}^\top \\
+                    \mat{A}^\top\mat{A} & = \mat{V}\mat{S}^\top\mat{U}^\top\mat{U}\mat{S}\mat{V}^\top \\
+                    & = \mat{V}\mat{S}^\top\mat{S}\mat{V}^\top & \mat{U} \text{ is an orthogonal matrix}
+                    \intertext{brief note on $\mat{S}^\top\mat{S} \in \mathbb{R}^{2 \times 2}$}
+                    \mat{S}^\top\mat{S} & = \text{diag}(\sigma_1, \sigma_2, \dots)\ \text{diag}(\sigma_1, \sigma_2, \dots) \\
+                    & = \text{diag}(\sigma_1^2, \sigma_2^2, \dots)
+                    \intertext{brief proof for symmetry of $\mat{A}^\top\mat{A}$}
+                    \left(\mat{A}^\top\mat{A}\right)^\top & = \mat{A}^\top\left(\mat{A}^\top\right)^\top \\
+                    & = \mat{A}^\top\mat{A}
+                    \intertext{$\mat{A}^\top\mat{A}$ is also positive semi-definite, meaning all its eigenvalues are non-negative ($\geq 0$) since}
+                    \vec{x}^\top\mat{A}^\top\mat{A}\vec{x} & = (\mat{A}\vec{x})^\top(\mat{A}\vec{x}) \\
+                    & \geq 0
+                \end{align*}
+                In this form, all we have to do is to find the spectral decomposition for $\mat{A}^\top\mat{A}$, since we have a symmetric matrix.
+                \begin{align*}
+                    \mat{A}^\top\mat{A} & = \begin{bmatrix}
+                        3 & -3 \\
+                        -3 & 3
+                    \end{bmatrix} \\
+                    | \mat{A}^\top\mat{A} - \lambda\mat{I} | & = (3 - \lambda)^2 - 9 \\
+                    \lambda_1 & = 6 & \Rightarrow \\
+                    \sigma_1 & = \sqrt{6} \\
+                    \vec{v_1} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 \\ -1
+                    \end{bmatrix} \\
+                    \lambda_2 & = 0 & \Rightarrow \\
+                    \sigma_2 & = 0 \\
+                    \vec{v_2} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 \\ 1
+                    \end{bmatrix} \\
+                    \mat{V} & = [\vec{v_1}, \vec{v_2}] \\
+                    & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 & 1 \\
+                        -1 & 1
+                    \end{bmatrix} \\
+                    \mat{A}\mat{V} & = \mat{U}\mat{S} & \Rightarrow \\
+                    [\mat{A}\vec{v_1}, \mat{A}\vec{v_2}] & = \mat{U} \begin{bmatrix}
+                        \sqrt{6} & 0 \\
+                        0 & 0 \\
+                        0 & 0
+                    \end{bmatrix} \\
+                    & = [\sqrt{6} \vec{u_1}, \vec{0}] & \Rightarrow \displaybreak \\
+                    \vec{u_1} & = \frac{1}{\sqrt{6}}\mat{A}\vec{v_1} \\
+                    & = \frac{1}{\sqrt{3}} \begin{bmatrix}
+                        1 \\ -1 \\ 1
+                    \end{bmatrix} \\
+                    \vec{u_2} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
+                        1 \\ 1 
+                    \end{bmatrix} & \text{unit vector orthogonal to $\vec{u_1}$} \\
+                    \vec{u_3} & = \vec{u_1} \times \vec{u_2} \\
+                    & = \frac{1}{\sqrt{6}} \begin{bmatrix}
+                        1 \\ -1 \\ -2
+                    \end{bmatrix} \\
+                    \mat{A} & = [\vec{u_1}, \vec{u_2}, \vec{u_3}] \begin{bmatrix}
+                        \sqrt{6} & 0 \\
+                        0 & 0 \\
+                        0 & 0
+                    \end{bmatrix} [\vec{v_1}, \vec{v_2}]
+                \end{align*}
 \end{document}
