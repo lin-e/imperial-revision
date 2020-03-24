@@ -1981,4 +1981,107 @@
                         (im) edge[->] node[right]{$\text{Id}_{\mat{E}_m\mat{Q}_0} = \violet{\mat{Q}}$} (rm);
                     \end{tikzpicture}
                 \end{center}
+        \subsubsection*{12th February 2020}
+            \subsubsection*{Proof of Diagram}
+                Continuing on from last week's lecture, we aim to prove two claims in the diagram;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f_{\mat{Q}_0\mat{E}_n} = \violet{\mat{R}}$
+                        \smallskip
+
+                        The matrix $\mat{R}$ represents the linear map $f$ from $\mathbb{R}^n$ (in the standard basis) to $\mathbb{R}^m$ in the new basis ($\mat{Q}_0$).
+                        \medskip
+
+                        To begin, we observe how the standard basis is mapped under $\mat{A}$;
+                        \begin{center}
+                            $\begin{matrix}
+                                \phantom{0} \\ \phantom{\vdots} \\ \phantom{0} \\ j^\text{th} \rightarrow \\ \phantom{0} \\ \phantom{\vdots} \\ \phantom{0}
+                            \end{matrix} \begin{bmatrix}
+                                0 \\ \vdots \\ 0 \\ 1 \\ 0 \\ \vdots \\0
+                            \end{bmatrix} \xmapsto{\mat{A} \left[\begin{smallmatrix}
+                                0 \\ \vdots \\ 0 \\ 1 \\ 0 \\ \vdots \\0
+                            \end{smallmatrix}\right] = \vec{a_j}} \vec{a_j} = \violet{(\vec{e_1} \cdot \vec{a_j})} \vec{e_1} + \violet{(\vec{e_2} \cdot \vec{a_j})} \vec{e_2} + \dots + \violet{(\vec{e_j} \cdot \vec{a_j})} \vec{e_j} + \violet{0}\vec{e_{j + 1}} + \dots + \violet{0}\vec{e_n}$
+                        \end{center}
+                        Looking at these coefficients with respect to the basis formed by $(\vec{e_1}, \dots, \vec{e_n})$, which are highlighted in \violet{violet}, it's clear that it forms the $j^\text{th}$ column of $\mat{R}$.
+                    \item $\text{Id}_{\mat{E}_m\mat{Q}_0} = \violet{\mat{Q}}$
+                        \smallskip
+
+                        This is a change of basis in the image space of $\mat{A}$.
+                        \medskip
+
+                        This is trivial to show, as we want to look at what happens to the $j^\text{th}$ vector in the new basis $\mat{Q}_0$.
+                        To write each of these matrices in the new (standard) basis, we simply do the following;
+                        \begin{center}
+                            $\vec{e_j} = e_{1, j} \begin{bmatrix}
+                                1 \\ 0 \\ 0 \\ \vdots \\ 0
+                            \end{bmatrix} + e_{2, j} \begin{bmatrix}
+                                0 \\ 1 \\ 0 \\ \vdots \\ 0
+                            \end{bmatrix} + \dots + e_{m, j} \begin{bmatrix}
+                                0 \\ 0 \\ \vdots \\ 0 \\ 1
+                            \end{bmatrix}$
+                        \end{center}
+                        Trivially, we get $\mat{Q} = [\vec{e_1}, \dots, \vec{e_n}]$, as expected.
+                \end{itemize}
+            \subsubsection*{Note on Basis Change}
+                To find the matrix representing $f_{\mat{D}\mat{B}}$, which takes a vector in basis $\mat{B}$ to a vector in basis $\mat{D}$, we look at what happens to each basis vector.
+                \begin{center}
+                    $\vec{b_j} \mapsto f(\vec{b_j}) = \delta_1\vec{d_1} + \delta_2\vec{d_1} + \dots + \delta_m\vec{d_m}$
+                \end{center}
+                Then the $j^\text{th}$ column of the matrix is given as;
+                \begin{center}
+                    $(f_{\mat{D}\mat{B}})_j = \begin{bmatrix}
+                        \delta_1 \\ \delta_2 \\ \vdots \\ \delta_m
+                    \end{bmatrix}$
+                \end{center}
+            \subsubsection*{Householder Operator}
+                I can't draw the geometric intuition nicely, at all, look at Panopto timestamp 36:37.
+                However, imagine there is a plane, and there is some point $\vec{x}$ that exists.
+                That point is orthogonally projected onto the plane, with the orthogonal projection matrix $\mat{P}$, such that the vector between the point $\vec{x}$ and $\mat{P}\vec{x}$ is perpendicular to the plane.
+                Now, take the perpendicular unit vector for the plane as $\vec{u}$, therefore the length of $\vec{x}$ to $\mat{P}\vec{x}$ is $\vec{u} \cdot \vec{x}$.
+                Imagine the plane as a mirror, and the image of $\vec{x}$ is on the other side of the plane, let that point be $H(\vec{x}) = \mat{H}\vec{x}$.
+                Therefore, we can work out $\mat{H}$ as follows;
+                \begin{center}
+                    $H(\vec{x}) = \vec{x} - 2(\vec{u} \cdot \vec{x}) \vec{u} = \vec{x} - 2 \vec{x}\vec{u}\vec{u}^\top = \underbrace{\left(\mat{I} - 2\vec{u}\vec{u}^\top\right)}_{\mat{H}} \vec{x}$
+                \end{center}
+                We expect $\mat{H}^2$ to give us the identity, as if "reflect" a reflected point, it should give the original;
+                \begin{align*}
+                    \mat{H}^2 & = \left(\mat{I} - 2\vec{u}\vec{u}^\top\right) \\
+                    & = \mat{I} - 4 \vec{u}\vec{u}^\top + 4 \vec{u}\left(\vec{u}^\top\vec{u}\right)\vec{u}^\top \\
+                    & = \mat{I} - 4 \vec{u}\vec{u}^\top + 4 \vec{u}\vec{u} ^\top & \text{$\ell_2$-norm of unit vector is 1} \\
+                    & = \mat{I} & \blacksquare
+                \end{align*}
+                Note that there are two distinct eigenvalues of $\mat{H}$; $\lambda_1 = 1$ has multiplicity $m_1 = m - 1$, where $m$ is the dimension of the space.
+                This is for each of the vectors $\vec{v_i}$ that span the plane, as they are mapped to themselves ($\mat{H}\vec{v_i} = H(\vec{v_i}) = \vec{v_i}$).
+                There is also an additional eigenvalue $\lambda_2 = -1$, for $\vec{u}$, as we can see that $\mat{H}\vec{u} = H(\vec{u}) = -\vec{u}$.
+            \subsubsection*{Second Method for QR Decomposition (Householder Operator)}
+                Take the matrix $\mat{A} = [\vec{a_1}, \dots, \vec{a_n}]$.
+                % Also let $\mat{A_{(k)}}$ denote the bottom right square submatrix of $\mat{A}$.
+                The Householder operator must preserve the length, in the following mapping;
+                \begin{align*}
+                    H\left(\begin{bmatrix}
+                        a_{1, 1} \\ a_{2, 1} \\ \vdots \\ a_{m, 1}
+                    \end{bmatrix}\right) & = \begin{bmatrix}
+                        \lambda \\ 0 \\ \vdots \\ 0
+                    \end{bmatrix} \\
+                    \pm \lambda & = || \vec{a_1} ||
+                    \intertext{We want to send the vector $\vec{a_1}$ to the vector $|| \vec{a_1} ||\vec{e_1}$, where $\vec{e_1}$ is all 0, other than the first element.}
+                    \vec{u} & = \frac{\vec{a_1} - || \vec{a_1} ||\vec{e_1}}{|| \vec{a_1} - || \vec{a_1} ||\vec{e_1} ||} \\
+                    \mat{H_1} & = \mat{I} = 2 \vec{u}\vec{u}^\top \\
+                    \mat{H_1}\mat{A} & = \mat{H_1} [\vec{a_1}, \dots, \vec{a_n}] \\
+                    & = [\mat{H_1}\vec{a_1}, \dots, \mat{H_1}\vec{a_n}] \\
+                    & = \begin{bmatrix}
+                        || \vec{a_1} || & \times \\
+                        \vec{0} & \mat{A_2}
+                    \end{bmatrix} & \times \text{ is an unknown row, } \mat{A_2} \text{ is the bottom right submatrix}
+                \end{align*}
+                Applying $\mat{H}$ to $\mat{A}$ gets rid of all entries in the first column, other than the first element.
+                This is an iterative process, where every iteration brings us closer to an upper triangular matrix.
+                \begin{center}
+                    $\mat{H_n} \cdots \mat{H_1} \mat{A} = \mat{R} $
+                \end{center}
+                By reversing this, we can get the following result;
+                \begin{center}
+                    $\mat{A} = \mat{H_1} \cdots \mat{H_n} \mat{R}$
+                \end{center}
+                Using the Householder operator to do QR decomposition isn't examinable.
 \end{document}
