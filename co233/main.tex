@@ -2239,5 +2239,154 @@
                     $\forall \epsilon > 0 \exists N \in \mathbb{N}\ [\forall n, m > N\ [|a_n - a_m| < \epsilon]]$
                 \end{center}
                 The second method is useful as we don't need to know the limit (when it exists), such as in a recurrence relation or a recursively defined function, and can also be used as a test for divergence.
+        \subsection*{19th February 2020}
+            \subsubsection*{Revised Matrix Norm Terminology}
+                \begin{itemize}
+                    \itemsep0em
+                    \item a matrix norm $|| \cdot ||_{\alpha, \beta}$ is \textbf{consistent} relative to vector-norms $\alpha$ on $\mathbb{R}^m$ and $\beta$ on $\mathbb{R}^n$ if
+                        \begin{center}
+                            $\forall \mat{A} \in \mathbb{R}^{m \times n}, \vec{x} \in \mathbb{R}^n\ [|| \mat{A}\vec{x} ||_\alpha \leq || \mat{A} ||_{\alpha, \beta} || \vec{x} ||_\beta]$
+                        \end{center}
+                    \item any induced / subordinate matrix norm is also sub-multiplicative because;
+                        \begin{center}
+                            $|| \mat{A}\mat{B} || = \max \{ || \mat{A}\mat{B}\vec{u} : || \vec{u} || = 1 \} \leq \max \{ || \mat{A} || || \mat{B} || || \vec{u} || : || \vec{u} || = 1 \} = || \mat{A} || || \mat{B} ||$
+                        \end{center}
+                \end{itemize}
+            \subsubsection*{Cauchy Sequence}
+                Generalising limits to metric spaces (let it be $S$ in lieu of repeating myself), we have the following definitions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item a sequence $x_1, x_2, \dots \in S$ converges to a limit $\ell \in S$ iff
+                        \begin{center}
+                            $\forall \epsilon > 0 \exists N \in \mathbb{N}\ [\forall n > N\ [d(x_n, \ell) < \epsilon]]$
+                        \end{center}
+                    \item a sequence $\{ x_n \}$ is called a \textbf{Cauchy sequence} iff
+                        \begin{center}
+                            $\forall \epsilon > 0 \exists N \in \mathbb{N}\ [\forall n, m > N\ [d(x_n, x_m) < \epsilon]]$
+                        \end{center}
+                    \item a metric space in which every Cauchy sequence has a limit in $S$ is \textbf{complete}
+                \end{itemize}
+                If a sequence $\{ x_n \}$ converges in $S$, then $\{ x_n \}$ is Cauchy.
+                This means that any converging sequence is Cauchy, but not every Cauchy sequence is convergent.
+                If every Cauchy sequence is convergent, then $S$ is complete.
+            \subsubsection*{Application}
+                We will mainly be working in real vector spaces $\mathbb{R}^k$.
+                It can also be shown that $\mathbb{R}^k$ is complete for all $k \geq 1$ (proof not needed for this course / degree).
+                Since these metric spaces are complete, we can then say that any sequence we encounter (in real vector spaces) is convergent iff it is Cauchy, which is relatively easy to test.
+            \subsubsection*{Uniqueness of Limits}
+                This is an example of the type of reasoning we are expected to do in this course.
+                We claim that a convergent sequence $\{ x_n \} \in \mathbb{R}^k$ has a unique limit.
+                The proof is as follows;
+                \medskip
 
+                Suppose $x_n \to \ell_1$ and $x_n \to \ell_2$, as $n \to \infty$.
+                By the last property of the metric, we can say (for all $n$);
+                \begin{center}
+                    $d(\ell_1, \ell_2) \leq d(\ell_1, x_n) + d(x_n, \ell_2)$
+                \end{center}
+                For a sufficiently large $n$, we can say the following;
+                \begin{center}
+                    $d(\ell_1, \ell_2) < \frac{\epsilon}{2} + \frac{\epsilon}{2} = \epsilon$
+                \end{center}
+                Note that in the step above, we take any number, therefore $\frac{\epsilon}{2}$ is just as good as $\epsilon$.
+                Since $\epsilon$ is \textbf{any} positive number (by definition of a metric);
+                \begin{center}
+                    $d(\ell_1, \ell_2) < \epsilon \Rightarrow d(\ell_1, \ell_2) = 0 \Leftrightarrow \ell_1 = \ell_2$
+                \end{center}
+            \subsubsection*{Fixed Points}
+                Let $f : S \to S$.
+                A point $p \in S$ is a fixed point (or fixpoint) if $f(p) = p$.
+                Additionally, a function $f$ is a \textbf{contraction} of $S$ if there exists a contraction constant $0 < \alpha < 1$;
+                \begin{center}
+                    $\forall x, y \in S\ [\red{d(f(x), f(y))} \leq \alpha \blue{d(x, y)}]$
+                \end{center}
+                Visually, we can represent it as the following;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node (s1) at (0, 2.5) {$S$};
+                        \node (s2) at (6, 2.5) {$S$};
+
+                        \node at (0.7, 0.3) {$p$};
+                        \node (p) at (1, 0) {$\times$};
+
+                        \node at (6.7, 0.3) {$f(p)$};
+                        \node (fp) at (7, 0) {$\times$};
+
+                        \node at (-0.7, 1.2) {$x$};
+                        \node (x) at (-1, 1.5) {$\times$};
+
+                        \node at (5.3, 0.7) {$\hspace{0.5cm}f(x)$};
+                        \node (fx) at (5, 1) {$\times$};
+
+                        \node at (-0.7, -0.7) {$y$};
+                        \node (y) at (-1, -1) {$\times$};
+
+                        \node at (5.3, -1) {$\hspace{0.5cm}f(y)$};
+                        \node (fy) at (5, -0.7) {$\times$};
+
+                        \draw
+                        (s1) edge[->] node[above] {$f$} (s2)
+                        (0, 0) circle (2)
+                        (6, 0) circle (2)
+                        (p) edge[->] (fp)
+                        (x) edge[->] (fx)
+                        (y) edge[->] (fy);
+
+                        \draw[blue, dashed] (-1, 1.5) -- (-1, -1);
+                        \draw[red, dashed] (5, 1) -- (5, -0.7);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Fixed Point Theorem}
+                The fixed point theorem states that a continuous contraction $f$ of a complete metric space $S$ has a unique fixed point.
+                The proof for this is as follows;
+                \medskip
+
+                Take any point $x \in S$, we define $\{ p_n \}$ as;
+                \begin{align*}
+                    p_0 & = x \\
+                    p_{n + 1} = f(p_n) \\
+                    d(p_{n + 1}, p_n) & = d(f(p_n), f(p_{n - 1})) \\
+                    & \leq \alpha d(p_n, p_{n - 1}) \\
+                    & = \alpha d(f(p_{n - 1}), f(p_{n - 2})) \\
+                    & \leq \alpha^2 d(p_{n - 1}, p_{n - 2}) \\
+                    & \vdots \\
+                    & \leq \alpha^n c & \text{let } c = d(p_1, p_0)
+                \end{align*}
+                We then assume $m > n$ (somewhat redundant by symmetry);
+                \begin{align*}
+                    d(p_m, p_n) & \leq d(p_m, p_{m - 1}) + \dots + d(p_{n + 1}, p_n) \\
+                    & = \summation{k = n}{m - 1} d(p_{k + 1}, p_k) \\
+                    & \leq \summation{k = n}{m - 1} \alpha^k c \\
+                    & = c \summation{k = n}{m - 1} \alpha^k & \text{notice the geometric series} \\
+                    & = c \frac{\alpha^n - \alpha^m}{1 - \alpha} & \alpha^m > 0 \\
+                    & < \frac{c\alpha^n}{1 - \alpha}
+                \end{align*}
+                As $m, n \to \infty$, $\alpha^n \to 0$, so we have $d(p_m, p_n) \to 0$.
+                This means that the points converge, therefore $\{ p_n \}$ is Cauchy.
+                With the completion property, we know that $p_n \to p$ for some point $p \in S$.
+                To prove that it is a fixed point, we need to employ the continuity property of $f$;
+                \begin{align*}
+                    f(p) & = f(\limit{n}{\infty} p_n) \\
+                    & = \limit{n}{\infty} f(p_n) & \text{by continuity, somehow?} \\
+                    & = \limit{n}{\infty} p_{n + 1} \\
+                    & = p
+                \end{align*}
+                Finally, to prove the uniqueness of this, take two points $p, p^\prime \in S$, both assumed to be fixpoints;
+                \begin{align*}
+                    d(p, p^\prime) & = d(f(p), f(p^\prime)) & \text{as they are fixpoints} \\
+                    & \leq \alpha d(p, p^\prime) & \text{by contraction}
+                \end{align*}
+                As $0 < \alpha < 1$, $d(p, p^\prime) = 0$, hence $p = p^\prime$, therefore the fixpoint is unique.
+            \subsubsection*{Iterative Solutions of Linear Equations}
+                Split a square matrix $\mat{A}$ to $\mat{M} = \mat{A} - \mat{N}$, where $\mat{M}$ is non-singular.
+                \begin{align*}
+                    \mat{A}\vec{x} & = \vec{b} & \Rightarrow \\
+                    \mat{M}\vec{x} & = \vec{b} - \mat{N}\vec{x} & \Rightarrow \\
+                    \vec{x} & = \mat{M}^{-1}\vec{b} - \mat{M}^{-1}\mat{N}\vec{x} & \Rightarrow \\
+                    \vec{x} & = \mat{G}\vec{x} + \vec{c} & \text{where } \mat{G} = -\mat{M}^{-1}\mat{N}\vec{x}, \vec{c} = \mat{M}^{-1}\vec{b}
+                \end{align*}
+                We then define the iteration to be as follows, with a starting point $\vec{x^{(0)}}$;
+                \begin{center}
+                    $\vec{x^{(k + 1)}} = \mat{G}\vec{x^{(k)}} + \vec{c}$
+                \end{center}
 \end{document}
