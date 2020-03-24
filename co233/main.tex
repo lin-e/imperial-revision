@@ -2076,6 +2076,8 @@
                 \end{align*}
                 Applying $\mat{H}$ to $\mat{A}$ gets rid of all entries in the first column, other than the first element.
                 This is an iterative process, where every iteration brings us closer to an upper triangular matrix.
+                Note that the Householder matrix, $\mat{H_2}$, applied to $\mat{A_2}$ is 1 smaller on each dimension.
+                To account for this, a top row, and left column is added, of all 0s, other than the top left element, which is 1.
                 \begin{center}
                     $\mat{H_n} \cdots \mat{H_1} \mat{A} = \mat{R} $
                 \end{center}
@@ -2140,4 +2142,102 @@
                     \frac{|| \delta\vec{x_b} ||}{|| \vec{x} ||} & \leq \frac{|| \mat{A}^{-1} || || \delta\vec{b} || || \mat{A} ||}{|| \vec{b} ||} & \Rightarrow \\
                     \frac{|| \delta\vec{x_b} ||}{|| \vec{x} ||} & \leq || \mat{A}^{-1} || || \mat{A} || \frac{|| \delta\vec{b} ||}{|| \vec{b} ||}
                 \end{align*}
+            \subsubsection*{Condition Number}
+                Similarly, we can do the same for a small change in $\mat{A}$.
+                As such, $\vec{x_A}$ is the change in $\vec{x}$ due to a change in $\mat{B}$.
+                \begin{align*}
+                    (\mat{A} + \delta\mat{A})(\vec{x} + \delta\vec{x_A}) & = \vec{b} & \Rightarrow \\
+                    \mat{A}\vec{x} + \mat{A}\delta\vec{x_A} + \delta\mat{A}\vec{x} + \delta\mat{A}\delta\vec{x_A} & = \vec{b} & (1), \Rightarrow \\
+                    \mat{A}\vec{x} + \mat{A}\delta\vec{x_A} + \delta\mat{A}\vec{x} & = \vec{b} & \text{we know } \mat{A}\vec{x} = \vec{b}, \Rightarrow \\
+                    \mat{A}\delta\vec{x_A} + \delta\mat{A}\vec{x} & = \vec{0} & \Rightarrow \\
+                    \mat{A}\delta\vec{x_A} & = -\delta\mat{A}\vec{x} & \text{assuming a solution exists}, \Rightarrow \\
+                    \delta\vec{x_A} & = -\mat{A}^{-1}\delta\mat{A}\vec{x} & \text{by consistency, norm is positive}, \Rightarrow \\
+                    || \delta\vec{x_A} || & \leq || \mat{A}^{-1} || || \delta\mat{A} || || \vec{x} || & \Rightarrow \displaybreak \\
+                    \frac{|| \delta\vec{x_A} ||}{|| \vec{x} ||} & \leq || \mat{A}^{-1} || || \delta\mat{A} || & \text{we want relative change}, \Rightarrow \\
+                    \frac{|| \delta\vec{x_A} ||}{|| \vec{x} ||} & \leq || \mat{A}^{-1} || || \mat{A} || \frac{|| \delta\mat{A} ||}{|| \mat{A} ||}
+                \end{align*}
+                As such, we can define the condition of a matrix $\mat{A}$ as follows;
+                \begin{center}
+                    $\text{cond}(\mat{A}) = || \mat{A}^{-1} || || \mat{A} ||$
+                \end{center}
+                This gives us the following useful property, allowing the condition to be an upper bound on the worst case;
+                $$\text{cond}(\mat{A}) \geq \max \left\{ \frac{\frac{|| \delta\vec{x_b} ||}{|| \vec{x} ||} }{\frac{|| \delta\vec{b} ||}{|| \vec{b} ||} }, \frac{\frac{|| \delta\vec{x_A} ||}{|| \vec{x} ||}}{\frac{|| \delta\mat{A} ||}{|| \mat{A} ||}}\right\}$$
+            \subsubsection*{Application to LSM}
+                This is a problem that's well known to be numerically unstable.
+                As usual, we take the case where there are $m$ equations in $n$ variables, where $m > n$.
+                This gives us a non-square matrix $\mat{A} \in \mathbb{R}^{m \times n}$.
+                We also note that for the $\ell_2$-norm, the condition of $\mat{A}^\top\mat{A}$ is the square of the condition of $\mat{A}$.
+                Essentially, we are multiplying the norms of 4 matrices together, therefore we often get a large norm.
+                We can work through the following example;
+                \begin{align*}
+                    \mat{A} & = \begin{bmatrix}
+                        1 & 1 \\
+                        1 & 1 \\
+                        0 & 10^{-4}
+                    \end{bmatrix} \\
+                    \mat{A}^\top\mat{A} & = \begin{bmatrix}
+                        2 & 2 \\
+                        2 & 2 + 10^{-8}
+                    \end{bmatrix} \\
+                    \left(\mat{A}^\top\mat{A}\right)^{-1} & = 0.5 \cdot 10^8 \cdot \begin{bmatrix}
+                        2 + 10^{-8} & -2 \\
+                        -2 & 2
+                    \end{bmatrix} \\
+                    \text{cond}\left(\mat{A}^\top\mat{A}\right)^{-1} & = (4 + 10^{-8})(4 + 10^{-8}) \cdot 0.5 \cdot 10^8 \\
+                    & \approx 8 \cdot 10^8
+                \end{align*}
+                While there is no threshold for deciding whether a matrix is ill-conditioned, the rule of thumb is that for some condition number $\kappa(\mat{A})$, you can lose $\log_{10}(\kappa(\mat{A}))$ significant figures in accuracy.
+                For example, if we had a accurate starting point, for example something with 12 decimal places, and $\kappa = 1000000$, the precision will only reduce to 6 decimal places.
+                \medskip
+
+                The residual vectors are only reliable indicators of the accuracy \textbf{if the problem is well-conditioned};
+                \begin{center}
+                    $\vec{r} = \mat{A}\vec{x_0} - \vec{b}$
+                \end{center}
+            \subsubsection*{Metric Spaces}
+                Take a non-empty set of points $S$, with a (distance) function $d : S \times S \to \mathbb{R}$ (the metric of the space), which satisfies ($\forall x, y, z \in S$);
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item $d(x, x) = 0$
+                    \item $d(x, y) > 0$ given $x \neq y$
+                    \item $d(x, y) = d(y, x)$ (symmetry)
+                    \item $d(x, y) \leq d(x, z) + d(z, y)$ (triangle inequality)
+                \end{enumerate}
+                This is true for distances in real spaces $\mathbb{R}, \mathbb{R}^2, \mathbb{R}^3, \dots$
+                Another example of this is vector norms, as they satisfy the above properties.
+                \medskip
+
+                We can justify that the discrete metric, defined below, satisfies those conditions;
+                $$d(x, y) = \begin{cases}
+                    0 & x = y \\
+                    1 & x \neq y
+                \end{cases}$$
+                Trivially, the first 3 conditions are satisfied by the definition, however the last takes more work to prove.
+                We know that $d(x, y)$ is 0 or 1, and $d(x, z) + d(z, y)$ is 0, 1, or 2.
+                If the latter is 1 or 2, there is no work to be done.
+                However, consider the case where the former is 1, and the latter is 0.
+                To start, we assume $d(x, y) = 1 \Rightarrow x \neq y$.
+                We also assume $d(x, z) + d(z, y) = 0$, therefore $d(x, z) = 0$ and $d(z, y) = 0$.
+                As such, we have $x = z$ and $z = y$, giving us $x = y$, which contradicts our initial assumption.
+                Therefore that case \textbf{cannot} happen, and the last condition is satisfied.
+            \subsubsection*{Convergence}
+                Briefly, we recap convergence from last year's \textbf{CO145}.
+                To say that $a_1, a_2, \dots$ converges to some limit $\ell \in \mathbb{R}$, which is written as;
+                \begin{center}
+                    $a_n \to \ell$ as $n \to \infty$
+
+                    or
+
+                    $\limit{n}{\infty} a_n = \ell$
+                \end{center}
+                This is true iff (from first year notes)
+                \begin{center}
+                    $\forall \epsilon > 0 \exists N \in \mathbb{N}\ [\forall n > N\ [|a_n - \ell| < \epsilon]]$
+                \end{center}
+                Which holds iff (Cauchy)
+                \begin{center}
+                    $\forall \epsilon > 0 \exists N \in \mathbb{N}\ [\forall n, m > N\ [|a_n - a_m| < \epsilon]]$
+                \end{center}
+                The second method is useful as we don't need to know the limit (when it exists), such as in a recurrence relation or a recursively defined function, and can also be used as a test for divergence.
+
 \end{document}
