@@ -97,7 +97,7 @@
 \newcommand{\dproof}[0]{\DisplayProof}
 
 \newcommand{\bnfsep}[0]{\ |\ }
-\newcommand{\concsep}[0]{\ ||\ }
+\newcommand{\concsep}[0]{\ \Vert\ }
 \newcommand{\violet}[1]{\textcolor{violet}{#1}}
 \newcommand{\blue}[1]{\textcolor{blue}{#1}}
 \newcommand{\red}[1]{\textcolor{red}{#1}}
@@ -179,20 +179,20 @@
                 \end{center}
                 If we take a vector $\vec{v} \in \mathbb{R}^n$, the Euclidean norm (or the $\ell_2$-norm) is defined as such;
                 \begin{center}
-                    $|| \vec{v} ||_2 = \sqrt{\summation{i=1}{n} v_i^2}$
+                    $\Vert \vec{v} \Vert_2 = \sqrt{\summation{i=1}{n} v_i^2}$
                 \end{center}
-                A norm, a mapping $||\ || : \mathbb{R}^n \to \mathbb{R}^+$, must satisfy these 3 axioms;
+                A norm, a mapping $\Vert\ \Vert : \mathbb{R}^n \to \mathbb{R}^+$, must satisfy these 3 axioms;
                 \begin{enumerate}[(i)]
                     \itemsep0em
-                    \item $|| \vec{v} || > 0$ given that $\vec{v} \neq \vec{0}$
-                    \item $|| \lambda \vec{v} || = |\lambda|\ || \vec{v} ||$
-                    \item $|| \vec{v} + \vec{w} || \leq || \vec{v} || + || \vec{w} ||$ (triangular inequality)
+                    \item $\Vert \vec{v} \Vert > 0$ given that $\vec{v} \neq \vec{0}$
+                    \item $\Vert \lambda \vec{v} \Vert = |\lambda|\ \Vert \vec{v} \Vert$
+                    \item $\Vert \vec{v} + \vec{w} \Vert \leq \Vert \vec{v} \Vert + \Vert \vec{w} \Vert$ (triangular inequality)
                 \end{enumerate}
                 Some other ($\ell_p$) norms are defined as follows;
                 \begin{align*}
-                    \ell_1\text{-norm } || \vec{v} ||_1 & = \summation{i=1}{n}|v_i| \\
-                    \ell_\infty\text{-norm } || \vec{v} ||_\infty & = \max \{|v_i| : 1 \leq i \leq n\} \\
-                    \ell_p\text{-norm } || \vec{v} ||_p & = \left(\summation{i=1}{n} |v_i|^p\right)^\frac{1}{p}
+                    \ell_1\text{-norm } \Vert \vec{v} \Vert_1 & = \summation{i=1}{n}|v_i| \\
+                    \ell_\infty\text{-norm } \Vert \vec{v} \Vert_\infty & = \max \{|v_i| : 1 \leq i \leq n\} \\
+                    \ell_p\text{-norm } \Vert \vec{v} \Vert_p & = \left(\summation{i=1}{n} |v_i|^p\right)^\frac{1}{p}
                 \end{align*}
                 In each dimension, we have the following;
                 \begin{itemize}
@@ -200,9 +200,9 @@
                     \item $n = 1$
                         \begin{itemize}
                             \itemsep0em
-                            \item $|| \vec{v} ||_1 = | v | = | v |$
-                            \item $|| \vec{v} ||_2 = \sqrt{v^2} = | v |$
-                            \item $|| \vec{v} ||_\infty = \max \{| v |\} = | v |$
+                            \item $\Vert \vec{v} \Vert_1 = | v | = | v |$
+                            \item $\Vert \vec{v} \Vert_2 = \sqrt{v^2} = | v |$
+                            \item $\Vert \vec{v} \Vert_\infty = \max \{| v |\} = | v |$
                         \end{itemize}
                     \item $n = 2$
                         \smallskip
@@ -220,9 +220,9 @@
                                 \draw (0, 0) edge[->] (4, 3);
                             \end{tikzpicture}
                         \end{center}
-                        In our case $|| \vec{v} ||_\infty = \max\{ | v_1 |, | v_2 | \} = | v_1 |$, but the point is that it's either of the "sides" of the triangle.
-                        Obviously, $|| \vec{v} ||_2 \geq || \vec{v} ||_\infty$, as it's the hypotenuse of the triangle, and similarly, $|| \vec{v} ||_1 \geq || \vec{v} ||_2$, due to the triangle inequality.
-                        Therefore we have $|| \vec{v} ||_1 \geq || \vec{v} ||_2 \geq || \vec{v} ||_\infty$.
+                        In our case $\Vert \vec{v} \Vert_\infty = \max\{ | v_1 |, | v_2 | \} = | v_1 |$, but the point is that it's either of the "sides" of the triangle.
+                        Obviously, $\Vert \vec{v} \Vert_2 \geq \Vert \vec{v} \Vert_\infty$, as it's the hypotenuse of the triangle, and similarly, $\Vert \vec{v} \Vert_1 \geq \Vert \vec{v} \Vert_2$, due to the triangle inequality.
+                        Therefore we have $\Vert \vec{v} \Vert_1 \geq \Vert \vec{v} \Vert_2 \geq \Vert \vec{v} \Vert_\infty$.
                         \smallskip
 
                         Even if the orthonormal base changes, the Euclidean norm stays the same, whereas the other norms can change.
@@ -230,25 +230,25 @@
                     \item $n =\ ?$ (general)
                         \smallskip
 
-                        The goal is to prove $|| \vec{v} ||_\infty \leq || \vec{v} ||_2 \leq || \vec{v} ||_1$.
+                        The goal is to prove $\Vert \vec{v} \Vert_\infty \leq \Vert \vec{v} \Vert_2 \leq \Vert \vec{v} \Vert_1$.
                         If we first take the squares of all of them, such that we have the following;
                         \begin{align*}
-                            || \vec{v} ||_1^2 & = \left(\summation{i = 1}{n} | v_i |\right)^2 \\
-                            || \vec{v} ||_2^2 & = \summation{i = 1}{n} | v_i |^2 \\
-                            || \vec{v} ||_\infty^2 & = (\max\{| v_i | : 1 \leq i \leq n\})^2 \\
+                            \Vert \vec{v} \Vert_1^2 & = \left(\summation{i = 1}{n} | v_i |\right)^2 \\
+                            \Vert \vec{v} \Vert_2^2 & = \summation{i = 1}{n} | v_i |^2 \\
+                            \Vert \vec{v} \Vert_\infty^2 & = (\max\{| v_i | : 1 \leq i \leq n\})^2 \\
                         \end{align*}
                         Since the $\ell_\infty$-norm corresponds to a single $v_i$, it's obvious that the following inequality holds (since the $\ell_2$-norm squared has all the other terms squared, as well as the $\ell_\infty$-norm squared);
                         \begin{center}
-                            $|| \vec{v} ||_2^2 = \summation{i = 1}{n} | v_i |^2 \geq (\max\{| v_i | : 1 \leq i \leq n\})^2 = || \vec{v} ||_\infty^2 \Rightarrow || \vec{v} ||_2 \geq || \vec{v} ||_\infty$
+                            $\Vert \vec{v} \Vert_2^2 = \summation{i = 1}{n} | v_i |^2 \geq (\max\{| v_i | : 1 \leq i \leq n\})^2 = \Vert \vec{v} \Vert_\infty^2 \Rightarrow \Vert \vec{v} \Vert_2 \geq \Vert \vec{v} \Vert_\infty$
                         \end{center}
                         To prove the other inequality, we see that the square of the sum of absolutes is greater than the sum of the squares, as the square of the sum contains the cross terms (which will be positive).
                         \begin{center}
-                            $|| \vec{v} ||_2^2 = \summation{i = 1}{n} | v_i |^2 \leq \left(\summation{i = 1}{n} | v_i |\right)^2 = || \vec{v} ||_\infty^1 \Rightarrow || \vec{v} ||_2 \leq || \vec{v} ||_1$
+                            $\Vert \vec{v} \Vert_2^2 = \summation{i = 1}{n} | v_i |^2 \leq \left(\summation{i = 1}{n} | v_i |\right)^2 = \Vert \vec{v} \Vert_\infty^1 \Rightarrow \Vert \vec{v} \Vert_2 \leq \Vert \vec{v} \Vert_1$
                         \end{center}
-                        As such, we can conclude that $|| \vec{v} ||_\infty \leq || \vec{v} ||_2 \leq || \vec{v} ||_1$ in any dimension. \hfill $\blacksquare$
+                        As such, we can conclude that $\Vert \vec{v} \Vert_\infty \leq \Vert \vec{v} \Vert_2 \leq \Vert \vec{v} \Vert_1$ in any dimension. \hfill $\blacksquare$
                 \end{itemize}
             \subsubsection*{Tutorial Question}
-                Find the locus of vectors such that $|| \vec{v} ||_p \leq 1$, for $p = \red{1}, \blue{2}, \violet{\infty}$ in $n = 2$;
+                Find the locus of vectors such that $\Vert \vec{v} \Vert_p \leq 1$, for $p = \red{1}, \blue{2}, \violet{\infty}$ in $n = 2$;
                 \begin{center}
                     \begin{tikzpicture}
                         \node at (1.75, 0) {$x$};
@@ -267,28 +267,28 @@
                 Our goal is to show that as $p \to \infty$, we get the definition of the $\ell_\infty$-norm previously stated.
                 Take a vector $\vec{v} \in \mathbb{R}^n$, where both $\vec{v}$ and $n$ are fixed.
                 \begin{center}
-                    $|| \vec{v} ||_p^p = \summation{i = 1}{n} | v_i |^p$
+                    $\Vert \vec{v} \Vert_p^p = \summation{i = 1}{n} | v_i |^p$
                 \end{center}
-                Obviously, this is greater than or equal to $|| \vec{v} ||_\infty^p$, as it would only be a single $| v_i |^p$.
+                Obviously, this is greater than or equal to $\Vert \vec{v} \Vert_\infty^p$, as it would only be a single $| v_i |^p$.
                 Similarly, it must be less than or equal to $n | v_i |^p$, as $v_i$ is the maximum of all the components.
                 \begin{center}
-                    $|| \vec{v} ||_\infty^p \leq || \vec{v} ||_p^p = \summation{i = 1}{n} | v_i |^p \leq n || \vec{v} ||_\infty^p$
+                    $\Vert \vec{v} \Vert_\infty^p \leq \Vert \vec{v} \Vert_p^p = \summation{i = 1}{n} | v_i |^p \leq n \Vert \vec{v} \Vert_\infty^p$
                 \end{center}
                 Taking everything to the power of $\frac{1}{p}$, we obtain the following result (note that $p > 0$ hence the signs don't change);
                 \begin{center}
-                    $|| \vec{v} ||_\infty \leq || \vec{v} ||_p = \leq n^\frac{1}{p} || \vec{v} ||_\infty$
+                    $\Vert \vec{v} \Vert_\infty \leq \Vert \vec{v} \Vert_p = \leq n^\frac{1}{p} \Vert \vec{v} \Vert_\infty$
                 \end{center}
                 As $p \to \infty$, since $n \geq 2$ ($n = 1$ is shown to collapse to the same component), we have $n^\frac{1}{p} \to 1$, which sandwiches the middle term.
             \subsubsection*{Some Proposition ($\ell_\infty$-norm vs $\ell_2$-norm)}
-                The proposition is as follows; for a vector $\vec{v} \in \mathbb{R}^n$, $|| \vec{v} ||_2 \leq \sqrt{n} || \vec{v} ||_\infty$.
-                To show this, we know that each of $| v_i |$ is less than or equal to $|| \vec{v} ||_\infty$, by definition of the maximum.
-                The same can be said for $| v_i |^2$, vs $|| \vec{v} ||_\infty^2$.
+                The proposition is as follows; for a vector $\vec{v} \in \mathbb{R}^n$, $\Vert \vec{v} \Vert_2 \leq \sqrt{n} \Vert \vec{v} \Vert_\infty$.
+                To show this, we know that each of $| v_i |$ is less than or equal to $\Vert \vec{v} \Vert_\infty$, by definition of the maximum.
+                The same can be said for $| v_i |^2$, vs $\Vert \vec{v} \Vert_\infty^2$.
                 Taking square roots, we have the following;
                 \begin{center}
-                    $|| \vec{v} ||_2^2 = \summation{i = 1}{n} | v_i |^2 \leq n || \vec{v} ||_\infty^2 \Rightarrow || \vec{v} ||_2 \leq \sqrt{n} || \vec{v} ||_\infty$
+                    $\Vert \vec{v} \Vert_2^2 = \summation{i = 1}{n} | v_i |^2 \leq n \Vert \vec{v} \Vert_\infty^2 \Rightarrow \Vert \vec{v} \Vert_2 \leq \sqrt{n} \Vert \vec{v} \Vert_\infty$
                 \end{center}
-                To show this holds similarly for $|| \vec{v} ||_1 \leq \sqrt{n} || \vec{v} ||_2$, we employ the Cauchy-Schwarz inequality, which states $| \vec{x} \cdot \vec{y} | \leq || \vec{x} ||_2 || \vec{y} ||_2$.
-                The Cauchy-Schwarz inequality uses the fact that $\vec{x} \cdot \vec{y} = || \vec{x} ||_2 || \vec{y} ||_2 \cos \theta$.
+                To show this holds similarly for $\Vert \vec{v} \Vert_1 \leq \sqrt{n} \Vert \vec{v} \Vert_2$, we employ the Cauchy-Schwarz inequality, which states $| \vec{x} \cdot \vec{y} | \leq \Vert \vec{x} \Vert_2 \Vert \vec{y} \Vert_2$.
+                The Cauchy-Schwarz inequality uses the fact that $\vec{x} \cdot \vec{y} = \Vert \vec{x} \Vert_2 \Vert \vec{y} \Vert_2 \cos \theta$.
                 To do this, we need to define a sign function $\text{sgn} : \mathbb{R} \to \{1, -1\}$ as follows;
                 \begin{align*}
                     \text{sgn}\ x & = \begin{cases}
@@ -301,22 +301,22 @@
                     & = \summation{i = 1}{n} \frac{v_i \cdot \text{sgn}\ v_i}{\sqrt{n}} & \text{product of same sign becomes positive} \\
                     & = \summation{i = 1}{n} \frac{| v_i |}{\sqrt{n}} \\
                     & = \sqrt{n} \summation{i = 1}{n} | v_i | \\
-                    & = \sqrt{n} || \vec{v} ||_1 \\
-                    || \vec{w} ||_2 & = \summation{i = 1}{n} \frac{\pm 1}{\sqrt{n}}^2 \\
+                    & = \sqrt{n} \Vert \vec{v} \Vert_1 \\
+                    \Vert \vec{w} \Vert_2 & = \summation{i = 1}{n} \frac{\pm 1}{\sqrt{n}}^2 \\
                     & = \summation{i = 1}{n} \frac{1}{n} \\
                     & = 1
                 \end{align*}
                 By \violet{Cauchy-Schwarz}, we get;
                 \begin{center}
-                    $\sqrt{n} || \vec{v} ||_1 = \violet{| \vec{v} \cdot \vec{w} | \leq || \vec{v} ||_2 || \vec{w} ||_2} = || \vec{v} ||_2$
+                    $\sqrt{n} \Vert \vec{v} \Vert_1 = \violet{| \vec{v} \cdot \vec{w} | \leq \Vert \vec{v} \Vert_2 \Vert \vec{w} \Vert_2} = \Vert \vec{v} \Vert_2$
                 \end{center}
         \subsection*{16th January 2020}
             Note that this recording has \textbf{no audio}, and therefore will just be the board transcribed.
             I honestly have no idea what he was doing in this lecture, it seems to just jump from topic to topic.
             \subsubsection*{Equivalence of Norms?}
-                Take any two norms on $\mathbb{R}^n$; $||\ ||_a$, and $||\ ||_b$.
+                Take any two norms on $\mathbb{R}^n$; $\Vert\ \Vert_a$, and $\Vert\ \Vert_b$.
                 \begin{center}
-                    $\exists r, s \in \mathbb{R}^+\ \forall \vec{v} \in \mathbb{R}^n\ [r || \vec{v} ||_b \leq || \vec{v} ||_a \leq s || \vec{v} ||_b]$
+                    $\exists r, s \in \mathbb{R}^+\ \forall \vec{v} \in \mathbb{R}^n\ [r \Vert \vec{v} \Vert_b \leq \Vert \vec{v} \Vert_a \leq s \Vert \vec{v} \Vert_b]$
                 \end{center}
                 This means that norms in finite dimensional vector spaces are equivalent (no idea why, look it up).
             \subsubsection*{Convergence of Vector Sequences}
@@ -329,25 +329,25 @@
                 \end{align*}
                 For a vector sequence $\vec{v}^{(m)}$ to converge to some vector $\vec{v} \in \mathbb{R}^n$, the following must hold;
                 \begin{center}
-                    $\vec{v}^{(m)} \to \vec{v} \in \mathbb{R}^n \Leftrightarrow \limit{m}{\infty} || \vec{v}^{(m)} - \vec{v} || \to 0$
+                    $\vec{v}^{(m)} \to \vec{v} \in \mathbb{R}^n \Leftrightarrow \limit{m}{\infty} \Vert \vec{v}^{(m)} - \vec{v} \Vert \to 0$
                 \end{center}
                 This is componentwise convergence, such that $\forall i \in [1, n]\ [v_i^{(m)} \to v_i]$.
             \subsubsection*{Matrix Norms}
                 Vectors are a type of matrix.
-                For a matrix $\mat{A} \in \mathbb{R}^{m \times n}$, the following properties of its norms must hold, where $||\ || : \mathbb{R}^{m \times n} \to \mathbb{R}_{\geq 0}$;
+                For a matrix $\mat{A} \in \mathbb{R}^{m \times n}$, the following properties of its norms must hold, where $\Vert\ \Vert : \mathbb{R}^{m \times n} \to \mathbb{R}_{\geq 0}$;
                 \begin{enumerate}[(i)]
                     \itemsep0em
-                    \item $|| \mat{A} || > 0$ given that $\mat{A} \neq \mat{0}$
-                    \item $|| \lambda \mat{A} || = | \lambda | || \mat{A} ||$
-                    \item $|| \mat{A} + \mat{B} || \leq || \mat{A} || + || \mat{B} ||$
-                    \item $|| \mat{B} \mat{A} || \leq || \mat{B} || || \mat{A} ||$
+                    \item $\Vert \mat{A} \Vert > 0$ given that $\mat{A} \neq \mat{0}$
+                    \item $\Vert \lambda \mat{A} \Vert = | \lambda | \Vert \mat{A} \Vert$
+                    \item $\Vert \mat{A} + \mat{B} \Vert \leq \Vert \mat{A} \Vert + \Vert \mat{B} \Vert$
+                    \item $\Vert \mat{B} \mat{A} \Vert \leq \Vert \mat{B} \Vert \Vert \mat{A} \Vert$
                 \end{enumerate}
                 \begin{center}
                     \begin{tikzpicture}
                         \node (v) at (0, 0) {$\vec{v} \in \mathbb{R}^n$};
-                        \node at (0, -0.75) {$||\ ||_a$};
+                        \node at (0, -0.75) {$\Vert\ \Vert_a$};
                         \node (av) at (6, 0) {$\mat{A} \vec{v} \in \mathbb{R}^m$};
-                        \node at (6, -0.75) {$||\ ||_b$};
+                        \node at (6, -0.75) {$\Vert\ \Vert_b$};
                         \node at (3, 0) {$\mat{A}$};
                         \draw
                         (v) edge[->] (2, 0)
@@ -356,7 +356,7 @@
                     \end{tikzpicture}
                     \medskip
 
-                    $|| \mat{A} \vec{v} ||_b \leq || \mat{A} || || \vec{v} ||_a$
+                    $\Vert \mat{A} \vec{v} \Vert_b \leq \Vert \mat{A} \Vert \Vert \vec{v} \Vert_a$
                 \end{center}
                 For the following example, take $(a_{i, j}) = \mat{A} \in \mathbb{R}^{m \times n}$;
                 \begin{align*}
@@ -369,72 +369,72 @@
                 \end{align*}
                 We have the following norms on matrices;
                 \begin{align*}
-                    || \mat{A} ||_1 & = \max \{|| a_j ||_1 : 1 \leq j \leq n \} \\
-                    || \mat{A} ||_\infty & = \max \{|| (a^i)^\top ||_1 : 1 \leq i \leq m \} \\
-                    || \mat{A} ||_F & = \sqrt{\summation{i = 1}{m} \summation{j = 1}{n} | a_{i, j} |^2} & \text{Frobenius norm} \\
-                    || \mat{A} ||_2 & = \text{largest singular value of } \mat{A} \\
+                    \Vert \mat{A} \Vert_1 & = \max \{\Vert a_j \Vert_1 : 1 \leq j \leq n \} \\
+                    \Vert \mat{A} \Vert_\infty & = \max \{\Vert (a^i)^\top \Vert_1 : 1 \leq i \leq m \} \\
+                    \Vert \mat{A} \Vert_F & = \sqrt{\summation{i = 1}{m} \summation{j = 1}{n} | a_{i, j} |^2} & \text{Frobenius norm} \\
+                    \Vert \mat{A} \Vert_2 & = \text{largest singular value of } \mat{A} \\
                     \text{let } \mat{A} & = \begin{bmatrix}
                         2 & 3 & 1 & 4 \\
                         1 & 3 & -1 & 5 \\
                         \sqrt{2} & 0 & -2 & 2
                     \end{bmatrix} \\
-                    || \mat{A} ||_1 & = \max \{ 3 + \sqrt{2}, 6, 4, 11 \}
+                    \Vert \mat{A} \Vert_1 & = \max \{ 3 + \sqrt{2}, 6, 4, 11 \}
                     \\
                     & = 11 \\
-                    || \mat{A} ||_\infty & = \max \{ 10, 10, 4 + \sqrt{2} \} \\
+                    \Vert \mat{A} \Vert_\infty & = \max \{ 10, 10, 4 + \sqrt{2} \} \\
                     & = 10 \\
-                    || \mat{A} ||_F & = \sqrt{4 + 9 + 1 + 16 + 1 + 9 + 1 + 25 + 2 + 0 + 4 + 4} \\
+                    \Vert \mat{A} \Vert_F & = \sqrt{4 + 9 + 1 + 16 + 1 + 9 + 1 + 25 + 2 + 0 + 4 + 4} \\
                     & = 2 \sqrt{19}
                 \end{align*}
-                Let there be two vector norms, $||\ ||_a$ on $\mathbb{R}^n$ and $||\ ||_b$ on $\mathbb{R}$.
-                If $||\ ||$ (matrix norm) satisfies
+                Let there be two vector norms, $\Vert\ \Vert_a$ on $\mathbb{R}^n$ and $\Vert\ \Vert_b$ on $\mathbb{R}$.
+                If $\Vert\ \Vert$ (matrix norm) satisfies
                 \begin{center}
-                    $\forall \mat{A} \in \mathbb{R}^{m \times n}, x \in \mathbb{R}^n\ [|| \mat{A}\vec{x} ||_b \leq || \mat{A} || || \vec{x} ||_a]$
+                    $\forall \mat{A} \in \mathbb{R}^{m \times n}, x \in \mathbb{R}^n\ [\Vert \mat{A}\vec{x} \Vert_b \leq \Vert \mat{A} \Vert \Vert \vec{x} \Vert_a]$
                 \end{center}
-                then $||\ ||$ is \textbf{consistent} with $||\ ||_a$ and $||\ ||_b$.
-                Additionally if $a = b$, then $||\ ||$ is \textbf{compatible} with $||\ ||_a$.
+                then $\Vert\ \Vert$ is \textbf{consistent} with $\Vert\ \Vert_a$ and $\Vert\ \Vert_b$.
+                Additionally if $a = b$, then $\Vert\ \Vert$ is \textbf{compatible} with $\Vert\ \Vert_a$.
                 This gives us the following propositions;
                 \begin{itemize}
                     \itemsep0em
-                    \item $||\ ||_1$ (matrix norm) is compatible with $||\ ||_1$ (vector norm)
-                    \item $||\ ||_2$ (matrix norm) is compatible with $||\ ||_2$ (vector norm)
-                    \item $||\ ||_\infty$ (matrix norm) is compatible with $||\ ||_\infty$ (vector norm)
-                    \item $||\ ||_F$ (matrix norm) is compatible with $||\ ||_2$ (vector norm) $\Rightarrow || \mat{A}\vec{x} ||_2 \leq || \mat{A} ||_F || \vec{x} ||_2$
+                    \item $\Vert\ \Vert_1$ (matrix norm) is compatible with $\Vert\ \Vert_1$ (vector norm)
+                    \item $\Vert\ \Vert_2$ (matrix norm) is compatible with $\Vert\ \Vert_2$ (vector norm)
+                    \item $\Vert\ \Vert_\infty$ (matrix norm) is compatible with $\Vert\ \Vert_\infty$ (vector norm)
+                    \item $\Vert\ \Vert_F$ (matrix norm) is compatible with $\Vert\ \Vert_2$ (vector norm) $\Rightarrow \Vert \mat{A}\vec{x} \Vert_2 \leq \Vert \mat{A} \Vert_F \Vert \vec{x} \Vert_2$
                 \end{itemize}
-                Given a vector norm $||\ ||$ on $\mathbb{R}^n$ then the matrix norm $||\ ||$ subordinate to vector norm $||\ ||$ is defined by
+                Given a vector norm $\Vert\ \Vert$ on $\mathbb{R}^n$ then the matrix norm $\Vert\ \Vert$ subordinate to vector norm $\Vert\ \Vert$ is defined by
                 \begin{center}
-                    $|| \mat{A} || = \max \{ || \mat{A}\vec{x} || : || \vec{x} || \leq 1 \} \violet{\ = \max \{ || \mat{A}\vec{x} || : || \vec{x} || = 1 \} = \max \{ || \mat{A}\frac{\vec{x}}{|| \vec{x} ||} || : \vec{x} \neq \vec{0} \}}$
+                    $\Vert \mat{A} \Vert = \max \{ \Vert \mat{A}\vec{x} \Vert : \Vert \vec{x} \Vert \leq 1 \} \violet{\ = \max \{ \Vert \mat{A}\vec{x} \Vert : \Vert \vec{x} \Vert = 1 \} = \max \{ \Vert \mat{A}\frac{\vec{x}}{\Vert \vec{x} \Vert} \Vert : \vec{x} \neq \vec{0} \}}$
                 \end{center}
                 Using this, we can prove property (iii) (see above).
-                We claim that $|| \mat{A} + \mat{B} || \leq || \mat{A} || + || \mat{B} ||$ for matrix norm $||\ ||$ subordinate to vector norm $||\ ||$.
+                We claim that $\Vert \mat{A} + \mat{B} \Vert \leq \Vert \mat{A} \Vert + \Vert \mat{B} \Vert$ for matrix norm $\Vert\ \Vert$ subordinate to vector norm $\Vert\ \Vert$.
                 \begin{align*}
-                    || \mat{A} + \mat{B} || & = \max \{ || (\mat{A} + \mat{B})\vec{x} || : || \vec{x} || \leq 1 \} \\
-                    & = \max \{ || \mat{A}\vec{x} + \mat{B}\vec{x} || : || \vec{x} || \leq 1 \} \\
-                    & \leq \max \{ || \mat{A}\vec{x} || + || \mat{B}\vec{x} || : || \vec{x} || \leq 1 \} & \text{triangle inequality for $||\ ||$} \\
-                    & \leq \max \{ || \mat{A}\vec{x} || : || \vec{x} || \leq 1 \} + \max \{ || \mat{B}\vec{x} || : || \vec{x} || \leq 1 \} & \text{maximise independently} \\
-                    & = || \mat{A} || + || \mat{B} || & \blacksquare
+                    \Vert \mat{A} + \mat{B} \Vert & = \max \{ \Vert (\mat{A} + \mat{B})\vec{x} \Vert : \Vert \vec{x} \Vert \leq 1 \} \\
+                    & = \max \{ \Vert \mat{A}\vec{x} + \mat{B}\vec{x} \Vert : \Vert \vec{x} \Vert \leq 1 \} \\
+                    & \leq \max \{ \Vert \mat{A}\vec{x} \Vert + \Vert \mat{B}\vec{x} \Vert : \Vert \vec{x} \Vert \leq 1 \} & \text{triangle inequality for $\Vert\ \Vert$} \\
+                    & \leq \max \{ \Vert \mat{A}\vec{x} \Vert : \Vert \vec{x} \Vert \leq 1 \} + \max \{ \Vert \mat{B}\vec{x} \Vert : \Vert \vec{x} \Vert \leq 1 \} & \text{maximise independently} \\
+                    & = \Vert \mat{A} \Vert + \Vert \mat{B} \Vert & \blacksquare
                 \end{align*}
-                We are also able to prove property (iv), which we claim to be $|| \mat{B}\mat{A} || \leq || \mat{B} || || \mat{A} ||$.
+                We are also able to prove property (iv), which we claim to be $\Vert \mat{B}\mat{A} \Vert \leq \Vert \mat{B} \Vert \Vert \mat{A} \Vert$.
                 \begin{align*}
-                    || \mat{B}\mat{A} || & = \max \{ || \mat{B}\mat{A}\vec{x} || : || \vec{x} || \leq 1 \} \\
-                    || \mat{B}\mat{A}\vec{x} || & = || \mat{B}(\mat{A}\vec{x}) || \\
-                    || \mat{A}\vec{x} || & \leq || \mat{A} || || \vec{x} || & \text{matrix norm subordinate to vector norm}
+                    \Vert \mat{B}\mat{A} \Vert & = \max \{ \Vert \mat{B}\mat{A}\vec{x} \Vert : \Vert \vec{x} \Vert \leq 1 \} \\
+                    \Vert \mat{B}\mat{A}\vec{x} \Vert & = \Vert \mat{B}(\mat{A}\vec{x}) \Vert \\
+                    \Vert \mat{A}\vec{x} \Vert & \leq \Vert \mat{A} \Vert \Vert \vec{x} \Vert & \text{matrix norm subordinate to vector norm}
                     \intertext{
                         To show the line above, we consider the two cases, $\vec{x} \neq \vec{0}$ and $\vec{x} = \vec{0}$.
                         If $\vec{x} = \vec{0}$, no work needs to be done, as it is trivial.
                         I have no idea why this works, but he wrote it.
                     }
-                    \text{show } \left|\left| \mat{A}\frac{\vec{x}}{|| \vec{x} ||} \right|\right| & \leq || \mat{A} || \\
-                    \text{but } \left|\left| \frac{\vec{x}}{|| \vec{x} ||} \right|\right| & = 1 & \Rightarrow \\
-                    || \mat{A}\vec{x} || & \leq || \mat{A} || || \vec{x} ||
+                    \text{show } \left|\left| \mat{A}\frac{\vec{x}}{\Vert \vec{x} \Vert} \right|\right| & \leq \Vert \mat{A} \Vert \\
+                    \text{but } \left|\left| \frac{\vec{x}}{\Vert \vec{x} \Vert} \right|\right| & = 1 & \Rightarrow \\
+                    \Vert \mat{A}\vec{x} \Vert & \leq \Vert \mat{A} \Vert \Vert \vec{x} \Vert
                     \intertext{Continuing on, we have}
-                    || \mat{B}\mat{A}\vec{x} || & = || \mat{B}(\mat{A}\vec{x}) || \\
-                    & \leq || \mat{B} || || \mat{A}\vec{x} || \\
-                    & \leq || \mat{B} || || \mat{A} || || \vec{x} || \\
-                    || \mat{B}\mat{A} || & = \max \{ || \mat{B}\mat{A}\vec{x} || : || \vec{x} || \leq 1 \} \\
-                    & \leq \max \{ || \mat{B} || || \mat{A} || || \vec{x} || : || \vec{x} || \leq 1 \} \\
-                    & = || \mat{B} || || \mat{A} || \max \{ || \vec{x} || : || \vec{x} || \leq 1 \} & \text{obviously 1, as bounded on top}\\
-                    & = || \mat{B} || || \mat{A} || & \blacksquare
+                    \Vert \mat{B}\mat{A}\vec{x} \Vert & = \Vert \mat{B}(\mat{A}\vec{x}) \Vert \\
+                    & \leq \Vert \mat{B} \Vert \Vert \mat{A}\vec{x} \Vert \\
+                    & \leq \Vert \mat{B} \Vert \Vert \mat{A} \Vert \Vert \vec{x} \Vert \\
+                    \Vert \mat{B}\mat{A} \Vert & = \max \{ \Vert \mat{B}\mat{A}\vec{x} \Vert : \Vert \vec{x} \Vert \leq 1 \} \\
+                    & \leq \max \{ \Vert \mat{B} \Vert \Vert \mat{A} \Vert \Vert \vec{x} \Vert : \Vert \vec{x} \Vert \leq 1 \} \\
+                    & = \Vert \mat{B} \Vert \Vert \mat{A} \Vert \max \{ \Vert \vec{x} \Vert : \Vert \vec{x} \Vert \leq 1 \} & \text{obviously 1, as bounded on top}\\
+                    & = \Vert \mat{B} \Vert \Vert \mat{A} \Vert & \blacksquare
                 \end{align*}
             \subsubsection*{Complex Vectors}
                 \begin{align*}
@@ -451,9 +451,9 @@
                 \end{align*}
                 We also want to define something similar to the dot product in $\mathbb{R}^n$;
                 \begin{align*}
-                    \vec{v} \cdot \vec{w} & = || \vec{v} ||_2 || \vec{w} ||_2 \cos \theta_{\vec{v},\vec{w}} \\
-                    \vec{v} \cdot \vec{v} & = \sqrt{|| \vec{v} ||_2^2} \\
-                    & = || \vec{v} ||_2 \\
+                    \vec{v} \cdot \vec{w} & = \Vert \vec{v} \Vert_2 \Vert \vec{w} \Vert_2 \cos \theta_{\vec{v},\vec{w}} \\
+                    \vec{v} \cdot \vec{v} & = \sqrt{\Vert \vec{v} \Vert_2^2} \\
+                    & = \Vert \vec{v} \Vert_2 \\
                     <\vec{v}, \vec{w}> & = \summation{i = 1}{n} v_i^* w_i \\
                     <\vec{v}, \vec{v}> & = \summation{i = 1}{n} v_i^* v_i \\
                     & = \summation{i = 1}{n} | v_i |^2
@@ -823,7 +823,7 @@
                         \begin{align*}
                             \mat{A}\vec{v} & = \lambda\vec{v} & \Rightarrow \\
                             \vec{v}^{*^\top}\mat{A}\vec{v} & = \lambda \vec{v}^{*^\top}\vec{v} \\
-                            & = \lambda || \vec{v} ||^2 & (1) \\
+                            & = \lambda \Vert \vec{v} \Vert^2 & (1) \\
                             \vec{v}^{*^\top}\mat{A}\vec{v} & = \left(\vec{v}^{*^\top}\mat{A}\right)\vec{v} \\
                             & = \left((\mat{A}\vec{v})^\top\right)^* \vec{v}
                             \intertext{briefly proving the above;}
@@ -833,9 +833,9 @@
                             \intertext{continuing on;}
                             & = \left((\lambda\vec{v})^\top\right)^* \vec{v} & \text{$\vec{v}$ is an eigenvector} \\
                             & = \lambda^* \left(\vec{v}^\top\right)^* \vec{v} & \text{transposing a scalar does nothing} \\
-                            & = \lambda^* || \vec{v} ||^2 & (2)
+                            & = \lambda^* \Vert \vec{v} \Vert^2 & (2)
                         \end{align*}
-                        By comparing results, $(1) = (2)$, hence $\lambda^* = \lambda$ (dividing through by $|| \vec{v} ||^2$ is allowed, since we know it is non-zero by properties of vector norms, and $\vec{v} \neq \vec{0}$ by properties of eigenvectors).
+                        By comparing results, $(1) = (2)$, hence $\lambda^* = \lambda$ (dividing through by $\Vert \vec{v} \Vert^2$ is allowed, since we know it is non-zero by properties of vector norms, and $\vec{v} \neq \vec{0}$ by properties of eigenvectors).
                         As the complex conjugate of $\lambda$ is the same as $\lambda$, we can conclude that $\lambda \in \mathbb{R}$.
                     \item Eigenvectors corresponding to different eigenvalues of $\mat{A}$ are perpendicular.
                         \medskip
@@ -874,7 +874,7 @@
                     \itemsep0em
                     \item $\mat{A}\vec{v_j} = \lambda_j \vec{v_j}$
                     \item $\vec{v_i} \bot \vec{v_j}$, when $i \neq j$ \hfill perpendicular
-                    \item $|| \vec{v_i} || = 1$ for $i = 1, \dots, n$
+                    \item $\Vert \vec{v_i} \Vert = 1$ for $i = 1, \dots, n$
                 \end{itemize}
             \subsubsection*{Examples}
                 For an example in $\mathbb{R}^{2 \times 2}$;
@@ -1024,7 +1024,7 @@
                         (rvl) edge[->] node[above]{$f_{\mat{D}\mat{D}} = \violet{\mat{V}^{-1}\mat{A}\mat{V}}$} (rvr);
                     \end{tikzpicture}
                 \end{center}
-                Consider a unit sphere, created by $|| \vec{x} || = 1$, where $\vec{x} \in \mathbb{R}^3$.
+                Consider a unit sphere, created by $\Vert \vec{x} \Vert = 1$, where $\vec{x} \in \mathbb{R}^3$.
                 The transformations $\mat{V}^{-1} = \mat{V}^\top$ and $\mat{V}$ are rotations as they preserve length.
                 Take a point $\vec{x}$ on the surface of this unit sphere, applying $\mat{V}^{-1}$ to it simply rotates it to another point on the surface of the sphere (going from $\mathbb{R}_{\mat{E}}^3$ to $\mathbb{R}_{\mat{V}}^3$) in the input space.
                 Let this point have coordinates $\vec{u}$ with respect to $\mat{V}$.
@@ -1034,7 +1034,7 @@
                 \end{center}
                 As $\vec{u}$ is on the sphere, we can say;
                 \begin{center}
-                    $|| \vec{u} ||_2^2 = u_1^1 + \dots + u_n^2 = 1$
+                    $\Vert \vec{u} \Vert_2^2 = u_1^1 + \dots + u_n^2 = 1$
                 \end{center}
                 Therefore, the mapped point $\vec{y}$ can be written as $\begin{bmatrix}
                     \lambda_1 u_1 \\ \vdots \\ \lambda_n u_n
@@ -1180,7 +1180,7 @@
                     \end{bmatrix}$
                 \end{center}
                 This is the singular value decomposition of $\mat{A}$, and $\sigma_1, \dots, \sigma_r$ are the singular values of $\mat{A}$.
-                $\sigma_1$ is the largest singular value of $\mat{A}$, which is the $\ell_2$ matrix norm of $\mat{A}$ ($|| \mat{A} ||_2$).
+                $\sigma_1$ is the largest singular value of $\mat{A}$, which is the $\ell_2$ matrix norm of $\mat{A}$ ($\Vert \mat{A} \Vert_2$).
                 The geometric intuition of this, in two dimensions, is as follows;
                 \begin{center}
                     \begin{tikzpicture}
@@ -1223,7 +1223,7 @@
                     v_1 \\ v_2
                 \end{bmatrix} = \mat{V}^\top\vec{x}$.
 
-                We still maintain $|| \vec{x} || = 1$ and $|| \vec{v} || = 1$.
+                We still maintain $\Vert \vec{x} \Vert = 1$ and $\Vert \vec{v} \Vert = 1$.
 
                 We're now in the basis of $(\vec{u_1}, \vec{u_2})$.
                 We can say that $u_1 = \sigma_1 v_1$, $u_2 = \sigma_2 v_2$ (and so on, for higher dimensions).
@@ -1676,10 +1676,10 @@
                         \vec{a^1} \\ \vec{a^2} \\ \vdots \\ \vec{a^m}
                     \end{bmatrix}$ (all rows)
                 \end{center}
-                The goal of the LSM is to find a $\vec{x} \in \mathbb{R}^n$, such that $|| \mat{A}\vec{x} - \vec{b} ||_2$ is minimised (which is equivalent to minimising $|| \mat{A}\vec{x} - \vec{b} ||_2^2$, as it is positive).
+                The goal of the LSM is to find a $\vec{x} \in \mathbb{R}^n$, such that $\Vert \mat{A}\vec{x} - \vec{b} \Vert_2$ is minimised (which is equivalent to minimising $\Vert \mat{A}\vec{x} - \vec{b} \Vert_2^2$, as it is positive).
                 From previous results, we can take $\vec{b} = \vec{b_r} + \vec{b_n}$, therefore we can minimise the following;
                 \begin{align*}
-                    || \mat{A}\vec{x} - \vec{b_r} - \vec{b_n} ||_2^2 & = ((\mat{A}\vec{x} - \vec{b_r}) - \vec{b_n}) \cdot ((\mat{A}\vec{x} - \vec{b_r}) - \vec{b_n}) \\
+                    \Vert \mat{A}\vec{x} - \vec{b_r} - \vec{b_n} \Vert_2^2 & = ((\mat{A}\vec{x} - \vec{b_r}) - \vec{b_n}) \cdot ((\mat{A}\vec{x} - \vec{b_r}) - \vec{b_n}) \\
                     & = (\mat{A}\vec{x} - \vec{b_r}) \cdot (\mat{A}\vec{x} - \vec{b_r}) + \vec{b_n} \cdot \vec{b_n} - 2 \overbrace{(\mat{A}\vec{x} - \vec{b_r})}^{\in \text{Im}(\mat{A})} \cdot \hspace{-0.4cm} \underbrace{\vec{b_n}}_{\in \text{ker}(\mat{A}^\top)} & (1) \\
                     & = (\mat{A}\vec{x} - \vec{b_r}) \cdot (\mat{A}\vec{x} - \vec{b_r}) + \vec{b_n} \cdot \vec{b_n} & (2)
                 \end{align*}
@@ -1924,11 +1924,11 @@
                 Suppose we have a set of linearly independent vectors $\vec{a_1}, \dots, \vec{a_n} \in \mathbb{R}^m$.
                 The Gram-Schmidt process is as follows;
                 \begin{align*}
-                    \vec{u_1} & = \vec{a_1} & \vec{e_1} & = \frac{\vec{u_1}}{|| \vec{u_1} ||} \\
-                    \vec{u_2} & = \vec{a_2} - (\vec{e_1} \cdot \vec{a_2}) \vec{e_1} & \vec{e_2} & = \frac{\vec{u_2}}{|| \vec{u_2} ||} \\
-                    \vec{u_3} & = \vec{a_3} - (\vec{e_1} \cdot \vec{a_3}) \vec{e_1} - (\vec{e_2} \cdot \vec{a_3}) \vec{e_2} & \vec{e_2} & = \frac{\vec{u_3}}{|| \vec{u_3} ||} \\
+                    \vec{u_1} & = \vec{a_1} & \vec{e_1} & = \frac{\vec{u_1}}{\Vert \vec{u_1} \Vert} \\
+                    \vec{u_2} & = \vec{a_2} - (\vec{e_1} \cdot \vec{a_2}) \vec{e_1} & \vec{e_2} & = \frac{\vec{u_2}}{\Vert \vec{u_2} \Vert} \\
+                    \vec{u_3} & = \vec{a_3} - (\vec{e_1} \cdot \vec{a_3}) \vec{e_1} - (\vec{e_2} \cdot \vec{a_3}) \vec{e_2} & \vec{e_2} & = \frac{\vec{u_3}}{\Vert \vec{u_3} \Vert} \\
                     & \vdots & & \vdots \\
-                    \vec{u_n} & = \vec{a_n} - \summation{j = 1}{n - 1} (\vec{e_j} \cdot \vec{a_n}) \vec{e_j} & \vec{e_n} & = \frac{\vec{u_n}}{|| \vec{u_n} ||}
+                    \vec{u_n} & = \vec{a_n} - \summation{j = 1}{n - 1} (\vec{e_j} \cdot \vec{a_n}) \vec{e_j} & \vec{e_n} & = \frac{\vec{u_n}}{\Vert \vec{u_n} \Vert}
                 \end{align*}
                 Geometrically, we can visualise it as the following;
                 \begin{center}
@@ -2063,14 +2063,14 @@
                     \end{bmatrix}\right) & = \begin{bmatrix}
                         \lambda \\ 0 \\ \vdots \\ 0
                     \end{bmatrix} \\
-                    \pm \lambda & = || \vec{a_1} ||
-                    \intertext{We want to send the vector $\vec{a_1}$ to the vector $|| \vec{a_1} ||\vec{e_1}$, where $\vec{e_1}$ is all 0, other than the first element.}
-                    \vec{u} & = \frac{\vec{a_1} - || \vec{a_1} ||\vec{e_1}}{|| \vec{a_1} - || \vec{a_1} ||\vec{e_1} ||} \\
+                    \pm \lambda & = \Vert \vec{a_1} \Vert
+                    \intertext{We want to send the vector $\vec{a_1}$ to the vector $\Vert \vec{a_1} \Vert\vec{e_1}$, where $\vec{e_1}$ is all 0, other than the first element.}
+                    \vec{u} & = \frac{\vec{a_1} - \Vert \vec{a_1} \Vert\vec{e_1}}{\Vert \vec{a_1} - \Vert \vec{a_1} \Vert\vec{e_1} \Vert} \\
                     \mat{H_1} & = \mat{I} = 2 \vec{u}\vec{u}^\top \\
                     \mat{H_1}\mat{A} & = \mat{H_1} [\vec{a_1}, \dots, \vec{a_n}] \\
                     & = [\mat{H_1}\vec{a_1}, \dots, \mat{H_1}\vec{a_n}] \\
                     & = \begin{bmatrix}
-                        || \vec{a_1} || & \times \\
+                        \Vert \vec{a_1} \Vert & \times \\
                         \vec{0} & \mat{A_2}
                     \end{bmatrix} & \times \text{ is an unknown row, } \mat{A_2} \text{ is the bottom right submatrix}
                 \end{align*}
@@ -2109,17 +2109,17 @@
                 \medskip
 
                 The condition number of a problem $P$ is the maximum size-ratio, where $d_1$ and $d_2$ are alternate inputs, and $s(d_1)$ and $s(d_2)$ are the corresponding solutions;
-                $$\kappa(P) = \max_{d_1, d_2} \frac{|| s(d_1) - s(d_2) ||}{|| d_1 - d_2 ||}$$
+                $$\kappa(P) = \max_{d_1, d_2} \frac{\Vert s(d_1) - s(d_2) \Vert}{\Vert d_1 - d_2 \Vert}$$
                 The key point is we are looking for the worst case.
             \subsubsection*{Recap on Norms}
                 We want to recall that for each vector norm $(1, 2, \infty)$, the subordinate (consistent or compatible) matrix norm is
-                $$|| \mat{A} || = \max \left\{ \frac{|| \mat{A}\vec{x} ||}{|| \vec{x} ||} : \vec{x} \neq \vec{0} \right\} = \max \{|| \mat{A}\vec{u} || : || \vec{u} || = 1\}$$
+                $$\Vert \mat{A} \Vert = \max \left\{ \frac{\Vert \mat{A}\vec{x} \Vert}{\Vert \vec{x} \Vert} : \vec{x} \neq \vec{0} \right\} = \max \{\Vert \mat{A}\vec{u} \Vert : \Vert \vec{u} \Vert = 1\}$$
                 This means that we have a lower bound of the matrix norm;
-                $$\forall \vec{x} \neq \vec{0}\ \left[|| \mat{A} || \geq \frac{|| \mat{A}\vec{x} ||}{|| \vec{x} ||}\right]$$
+                $$\forall \vec{x} \neq \vec{0}\ \left[\Vert \mat{A} \Vert \geq \frac{\Vert \mat{A}\vec{x} \Vert}{\Vert \vec{x} \Vert}\right]$$
                 A brief recap on the terms;
                 \begin{itemize}
                     \itemsep0em
-                    \item consistent norm \hfill $|| \mat{A}\vec{x} || \leq || \mat{A} || || \vec{x} ||$
+                    \item consistent norm \hfill $\Vert \mat{A}\vec{x} \Vert \leq \Vert \mat{A} \Vert \Vert \vec{x} \Vert$
                     \item compatible norm \hfill consistent norm defined on square matrix
                     \item all subordinate (also called induced) norms are consistent
                 \end{itemize}
@@ -2132,15 +2132,15 @@
                     \mat{A}\vec{x} + \mat{A}\delta\vec{x_b} & = \vec{b} + \delta\vec{b} & \text{we know } \mat{A}\vec{x} = \vec{b}, \Rightarrow \\
                     \mat{A}\delta\vec{x_b} & = \delta\vec{b} & \text{assuming a solution exists}, \Rightarrow \\
                     \delta\vec{x_b} & = \mat{A}^{-1} & \text{by consistency}, \Rightarrow \\
-                    || \delta\vec{x_b} || & \leq || \mat{A}^{-1} || || \delta\vec{b} || & \text{looking at \% increase}, \Rightarrow \\
-                    \frac{|| \delta\vec{x_b} ||}{|| \vec{x} ||} & \leq \frac{|| \mat{A}^{-1} || || \delta\vec{b} ||}{|| \vec{x} ||} & (1)
+                    \Vert \delta\vec{x_b} \Vert & \leq \Vert \mat{A}^{-1} \Vert \Vert \delta\vec{b} \Vert & \text{looking at \% increase}, \Rightarrow \\
+                    \frac{\Vert \delta\vec{x_b} \Vert}{\Vert \vec{x} \Vert} & \leq \frac{\Vert \mat{A}^{-1} \Vert \Vert \delta\vec{b} \Vert}{\Vert \vec{x} \Vert} & (1)
                     \intertext{we now briefly look at $\mat{A}\vec{x} = \vec{b}$}
                     \mat{A}\vec{x} & = \vec{b} & \Rightarrow \\
-                    || \vec{b} || & \leq || \mat{A} || || \vec{x} || & \Rightarrow \\
-                    || \vec{x} || & \geq \frac{|| \vec{b} ||}{|| \mat{A} ||}
-                    \intertext{we can replace the $|| \vec{x} ||$ in the RHS of (1) with something smaller, as it won't affect the inequality}
-                    \frac{|| \delta\vec{x_b} ||}{|| \vec{x} ||} & \leq \frac{|| \mat{A}^{-1} || || \delta\vec{b} || || \mat{A} ||}{|| \vec{b} ||} & \Rightarrow \\
-                    \frac{|| \delta\vec{x_b} ||}{|| \vec{x} ||} & \leq || \mat{A}^{-1} || || \mat{A} || \frac{|| \delta\vec{b} ||}{|| \vec{b} ||}
+                    \Vert \vec{b} \Vert & \leq \Vert \mat{A} \Vert \Vert \vec{x} \Vert & \Rightarrow \\
+                    \Vert \vec{x} \Vert & \geq \frac{\Vert \vec{b} \Vert}{\Vert \mat{A} \Vert}
+                    \intertext{we can replace the $\Vert \vec{x} \Vert$ in the RHS of (1) with something smaller, as it won't affect the inequality}
+                    \frac{\Vert \delta\vec{x_b} \Vert}{\Vert \vec{x} \Vert} & \leq \frac{\Vert \mat{A}^{-1} \Vert \Vert \delta\vec{b} \Vert \Vert \mat{A} \Vert}{\Vert \vec{b} \Vert} & \Rightarrow \\
+                    \frac{\Vert \delta\vec{x_b} \Vert}{\Vert \vec{x} \Vert} & \leq \Vert \mat{A}^{-1} \Vert \Vert \mat{A} \Vert \frac{\Vert \delta\vec{b} \Vert}{\Vert \vec{b} \Vert}
                 \end{align*}
             \subsubsection*{Condition Number}
                 Similarly, we can do the same for a small change in $\mat{A}$.
@@ -2152,16 +2152,16 @@
                     \mat{A}\delta\vec{x_A} + \delta\mat{A}\vec{x} & = \vec{0} & \Rightarrow \\
                     \mat{A}\delta\vec{x_A} & = -\delta\mat{A}\vec{x} & \text{assuming a solution exists}, \Rightarrow \\
                     \delta\vec{x_A} & = -\mat{A}^{-1}\delta\mat{A}\vec{x} & \text{by consistency, norm is positive}, \Rightarrow \\
-                    || \delta\vec{x_A} || & \leq || \mat{A}^{-1} || || \delta\mat{A} || || \vec{x} || & \Rightarrow \displaybreak \\
-                    \frac{|| \delta\vec{x_A} ||}{|| \vec{x} ||} & \leq || \mat{A}^{-1} || || \delta\mat{A} || & \text{we want relative change}, \Rightarrow \\
-                    \frac{|| \delta\vec{x_A} ||}{|| \vec{x} ||} & \leq || \mat{A}^{-1} || || \mat{A} || \frac{|| \delta\mat{A} ||}{|| \mat{A} ||}
+                    \Vert \delta\vec{x_A} \Vert & \leq \Vert \mat{A}^{-1} \Vert \Vert \delta\mat{A} \Vert \Vert \vec{x} \Vert & \Rightarrow \displaybreak \\
+                    \frac{\Vert \delta\vec{x_A} \Vert}{\Vert \vec{x} \Vert} & \leq \Vert \mat{A}^{-1} \Vert \Vert \delta\mat{A} \Vert & \text{we want relative change}, \Rightarrow \\
+                    \frac{\Vert \delta\vec{x_A} \Vert}{\Vert \vec{x} \Vert} & \leq \Vert \mat{A}^{-1} \Vert \Vert \mat{A} \Vert \frac{\Vert \delta\mat{A} \Vert}{\Vert \mat{A} \Vert}
                 \end{align*}
                 As such, we can define the condition of a matrix $\mat{A}$ as follows;
                 \begin{center}
-                    $\text{cond}(\mat{A}) = || \mat{A}^{-1} || || \mat{A} ||$
+                    $\text{cond}(\mat{A}) = \Vert \mat{A}^{-1} \Vert \Vert \mat{A} \Vert$
                 \end{center}
                 This gives us the following useful property, allowing the condition to be an upper bound on the worst case;
-                $$\text{cond}(\mat{A}) \geq \max \left\{ \frac{\frac{|| \delta\vec{x_b} ||}{|| \vec{x} ||} }{\frac{|| \delta\vec{b} ||}{|| \vec{b} ||} }, \frac{\frac{|| \delta\vec{x_A} ||}{|| \vec{x} ||}}{\frac{|| \delta\mat{A} ||}{|| \mat{A} ||}}\right\}$$
+                $$\text{cond}(\mat{A}) \geq \max \left\{ \frac{\frac{\Vert \delta\vec{x_b} \Vert}{\Vert \vec{x} \Vert} }{\frac{\Vert \delta\vec{b} \Vert}{\Vert \vec{b} \Vert} }, \frac{\frac{\Vert \delta\vec{x_A} \Vert}{\Vert \vec{x} \Vert}}{\frac{\Vert \delta\mat{A} \Vert}{\Vert \mat{A} \Vert}}\right\}$$
             \subsubsection*{Application to LSM}
                 This is a problem that's well known to be numerically unstable.
                 As usual, we take the case where there are $m$ equations in $n$ variables, where $m > n$.
@@ -2243,13 +2243,13 @@
             \subsubsection*{Revised Matrix Norm Terminology}
                 \begin{itemize}
                     \itemsep0em
-                    \item a matrix norm $|| \cdot ||_{\alpha, \beta}$ is \textbf{consistent} relative to vector-norms $\alpha$ on $\mathbb{R}^m$ and $\beta$ on $\mathbb{R}^n$ if
+                    \item a matrix norm $\Vert \cdot \Vert_{\alpha, \beta}$ is \textbf{consistent} relative to vector-norms $\alpha$ on $\mathbb{R}^m$ and $\beta$ on $\mathbb{R}^n$ if
                         \begin{center}
-                            $\forall \mat{A} \in \mathbb{R}^{m \times n}, \vec{x} \in \mathbb{R}^n\ [|| \mat{A}\vec{x} ||_\alpha \leq || \mat{A} ||_{\alpha, \beta} || \vec{x} ||_\beta]$
+                            $\forall \mat{A} \in \mathbb{R}^{m \times n}, \vec{x} \in \mathbb{R}^n\ [\Vert \mat{A}\vec{x} \Vert_\alpha \leq \Vert \mat{A} \Vert_{\alpha, \beta} \Vert \vec{x} \Vert_\beta]$
                         \end{center}
                     \item any induced / subordinate matrix norm is also sub-multiplicative because;
                         \begin{center}
-                            $|| \mat{A}\mat{B} || = \max \{ || \mat{A}\mat{B}\vec{u} : || \vec{u} || = 1 \} \leq \max \{ || \mat{A} || || \mat{B} || || \vec{u} || : || \vec{u} || = 1 \} = || \mat{A} || || \mat{B} ||$
+                            $\Vert \mat{A}\mat{B} \Vert = \max \{ \Vert \mat{A}\mat{B}\vec{u} : \Vert \vec{u} \Vert = 1 \} \leq \max \{ \Vert \mat{A} \Vert \Vert \mat{B} \Vert \Vert \vec{u} \Vert : \Vert \vec{u} \Vert = 1 \} = \Vert \mat{A} \Vert \Vert \mat{B} \Vert$
                         \end{center}
                 \end{itemize}
             \subsubsection*{Cauchy Sequence}
@@ -2389,4 +2389,28 @@
                 \begin{center}
                     $\vec{x^{(k + 1)}} = \mat{G}\vec{x^{(k)}} + \vec{c}$
                 \end{center}
+        \subsection*{20th February 2020}
+            \subsubsection*{Proof of Convergence}
+                We want to prove that for any consistent matrix norm, if $\Vert \mat{G} \Vert < 1$, then the iterative sequence converges for any starting $\vec{x^{(0)}}$.
+                \medskip
+
+                Suppose $\vec{x^{(k)}} \to \vec{\hat{x}}$, where $\vec{\hat{x}} = \mat{G}\vec{\hat{x}} + \vec{c}$.
+                We want to define $\vec{y^{(k + 1)}}$ as follows;
+                \begin{align*}
+                    \vec{y^{(k + 1)}} & = \vec{x^{(k + 1)}} - \vec{\hat{x}} \\
+                    & = \mat{G}\vec{x^{(k)}} + \vec{c} - (\mat{G}\vec{\hat{x}} + \vec{c}) \\
+                    & = \mat{G}\vec{x^{(k)}} - \mat{G}\vec{\hat{x}} \\
+                    & = \mat{G}(\vec{x^{(k)}} - \vec{\hat{x}}) \\
+                    & = \mat{G}\vec{y^{(k)}} \\
+                \end{align*}
+                From this, we can use the property that $\mat{G}$ is consistent as follows;
+                \begin{align*}
+                    \Vert \vec{y^{(k + 1)}} \Vert & \leq \Vert \mat{G} \Vert \Vert \vec{y^{(k)}} \Vert \\
+                    & \leq \Vert \mat{G} \Vert^2 \Vert \vec{y^{(k - 1)}} \Vert \\
+                    & \leq \Vert \mat{G} \Vert^3 \Vert \vec{y^{(k - 2)}} \Vert \\
+                    & \vdots \\
+                    & \leq \Vert \mat{G} \Vert^{k + 1} \Vert \vec{y^{(0)}} \Vert
+                \end{align*}
+                However, we know that $\Vert \mat{G} \Vert^{k + 1} \Vert \vec{y^{(0)}} \Vert \to 0$ when $k \to \infty$, as $\Vert \mat{G} \Vert < 1$.
+                Therefore, $\vec{y^{(k + 1)}} \to \vec{0}$ by the property of norms, hence $\vec{x^{(k + 1)}} \to \vec{\hat{x}}$
 \end{document}
