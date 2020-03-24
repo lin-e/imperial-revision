@@ -2084,4 +2084,60 @@
                     $\mat{A} = \mat{H_1} \cdots \mat{H_n} \mat{R}$
                 \end{center}
                 Using the Householder operator to do QR decomposition isn't examinable.
+        \subsection*{13th February 2020}
+            In the second half of the course, we cover;
+            \begin{itemize}
+                \itemsep0em
+                \item condition number
+                \item convergence and fixed point problems
+                \item iterative solution of linear equations and eigenvectors
+                \item Laplace and Fourier transforms
+                \item functions of several variables and optimisation
+            \end{itemize}
+            \subsubsection*{Condition}
+                When a matrix is very close to singular, the results can be unreliable when computed by a computer, as the results can push up to the precision of the machine.
+                Consider the following set of linear equations;
+                \begin{align*}
+                    x + y & = 1 \\
+                    x + \alpha y & = 0 & \Rightarrow \\
+                    x & = 1 - \frac{1}{1 - \alpha} \\
+                    y & = \frac{1}{1 - \alpha}
+                \end{align*}
+                The solutions are inconsistent if $\alpha = 1$, and will become very large (and likely inaccurate on a computer) when $\alpha \sim 1$.
+                \medskip
+
+                The condition number of a problem $P$ is the maximum size-ratio, where $d_1$ and $d_2$ are alternate inputs, and $s(d_1)$ and $s(d_2)$ are the corresponding solutions;
+                $$\kappa(P) = \max_{d_1, d_2} \frac{|| s(d_1) - s(d_2) ||}{|| d_1 - d_2 ||}$$
+                The key point is we are looking for the worst case.
+            \subsubsection*{Recap on Norms}
+                We want to recall that for each vector norm $(1, 2, \infty)$, the subordinate (consistent or compatible) matrix norm is
+                $$|| \mat{A} || = \max \left\{ \frac{|| \mat{A}\vec{x} ||}{|| \vec{x} ||} : \vec{x} \neq \vec{0} \right\} = \max \{|| \mat{A}\vec{u} || : || \vec{u} || = 1\}$$
+                This means that we have a lower bound of the matrix norm;
+                $$\forall \vec{x} \neq \vec{0}\ \left[|| \mat{A} || \geq \frac{|| \mat{A}\vec{x} ||}{|| \vec{x} ||}\right]$$
+                A brief recap on the terms;
+                \begin{itemize}
+                    \itemsep0em
+                    \item consistent norm \hfill $|| \mat{A}\vec{x} || \leq || \mat{A} || || \vec{x} ||$
+                    \item compatible norm \hfill consistent norm defined on square matrix
+                    \item all subordinate (also called induced) norms are consistent
+                \end{itemize}
+            \subsubsection*{Perturbation}
+                Consider the system of linear equations $\mat{A}\vec{x} = \vec{b}$.
+                Make a small change to $\vec{b}$, such that we have $\vec{b} + \delta\vec{b}$.
+                Note that $\vec{x_b}$ is the change in $\vec{x}$ due to a change in $\vec{b}$.
+                We then have the following;
+                \begin{align*}
+                    \mat{A}\vec{x} + \mat{A}\delta\vec{x_b} & = \vec{b} + \delta\vec{b} & \text{we know } \mat{A}\vec{x} = \vec{b}, \Rightarrow \\
+                    \mat{A}\delta\vec{x_b} & = \delta\vec{b} & \text{assuming a solution exists}, \Rightarrow \\
+                    \delta\vec{x_b} & = \mat{A}^{-1} & \text{by consistency}, \Rightarrow \\
+                    || \delta\vec{x_b} || & \leq || \mat{A}^{-1} || || \delta\vec{b} || & \text{looking at \% increase}, \Rightarrow \\
+                    \frac{|| \delta\vec{x_b} ||}{|| \vec{x} ||} & \leq \frac{|| \mat{A}^{-1} || || \delta\vec{b} ||}{|| \vec{x} ||} & (1)
+                    \intertext{we now briefly look at $\mat{A}\vec{x} = \vec{b}$}
+                    \mat{A}\vec{x} & = \vec{b} & \Rightarrow \\
+                    || \vec{b} || & \leq || \mat{A} || || \vec{x} || & \Rightarrow \\
+                    || \vec{x} || & \geq \frac{|| \vec{b} ||}{|| \mat{A} ||}
+                    \intertext{we can replace the $|| \vec{x} ||$ in the RHS of (1) with something smaller, as it won't affect the inequality}
+                    \frac{|| \delta\vec{x_b} ||}{|| \vec{x} ||} & \leq \frac{|| \mat{A}^{-1} || || \delta\vec{b} || || \mat{A} ||}{|| \vec{b} ||} & \Rightarrow \\
+                    \frac{|| \delta\vec{x_b} ||}{|| \vec{x} ||} & \leq || \mat{A}^{-1} || || \mat{A} || \frac{|| \delta\vec{b} ||}{|| \vec{b} ||}
+                \end{align*}
 \end{document}
