@@ -80,6 +80,7 @@
 \newcommand{\ra}{\rangle}
 \newcommand{\crnr}[1]{\text{\textopencorner} #1 \text{\textcorner}}
 \newcommand{\laplace}{\mathcal{L}}
+\newcommand{\fourier}{\mathcal{F}}
 
 \newcommand{\mat}[1]{\boldsymbol{#1}}
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
@@ -2945,7 +2946,56 @@
                 \end{itemize}
                 This iteration holds for all subspace pairs.
             \subsubsection*{Triangulation Property}
-                We aren't expected to remember this.
+                We aren't expected to remember this (I hope, since I didn't write most of it).
                 This uses the proposition in the \textbf{Subspace Convergence} section above.
                 Since this is true for all $k$ simultaneously, the limiting form is upper triangular.
+        \subsection*{4th March 2020}
+            \subsubsection*{Fourier Transforms}
+                Laplace transforms are only defined for functions on the positive reals, as $e^{-st}$ gets very large when $t \to -\infty$, for $s > 0$.
+                We denote the Fourier Transform of $f$ as $\tilde{f} = \fourier f$
+                $$\tilde{f}(\omega) = \defint{-\infty}{\infty}{e^{-i\omega x}f(x)}{x}$$
+                Which has the inverse transform
+                $$f(x) = \frac{1}{2\pi} \defint{-\infty}{\infty}{e^{i\omega x}\tilde{f}(\omega)}{\omega}$$
+            \subsubsection*{Dirac Delta Function}
+                Also referred to as $\delta$-function, which is a generalised function (or distribution) that is "undefined" at 0, and 0 everywhere else.
+                It has an integral of 1 across the entire real line, and one can consider there to be an infinite spike at the origin.
+                $$\defint{-\infty}{\infty}{\delta(x)}{x} = 1$$
+                The integral of a function multiplied by $\delta$-function is $f(0)$, as follows (not rigorous);
+                \begin{align*}
+                    \defint{-\infty}{\infty}{f(x)\delta(x)}{x} & = \defint{-\epsilon}{\epsilon}{f(x)\delta(x)}{x} & \forall \epsilon > 0 \\
+                    & \approx f(0) \defint{-\epsilon}{\epsilon}{\delta(x)}{x} & \text{at small } \epsilon \\
+                    & = f(0)
+                \end{align*}
+                A normalised (the integral over the real line is 1) Gaussian function centred on the origin, with a positive constant shape parameter $a$ takes the form
+                $$f(x) = \frac{1}{a\sqrt{\pi}}e^{-\frac{x^2}{a^2}}$$
+                Note that in the distribution $N(0, \sigma^2)$, we have $a = \sqrt{2\sigma}$.
+                As the variance goes down towards 0, we get a "sharper" spike at the origin, which is one way we looked at the delta function;
+                $$\delta(x) = \limit{a}{0} \frac{1}{a\sqrt{\pi}}e^{-\frac{x^2}{a^2}}$$
+                We can define $a = \frac{1}{\sqrt{n}}$, and have the following as the limit of the delta-sequence ($\delta_n(x)$);
+                $$\delta(x) = \limit{n}{\infty} \delta_n(x) = \limit{n}{\infty} \sqrt{\frac{n}{\pi}}e^{-nx^2}$$
+                We can rigorously prove the following;
+                $$\defint{-\infty}{\infty}{\delta(x - a)f(x)}{x} = \limit{n}{\infty} \defint{-\infty}{\infty}{\delta_n(x - a)f(x)}{x} = f(a)$$
+            \subsubsection*{Fourier Inversion Theorem}
+                If $f$ and $\tilde{f}$ are integrable, and $f$ is continuous
+                $$f(x) = \frac{1}{2\pi} \defint{-\infty}{\infty}{\defint{-\infty}{\infty}{e^{i\omega(x - y)}f(y)}{y}}{\omega}$$
+                Using the above property (of $\delta$), it is sufficient to show
+                $$\delta(y - x) = \frac{1}{2\pi} \defint{-\infty}{\infty}{e^{i\omega(x - y)}}{\omega}$$
+                Letting $z = y - x$, we can just prove the following claim $\forall z \in \mathbb{R}$;
+                $$2\pi\delta(z) = \defint{-\infty}{\infty}{e^{-i\omega z}}{\omega}$$
+                The proof is not examinable, but is at around Panopto timestamp 46:00.
+            \subsubsection*{Common Fourier Transforms}
+                \begin{center}
+                    \begin{tabular}{|c|c|l|}
+                        \hline
+                        $f$ & $\tilde{f} = \fourier f$ & comment \\
+                        \hline
+                        $1$ & $2 \pi \delta(\omega)$ & Heaviside function \\
+                        $x^n$ & $2 \pi i^n\delta^{(n)}(\omega)$ & used for polynomials \\
+                        $e^{iax}$ & $2 \pi \delta(\omega - a)$ & complex exponential \\
+                        $e^{iax}f(x)$ & $\tilde{f}(\omega - a)$ & shift \\
+                        $\sin ax$ & $-i \pi(\delta(\omega - a) - \delta(\omega + a))$ & $\sin ax = \frac{e^{iax} - e^{-iax}}{2i}$ \\
+                        $\cos ax$ & $i \pi(\delta(\omega - a) + \delta(\omega + a))$ & $\cos ax = \frac{e^{iax} + e^{-iax}}{2}$ \\
+                        \hline
+                    \end{tabular}
+                \end{center}
 \end{document}
