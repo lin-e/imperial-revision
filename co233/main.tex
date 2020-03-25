@@ -2998,4 +2998,119 @@
                         \hline
                     \end{tabular}
                 \end{center}
+        \subsection*{5th March 2020}
+            \subsubsection*{Fourier Series}
+                Polynomial approximations (such as a Taylor series) is not suitable for a period function $f(x)$, as polynomials themselves aren't periodic.
+                Let function $f(x)$ have a period $P$.
+                We can then approximate it with a mixture of sinusoids.
+                The base frequency is $\omega_0$, defined as;
+                $$\omega_0 = \frac{2\pi}{P}$$
+                In general, we want to approximate $f(x)$ as a weighted mixture of harmonics, summed over $n$, where $n = 1, 2, \dots$;
+                $$\sin \frac{2\pi}{P}nt$$ $$\cos \frac{2\pi}{P}nt$$
+                The result $e^{i\theta} = \cos \theta + i\sin \theta$ is also used.
+                This can be written in three equivalent forms;
+                \begin{align*}
+                    f(x) & \approx f^N(x) \\
+                    f^N(x) & = \summation{k = -N}{N} a_ke^{i\omega_k x} & \text{or} \\
+                    & = \summation{k = -N}{N} c_k\cos \omega_k x + s_k\sin \omega_k x & \text{or} \\
+                    & = \summation{k = -N}{N} d_k\cos(\omega_k x + \phi_k) \\
+                    \omega_k & = \frac{2\pi k}{P} & a_k, c_k, d_k, s_k, \phi_k \text{ are constants}
+                \end{align*}
+                Using the common results for Fourier transforms, we can observe that the Fourier transform of $f^N$ is;
+                $$\fourier\left(\summation{k = -N}{N} a_ke^{i\omega_k x}\right) = \summation{k = -N}{N}a_k \fourier(e^{i\omega_k x}) = \summation{k = -N}{N}a_k 2 \pi \delta(\omega - \omega_k) = 2 \pi\summation{k = -N}{N}a_k \delta\left(\omega - \frac{2\pi k}{P}\right)$$
+                This is known as the spectrum of $f$.
+                We mostly assume $x_0 = 0$, without loss of generality.
+                \medskip
+
+                Note that $\delta_{k, n}$ is 1 if $k = n$, and 0 otherwise.
+                \begin{align*}
+                    \defint{0}{P}{e^{i(\omega_k - \omega_n)x}}{x} & = \defint{0}{P}{e^{i\left(\frac{2\pi k}{P} - \frac{2\pi n}{P}\right)x}}{x} & \text{assuming } k \neq n \\
+                    & = \defint{0}{P}{e^{\frac{2\pi}{P}(k - n)xi}}{x} \\
+                    & = \intbracket{0}{P}{\frac{P}{2\pi(k - n)} e^{\frac{2\pi}{P}(k - n)xi}} \\
+                    & = \frac{P}{2\pi(k - n)} \intbracket{0}{P}{e^{\frac{2\pi}{P}(k - n)xi}} \\
+                    & = \frac{P}{2\pi(k - n)} (e^{2 \pi i (k - n)} - 1) \\
+                    & = \frac{P}{2\pi(k - n)} (1 - 1) \\
+                    & = 0 \\
+                    \defint{0}{P}{e^{i(\omega_k - \omega_n)x}}{x} & = \defint{0}{P}{1}{x} & \text{assuming } k = n \\
+                    & = P \\
+                    \defint{0}{P}{e^{i(\omega_k - \omega_n)x}}{x} & = P\delta_{k, n} & \text{generally}
+                \end{align*}
+                This lemma can now be used to obtain a specific value for $a_n$ as follows;
+                \begin{align*}
+                    f^N(x) & = \summation{k = -N}{N} a_ke^{i\omega_kx} & \Rightarrow \\
+                    f^N(x)e^{-i\omega_nx} & = \summation{k = -N}{N} a_ke^{i\omega_kx}e^{-i\omega_nx} \\
+                    & = \summation{k = -N}{N} a_ke^{i(\omega_k - \omega_n)x} & \Rightarrow \\
+                    \defint{0}{P}{f^N(x)e^{-i\omega_nx}}{x} & = \summation{k = -N}{N} a_k\defint{0}{P}{e^{i(\omega_k - \omega_n)x}}{x} \\
+                    & = \summation{k = -N}{N} a_k P \delta_{k, n} \\
+                    & = 0 + \dots + 0 + a_nP + 0 + \dots + 0 \\
+                    & = a_nP & \Rightarrow \\
+                    a_n & = \frac{1}{P}\defint{0}{P}{f^N(x)e^{-i\omega_nx}}{x} \\
+                    & = \frac{1}{P}\defint{0}{P}{f^N(x)e^{-i\omega_nx}}{x} & \text{if $\limit{N}{\infty} f^N(x) = f(x)$}
+                \end{align*}
+                For an example, let us look at the sawtooth waveform;
+                $f(x) = \alpha x$, for $0 \leq x < 1$, and extended periodically throughout the entire real line.
+                \begin{align*}
+                    f(x) & = \alpha x \\
+                    P & = 1 \\
+                    a_0 & = \frac{\alpha}{2} \\
+                    a_n & = \frac{1}{P}\defint{0}{P}{f(x)e^{-i\omega_nx}}{x} & \text{if it converges to $f$} \\
+                    & = \frac{1}{1}\defint{0}{1}{\alpha x e^{-i\frac{2 \pi n}{1}x}}{x} \\
+                    & = \alpha \defint{0}{1}{x e^{-2 \pi n i x}}{x} \\
+                    & = \alpha \left(\intbracket{0}{1}{-\frac{1}{2 \pi n i} x e^{-2 \pi n i x}} - \defint{0}{1}{-\frac{e^{-2 \pi n i x}}{2 \pi n i}}{x}\right) \\
+                    & = -\frac{\alpha}{2 \pi n i} \left(\intbracket{0}{1}{x e^{-2 \pi n i x}} - \underbrace{\defint{0}{1}{e^{-2 \pi n i x}}{x}}_{= 0 \text{ since } n \neq 0}\right) \\
+                    & = -\frac{\alpha}{2 \pi n i}
+                \end{align*}
+                Actually applying this, we get the following results;
+                \begin{align*}
+                    f^N(x) & = \underbrace{\frac{\alpha}{2}}_{n = 0} - \frac{\alpha}{2 \pi i} \underbrace{\summation{n = 1}{N} \left(\frac{1}{n} e^{i(2 \pi n)x} - \frac{1}{n} e^{-i(2 \pi n)x}\right)}_{n \neq 0} \\
+                    & = \frac{\alpha}{2} - \frac{\alpha}{2 \pi i} \summation{n = 1}{N} \frac{2i}{n}\left(\frac{e^{i(2 \pi n)x} - e^{-i(2 \pi n)x}}{2i}\right) \\
+                    & = \frac{\alpha}{2} - \frac{\alpha}{2 \pi i} \summation{n = 1}{N} \frac{2i}{n} \sin (2 \pi n x) \\
+                    & = \frac{\alpha}{2} - \frac{\alpha}{\pi} \summation{n = 1}{N} \frac{1}{n} \sin (2 \pi n x)
+                \end{align*}
+            \subsubsection*{Sampling and Discrete Fourier Transform}
+                Suppose the discrete function $f(x)$ is sampled at equi-spaced points $\{ 0, T, 2T, \dots, (N - 1)T \}$, where $T$ divides $P$, and $N = \frac{P}{T}$.
+                This is equivalent to considering the sampled function $f_s(x)$, defined as;
+                \begin{align*}
+                    f_s(x) & = \Psi_T(x)f(x) \\
+                    \Psi_T(x) & = T \summation{k = -\infty}{\infty} \delta(x - kT)
+                \end{align*}
+                This approximates rectangles of area $Tf(x)$ at points where $x$ is a multiple of $T$.
+                \begin{center}
+                    \begin{tikzpicture}\
+                        \node at (0, 0) {$\times$};
+                        \node at (1, 1) {$\times$};
+                        \node at (2, 1.25) {$\times$};
+                        \node at (3, 1.5) {$\times$};
+                        \node at (4, 1.6) {$\times$};
+                        \node at (5, 1.25) {$\times$};
+                        \node at (1, -0.5) {$T$};
+                        \node at (2, -0.5) {$2T$};
+                        \node at (3, -0.5) {$3T$};
+                        \node at (4, -0.5) {$4T$};
+                        \node at (5, -0.5) {$5T$};
+                        \node at (6, -0.5) {$P$};
+                        \draw[dashed]
+                        (1, 0) -- (1, 1) -- (2, 1)
+                        (2, 0) -- (2, 1.25) -- (3, 1.25)
+                        (3, 0) -- (3, 1.5) -- (4, 1.5)
+                        (4, 0) -- (4, 1.6) -- (5, 1.6) -- (5, 0);
+                        \draw
+                        (-1, 0) edge[->] (7, 0)
+                        (0, -1) edge[->] (0, 2);
+                    \end{tikzpicture}
+                \end{center}
+                The Fourier coefficients of $f_s(x)$ then become;
+                \begin{align*}
+                    F_k & = \frac{1}{P} \defint{0}{P}{f_s(x)e^{-i\omega_k x}}{x} \\
+                    & = \frac{1}{N} \summation{n = 0}{N - 1}f_n e^{-i\omega_k nT} \\
+                    \omega_k & = \frac{2 \pi k}{P} \\
+                    & = \frac{2 \pi k}{NT} \\
+                    f_n & \equiv f(nT)
+                \end{align*}
+                It has an inverse in the Fourier series of $f(x)$ for $x = nT$;
+                $$f_n = \summation{k = 0}{N - 1}  F_k e^{i\omega_k nT}$$
+                We often assume $T = 1$, by taking some arbitrary scaling of time.
+            \subsubsection*{JPEG and Optics}
+                No.
+                
 \end{document}
