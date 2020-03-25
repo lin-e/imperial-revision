@@ -3112,5 +3112,77 @@
                 We often assume $T = 1$, by taking some arbitrary scaling of time.
             \subsubsection*{JPEG and Optics}
                 No.
-                
+        \subsection*{11th March 2020}
+            \subsubsection*{Functions of Several Variables}
+                We write functions with $n > 1$ variables as $f(x_1, \dots, x_n)$.
+                Let $C^n$ be the set of functions differentiable $n$ times.
+                $\nabla$ is the vector differential operator, such that
+                $$\nabla f(\vec{x}) = \left(\pdif{f}{x_1}, \dots, \pdif{f}{x_n}\right)$$
+                For example, in $n = 2$, let $\vec{h} = \begin{bmatrix}
+                    h_1 \\ h_2
+                \end{bmatrix}$, then we have
+                $$\vec{h} \cdot \nabla f(\vec{x}) = h_1\pdif{f}{x_1} + h_2\pdif{f}{x_2}$$
+                This is used in the theorem for the Taylor series in $n$-dimensions.
+                It states that if all all the partial derivatives of the function $f(x_1, \dots, x_n)$ exist in a region around $x_1^{(0)}, \dots, x_n^{(0)}$ for small enough $\vec{h}$
+                \begin{align*}
+                    \vec{h} & = \begin{bmatrix}
+                        h_1 \\ \vdots \\ h_n
+                    \end{bmatrix} \\
+                    f(x_1^{(0)} + h_1, \dots, x_n^{(0)} + h_n) & = f(x_1^{(0)}, \dots, x_n^{(0)}) \\
+                    & + \vec{h} \cdot \nabla f(x_1^{(0)}, \dots, x_n^{(0)}) \\
+                    & + \frac{1}{2!} (\vec{h} \cdot \nabla)^2 f(x_1^{(0)}, \dots, x_n^{(0)}) \\
+                    & \vdots \\
+                    & + \frac{1}{n!} (\vec{h} \cdot \nabla)^n f(x_1^{(0)}, \dots, x_n^{(0)}) \\
+                    & + \cdots
+                \end{align*}
+                The proof is as follows;
+                \begin{align*}
+                    g(t) & = f(\vec{x^{(0)}} + t \vec{h}) \\
+                    g(1) & = g(0) + g^\prime(0) + \dots + \frac{1}{n!} g^{(n)}(0) + \dots
+                    \intertext{brief example for chain rule, if vector components are functions of $t$}
+                    \vec{y} & = \begin{bmatrix}
+                        y_1 \\ y_2
+                    \end{bmatrix} \\
+                    \dif{\vec{y}}{t} \cdot \nabla & = \begin{bmatrix}
+                        \dif{y_1}{t} \\ \dif{y_2}{t}
+                    \end{bmatrix} \cdot \begin{bmatrix}
+                        \pdif{}{y_1} \\ \pdif{}{y_2}
+                    \end{bmatrix} \\
+                    & = \dif{y_1}{t}\pdif{}{y_1} + \dif{y_2}{t}\pdif{}{y_2} \\
+                    \intertext{using the general case, and continuing}
+                    \dif{f(\vec{y})}{t} & = \summation{i = 1}{n} \pdif{f(\vec{y})}{y_i} \dif{y_i}{t} & \text{chain rule, if components are functions of $t$} \\
+                    & = \left(\dif{\vec{y}}{t} \cdot \nabla\right)f(\vec{y}) \\
+                    \dif{^nf(\vec{y})}{t^n} & = \underbrace{\left(\dif{\vec{y}}{t} \cdot \nabla\right) \cdots \left(\dif{\vec{y}}{t} \cdot \nabla\right)}_{n \text{ times}} f(\vec{y}) \\
+                    & = \left(\dif{\vec{y}}{t} \cdot \nabla\right)^n f(\vec{y})
+                    \intertext{setting $\vec{y} = \vec{x^{(0)}} + t\vec{h}$}
+                    \dif{^ng}{t^n} & = \dif{^nf(\vec{y})}{t^n} \\
+                    & = (\vec{h} \cdot \nabla)^n f(\vec{y})
+                    \intertext{at $t = 0$, we have $\vec{y} = \vec{x^{(0)}}$}
+                    g^{(n)}(0) & = (\vec{h} \cdot \nabla)^n(\vec{x^{(0)}}) \\
+                    \text{therefore } g(1) & = \summation{n = 0}{\infty} \frac{(\vec{h} \cdot \nabla)^n(\vec{x^{(0)}})}{n!}
+                \end{align*}
+            \subsubsection*{Stationary Points}
+                Similar to single variable functions, our criteria for a stationary point in $\nabla f(s_1, \dots, s_n) = \vec{0}$, for some stationary point $\vec{s}$.
+                Note that the slides (and I assume notes) use $\vec{x_0}$ instead of $\vec{s}$, but I feel it can be confusing.
+                This is the same as stating
+                $$\pdif{f}{x_1}(s_1, \dots, s_n) = \dots = \pdif{f}{x_n}(s_1, \dots, s_n) = 0$$
+                In the case where we have one variable, hence $n = 1$, there are 3 types of stationary point - maximum, minimum, and inflexion.
+                However, in the multi-variable case, for $n > 1$, each variable can be in any of the three, therefore there are 9 possible combinations in two dimensions.
+                This becomes exponentially more complex in more dimensions, which is why multi-variable optimisation is difficult.
+                \medskip
+
+                In order to classify stationary points, we can use the \textbf{Hessian matrix}, defined as such;
+                \begin{align*}
+                    \partial_i & = \pdif{}{x_i} \\
+                    f_{i, j} & = \partial_i \partial_j & f_{i, j} = f_{j, i} \text{ for } f \in C^2 \\
+                    & = \pdif{}{x_i} \pdif{}{x_j} f \\
+                    \mat{H} & = \begin{bmatrix}
+                        f_{1, 1} & f_{1, 2} & \cdots & f_{1, n} \\
+                        f_{2, 1} & f_{2, 2} & \cdots & f_{2, n} \\
+                        \vdots & \vdots & \ddots & \vdots \\
+                        f_{n, 1} & f_{b, 2} & \cdots & f_{n, n}
+                    \end{bmatrix}
+                \end{align*}
+                If $\mat{H}$ is positive definite, meaning it has all positive eigenvalues and a non-zero determinant, it gives a maximum point.
+                Similarly, if $\mat{H}$ is negative definite, it gives a maximum.
 \end{document}
