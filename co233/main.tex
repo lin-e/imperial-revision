@@ -2066,7 +2066,7 @@
                     \pm \lambda & = \Vert \vec{a_1} \Vert
                     \intertext{We want to send the vector $\vec{a_1}$ to the vector $\Vert \vec{a_1} \Vert\vec{e_1}$, where $\vec{e_1}$ is all 0, other than the first element.}
                     \vec{u} & = \frac{\vec{a_1} - \Vert \vec{a_1} \Vert\vec{e_1}}{\Vert \vec{a_1} - \Vert \vec{a_1} \Vert\vec{e_1} \Vert} \\
-                    \mat{H_1} & = \mat{I} = 2 \vec{u}\vec{u}^\top \\
+                    \mat{H_1} & = \mat{I} - 2 \vec{u}\vec{u}^\top \\
                     \mat{H_1}\mat{A} & = \mat{H_1} [\vec{a_1}, \dots, \vec{a_n}] \\
                     & = [\mat{H_1}\vec{a_1}, \dots, \mat{H_1}\vec{a_n}] \\
                     & = \begin{bmatrix}
@@ -2525,4 +2525,103 @@
                     \item may have multiple eigenvalues with maximum modulus, iteration then converges to a linear combination of those eigenvectors
                     \item convergence can be slow, if for example $\lambda_2$ is close to $\lambda_1$
                 \end{itemize}
+                Note that if the eigenvalues for the matrix $\mat{A}$ are $\lambda_1, \lambda_2, \dots$, then the eigenvalues for the matrix $\mat{A} - \sigma\mat{I}$ are $\lambda_1 - \sigma, \lambda_2 - \sigma, \dots$, with the same eigenvectors.
+            \subsubsection*{Inverse Iteration}
+                \begin{center}
+                    $\mat{A}\vec{x} = \lambda\vec{x} \Rightarrow \vec{x} = \lambda\mat{A}^{-1}\vec{x} \Rightarrow \mat{A}^{-1}\vec{x} = \frac{1}{\lambda}\vec{x}$
+                \end{center}
+                This means that a matrix $\mat{A}^{-1}$, has eigenvalues $\frac{1}{\lambda_i}$, with the same corresponding eigenvectors as $\mat{A}$.
+                Therefore the power iteration yields the reciprocal of the smallest eigenvalue of $\mat{A}$. An algorithm for the inverse iteration is done by a recurrence relation on pairs $(\vec{x^{(k)}}, \vec{y^{(k)}})$ for $k \geq 1$;
+                \begin{align*}
+                    \mat{A}\vec{y^{(k + 1)}} & = \vec{x^{(k)}} \\
+                    \vec{x^{(k + 1)}} & = \frac{\vec{y^{(k + 1)}}}{\Vert \vec{y^{(k + 1)}} \Vert} & \left(= \frac{\mat{A}^{-1}\vec{x^{(k)}}}{\Vert \mat{A}^{-1}\vec{x^{(k)}} \Vert}\right)
+                \end{align*}
+                Since computing the inverse of $\mat{A}$ is expensive, the above can be used.
+                We only need to solve for $\mat{A}\vec{y^{(k + 1)}} = \vec{x^{(k)}}$ with any method at each iteration.
+                \medskip
+
+                By using this with a shift $\sigma$, the eigenvalue (and eigenvector) computed will be the eigenvalue closest to $\sigma$, as that now has the smallest absolute value.
+            \subsubsection*{Rayleigh Quotient}
+                Imagine we are at a point where we have an approximated eigenvector, let it be $\vec{z}$, with an approximated eigenvalue $\lambda$.
+                Then, for $1 \leq i \leq n$, we have;
+                $$\summation{j = 1}{n} a_{i, j} z_j = \lambda z_i$$
+                Therefore, we can see this as a least squares problem of dimension $n \times 1$;
+                $$\underbrace{\vec{z}}_{n \times 1} \underbrace{\lambda}_{1 \times 1} = \underbrace{\mat{A}}_{n \times n} \underbrace{\vec{z}}_{n \times 1}$$
+                The normal equation is now $\vec{z}^\top\vec{z}\lambda = \vec{z}^\top\mat{A}\vec{z}$.
+                Using this, we can then get the Rayleigh Quotient, which is the approximate solution;
+                $$\hat{\lambda} \approx \frac{\vec{z}^\top\mat{A}\vec{z}}{\vec{z}^\top\vec{z}}$$
+                From here, we can then choose $\sigma = \hat{\lambda}$, and shift it again.
+                Ideally, $\sigma$ will now be extremely close to the actual value, hence the shifted eigenvalue will be very small, causing the reciprocal to be very large.
+                While $\sigma$ changes each iteration, the eigenvectors don't.
+            \subsubsection*{Second-Dominant Eigenvalue}
+                Deflation is a term for transforming a matrix $\mat{A} \in \mathbb{R}^{n \times n}$ to a matrix $\mat{B} \in \mathbb{R}^{(n - 1) \times (n - 1)}$, with the largest (absolute) eigenvalue absent.
+                We define a non-singular $\mat{H}$ as such, where $\vec{x_1}$ is the eigenvector of $\mat{A}$ with the largest absolute eigenvalue, $\alpha$ is some scalar constant, and $\vec{e_1}$ is the first standard basis vector;
+                \begin{align*}
+                    \violet{\mat{H}\vec{x_1}} & = \violet{\alpha\vec{e_1}} & \Rightarrow \\
+                    \vec{x_1} & = \alpha\mat{H}^{-1}\vec{e_1} & \Rightarrow \\
+                    \blue{\mat{H}^{-1}\vec{e_1}} & = \blue{\frac{\vec{x_1}}{\alpha}} \\
+                    \red{\mat{A}\vec{x_1}} & = \red{\lambda_1 \vec{x_1}} & \text{we know $\vec{x_1}$ is an eigenvector} \\
+                    \mat{H}\mat{A}\blue{\mat{H}^{-1}\vec{e_1}} & = \frac{1}{\alpha}\mat{H}\red{\mat{A}\vec{x_1}} \\
+                    & = \frac{\lambda_1}{\alpha}\violet{\mat{H}\vec{x_1}} \\
+                    & = \lambda_1 \vec{e_1} \\
+                    & = (\mat{H}\mat{A}\mat{H}^{-1})_1 & \text{first column} \\
+                    & = \begin{bmatrix}
+                        \lambda_1 & \vec{b}^\top \\
+                        \vec{0} & \mat{B}
+                    \end{bmatrix} & \text{where } \vec{0}, \vec{b} \in \mathbb{R}^{n - 1}, \mat{B} \in \mathbb{R}^{(n - 1) \times (n - 1)}
+                \end{align*}
+                To show they have the same eigenvalues, we do the following;
+                $$\mat{A}\vec{x} = \lambda \vec{x} \Leftrightarrow \mat{H}\mat{A}\vec{x} = \lambda\mat{H}\vec{x} \Leftrightarrow \mat{H}\mat{A}\mat{H}^{-1}(\mat{H}\vec{x}) = \lambda\mat{H}\vec{x}$$
+                Therefore, $\mat{A}$ and $\mat{H}\mat{A}\mat{H}^{-1}$ have the same eigenvalues, but $\mat{H}\mat{A}\mat{H}^{-1}$ has eigenvectors $\vec{y_i} = \mat{H}\vec{x_i}$.
+                Therefore $\mat{B}$ has eigenvectors $\lambda_2, \dots, \lambda_n$.
+                \medskip
+
+                We want to prove that the eigenvector corresponding to $\lambda_2$, for a given $\mat{H}$, is
+                \begin{align*}
+                    \vec{x_2} & = \mat{H}^{-1} \begin{bmatrix}
+                        \beta \\ \vec{z_2}
+                    \end{bmatrix} & \text{where $\vec{z_2}$ is a dominant eigenvector of $\mat{B}$} \\
+                    \beta & = \frac{\vec{b}^\top\vec{z_2}}{\lambda_2 - \lambda_1}
+                \end{align*}
+                To verify this, we do the following;
+                \begin{align*}
+                    \vec{x_2} & = \mat{H}^{-1}\vec{y} & \text{$\vec{y}$ is an eigenvector of $\mat{H}\mat{A}\mat{H}^{-1}$ with eigenvalue $\lambda_2$} \\
+                    \text{let } \vec{y} & = \begin{bmatrix}
+                        y_1 \\ \vec{z}
+                    \end{bmatrix} \\
+                    \mat{H}\mat{A}\mat{H}^{-1} & = \begin{bmatrix}
+                        \lambda_1 & \vec{b}^\top \\
+                        \vec{0} & \mat{B}
+                    \end{bmatrix} \\
+                    \begin{bmatrix}
+                        \lambda_1 & \vec{b}^\top \\
+                        \vec{0} & \mat{B}
+                    \end{bmatrix} \begin{bmatrix}
+                        y_1 \\ \vec{z}
+                    \end{bmatrix} & = \lambda_2 \begin{bmatrix}
+                        y_1 \\ \vec{z}
+                    \end{bmatrix} & \Rightarrow \\
+                    \lambda_2 y_1 & = \lambda_1 y_1 + \vec{b}^\top\vec{z} & \Rightarrow \\
+                    y_1 & = \frac{\vec{b}^\top\vec{z}}{\lambda_2 - \lambda_1} \\
+                    \lambda_2 \vec{z} & = \vec{0}y_1 + \mat{B}\vec{z} \\
+                    & = \mat{B} \vec{z} & \Rightarrow \\
+                    \beta & = y_2 \\
+                    \vec{z_2} & = \vec{z}
+                \end{align*}
+            \subsubsection*{Householder}
+                One of the available choices for $\mat{H}$ is the Householder transformation, which represents a reflection in the plane with a normal vector of $\vec{u}$.
+                $$\mat{H} = \mat{I} - \frac{2\vec{u}\vec{u}^\top}{\vec{u}^\top\vec{u}}$$
+                For this part, we define $\vec{u} = \vec{v} \pm \Vert \vec{v} \Vert_2 \vec{e_1}$, for a vector $\vec{v} = \vec{x_1}$.
+                Then we have $\mat{H}\vec{v} = \mp \Vert \vec{v} \Vert \vec{e_1}$, so we find $\alpha = \mp \Vert \vec{x_1} \Vert$.
+                This result is proved as follows;
+                \begin{align*}
+                    v_1 & = \vec{v}^\top\vec{e_1} \\
+                    \vec{u}^\top\vec{u} & = 2 \Vert \vec{v} \Vert (\Vert \vec{v} \Vert \pm v_1) \\
+                    \vec{u}^\top\vec{v} & = \vec{v}^\top\vec{u} \\
+                    & = \Vert \vec{v} \Vert (\Vert \vec{v} \Vert \pm v_1) \\
+                    \mat{H} & = \mat{I} - \frac{2\vec{u}\vec{u}^\top}{\vec{u}^\top\vec{u}} & \Rightarrow \\
+                    \mat{H}\vec{v} & = \vec{v} - \frac{2\vec{u}(\vec{u}^\top\vec{v})}{\vec{u}^\top\vec{u}} \\
+                    & = \vec{v} - \vec{u} \\
+                    & = \mp \Vert \vec{v} \Vert_2 \vec{e_1} & \blacksquare
+                \end{align*}
 \end{document}
