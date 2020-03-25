@@ -79,6 +79,7 @@
 \newcommand{\la}{\langle}
 \newcommand{\ra}{\rangle}
 \newcommand{\crnr}[1]{\text{\textopencorner} #1 \text{\textcorner}}
+\newcommand{\laplace}{\mathcal{L}}
 
 \newcommand{\mat}[1]{\boldsymbol{#1}}
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
@@ -2703,4 +2704,248 @@
                 Finally, we defined $\mat{A^{(m)}} = \mat{R^{(m)}}\mat{Q^{(m)}}$, so
                 $$\limit{m}{\infty}\mat{A^{(m)}} = \mat{\Lambda}$$.
                 We also have $\mat{\tilde{Q}^{(m)}} \to \mat{Q}$ which diagonalises $\mat{A}$, and therefore must be the matrix of eigenvectors.
+        \subsection*{27th February 2020}
+            \subsubsection*{Laplace Transform}
+                The Laplace transform is a special case of the Fourier transform.
+                The Laplace transform of a function $f(t)$, defined for real $t \geq 0$, is denoted $F(s) = (\laplace f)$;
+                $$F(s) = (\laplace f)(s) = \defint{0}{\infty}{e^{-st}f(t)}{t}$$
+                Generally, $s \in \mathbb{C} = \sigma + i\omega$, therefore the Laplace transform has the "type signature" $\laplace : (\mathbb{R}^+ \to \mathbb{R}^+) \to (\mathbb{C} \to \mathbb{C})$.
+                However, in this course we normally use positive reals, hence we have an output of $(\mathbb{R}^+ \to \mathbb{R}^+)$.
+                Some common examples are the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item unit function (strictly Heaviside function, but we only consider $t \geq 0$)
+                        \begin{align*}
+                            H(t) & = \begin{cases}
+                                1 & t \geq 0 \\
+                                0 & t < 0
+                            \end{cases} \\
+                            f(t) & = 1 \\
+                            F(s) & = \defint{0}{\infty}{f(t)e^{-st}}{t} \\
+                            & = \defint{0}{\infty}{e^{-st}}{t} \\
+                            & = -\frac{1}{s}\intbracket{0}{\infty}{e^{-st}} \\
+                            & = -\frac{1}{s}(0 - 1) \\
+                            & = \frac{1}{s}
+                        \end{align*}
+                    \item exponential function (general case of the above)
+                        \begin{align*}
+                            f(t) & = e^{-\lambda t} \\
+                            F(s) & = \defint{0}{\infty}{e^{-\lambda t}e^{-st}}{t} \\
+                            & = \defint{0}{\infty}{e^{-(\lambda + s)t}}{t} \\
+                            & = -\frac{1}{\lambda + s}\intbracket{0}{\infty}{e^{-(\lambda + s)t}} \\
+                            & = -\frac{1}{\lambda + s}(0 - 1) \\
+                            & = \frac{1}{\lambda + s}
+                        \end{align*}
+                    \item identity function
+                        \begin{align*}
+                            f(t) & = t \\
+                            F(s) & = \defint{0}{\infty}{t e^{-st}}{t} \\
+                            & = \intbracket{0}{\infty}{\frac{e^{-st}}{-s} t} - \defint{0}{\infty}{\frac{e^{-st}}{-s} \cdot 1}{t} \\
+                            & = 0 + \frac{1}{s} \defint{0}{\infty}{e^{-st}}{t} \\
+                            & = \frac{1}{s^2}
+                        \end{align*}
+                    \item exponential function
+                        \begin{align*}
+                            f(t) & = t^n \\
+                            F(s) & = \defint{0}{\infty}{t^n e^{-st}}{t} \\
+                            & = \intbracket{0}{\infty}{\frac{e^{-st}}{-s} t^n} - \defint{0}{\infty}{n \frac{e^{-st}}{-s} t^{n - 1}}{t} \\
+                            & = 0 + \frac{n}{s} \defint{0}{\infty}{e^{-st} t^{n - 1} }{t} \\
+                            & = \frac{n}{s} \cdot \frac{n - 1}{s} \defint{0}{\infty}{e^{-st} t^{n - 2} }{t} \\
+                            & \vdots \\
+                            & = \frac{n!}{s^{n + 1}}
+                        \end{align*}
+                    \item non-negative real power
+                        \begin{align*}
+                            \Gamma(z) & = \defint{0}{\infty}{t^{z - 1}e^{-t}}{t} \\
+                            \Gamma(z + 1) & = z\Gamma(z) & \forall z \in \mathbb{R}^+ \\
+                            \Gamma(1) & = 1 \\
+                            \Gamma(n) & = (n - 1)! & \forall n \geq 1 \in \mathbb{N} \\
+                            f(t) & = t^z \\
+                            F(s) & = \frac{\Gamma(z + 1)}{s^{z + 1}}
+                        \end{align*}
+                \end{itemize}
+                The Laplace transform has the following properties;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item $\laplace$ is a bijection (unique inverse), therefore if we recognise some $F$, we know that $f$ is
+                    \item it is a linear operator, and therefore it is simple to compute for many useful functions
+                    \item simple to get transform of the derivative of a function
+                    \item moment generating function
+                        \begin{itemize}
+                            \itemsep0em
+                            \item Laplace transform of a convolution is a product
+                        \end{itemize}
+                \end{enumerate}
+                We can work out the derivative of a Laplace transform as such;
+                \begin{align*}
+                    F(s) & = \defint{0}{\infty}{e^{-st}f(t)}{t} \\
+                    \dif{}{s} F(s) & = \defint{0}{\infty}{\left(\dif{}{s} e^{-st}\right)f(t)}{t} & \text{interchange of limiting operations} \\
+                    & = \defint{0}{\infty}{-t e^{-st}f(t)}{t} \\
+                    & = -\defint{0}{\infty}{(tf(t))e^{-st}}{t} \\
+                    & = -(\laplace (t f(t)))(s) \\
+                    & = -(\laplace (\lambda t.\ t f(t)))(s) & \text{strictly with $\lambda$-calculus}
+                \end{align*}
+            \subsubsection*{Laplace Transform of a Derivative}
+                \begin{align*}
+                    f^\prime(t) & = \dif{}{t}f(t) \\
+                    (\laplace f^\prime)(s) & = \defint{0}{\infty}{e^{-st}f^\prime(t)}{t} \\
+                    & = \intbracket{0}{\infty}{e^{-st}f(t)} - \defint{0}{\infty}{-s e^{-st}f(t)}{t} \\
+                    & = -f(0) + s\defint{0}{\infty}{e^{-st}f(t)}{t} & \text{assuming sub-exponential convergence for $\limit{t}{\infty} f(t)$} \\
+                    & = -f(0) + s(\laplace f)(s) \\
+                    & = s(\laplace f)(s) - f(0)
+                \end{align*}
+                Commonly, $\dot{f}$ is used to denote $f$ differentiated with respect to $t$.
+                It's important to remember the following;
+                \begin{center}
+                    $(\laplace f^\prime)(s) = (\laplace \dot{f})(s) = sF(s) - f(0)$
+                \end{center}
+                A example for the sub-exponential convergence, where it doesn't hold;
+                \begin{align*}
+                    f(t) & = e^{4t} \\
+                    F(s) & = \defint{0}{\infty}{e^{-st}e^{4t}}{t} \\
+                    & = \defint{0}{\infty}{e^{(4 - s)t}}{t}
+                \end{align*}
+                Note that $F \to \infty$ if $s \leq 4$.
+            \subsubsection*{Application of Laplace Transforms to Differential Equations}
+                Starting with a fairly simple example, which would've been encountered previously;
+                \begin{align*}
+                    \dif{y}{t} & = \dot{y} \\
+                    & = \mu y \\
+                    Y & = \laplace y
+                    \intertext{taking Laplace transforms of both sides}
+                    sY(s) - y(0) & = \mu Y(s) & \Rightarrow \\
+                    (s - \mu)Y(s) & = y(0) & \Rightarrow \\
+                    Y(s) & = \frac{y(0)}{s - \mu}
+                    \intertext{note that this is similar to $f(t) = e^{-\lambda t}$, so by uniqueness, with $\lambda = -\mu$}
+                    Y(s) & = y(0)e^{\mu t}
+                \end{align*}
+                In the harder example, the Laplace transform allows us to solve simultaneous differential equations as simultaneous linear equations.Consider these three differential equations, with the initial values $x(0) = y(0) = z(0) = 0$;
+                \begin{align*}
+                    \dot{x} & = z + t \\
+                    3\dot{y} & = 2x - 3z \\
+                    \dot{z} & = -3y
+                    \intertext{taking Laplace transforms of the equations, substituting initial values}
+                    sX(s) - x(0) & = Z(s) + \frac{1}{s^2} & \Rightarrow \\
+                    sX(s) - Z(s) & = \frac{1}{s^2} \\
+                    3(sY(s) - y(0)) & = 2X(s) - 3Z(s) & \Rightarrow \\
+                    -\frac{2}{3}X(s) + sY(s) + Z(s) & = 0 \\
+                    sZ(s) - z(0) & = -3Y(s) & \Rightarrow \\
+                    3Y(s) + sZ(s) & = 0
+                    \intertext{writing this in matrix form and solving with inverse}
+                    \begin{bmatrix}
+                        s & 0 & 1 \\
+                        -\frac{2}{3} & s & 1 \\
+                        0 & 3 & s
+                    \end{bmatrix} \begin{bmatrix}
+                        X \\ Y \\ Z
+                    \end{bmatrix} & = \begin{bmatrix}
+                        \frac{1}{s^2} \\ 0 \\ 0
+                    \end{bmatrix} \\
+                    \begin{bmatrix}
+                        X \\ Y \\ Z
+                    \end{bmatrix} & = \frac{1}{(s - 1)^2(s + 2)} \begin{bmatrix}
+                        s^2 - 3 & -3 & s \\
+                        \frac{2s}{3} & s^2 & - \frac{3s - 2}{3} \\
+                        -2 & -3s & s^2
+                    \end{bmatrix} \begin{bmatrix}
+                        \frac{1}{s^2} \\ 0 \\ 0
+                    \end{bmatrix} \\
+                    & = \frac{1}{(s - 1)^2(s + 2)} \begin{bmatrix}
+                        \frac{s^2 - 3}{s^2} \\
+                        \frac{2}{3s} \\
+                        -\frac{2}{s^2}
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        -\frac{\frac{2}{3}}{(s - 1)^2} + \frac{\frac{20}{9}}{s - 1} + \frac{\frac{1}{36}}{s + 2} - \frac{\frac{3}{2}}{s^2} - \frac{\frac{9}{4}}{s} \\
+                        \frac{\frac{2}{9}}{(s - 1)^2} - \frac{\frac{8}{27}}{s - 1} - \frac{\frac{1}{27}}{s + 2} + \frac{\frac{1}{3}}{s} \\
+                        -\frac{\frac{2}{3}}{(s - 1)^2} + \frac{\frac{14}{9}}{s - 1} - \frac{\frac{1}{18}}{s + 2} - \frac{1}{s^2} - \frac{\frac{3}{2}}{s}
+                    \end{bmatrix} \\
+                    x(t) & = -\frac{2t e^t}{3} + \frac{20e^2}{9} + \frac{e^{-2t}}{36} - \frac{3t}{2} - \frac{9}{4} \\
+                    y(t) & = \frac{2t e^t}{9} - \frac{8e^2}{27} + \frac{e^{-2t}}{27} - \frac{1}{3} \\
+                    z(t) & = -\frac{2t e^t}{3} + \frac{14e^2}{9} + \frac{e^{-2t}}{18} - t - \frac{3}{2}
+                \end{align*}
+            \subsubsection*{Convolutions}
+                The convolution of functions $f, g : \mathbb{R}^+ \to \mathbb{R}$ is denoted $f * g$, defined as;
+                \begin{align*}
+                    (f * g)(t) & = \defint{0}{t}{f(u)g(t - u)}{u} \\
+                    & = \defint{0}{t}{f(t - u)g(u)}{u} \\
+                    L(s) & = \laplace(f * g)(s) \\
+                    & = \defint{t = 0}{t = \infty}{e^{-st}\left(\defint{u = 0}{u = \infty}{f(u)g(t - u)}{u}\right)}{t}
+                    \intertext{we know $t - u > 0$, therefore $u < t$, where $u, t \in \mathbb{R}^+$, now change order of integration}
+                    & =\defint{u = 0}{u = \infty}{\defint{t = u}{t = \infty}{e^{-st}f(u)g(t - u)}{u}}{t}
+                    \intertext{change $t$ to $v = t - u$}
+                    & =\defint{u = 0}{u = \infty}{\defint{v = 0}{v = \infty}{e^{-s(u + v)}f(u)g(v)}{u}}{v} \\
+                    & =\defint{u = 0}{u = \infty}{e^{-su}f(u)}{u}\defint{v = 0}{v = \infty}{e^{-sv}g(v)}{v} \\
+                    & = F(s)G(s)
+                \end{align*}
+            \subsubsection*{Inversion}
+                Since we know that the Laplace transform has a unique inverse, we can often solve by inspection with the use of linearity.
+                It can be solved with an inversion formula such as the Bromwich integral (not used in our course);
+                $$f(t) = \frac{1}{2 \pi i} \defint{\gamma - i\infty}{\gamma - i\infty}{e^{st}F(s)}{s}$$
+                Where $\gamma$ is a real greater than all the real parts of the singularities of $F(s)$ (where $F(s)$ goes to infinity).
+                For example, a singularity of $F$ is $-\lambda$ when
+                $$F(s) = \frac{1}{s + \lambda}$$
+                This inversion formula comes from the Laplace transform being a special case of the Fourier transform.
+            \subsubsection*{Dominant and Co-dominant Spaces}
+                Suppose we have diagonalisable $\mat{M} \in \mathbb{C}^{n \times n}$, with distinct eigenvalues of moduli $| \lambda_1 | > | \lambda_2 | > \dots > | \lambda_n |$, with corresponding eigenvectors $\vec{v_1}, \vec{v_2}, \dots, \vec{v_n}$.
+                Let the subspaces $T_k$ (dominant) and $U_k$ (co-dominant) be spanned by the bases $(\vec{v_1}, \dots, \vec{v_k})$ (first $k$ dominant eigenvectors) and $(\vec{v_{k + 1}}, \dots, \vec{v_n})$.
+                They are both invariant under $\mat{A}$.
+                \medskip
+
+                Let $S$ be a $k$-dimensional subspace of $\mathbb{C}^n$ such that $S \cap U_k = \{ \vec{0} \}$.
+                Then $\mat{A}^m S \to T_k$ as $m \to \infty$.
+                In the case $k = 1$, we have the same result as the power-iteration.
+                \medskip
+
+                To prove this generally, we take a $\vec{v} \in S$, where $\vec{v} \neq \vec{0}$;
+                $$\vec{v} = \summation{i = 1}{n} c_i\vec{v_i} = \underbrace{\summation{i = 1}{k} c_i\vec{v_i}}_{\in T_k} + \underbrace{\summation{i = k + 1}{n} c_i\vec{v_i}}_{\in U_k}$$
+                Since we know $\vec{v} \neq \vec{0}$, there has to be at least one $c_i \neq 0$, for $1 \leq i \leq k$, otherwise it would be in $U_k$.
+                Applying $\mat{A}$ $m$ times, we see the growth due to the eigenvalues as;
+                $$\mat{A}^m\vec{v} = \summation{i = 1}{k} c_i\lambda_i^m\vec{v_i} + \summation{i = k + 1}{n} c_i\lambda_i^m\vec{v_i} \Rightarrow \frac{\mat{A}^m\vec{v}}{\lambda_k^m} = \summation{i = 1}{k} c_i\frac{\lambda_i}{\lambda_k}^m\vec{v_i} + \summation{i = k + 1}{n} c_i\frac{\lambda_i}{\lambda_k}^m\vec{v_i}$$
+                However, since $\lambda_i < \lambda_k$ if $i > k$, the component in $U_k$ approaches $\vec{0}$, when $k \to \infty$.
+                As proven, there exists at least one non-zero $c_i$ in the $T_k$ component, hence $\mat{A}^m\vec{v}$ approaches a vector in $T_k$.
+                \medskip
+
+                Let $\mat{Q} = [\mat{Q_1}, \mat{Q_2}]$, where $\mat{Q} \in \mathbb{C}^{n \times n}$ is formed by appending $\mat{Q_1} \in \mathbb{C}^{n \times k}$ and $\mat{Q_2} \in \mathbb{C}^{n \times (n - k)}$.
+                Suppose the columns of $\mat{Q_1}$ form an orthonormal basis for $T_k$, and similar for $\mat{Q_2}$ for $U_k$, therefore all the columns form an orthonormal basis for $\mathbb{C}^n$.
+                We propose the following;
+                \begin{align*}
+                    \mat{Q}^\top\mat{A}\mat{Q} & = \begin{bmatrix}
+                        \mat{A_{1, 1}} & \mat{A_{1, 2}} \\
+                        \mat{0} & \mat{A_{2, 2}}
+                    \end{bmatrix} \\
+                    \mat{A_{1, 1}} & = \mat{Q_1}^\top\mat{A}\mat{Q_1} & \in \mathbb{C}^{k \times k} \\
+                    \mat{A_{1, 2}} & = \mat{Q_1}^\top\mat{A}\mat{Q_2} & \in \mathbb{C}^{k \times (n - k)} \\
+                    \mat{A_{2, 2}} & = \mat{Q_1}^\top\mat{A}\mat{Q_2} & \in \mathbb{C}^{(n - k) \times (n - k)}
+                \end{align*}
+            \subsubsection*{Subspace Convergence}
+                Let $\mat{P(m)} = [\mat{P_1}, \mat{P_2}]$, $\mat{P(m)} \in \mathbb{C}^{n \times n}$ is formed by appending $\mat{P_1} \in \mathbb{C}^{n \times k}$ and $\mat{P_2} \in \mathbb{C}^{n \times (n - k)}$.
+                $\mat{P(m)}$ is a unitary matrix, which is an orthogonal matrix, but allows for complex numbers.
+                The range of $\mat{P_1}$ is $\mat{A}^mS_k$
+                We propose that $\mat{B_{2, 1}} \to \mat{0}$, as $m \to \infty$, in the following;
+                $$\mat{P(m)}^\top\mat{A}\mat{P(m)} = \begin{bmatrix}
+                    \mat{B_{1, 1}} & \mat{B_{1, 2}} \\
+                    \mat{B_{2, 1}} & \mat{B_{2, 2}}
+                \end{bmatrix}$$
+                % \begin{itemize}
+                %     \itemsep0em
+                %     \item since $\mat{A}^mS \to T_k$ (already proven), the columns of $\mat{P_1}$ become close to vectors in $T_k$ as $m \to \infty$, similarly the columns of $\mat{P_2}$ become close to vectors in $U_k$
+                % \end{itemize}
+            \subsubsection*{Subspace Iteration}
+                Take a subspace $S$, which has no null vectors of $\mat{A}$.
+                Suppose $(\vec{q_1^{(0)}}, \dots, \vec{q_k^{(0)}})$ is an orthonormal basis of $S$.
+                Then clearly $(\mat{A}^m\vec{q_1^{(0)}}, \dots, \mat{A}^m\vec{q_k^{(0)}})$ is a basis of $\mat{A}^mS$.
+                However, with results proven earlier, all vectors with $\vec{v_1}$-components (the dominant eigenvector of $\mat{A}$) will tend to the dominant subspace $\la \vec{v_1} \ra$, as $m \to \infty$.
+                These then start to point in the same direction, thus causing the matrix to become ill-conditioned.
+                A solution to this is to orthonormalise at each iteration of the algorithm;
+                \begin{itemize}
+                    \itemsep0em
+                    \item given $(\vec{q_1^{(m)}}, \dots, \vec{q_k^{(m)}})$ as a basis of $S$, calculate $\mat{A}\vec{q_1^{(m)}}, \dots, \mat{A}\vec{q_k^{(m)}}$
+                    \item choose $(\vec{q_1^{(m + 1)}}, \dots, \vec{q_k^{(m + 1)}})$ as a basis of $\mat{A}^{m + 1}S$ by orthonormalising $\mat{A}\vec{q_1^{(m)}}, \dots, \mat{A}\vec{q_k^{(m)}}$ left to right, with something such as Gram-Schmidt.
+                \end{itemize}
+                This iteration holds for all subspace pairs.
+            \subsubsection*{Triangulation Property}
+                We aren't expected to remember this.
+                This uses the proposition in the \textbf{Subspace Convergence} section above.
+                Since this is true for all $k$ simultaneously, the limiting form is upper triangular.
 \end{document}
