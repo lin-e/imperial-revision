@@ -2413,4 +2413,116 @@
                 \end{align*}
                 However, we know that $\Vert \mat{G} \Vert^{k + 1} \Vert \vec{y^{(0)}} \Vert \to 0$ when $k \to \infty$, as $\Vert \mat{G} \Vert < 1$.
                 Therefore, $\vec{y^{(k + 1)}} \to \vec{0}$ by the property of norms, hence $\vec{x^{(k + 1)}} \to \vec{\hat{x}}$
+            % \subsubsection*{Choosing an Appropriate $\mat{G}$}
+                % Let the rate of convergence of $\mat{G}$ be denoted $r(\mat{G}) \propto -\log_{10} \Vert \mat{G} \Vert$.
+            \subsubsection*{Common Split}
+                Assume, without loss of generality, that $\mat{A}$ has no zeroes on the diagonal.
+                If it does, we can relabel the variables $x_i$ to permute the rows and columns to have no zeroes on the diagonal.
+                \medskip
+
+                We then define the following;
+                $$\mat{A} = \mat{D} + \mat{L} + \mat{U}$$
+                where $\mat{D}$ is the diagonal component, $\mat{L}$ is the \textbf{strict} lower triangular component (hence without the diagonal), and similar for $\mat{U}$.
+            \subsubsection*{Jacobi Method}
+                In the Jacobi method, we set the matrices (and vector) as follows;
+                \begin{align*}
+                    \mat{M} & = \mat{D} \\
+                    \mat{N} & = \mat{L} + \mat{U} \\
+                    \mat{G} & = -\mat{D}^{-1}(\mat{L} + \mat{U}) \\
+                    \vec{c} & = \mat{D}^{-1}\vec{b} \\
+                    \text{therefore } \vec{x^{(k + 1)}} & = \mat{G}\vec{x^{(k)}} + \vec{c} & \text{yields} \\
+                    x_i^{(k + 1)} & = \frac{1}{a_{i, i}} \left(b_i - \summation{j \neq i}{} a_{j, j} x_j^{(k)}\right)
+                \end{align*}
+                This is easily done in parallel.
+            \subsubsection*{Gauss-Seidel Method}
+                \begin{align*}
+                    \mat{M} & = \mat{D} + \mat{L} \\
+                    \mat{N} & = \mat{U} \\
+                    \mat{G} & = -(\mat{D} + \mat{L})^{-1}\mat{U} \\
+                    \vec{c} & = (\mat{D} + \mat{L})^{-1}\vec{b} \\
+                    \text{therefore } \vec{x^{(k + 1)}} & = \mat{G}\vec{x^{(k)}} + \vec{c} & \text{yields} \\
+                    x_i^{(k + 1)} & = \frac{1}{a_{i, i}} \left(b_i - \summation{j = 1}{i - 1} a_{i, j} x_j^{(k + 1)} - \summation{j = i + 1}{m} a_{i, j} x_j^{(k)}\right)
+                \end{align*}
+                This gives faster convergence as we're able to use more up-to-date data.
+                Working from the first column, we get;
+                \begin{align*}
+                    x_1^{(k + 1)} & = \frac{1}{a_{1, 1}} \left(b_1 - \summation{j = 2}{m} a_{1, j} x_j^{(k)}\right) \\
+                    x_2^{(k + 1)} & = \frac{1}{a_{2, 2}} \left(b_2 - a_{2, 1} x_1^{(k + 1)} - \summation{j = 3}{m} a_{2, j} x_j^{(k)}\right) & \text{using the previous result} \\
+                    & \vdots
+                \end{align*}
+                However, this must be done in order, and therefore cannot be done in parallel like in Jacobi.
+            \subsubsection*{Convergence Conditions}
+                We define a square matrix $\mat{A}$ as \textbf{strictly} row diagonally dominant for the $i^\text{th}$ row if
+                $$| a_{i, i} | > \summation{j \neq i}{} | a_{i, j} |$$
+                This means that the sum of the moduli of the all the elements on the row (except the diagonal element) is less than the modulus of the diagonal element.
+                The theorem is that this is a sufficient condition for both Jacobi and Gauss-Seidel to converge.
+                Below, we will do the proof for Jacobi;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item show $\Vert \mat{G} \Vert < 1$, where $\mat{G} = -\mat{D}^{-1}\mat{N}$, using the consistent $\ell_\infty$-norm
+                    \item strict diagonal dominance implies all absolute row sums are less than 1
+                    \item the maximum absolute row sum is less than 1, therefore so is $\Vert \mat{G} \Vert_\infty$
+                    \item any norm less than 1 leads to convergence
+                \end{enumerate}
+                \begin{align*}
+                    \mat{G} & = -\mat{D}^{-1}\mat{N} \\
+                    & = -\begin{bmatrix}
+                        0 & \times & \times & \times & \times & \times & \times \\
+                        \times & \ddots & \times & \times & \times & \times & \times \\
+                        \times & \times & \ddots & \times & \times & \times & \times \\
+                        \frac{a_{i, 1}}{a_{i, i}} & \cdots & \frac{a_{i, i - 1}}{a_{i, i}} & 0 & \frac{a_{i, i + 1}}{a_{i, i}} & \cdots & \frac{a_{i, m}}{a_{i, i}} \\
+                        \times & \times & \times & \times & \ddots & \times & \times \\
+                        \times & \times & \times & \times & \times & \ddots & \times \\
+                        \times & \times & \times & \times & \times & \times & 0
+                    \end{bmatrix} \\
+                    \summation{j \neq i}{} | a_{i, j} | & < | a_{i, i} | & \text{by row diagonal dominance}, &\Rightarrow \\
+                    \frac{1}{| a_{i, i} |} \summation{j \neq i}{} | a_{i, j} | & < 1
+                \end{align*}
+                Since we have an arbitrary row $i$, this holds for any row, hence the $\ell_\infty$-norm is less than 1 ($\Vert \mat{G} \Vert < 1$).
+            \subsubsection*{Computation of Eigenvalues and Eigenvectors + Power Method}
+                Computing the solutions of the characteristic polynomial is expensive.
+                It takes $\Theta(n^3)$ to compute a single eigenvector of $\mat{A} \in \mathbb{R}^{n \times n}$ with Gaussian elimination.
+                Therefore, it takes $\Theta(n^4)$ to compute all eigenvectors.
+                \medskip
+
+                One technique used is the power method, which can be applied to find other eigenvectors.
+                However, by itself, it converges to an eigenvector of the dominant eigenvalue.
+                Assume the matrix $\mat{A}$ has a unique dominant eigenvalue (which has the maximum modulus), and a corresponding unique eigenvector.
+                Take a starting vector $\vec{x^{(0)}}$, we can define the recurrence for $k = 0, 1, 2, \dots$ as;
+                $$\vec{x^{(k + 1)}} = \frac{\mat{A}\vec{x^{(k)}}}{\Vert \mat{A}\vec{x^{(k)}} \Vert}$$
+                In general, the idea is to keep multiplying the current vector by $\mat{A}$ and normalising.
+                The $\ell_2$-norm is useful as it is equal to the modulus of the dominant eigenvalue.
+                \medskip
+
+                The proposition is that for a diagonalisable matrix $\mat{M} \in \mathbb{R}^{n \times n}$, with distinct eigenvalues (moduli), the iteration converges to the eigenvector of $\mat{A}$.
+                The absolute value of the dominant eigenvalue is the limit of the normalisation constant;
+                $$\limit{k}{\infty} \Vert \mat{A}\vec{x^{(k)}} \Vert$$
+                The proof is as follows;
+                \medskip
+
+                Let $(\vec{e_1}, \dots, \vec{e_n})$, consisting of the unit-eigenvectors of $\mat{A}$ form a basis of $\mathbb{R}^n$.
+                We know we can do this as $\mat{A}$ is diagonalisable.
+                Therefore, for an arbitrary $\vec{x^{(0)}} \in \mathbb{R}^n$;
+                $$\vec{x^{(0)}} = \summation{i = 1}{n} \alpha_i \vec{e_i}$$
+                For $k \geq 1$;
+                \begin{align*}
+                    \vec{x^{(k)}} & = \frac{\mat{A}\vec{x^{(k - 1)}}}{\Vert \mat{A}\vec{x^{(k - 1)}} \Vert} & \text{by recurrence relation} \\
+                    & = \frac{\mat{A}^k\vec{x^{(0)}}}{\Vert \mat{A}^k\vec{x^{(0)}} \Vert} \\
+                    & = \frac{\summation{i = 1}{n} \alpha_i \lambda_i^k \vec{e_i}}{\Vert \mat{A}^k\vec{x^{(0)}} \Vert} & \text{scale by an eigenvalue of eigenvector} \\
+                    & = \frac{\lambda_1^k}{\Vert \mat{A}^k\vec{x^{(0)}} \Vert} \summation{i = 1}{n} \alpha_i \frac{\lambda_i}{\lambda_1}^k \vec{e_i} \\
+                    & = \frac{\lambda_1^k}{\Vert \mat{A}^k\vec{x^{(0)}} \Vert} \left(\alpha_1 \vec{e_1} + \summation{i = 2}{n} \alpha_i \frac{\lambda_i}{\lambda_1}^k \vec{e_i}\right) \\
+                    \limit{k}{\infty} \frac{\lambda_i}{\lambda_1}^k & = 0 & \text{for } i \neq 1, | \lambda_i | < | \lambda_1 | \\
+                    \limit{k}{\infty} \vec{x^{(k)}} & = \frac{\lambda_1^k}{\Vert \mat{A}^k\vec{x^{(0)}} \Vert} \alpha_1 \vec{e_1} & \text{therefore } \vec{x^{(0)}} \to \vec{e_1}
+                \end{align*}
+                Using this result, we can conclude the following;
+                $$\limit{k}{\infty} \Vert \mat{A}\vec{x^{(k)}} \Vert = \Vert \mat{A}\vec{e_1} \Vert = \Vert \lambda_1 \vec{e_1} \Vert = | \lambda_1 |$$
+                \medskip
+
+                The limitations of this method are the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item starting vector $\vec{x^{(0)}}$ may have no component in the dominant eigenvector, such that $\vec{e_1}^\top \vec{x^{(0)}} = 0$, which leads to $\alpha_1 = 0$
+                    \item may have multiple eigenvalues with maximum modulus, iteration then converges to a linear combination of those eigenvectors
+                    \item convergence can be slow, if for example $\lambda_2$ is close to $\lambda_1$
+                \end{itemize}
 \end{document}
