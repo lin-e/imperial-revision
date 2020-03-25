@@ -60,6 +60,7 @@
 \newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
 \newcommand{\limit}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\lim_{#1 \to #2}}$}}}
 \newcommand{\summation}[2]{\sum\limits_{#1}^{#2}}
+\newcommand{\product}[2]{\prod\limits_{#1}^{#2}}
 \newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
 \newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
 
@@ -77,6 +78,7 @@
 \newcommand{\rra}{\rrangle}
 \newcommand{\la}{\langle}
 \newcommand{\ra}{\rangle}
+\newcommand{\crnr}[1]{\text{\textopencorner} #1 \text{\textcorner}}
 
 \newcommand{\mat}[1]{\boldsymbol{#1}}
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
@@ -97,7 +99,7 @@
 \newcommand{\dproof}[0]{\DisplayProof}
 
 \newcommand{\bnfsep}[0]{\ |\ }
-\newcommand{\concsep}[0]{\ \Vert\ }
+\newcommand{\concsep}[0]{\ ||\ }
 \newcommand{\violet}[1]{\textcolor{violet}{#1}}
 \newcommand{\blue}[1]{\textcolor{blue}{#1}}
 \newcommand{\red}[1]{\textcolor{red}{#1}}
@@ -2624,4 +2626,81 @@
                     & = \vec{v} - \vec{u} \\
                     & = \mp \Vert \vec{v} \Vert_2 \vec{e_1} & \blacksquare
                 \end{align*}
+        \subsection*{26th February 2020}
+            \subsubsection*{QR Algorithm}
+                Note that for an upper triangular matrix
+                $$\mat{U} = \begin{bmatrix}
+                    u_{1, 1} & \times & \times & \times \\
+                    & u_{2, 2} & \times & \times \\
+                    & & \ddots & \times \\
+                    & & & u_{n, n}
+                \end{bmatrix}$$
+                The characteristic polynomial is
+                $$| \mat{U} - \lambda\mat{I} | = \product{i = 1}{n} (u_{i, i} - \lambda)$$
+                Meaning that the eigenvalues are $u_{1, 1}, u_{2, 2}, \dots, u_{n, n}$, which is the diagonal of the matrix.
+                \medskip
+
+                Also note that a matrix $\mat{A}$ is similar to $\mat{B}$ if $\mat{B} = \mat{P}^{-1}\mat{A}\mat{P}$.
+                This is an equivalence relation, and it also preserves the characteristic polynomial, hence has the same eigenvalues.
+                \medskip
+
+                The general idea of the QR algorithm is that it generates a sequence of similar matrices $\mat{A^{(0)}}, \mat{A^{(1)}}, \dots$ which approaches an upper triangular matrix.
+                The diagonal of this upper triangular matrix will then give the eigenvalues of $\mat{A}$.
+                It follows this general sequence of steps;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item starting with the standard basis, set $\mat{A^{(0)}} = \mat{A} (= \mat{Q}\mat{R} = \mat{Q^{(1)}}\mat{R^{(1)}})$
+                    \item apply QR decomposition with any method to compute $\mat{A^{(m)}} = \mat{Q^{(m + 1)}}\mat{R^{(m + 1)}}$, where $\mat{Q^{(m + 1)}}$ is orthogonal, and $\mat{R^{(m + 1)}}$ is upper triangular
+                    \item define $\mat{A^{(m + 1)}} = \mat{R^{(m + 1)}}\mat{Q^{(m + 1)}} = \mat{Q^{(m + 1)}}^\top\mat{A^{(m)}}\mat{Q^{(m + 1)}}$
+                        \subitem note that because $\mat{Q^{(m + 1)}}$ is orthogonal (actually orthonormal), $\mat{Q^{(m + 1)}}^\top = \mat{Q^{(m + 1)}}^{-1}$, $\mat{A^{(m + 1)}}$ must be similar to $\mat{A^{(m)}}$
+                    \item halt after sufficient iterations
+                \end{enumerate}
+                We claim that $\mat{A^{(m)}} \to \mat{U}$, where $\mat{U}$ is an upper triangular matrix, as $m \to \infty$.
+                $$\mat{A^{(m)}} = \mat{Q^{(m)}}^\top\mat{Q^{(m - 1)}}^\top \cdots \mat{Q^{(1)}}^\top\mat{A^{(0)}}\underbrace{\mat{Q^{(1)}}\mat{Q^{(2)}} \cdots \mat{Q^{(m)}}}_{\mat{\tilde{Q}^{(m)}}} = \mat{\tilde{Q}^{(m)}}^\top\mat{A}\mat{\tilde{Q}^{(m)}}$$
+                Note that $\mat{\tilde{Q}^{(m)}}$ is orthogonal, as it is the product of orthogonal matrices, hence $\mat{A^{(m)}}$ must be similar to $\mat{A}$, therefore $\mat{A^{(m)}}$ has the same eigenvalues as $\mat{A}$.
+                The eigenvectors of $\mat{A}$ are;
+                $$\left\{\mat{\tilde{Q}^{(m)}}^\top \vec{w} : \vec{w} \text{ is an eigenvector of } \mat{A^{(m)}} \right\}$$
+
+                It is easy to compute the eigenvectors of a upper triangular matrix, which we approach, with backwards substitution.
+                Note that it can be quicker to use the inverted shift with an approximation of the eigenvalue.
+                \medskip
+
+                Note that for any symmetric matrix $\mat{A}$, $\mat{A^{(m)}}$ must also be symmetric.
+                Therefore, if $\mat{A^{(m)}}$ approaches an upper triangular matrix, it must approach $\mat{\Lambda}$, which is a diagonal vector of the eigenvalues of $\mat{A}$;
+                $$\mat{\Lambda} = \begin{bmatrix}
+                    u_{1, 1} & \violet{0} & \violet{\cdots} & \violet{0} \\
+                    0 & u_{2, 2} & \violet{\ddots} & \violet{\vdots} \\
+                    \vdots & \ddots & \ddots & \violet{0} \\
+                    0 & \cdots & 0 & u_{n, n}
+                \end{bmatrix}$$
+                Due to this, $\mat{\tilde{Q}^{(m)}}$ approaches the matrix of eigenvectors of $\mat{A}$.
+            \subsubsection*{LU Decomposition}
+                We can write any non-singular matrix $\mat{M} = \mat{L}\mat{U}$.
+                This is because we can reduce $\mat{M}$ to row echelon form (which is upper triangular), with the products of lower triangular matrices.
+                Also note that a unit triangular matrix has all 1s on the diagonal.
+                In this proof, we can also use the fact
+                $$\mat{A}^n = \mat{Q^{(1)}} \cdots \mat{Q^{(n)}} \mat{R^{(n)}} \cdots \mat{R^{(1)}}$$
+                We propose that $\mat{A^{(m)}} \to \mat{\Lambda}$, as $m \to \infty$, for a symmetric matrix $\mat{A} \in \mathbb{R}^{n \times n}$, with distinct eigenvalues $\lambda_1 > \lambda_2 > \dots > \lambda_n > 0$.
+                Also let $\mat{A} = \mat{Q}\mat{\Lambda}\mat{Q}^\top$ be the eigenvalue decomposition (same as spectral decomposition), and $\mat{Q}^\top = \mat{L}\mat{U}$ with a \textbf{unit} lower triangular $\mat{L}$, and an upper triangular $\mat{U}$.
+                The proof is as follows;
+                \begin{align*}
+                    \mat{A}^n & = \mat{Q}\mat{\Lambda}\mat{Q}^\top \\
+                    & = \mat{Q^{(1)}} \cdots \mat{Q^{(n)}} \mat{R^{(n)}} \cdots \mat{R^{(1)}} & \Rightarrow \\
+                    \mat{Q}\mat{\Lambda}\mat{L}\mat{U} & = \mat{Q^{(1)}} \cdots \mat{Q^{(n)}} \mat{R^{(n)}} \cdots \mat{R^{(1)}} & \Rightarrow \\
+                    \mat{Q}\mat{\Lambda}\mat{L} & = \mat{Q^{(1)}} \cdots \mat{Q^{(n)}} \mat{R^{(n)}} \cdots \mat{R^{(1)}}\mat{U}^{-1} & \Rightarrow \\
+                    \mat{Q}\mat{\Lambda}\mat{L}\mat{\Lambda}^{-n} & = \mat{Q^{(1)}} \cdots \mat{Q^{(n)}} \mat{R^{(n)}} \cdots \mat{R^{(1)}}\mat{U}^{-1}\mat{\Lambda}^{-n} \\
+                    (\mat{\Lambda}\mat{L}\mat{\Lambda}^{-n})_{i, j} & = \begin{cases}
+                        \ell_{i, j} \frac{\lambda_i}{\lambda_j}^n & i > j \\
+                        1 & i = j \\
+                        0 & i < j
+                    \end{cases} & \Rightarrow \\
+                    \limit{n}{\infty} \mat{\Lambda}\mat{L}\mat{\Lambda}^{-n} & = \mat{I}
+                \end{align*}
+                Therefore, $\mat{Q^{(1)}} \cdots \mat{Q^{(n)}} \mat{R^{(n)}} \cdots \mat{R^{(1)}}\mat{U}^{-1}\mat{\Lambda}^{-n} \to \mat{Q}$.
+                Because the QR decomposition is unique, $\mat{\tilde{Q}^{(n)}} = \mat{Q^{(1)}} \cdots \mat{Q^{(n)}} \to \mat{Q}$, and $\mat{R^{(n)}} \cdots \mat{R^{(1)}}\mat{U}^{-1}\mat{\Lambda}^{-n} \to \mat{I}$, meaning $\mat{R^{(n)}} \cdots \mat{R^{(1)}} \to \mat{\Lambda}^{n}\mat{U}$.
+                Note that for $\mat{\tilde{Q}^{(n)}}$ to tend to a constant matrix, $\mat{Q^{(n)}} \to \mat{I}$.
+                From the second limit, we can argue that $\mat{R^{(n)}} \to \mat{\Lambda}$, as $\mat{\Lambda}$ is applied $n$ times.
+                Finally, we defined $\mat{A^{(m)}} = \mat{R^{(m)}}\mat{Q^{(m)}}$, so
+                $$\limit{m}{\infty}\mat{A^{(m)}} = \mat{\Lambda}$$.
+                We also have $\mat{\tilde{Q}^{(m)}} \to \mat{Q}$ which diagonalises $\mat{A}$, and therefore must be the matrix of eigenvectors.
 \end{document}
