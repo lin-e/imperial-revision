@@ -3185,4 +3185,99 @@
                 \end{align*}
                 If $\mat{H}$ is positive definite, meaning it has all positive eigenvalues and a non-zero determinant, it gives a maximum point.
                 Similarly, if $\mat{H}$ is negative definite, it gives a maximum.
+        \subsection*{12th March 2020}
+            \subsubsection*{Quadratic Form}
+                The quadratic form is as follows;
+                $$f(\vec{x}) = \frac{1}{2}\vec{x}^\top\mat{A}\vec{x} - \vec{b}^\top\vec{x} + c$$
+                We can obtain the derivative of this as follows;
+                \begin{align*}
+                    \pdif{x_i}{x_j} & = \begin{cases}
+                        0 & i \neq j \\
+                        1 & i = j
+                    \end{cases} \\
+                    & = \delta_{i, j} \\
+                    \summation{n}{i = 1} x_i \delta_{i, j} & = x_j \\
+                    \nabla f & = \left(\pdif{f}{x_1}, \dots, \pdif{f}{x_n}\right)
+                    \intertext{take arbitrary $j$}
+                    \pdif{f}{x_j} & = \pdif{}{x_j} \summation{i, k}{} \frac{1}{2} x_i \mat{A}_{i, k} x_k - \pdif{}{x_j} \summation{i}{} b_i x_i + 0 \\
+                    & = \summation{i, k}{} \frac{1}{2} \mat{A}_{i, k} \left(\pdif{x_i}{x_j} x_k + \pdif{x_k}{x_j}x_i\right) - \summation{i}{} \pdif{x_i}{x_j} b_i \\
+                    & = \frac{1}{2} \left(\summation{k}{} \mat{A}_{j, k}x_k + \summation{i}{} x_i\mat{A}_{i, j}\right) - b_j \\
+                    & = \frac{1}{2} \left(\summation{k}{} \mat{A}_{j, k}x_k + \summation{i}{} \mat{A}^\top_{j, i}x_i\right) - b_j \\
+                    & = \frac{1}{2} (\mat{A}\vec{x})_j + (\mat{A}^\top\vec{x})_j - \vec{b}_j & \Rightarrow \\
+                    \nabla f & = \frac{1}{2} (\mat{A} + \mat{A}^\top)\vec{x} - \vec{b}
+                \end{align*}
+                If $\mat{A}$ is symmetric, you have $\mat{A} = \mat{A}^\top$, so $\nabla f = \mat{A}\vec{x} - \vec{b}$.
+                If it is also positive definite, then the solution to $\mat{A}\vec{x} = \vec{b}$ globally minimises $f(\vec{x})$.
+                Similarly, if $f(\vec{x})$ is minimised by $\vec{x} = \vec{y}$, then $\vec{y}$ is the solution to $\mat{A}\vec{x} = \vec{b}$, therefore there exists a duality between these two.
+            \subsubsection*{Iterative Solutions for Function Minimisation}
+                We start by picking some initial vector $\vec{x_0}$ as a guess.
+                At each step $k = 1, 2, \dots$, we choose a direction vector $\vec{d_k}$ and a step size $\alpha_k$.
+                The iteration is
+                \begin{center}
+                    $\vec{x_{k + 1}} - \vec{x_k} + \alpha_k\vec{d_k}$
+                \end{center}
+                Some steepest descent method (SDM) is as follows;
+                \medskip
+
+                This method chooses the direction in which $f(\vec{x_k})$ decreases the fastest, hence we choose $\vec{d_k} = -\nabla f(\vec{x_k})$.
+                When $\mat{A}$ is symmetric, $\vec{d_k} = \vec{b} - \mat{A}\vec{x_k}$, in the quadratic form example, we have $\vec{d_k}$ as the residual vector.
+                \medskip
+
+                To choose the step length, we want to minimise $f(\vec{x_k} + \alpha_k \vec{d_k})$;
+                \begin{align*}
+                    \text{let } \vec{x} & = \vec{x_k} \\
+                    \dif{f}{\alpha_k} & = \summation{i}{} \pdif{f(\vec{x})}{x_i} \dif{x_i}{\alpha} \\
+                    & = \summation{i}{} \left(\nabla f(\vec{x_{k + 1}})\right)_i (\vec{d_k})_i \\
+                    & = \nabla f(\vec{x_{k + 1}}) \cdot \vec{d_k} \\
+                    & = \vec{d_{k + 1}} \cdot \vec{d_k}
+                \end{align*}
+                To minimise this, set it to zero, therefore we want to choose $\alpha$ such that $\vec{d_{k + 1}}$ is orthogonal to $\vec{d_k}$.
+                Therefore in general we want to solve $(\nabla f(\vec{x_k})) \cdot (\nabla f(\vec{x_{k + 1}})) = 0$
+                \medskip
+
+                An example is as follows (quadratic form);
+                \begin{align*}
+                    \vec{r_k}^\top(\vec{b} - \mat{A}(\vec{x_k} + \alpha_k\vec{r_k})) & = \vec{r_k}^\top(\vec{r_k} - \alpha_k\mat{A}\vec{r_k}) \\
+                    & = 0 & \text{(solve)} \\
+                    \alpha_k & = \frac{\vec{r_k}^\top\vec{r_k}}{\vec{r_k}^\top\mat{A}\vec{r_k}} \\
+                    & = \frac{\Vert \vec{r_k} \Vert^2}{\vec{r_k}^\top\mat{A}\vec{r_k}}
+                \end{align*}
+                By the following iteration, we approximate a solution for $\vec{x}$;
+                \begin{align*}
+                    \vec{x_k} & = \mat{A}\vec{r_k} \\
+                    \alpha_k & = \frac{\Vert \vec{r_k} \Vert^2}{\vec{r_k}^\top\vec{v_k}} \\
+                    \vec{x_{k + 1}} & = \vec{x_k} + \alpha_k\vec{r_k} \\
+                    \vec{r_{k + 1}} & = \vec{r_k} - \alpha_k\vec{v_k}
+                \end{align*}
+                This takes a single matrix-vector multiplication per iteration, and one more in the initialisation.
+            \subsection*{Example of Iterative Method}
+                Suppose we want to minimise the function $f(x, y) = x^2 + y^2$.
+                By inspection, we know the minimum, for real $x, y$, is $(0, 0)$.
+                However, numerically, we do the following;
+                \begin{align*}
+                    \text{guess } \vec{x_0} & = (x_0, y_0) & \text{minimum} \\
+                    \vec{d_0} & = -\nabla f(x_0, y_0) \\
+                    & = \left. -(2x, 2y) \right|_{\vec{x} = \vec{x_0}} \\
+                    & = -2(x_0, y_0) \\
+                    & = -2\vec{x_0} \\
+                    x_1 & = x_0 + \alpha (-2 x_0) \\
+                    & = (1 - 2\alpha)x_0 \\
+                    y_1 & = y_0 + \alpha (-2 y_0) \\
+                    & = (1 - 2\alpha)y_0 \\
+                    \vec{d_1} & = -2(x_1, y_1) \\
+                    & = -2\vec{x_1} \\
+                    \text{solve } \vec{d_0} \cdot \vec{d_1} & = 0 & \Leftrightarrow \\
+                    x_0x_1 + y_0y_1 & = 0 & \Leftrightarrow \\
+                    (1 - 2\alpha)x_0^2 + (1 - 2\alpha)y_0^2 & = 0 & \Leftrightarrow \\
+                    (1 - 2\alpha)(x_0^2 + y_0^2) & = 0 & \Rightarrow \\
+                    \alpha & = \frac{1}{2}
+                    \intertext{after this computation, we have the next step, so;}
+                    \vec{d_0} & = -2(x_0, y_0) \\
+                    & = -2\vec{x_0} \\
+                    \vec{x_1} & = \vec{x_0} + \alpha\vec{d_0} \\
+                    & = \vec{x_0} + \frac{1}{2} (-2\vec{x_0}) \\
+                    & = \vec{0} \\
+                    & = (0, 0)
+                \end{align*}
+                This algorithm converged in a single step, due to the symmetry (hence no "zig-zagging" needed).
 \end{document}
