@@ -101,6 +101,7 @@
 \newcommand{\dproof}[0]{\DisplayProof}
 
 \newcommand{\bnfsep}[0]{\ |\ }
+\newcommand{\lrbt}[0]{\ \bullet\ }
 \newcommand{\concsep}[0]{\ ||\ }
 \newcommand{\ttbs}{\char`\\}
 
@@ -736,8 +737,8 @@
                     \underline{~Digit~} & \to ~[0-9]~ \\
                     \underline{~Int~} & \to \underline{~Digit~}~+~ \\
                     \underline{~SignedDigit~} & \to ~(+ | -)? \underline{~Int~}~ \\
-                    \underline{~Keyword~} & = ~if | while | do~ \\
-                    \underline{~Identifier~} & = ~\underline{~Letter~} (\underline{~Letter~} | \underline{~Digit~})*~
+                    \underline{~Keyword~} & \to ~if | while | do~ \\
+                    \underline{~Identifier~} & \to ~\underline{~Letter~} (\underline{~Letter~} | \underline{~Digit~})*~
                 \end{align*}
                 However, we can run into the issue of ambiguity, when a character sequence can match to more than one regex.
                 For example, the input string ~dough~ matches to the identifier ~dough~, as well as partially to the keyword ~do~.
@@ -957,7 +958,7 @@
                     \epsilon_c(2) & = \{ 1, 2, 3 \} \\
                     \epsilon_c(3) & = \{ 1, 3 \}
                 \end{align*}
-                From our start state, we then create a node consisting of its $\epsilon$-closure.
+                From our start state, using subset construction, we then create a node consisting of its $\epsilon$-closure.
                 We look at this new node, find the ones that have a non-$\epsilon$-transition, and handle those cases.
                 For each new case, we take the state that it goes to, and create a node consisting of its $\epsilon$-closure, and repeat the process.
                 Finally, we mark each of the states that contain an accepting state as an accepting state.
@@ -1091,4 +1092,148 @@
                               transBinop op r (r + 1) -- both operands are registers
                           -- etc
                 \end{lstlisting}
+        \subsection*{20th January 2020}
+            \subsubsection*{Subset Construction of Regex}
+                This lecture starts by working through the subset construction of the regex ~(AB|AC)*~.
+                We start by constructing the NFA for the corresponding regular expression;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm, initial] (0) at (0, 0) {$0$};
+                        \node[state, minimum size=1cm] (1) at (2, 0) {$1$};
+                        \node[state, minimum size=1cm] (2) at (4, 1) {$2$};
+                        \node[state, minimum size=1cm] (3) at (6, 1) {$3$};
+                        \node[state, minimum size=1cm] (4) at (8, 1) {$4$};
+                        \node[state, minimum size=1cm] (5) at (4, -1) {$5$};
+                        \node[state, minimum size=1cm] (6) at (6, -1) {$6$};
+                        \node[state, minimum size=1cm] (7) at (8, -1) {$7$};
+                        \node[state, minimum size=1cm] (8) at (10, 0) {$8$};
+                        \node[state, minimum size=1cm, accepting] (9) at (12, 0) {$9$};
+
+                        \draw
+                        (0) edge[->] (1)
+                        (0) edge[->, bend right=45] (9)
+                        (1) edge[->] (2)
+                        (1) edge[->] (5)
+                        (2) edge[->, above] node{A} (3)
+                        (3) edge[->, above] node{B} (4)
+                        (4) edge[->] (8)
+                        (5) edge[->, above] node{A} (6)
+                        (6) edge[->, above] node{C} (7)
+                        (7) edge[->] (8)
+                        (8) edge[->] (9)
+                        (8) edge[->, bend right=65] (1);
+                    \end{tikzpicture}
+                \end{center}
+                The DFA is then generated as follows (note that in lieu of writing out the entire closure, I use a single character, however it's best to write out the entire thing);
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item create a state for 0 with its closure (01259), let it be $p$
+                    \item looking at the states within $p$, we see that the ones with non-$\epsilon$-transitions are 2 and 5, both with transitions with label 'A', to 3 and 6 respectively
+                    \item create a state for 3 and 6, with its closure (36), let it be $q$
+                    \item looking at the states within $q$, we see that the ones with non-$\epsilon$-transitions are both 3 and 6, with transitions 'B' to 4, and 'C' to 7 respectively
+                    \item create a state for 4, with its closure (124589), let it be $r$
+                    \item looking at the states within $r$, we see that the ones with non-$\epsilon$-transitions are 2 and 5 - however we have already seen  this, it goes to the state $q$
+                    \item create a state for 7, with its closure (125789), let it be $s$
+                    \item $s$ also goes to $q$ for the same reasoning as above
+                    \item all the states that contain 9 are now marked as accepting states, which are $p$, $r$, $s$
+                \end{enumerate}
+                This gives us the following DFA
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm, initial, accepting] (p) at (0, 0) {$p$};
+                        \node[state, minimum size=1cm] (q) at (2, 0) {$q$};
+                        \node[state, minimum size=1cm, accepting] (r) at (4, 1) {$r$};
+                        \node[state, minimum size=1cm, accepting] (s) at (4, -1) {$s$};
+
+                        \draw
+                        (p) edge[->, above] node{A} (q)
+                        (q) edge[->, above] node{B} (r)
+                        (q) edge[->, above] node{C} (s)
+                        (r) edge[->, above, bend right=30] node{A} (p)
+                        (s) edge[->, below, bend left=30] node{A} (p);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{LR (Bottom-up) Parsing}
+                The rules in the context free grammar exist as $~R~ \to ~(R|t)*~$, where ~R~ is a rule, and ~t~ is a token.
+                Therefore rules are represented as some arbitrary combination of rules and tokens (thus supporting recursion, unlike regular expressions).
+                The goal of a parser is to convert a sequence of tokens into an AST (or parse tree).
+                In the case of the AST we can discard tokens that are simply syntactic sugar, as the structure of the program is represented in the tree.
+                \medskip
+
+                Note that we need to look at subsets of CFGs, as they can be cubic ($O(n^3)$) to parse in the worst case, and we want to consider the largest subsets which take $O(n)$.
+                The types we consider are as follows (node that $\text{LL}(n) \subseteq \text{LR}(n)$, therefore LR parsers are more powerful);
+                \begin{itemize}
+                    \itemsep0em
+                    \item LL($k$) \hfill \textbf{l}eft to right scanning, with $k$ token look-ahead, and \textbf{l}eft-most derivation
+                        \subitem top-down, as it builds the AST from the root nodes to the leaf nodes
+                    \item LR($k$) \hfill \textbf{l}eft to right scanning, with $k$ token look-ahead, and \textbf{r}ight-most derivation
+                        \subitem bottom-up, as it builds the AST from the leaf nodes to the root node
+                \end{itemize}
+                We will be first looking at LR(0), then LR(1), and then finally LALR(1).
+                \medskip
+
+                Starting with LR(0), it doesn't need the token for a reduce.
+                An LR(0) item is a "rule" with a dot ($\bullet$) at some position in the right hand side.
+                An item indicates how much of a rule we've seen.
+                For example, the item $~E~ \to ~E +~ \lrbt ~int~$ indicates that we've seen an expression, followed by a plus, and we are hoping to see an integer to complete the item.
+                This means that LR(0) items represent the steps to recognise the RHS of a given production.
+                \medskip
+
+                For example, we can look at the rules for $~X~ \to ~ABC~$;
+                \begin{align*}
+                    ~X~ & \to \lrbt ~ABC~ & \text{initial item} \\
+                    ~X~ & \to ~A~ \lrbt ~BC~ \\
+                    ~X~ & \to ~AB~ \lrbt ~C~ \\
+                    ~X~ & \to ~ABC~ \lrbt & \text{complete item} \\
+                \end{align*}
+                $$~X~ \to \underbrace{~AB~}_\text{seen} \bullet \hspace{-0.4cm} \overbrace{~C~}^\text{hope to see}$$
+                These items are used as states of a finite automaton to maintain information about the progress of a shift-reduce parser.
+                We can build an NFA from these items as follows (and then build a DFA with subset construction).
+                Working with the single rule $~X~ \to ~A~ \lrbt ~BC~$, we add the following transition;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state] (0) at (0, 0) {$~X~ \to ~A~ \lrbt ~BC~$};
+                        \node[state] (1) at (4, 0) {$~X~ \to ~AB~ \lrbt ~C~$};
+                        \draw (0) edge[->, above] node{~B~} (1);
+                    \end{tikzpicture}
+                \end{center}
+                Additionally, if $~B~$ is non-terminal, such that $~B~ \to ~D~ \bnfsep ~E~ \bnfsep \cdots$, add an $\epsilon$-transition for each rule;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state] (0) at (0, 0) {$~X~ \to ~A~ \lrbt ~BC~$};
+                        \node[state] (1) at (4, 2) {$~B~ \to \lrbt ~D~$};
+                        \node[state] (2) at (4, 0) {$~B~ \to \lrbt ~E~$};
+                        \node (3) at (4, -2) {$\vdots$};
+                        \draw
+                        (0) edge[->, above] node{$\epsilon$} (1)
+                        (0) edge[->, above] node{$\epsilon$} (2)
+                        (0) edge[->, above] node{$\epsilon$} (3);
+                    \end{tikzpicture}
+                \end{center}
+                We also need to add a start rule, with symbol to indicate the end of input ~\$~ (it is implied if omitted).
+                For example, given the grammar
+                \begin{center}
+                    $~E~ \to ~E '+' int~ \bnfsep ~int~$
+                \end{center}
+                We'd add a rule $~E'~ \to ~E \$~$.
+                This therefore has a total of 8 items;
+                \begin{align*}
+                    ~E'~ & \to \lrbt ~E~ & \text{initial item} \\
+                    ~E'~ & \to ~E~ \lrbt & \text{complete / reduce item} \\
+                    ~E~ & \to \lrbt ~E + int~ & \text{initial item} \\
+                    ~E~ & \to ~E~ \lrbt ~+ int~ \\
+                    ~E~ & \to ~E +~ \lrbt ~int~ \\
+                    ~E~ & \to ~E + int~ \lrbt & \text{complete item} \\
+                    ~E~ & \to \lrbt ~int~ & \text{initial item} \\
+                    ~E~ & \to ~int~ \lrbt & \text{complete item}
+                \end{align*}
+            \subsubsection*{Chomsky Hierarchy}
+                In the following, ~R~ is a non-terminal (name of a rule), ~t~ is a sequence of terminals, and $\alpha, \beta, \varphi$ are sequences of terminals and non-terminals.
+                \begin{enumerate}[{type X:}]
+                    \itemsep0em
+                    \item[type 3:] $~R~ \to ~t~$ \hfill regular grammars (DFA)
+                    \item[type 2:] $~R~ \to \alpha$ \hfill context free grammars (pushdown automata)
+                    \item[type 1:] $\alpha~R~\beta \to \alpha \varphi \beta$ \hfill context sensitive grammars (linear bounded automata)
+                    \item[type 0:] $\alpha \to \beta$ \hfill unrestricted grammars
+                \end{enumerate}
 \end{document}
