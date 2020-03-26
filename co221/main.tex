@@ -649,4 +649,81 @@
                     \item The final translation function generates instructions for a very simple stack machine
                 \end{itemize}
         \subsection*{13th January 2020}
+            \subsubsection*{Bootstrapping}
+                Imagine the scenario where there is a new language, and only one machine.
+                The process of writing a compiler for this language, with this language, is to first manually write a compiler in the assembly language for the machine for a small subset of the new language.
+                Using the subset of this new language (that can be compiled), we can write a compiler to compile more of the language, and this process continues until we can compile the entire language.
+            \subsubsection*{Lexical Analysis}
+                The lexical analyser (sometimes called a scanner) converts characters into tokens.
+                This is because the compiler shouldn't have to deal with strings directly.
+                Normally, this removes whitespace, as it isn't needed in code generation (other than for string / character literals).
+                In this course, the regular expressions that the scanners use will be converted into finite automata.
+                \medskip
+
+                Identifiers are usually classified into the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{keywords}
+                        \medskip
+
+                        These are defined by the language, and are reserved.
+                        For example, words such as "return", "for", "class", and so on are represented as their own tokens (~RETURN~, ~FOR~, and ~CLASS~ respectively), since there is a (relatively) small finite set to work with.
+                        The scanner needs to be able to quickly verify if something is a keyword, and therefore something such as a "perfect" hash function is used.
+                    \item \textbf{user-defined}
+                        \medskip
+
+                        These are defined by the programmer.
+                        Since there can be (theoretically) an infinite amount of them, it's not possible to generate a unique token for each one, and therefore it usually falls under a general identifier token with a string parameter (such that "xyz" becomes ~IDENT("xyz")~, or similar).
+                \end{itemize}
+                In the case of literals, some special consideration may be needed for cases where the language we are compiling can support more than the language we are writing the compiler in.
+                For example, if the language we are writing a compiler for can support arbitrarily large integers, special consideration will be required if the language the compiler is written in cannot support such values.
+                Some examples of literals are as follows (more can exist, such as booleans, characters, and so on);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{integers}
+                        \medskip
+
+                        An integer would likely be represented by a general integer token, such that the string "123" would become ~INTEGER(123)~, or similar.
+                    \item \textbf{strings}
+                        \medskip
+
+                        Similar to integers, but the token constructor will now take a string parameter instead of an integer, such that ""foo"" would become ~STRING("foo")~.
+                \end{itemize}
+                There are other tokens, not just the two cases above, such as (but not limited to);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{operators / symbols}
+                        \medskip
+
+                        Normally operators / symbols such as "+", "<=", "(" are represented as their own unique token, such as ~PLUS~, ~LTE~, ~LPAREN~, respectively.
+                    \item \textbf{whitespace / comments}
+                        \medskip
+
+                        Whitespace characters are normally removed (unless they are in the case where they exist within a literal), but are needed to separate adjacent identifiers.
+                        Comments are also usually removed.
+                \end{itemize}
+            \subsubsection*{Regular Expressions (Regex)}
+                This allows us to formally define the acceptable tokens of the language.
+                \begin{center}
+                    \begin{tabular}{ll}
+                        regex & matches \\
+                        \hline
+                        ~a~ & a literal \textbf{symbol} of the language's alphabet (that isn't a regex meta-character) \\
+                        $\epsilon$ & the empty string \textbf{epsilon} \\
+                        ~R1 R2~ & \textbf{concatenation} of regex ~R1~ followed by ~R2~ (medium precedence) \\
+                        ~R1|R2~ & \textbf{alternation} of regex ~R1~ or ~R2~ (lowest precedence) \\
+                        ~R*~ & \textbf{repetition} of regex ~R~ (0 or more times) (highest precedence) \\
+                        ~(R)~ & \textbf{grouping} ~R~ by itself, used to override precedence \\
+                        ~\textbackslash{}a~ & "escaping", used to have a literal of a meta-character \\
+                        \hline
+                        shortcut & \\
+                        \hline
+                        ~R?~ & 0 or 1 occurrences of regex ~R~ \\
+                        ~R+~ & 1 or more occurrences of regex ~R~ \\
+                        ~[aeiou123]~ & any character from the given set \\
+                        ~[a-zA-Z0-9]~ & any alphanumeric character \\
+                        ~[\^{}a-zA-Z]~ & any character \textbf{except} the ones in the set \\
+                        $\bullet$ & any character except a newline
+                    \end{tabular}
+                \end{center}
 \end{document}
