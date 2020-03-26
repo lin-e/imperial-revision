@@ -972,5 +972,123 @@
                     \end{tikzpicture}
                 \end{center}
         \subsection*{17th January 2020}
-            sss33
+            At the start of this lecture, he goes over the grammar for an example language that has statements, consisting of assignment and iteration.
+            \subsubsection*{Code Generation for a Stack Machine}
+                He then continues with a representation of a stack machine, it's a lot of reading, and most of it is on the slides.
+                The general premise of the stack machine is that it fulfils a promise where it leaves the result of a computation at the top of the stack, and doesn't modify anything that was below it.
+                As such, we end up with the following code (note that ~label1~ and ~label2~ are unique labels that haven't been used before - generating this in Haskell isn't as trivial as in other languages);
+                \begin{lstlisting}
+                    type Name = [Char]
+                    type Label = [Char]
+
+                    data Stat = Assign Name Exp | Seq Stat Stat | ForLoop Name Exp Exp Stat
+                    data Exp = Binop Op Exp Exp | Unop Op Exp | Ident Name | Const Int
+                    data Op = Plus | Minus | Times | Divide
+                    data Instruction = Add | Sub | Mul | Div | Negate
+                    | PushImm Int | PushAbs Name | Pop Name
+                    | CompEq | JTrue Label | JFalse Label
+                    | Define Label -- not executed
+
+                    -- naive code generator
+                    transStat :: Stat -> [Instruction]
+                    transStat s
+                    = case s of
+                        Assign id exp -> transExp exp ++ [Pop id]
+                        Seq s1 s2 -> transStat s1 ++ transStat s2
+                        ForLoop id e1 e2 body ->
+                            transExp e1 ++ [Pop id] ++ -- initialisation
+                            [Define label1] ++
+                            transExp e2 ++ [PushAbs id] ++ [CompGt] ++ [JTrue label2] ++ -- test
+                            transStat body ++ -- loop body
+                            [PushAbs id] ++ [PushImm 1] ++ [Add] ++ [Pop id] ++ -- increment
+                            [Jump label1] ++ -- go back to test
+                            [Define label2] -- define end of loop
+
+                    transExp :: Exp -> [Instruction]
+                    transExp e
+                    = case e of
+                        Ident id -> [PushAbs id]
+                        Const v -> [PushImm v]
+                        Binop op e1 e2 -> transExp e1 ++ transExp e2 ++ transOp op
+                        Unop op e -> transExp e ++ transUnop op
+
+                    transOp :: Op -> [Instruction]
+                    transOp Plus = [Add]
+                    transOp Minus = [Sub]
+                    transOp Times = [Mul]
+                    transOp Divide = [Div]
+
+                    transUnop :: Op -> [Instruction]
+                    transUnop Minus = [Negate]
+                \end{lstlisting}
+                We need to remember that the compiler does \textbf{not} execute code, or evaluate the instructions, since it cannot know the value of variables which are determined at runtime.
+                Looking at line 16, in the code above, the instruction \textbf{list} ~transExp exp~, after execution, leaves the result of evaluating ~exp~ at the top of the stack, ready for ~Pop id~ to store.
+                It's also important to remember that ~Define~ isn't actually executed, but used for the assembler to figure out addresses for jumps.
+            \subsubsection*{Code Generation for a Machine with Registers}
+                While a stack machine isn't unrealistic, it will be much slower compared to one that has efficient use of registers.
+                For this part, we want to concentrate on the effective use of registers for arithmetic operations.
+                In the previous code snippet given in Haskell, we modify the instructions to use registers, as such (replacing instances where sensible, otherwise preserving them);
+                \begin{lstlisting}
+                    type Reg = Int
+
+                    data Instruction = Add Reg Reg | -- and so on
+                      | Load Reg Name | LoadImm Reg Int | Store Reg Name | Push Reg | Pop Reg
+                      | CompEq Reg Reg | JTrue Reg Label | JFalse Reg Label
+
+                    transExp :: Exp -> Reg -> [Instruction]
+                    transExp e r
+                      = case e of
+                          Ident id -> Load r id
+                          Const v -> LoadImm r v
+                          Binop op e1 e2 ->
+                            transExp e1 r ++
+                            transExp e2 (r + 1) ++
+                            [binop r (r + 1)]
+                            where
+                              binop = case op of
+                                Plus -> Add
+                    -- and so on
+                \end{lstlisting}
+                Notice the additional parameter given into ~transExp~.
+                This specifies the register in which the result of the operation should go into.
+                The allocation of registers in this translator mirrors the "slot" that the expression would be stored in on the stack.
+                As we mirror the stack in this sense, specifying something goes into register $i$ allows the program to modify anything $\geq i$, but nothing below it.
+                This is why we specify the second expression must be evaluated into $r + 1$, as we don't want to modify the result of the first.
+                \medskip
+
+                However, one caveat of this, if we were to evaluate ~(x * 4) + 3~, is that we would have to use a total of 2 registers.
+                This is because all our operations currently only work between registers, and therefore immediate values have to be loaded in.
+                However, many assembly languages allow for immediate operations on registers, meaning that the entire execution can be achieved with only a single register.
+                The general idea of this is that we are able to take advantage of pattern matching, given that the language the compiler is written in supports it, to look for these obvious patterns, such as doing arithmetic with a constant term.
+                This is called \textbf{instruction selection}.
+            \subsubsection*{Combination of Register and Stack}
+                When there aren't enough registers for us to use, in the case of a complex arithmetic operation for example, we want to start utilising the stack.
+                This gives us the performance benefits of using registers, but also allows us to perform arbitrarily complex computations.
+                \medskip
+
+                To do this, we consider the example of an accumulator machine.
+                This only has one register and also uses the stack.
+                Generating code for this allows us to generate code for the case where the registers are all full, except for one, which we then treat as the accumulator.
+                Therefore the general strategy is to consider it as a register machine until all but one register is used, and then treat it as an accumulator machine.
+                \medskip
+
+                Note that when we do work on an accumulator machine, the binary operation $e_1 \bullet e_2$ has the following order;
+                evaluate $e_2$ into the accumulator, push it to the stack, and then evaluate $e_1$ into the accumulator, then perform an add instruction that uses both the register and the stack.
+                \begin{lstlisting}
+                    transExp :: Exp -> Reg -> [Instruction]
+                    transExp e r
+                      = case e of
+                          -- etc
+                          Binop op e1 e2 ->
+                            if (r == MAXREG) then
+                              transExp e2 r ++
+                              [Push r] ++
+                              transExp e1 r ++
+                              transBinopStack op r -- one operand is register
+                            else
+                              transExp e1 r ++
+                              transExp e2 (r + 1) ++
+                              transBinop op r (r + 1) -- both operands are registers
+                          -- etc
+                \end{lstlisting}
 \end{document}
