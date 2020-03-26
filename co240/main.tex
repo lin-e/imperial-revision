@@ -56,9 +56,10 @@
 % custom commands
 \newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
 \newcommand{\defint}[4]{\int_{#1}^{#2} #3 \, \mathrm{d}#4}
+\newcommand{\pdif}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
 \newcommand{\limit}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\lim_{#1 \to #2}}$}}}
-\newcommand{\summation}[3]{\sum\limits_{#1}^{#2} #3}
+\newcommand{\summation}[2]{\sum\limits_{#1}^{#2}}
 \newcommand{\product}[2]{\prod\limits_{#1}^{#2}}
 \newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
 \newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
@@ -78,8 +79,11 @@
 \newcommand{\la}{\langle}
 \newcommand{\ra}{\rangle}
 \newcommand{\crnr}[1]{\text{\textopencorner} #1 \text{\textcorner}}
+\newcommand{\laplace}{\mathcal{L}}
+\newcommand{\fourier}{\mathcal{F}}
 
-\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\mat}[1]{\boldsymbol{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand{\rowt}[1]{\begin{bmatrix}
     #1
 \end{bmatrix}^\top}
