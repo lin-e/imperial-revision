@@ -158,7 +158,7 @@
 % actual document
 \begin{document}
     \section*{CO221 - Compilers}
-        \subsection*{6th January 2020 \hfill Lecture}
+        \subsection*{6th January 2020}
             A compiler is a program which processes programs, including translating a program written in one language (usually higher level) to another programming language (usually in a lower level).
             In our course, the focus is to generate assembly code from the high level language.
             This translation goes between high level human concepts, and the data manipulation the machine performs.
@@ -167,7 +167,7 @@
                 \begin{enumerate}[1.]
                     \itemsep0em
                     \item \textbf{input} \hfill takes in an input program in some language
-                    \item \textbf{analysis} \hfill constructs an interal representation of the source structure
+                    \item \textbf{analysis} \hfill constructs an internal representation of the source structure
                     \item \textbf{synthesis} \hfill walks the representation to generate the output code
                     \item \textbf{output} \hfill creates an output in the target language
                 \end{enumerate}
@@ -289,7 +289,7 @@
                 Only terminals can appear in the final results (they are lexical tokens).
                 \smallskip
 
-                To prove the following is a valid example of stat, we'd need to show that a can be derived from exp, and that both b and c can be dervied from stat.
+                To prove the following is a valid example of stat, we'd need to show that a can be derived from exp, and that both b and c can be derived from stat.
                 \begin{center}
                     if ( a ) b else c
                 \end{center}
@@ -310,8 +310,8 @@
                     nt = &\ \{ \text{bin}, \text{dig}\} \\
                     S = &\ \text{bin}
                 \end{align*}
-                A string of only terminals (\textbf{sentinal form}) can be derived using the grammar by beginning with the start symbol, and repeatedly replacing each non-terminal with the RHS from a corresponding production.
-                We refer to the set of all sentinal forms derived from the start symbol as the \textbf{language} of a grammar.
+                A string of only terminals (\textbf{sentential form}) can be derived using the grammar by beginning with the start symbol, and repeatedly replacing each non-terminal with the RHS from a corresponding production.
+                We refer to the set of all sentential forms derived from the start symbol as the \textbf{language} of a grammar.
                 \smallskip
 
                 We can prove that some string is in the language of a grammar by constructing a \textbf{parse tree}.
@@ -410,7 +410,7 @@
             \subsubsection*{Associativity and Precedence}
                 For our example language, we're using all left-associative operators.
                 We also want to maintain that '*' and '/' have higher precedence than '+' and '-'.
-                One way of doing this is to split the grammar into layers, by having seperate non-terminals for precedence levels.
+                One way of doing this is to split the grammar into layers, by having separate non-terminals for precedence levels.
                 This method can be done with the following unambiguous grammar for arithmetic expressions;
                 \begin{align*}
                     \text{exp} & \to \text{exp '+' term} \bnfsep \text{exp '-' term} \bnfsep \text{term} \\
@@ -568,26 +568,85 @@
 
                 In general, we push the current symbol onto the stack (or the reduction if we can reduce it).
                 For example, once we encounter ~'S'~, we can reduce it to stat, and similarly once we encounter ~'end'~, we can reduce it to statlist.
-
-                \begin{tabular}{|r|c|l|l|l|}
-                    \hline
-                    stack & current symbol & remaining tokens & S/R & note \\
-                    \hline
-                    & ~'begin'~ & ~'S'~ ~';'~ ~'S'~ ~';'~ ~'end'~ & S & nothing to do yet \\
-                    ~'begin'~ & \violet{~'S'~} & ~';'~ ~'S'~ ~';'~ ~'end'~ & R & terminal for stat \\
-                    ~'begin'~ & \blue{stat} & ~';'~ ~'S'~ ~';'~ ~'end'~ & S & no more work \\
-                    ~'begin'~ \blue{stat} & ~';'~ & ~'S'~ ~';'~ ~'end'~ & S & nothing to do yet \\
-                    ~'begin'~ \blue{stat} ~';'~ & \violet{~'S'~} & ~';'~ ~'end'~ & R & terminal for stat \\
-                    ~'begin'~ stat ~';'~ & \blue{stat} & ~';'~ ~'end'~ & S & no more work \\
-                    ~'begin'~ stat ~';'~ \blue{stat} & ~';'~ & ~'end'~ & S & nothing to do yet \\
-                    ~'begin'~ stat ~';'~ stat ~';'~ & \violet{~'end'~} & & R & terminal for statlist \\
-                    ~'begin'~ stat ~';'~ stat ~';'~ & \blue{statlist} & & & \\
-                    ~'begin'~ stat ~';'~ \violet{stat} \violet{~';'~} & \violet{statlist} & & R & match for statlist \\
-                    ~'begin'~ stat ~';'~ & \blue{statlist} & & & \\
-                    ~'begin'~ \violet{stat} \violet{~';'~} & \violet{statlist} & & R & match for statlist \\
-                    ~'begin'~ & \blue{statlist} & & & \\
-                    \violet{~'begin'~} & \violet{statlist} & & R & match for stat \\
-                    & \blue{stat} & & & complete \\
-                    \hline
-                \end{tabular}
+                \begin{center}
+                    \begin{tabular}{|r|c|l|l|l|}
+                        \hline
+                        stack & current symbol & remaining tokens & S/R & note \\
+                        \hline
+                        & ~'begin'~ & ~'S'~ ~';'~ ~'S'~ ~';'~ ~'end'~ & S & nothing to do yet \\
+                        ~'begin'~ & \violet{~'S'~} & ~';'~ ~'S'~ ~';'~ ~'end'~ & R & terminal for stat \\
+                        ~'begin'~ & \blue{stat} & ~';'~ ~'S'~ ~';'~ ~'end'~ & S & no more work \\
+                        ~'begin'~ \blue{stat} & ~';'~ & ~'S'~ ~';'~ ~'end'~ & S & nothing to do yet \\
+                        ~'begin'~ \blue{stat} ~';'~ & \violet{~'S'~} & ~';'~ ~'end'~ & R & terminal for stat \\
+                        ~'begin'~ stat ~';'~ & \blue{stat} & ~';'~ ~'end'~ & S & no more work \\
+                        ~'begin'~ stat ~';'~ \blue{stat} & ~';'~ & ~'end'~ & S & nothing to do yet \\
+                        ~'begin'~ stat ~';'~ stat ~';'~ & \violet{~'end'~} & & R & terminal for statlist \\
+                        ~'begin'~ stat ~';'~ stat ~';'~ & \blue{statlist} & & & \\
+                        ~'begin'~ stat ~';'~ \violet{stat} \violet{~';'~} & \violet{statlist} & & R & match for statlist \\
+                        ~'begin'~ stat ~';'~ & \blue{statlist} & & & \\
+                        ~'begin'~ \violet{stat} \violet{~';'~} & \violet{statlist} & & R & match for statlist \\
+                        ~'begin'~ & \blue{statlist} & & & \\
+                        \violet{~'begin'~} & \violet{statlist} & & R & match for stat \\
+                        & \blue{stat} & & & complete \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Simple Compiler in Haskell}
+                If the input to the parser is a simple string of characters, representing an arithmetic expression, following the BNF defined below;
+                \begin{align*}
+                    \text{expr} & \to \text{fact '+' expr} \bnfsep \text{fact} \\
+                    \text{fact} & \to \text{number} \bnfsep \text{identifier}
+                \end{align*}
+                The string ~a + b + 1~ would become the following sequence of tokens, after lexical analysis;
+                \begin{center}
+                    ~[IDENT "a", PLUS, IDENT "b", PLUS, NUM 1]~
+                \end{center}
+                It's important to note that this is a right-recursive grammar, as a recursive descent method \textbf{will not} work with left-recursive grammars.
+                \begin{lstlisting}
+                    data Token
+                      = IDENT [Char] | NUM Int | PLUS
+                    data Ast
+                      = Ident [Char] | Num Int | Plus Ast Ast
+                      deriving (Show)
+                    data Instr
+                      = PushVar [Char] | PushConst Int | Add
+                      deriving (Show)
+                    parse :: [Token] -> Ast
+                    parse ts =
+                      let (tree, ts') = parseExpr ts
+                      in case ts' of
+                        [] -> tree
+                        _  -> error "Excess tokens"
+                    parseExpr :: [Token] -> (Ast, [Token])
+                    parseExpr ts
+                      = let (factTree, ts') = parseFact ts
+                        in case ts' of
+                          (PLUS : ts') ->
+                            let (sExpTree, ts'') = parseExpr ts'
+                            in (Plus factTree sExpTree, ts'')
+                          other -> (factTree, other)
+                    parseFact :: [Token] -> (Ast, [Token])
+                    parseFact (t:ts)
+                      = case t of
+                          NUM n -> (Num n, ts)
+                          IDENT x -> (Ident x, ts)
+                          _ -> error "Expected a number or identifier"
+                    translate :: Ast -> [Instr]
+                    translate ast
+                      = case ast of
+                          Num n -> PushConst n
+                          Ident x -> PushVar x
+                          Plus e1 e2 -> translate e1 ++ translate e2 ++ [Add]
+                \end{lstlisting}
+                Comments on the code;
+                \begin{itemize}
+                    \itemsep0em
+                    \item Note that the structures for ~Token~ and ~Ast~, defined on lines 2 and 4 respectively, are very similar - however, the latter represents a tree structure
+                    \item We require a parsing function for each non-terminal in the code, hence we have ~parseExpr~ and ~parseFact~
+                    \item It's easier to start with the non-recursive cases, which are the factors
+                    \item From here, you can see that the recursion structure of the code closely follows the recursion structure of the grammar, as we have the recursion in line 20 (on expressions, after the factor is parsed)
+                    \item Each function returns the part of the AST it has generated and the \textbf{remaining} tokens after consuming input
+                    \item The final translation function generates instructions for a very simple stack machine
+                \end{itemize}
+        \subsection*{13th January 2020}
 \end{document}
