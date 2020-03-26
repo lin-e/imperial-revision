@@ -102,6 +102,8 @@
 
 \newcommand{\bnfsep}[0]{\ |\ }
 \newcommand{\concsep}[0]{\ ||\ }
+\newcommand{\ttbs}{\char`\\}
+
 \newcommand{\violet}[1]{\textcolor{violet}{#1}}
 \newcommand{\blue}[1]{\textcolor{blue}{#1}}
 \newcommand{\red}[1]{\textcolor{red}{#1}}
@@ -714,16 +716,261 @@
                         ~R1|R2~ & \textbf{alternation} of regex ~R1~ or ~R2~ (lowest precedence) \\
                         ~R*~ & \textbf{repetition} of regex ~R~ (0 or more times) (highest precedence) \\
                         ~(R)~ & \textbf{grouping} ~R~ by itself, used to override precedence \\
-                        ~\textbackslash{}a~ & "escaping", used to have a literal of a meta-character \\
+                        ~\ttbs{}a~ & "escaping", used to have a literal of a meta-character \\
                         \hline
-                        shortcut & \\
+                        shortcut & (can be made by the rules above) \\
                         \hline
                         ~R?~ & 0 or 1 occurrences of regex ~R~ \\
                         ~R+~ & 1 or more occurrences of regex ~R~ \\
                         ~[aeiou123]~ & any character from the given set \\
                         ~[a-zA-Z0-9]~ & any alphanumeric character \\
                         ~[\^{}a-zA-Z]~ & any character \textbf{except} the ones in the set \\
-                        $\bullet$ & any character except a newline
+                        ~.~ & any character except a newline
                     \end{tabular}
                 \end{center}
+        \subsection*{15th January 2020}
+            \subsubsection*{Regular Expression Rules}
+                We write rules or productions in the form $\alpha \to ~X~$, where $\alpha$ is a non-terminal (the name of the rule), and ~X~ is some regular expressions constructed by any combination of terminals (symbols) and non-terminals (names of \textbf{other} rules - recursion is not allowed, therefore all non-terminals must be defined before being used in another rule).
+                For example, we have the following regular expressions for a simple grammar (note that it looks very similar to WACC).
+                \begin{align*}
+                    \underline{~Digit~} & \to ~[0-9]~ \\
+                    \underline{~Int~} & \to \underline{~Digit~}~+~ \\
+                    \underline{~SignedDigit~} & \to ~(+ | -)? \underline{~Int~}~ \\
+                    \underline{~Keyword~} & = ~if | while | do~ \\
+                    \underline{~Identifier~} & = ~\underline{~Letter~} (\underline{~Letter~} | \underline{~Digit~})*~
+                \end{align*}
+                However, we can run into the issue of ambiguity, when a character sequence can match to more than one regex.
+                For example, the input string ~dough~ matches to the identifier ~dough~, as well as partially to the keyword ~do~.
+                Two strategies are either to match the longest character sequence (causing the former), or to have textual precedence, where the first regex takes precedence (causing the latter).
+            \subsubsection*{Finite Automata}
+                When we draw a finite automata, its important to note the following symbols we use;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{states} are circles
+                        \begin{itemize}
+                            \itemsep0em
+                            \item the \textbf{start} state has an unlabelled arrow going into it
+                            \item the \textbf{accepting} (end) state is a double circle
+                            \item all non-accepting states have arrows leading to an error state, but this is often omitted
+                        \end{itemize}
+                    \item \textbf{transitions} are arrows between states, with the matched \textbf{symbol} being the labels of the arrows
+                \end{itemize}
+                The types of finite automata we look at are the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{deterministic finite automata (DFA)}
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \node[state, minimum size=1cm, initial] (0) at (0, 0) {$0$};
+                                \node[state, minimum size=1cm] (1) at (2, 0) {$1$};
+                                \node[state, minimum size=1cm, accepting] (2) at (4, 0) {$2$};
+
+                                \draw
+                                (0) edge[->, above] node{i} (1)
+                                (1) edge[->, above] node{f} (2);
+                            \end{tikzpicture}
+                        \end{center}
+                        The example above is deterministic as there are no two transitions from the same state with the same symbol.
+                    \item \textbf{non-deterministic finite automata (NFA)}
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \node[state, minimum size=1cm, initial] (0) at (0, 0) {$0$};
+                                \node[state, minimum size=1cm] (1) at (2, 0) {$1$};
+                                \node[state, minimum size=1cm, accepting] (2) at (4, 0) {$2$};
+
+                                \draw
+                                (0) edge[->, above] node{i} (1)
+                                (0) edge[->, bend right=30, below] node{i} (2)
+                                (1) edge[->, above] node{f} (2);
+                            \end{tikzpicture}
+                        \end{center}
+                        The example above is non-deterministic as there is more than one transition from state 0 with the same symbol.
+                        It allows for choice and more compact solutions, but requires backtracking.
+                \end{itemize}
+            \subsubsection*{Conversion of Regex to (Non-Deterministic) Finite Automata}
+                \textbf{Thompson's construction} uses $\epsilon$-transitions to "glue" together automata.
+                While this is usually represented with an $\epsilon$ over the transition, it can be omitted for brevity, and therefore any transitions without labels will be assumed to be $\epsilon$-transitions.
+                In lieu of repeatedly drawing the same thing, let the regular expression ~R1~ have an initial state of $p$ and an accepting / end state of $q$, and let ~R2~ have an initial state $r$ and accepting state $s$.
+                Also note that within the dotted lines can exist an arbitrarily complex automata.
+                \begin{center}
+                    \begin{tabular}{>{\centering\arraybackslash}m{1.5cm}>{\centering\arraybackslash}m{10cm}}
+                        regex & FA \\
+                        \hline \\
+                        ~a~ &
+                        \begin{tikzpicture}
+                            \node[state, minimum size=1cm, initial] (0) at (0, 0) {};
+                            \node[state, minimum size=1cm, accepting] (1) at (2, 0) {};
+
+                            \draw
+                            (0) edge[->, above] node{a} (1);
+                        \end{tikzpicture} \\
+                        $\epsilon$ &
+                        \begin{tikzpicture}
+                            \node[state, minimum size=1cm, initial] (0) at (0, 0) {};
+                            \node[state, minimum size=1cm, accepting] (1) at (2, 0) {};
+
+                            \draw
+                            (0) edge[->, above] node{$(\epsilon)$} (1);
+                        \end{tikzpicture} \\
+                        ~R1~ &
+                        \begin{tikzpicture}
+                            \node[state, minimum size=1cm, initial] (p) at (0, 0) {$p$};
+                            \node[state, minimum size=1cm, accepting] (q) at (2, 0) {$q$};
+
+                            \node at ($0.5*(p) + 0.5*(q)$) {~R1~};
+
+                            \draw[dashed] ($(p) + (-0.75, 0.75)$) -- ($(q) + (0.75, 0.75)$) -- ($(q) + (0.75, -0.75)$) -- ($(p) + (-0.75, -0.75)$) -- cycle;
+                        \end{tikzpicture} \\
+                        ~R1 R2~ &
+                        \begin{tikzpicture}
+                            \node[state, minimum size=1cm, initial] (p) at (0, 0) {$p$};
+                            \node[state, minimum size=1cm] (q) at (2, 0) {$q$};
+
+                            \node at ($0.5*(p) + 0.5*(q)$) {~R1~};
+
+                            \draw[dashed] ($(p) + (-0.75, 0.75)$) -- ($(q) + (0.75, 0.75)$) -- ($(q) + (0.75, -0.75)$) -- ($(p) + (-0.75, -0.75)$) -- cycle;
+
+                            \node[state, minimum size=1cm] (r) at (4, 0) {$r$};
+                            \node[state, minimum size=1cm, accepting] (s) at (6, 0) {$s$};
+
+                            \node at ($0.5*(r) + 0.5*(s)$) {~R2~};
+
+                            \draw[dashed] ($(r) + (-0.75, 0.75)$) -- ($(s) + (0.75, 0.75)$) -- ($(s) + (0.75, -0.75)$) -- ($(r) + (-0.75, -0.75)$) -- cycle;
+
+                            \draw (q) edge[->] (r);
+                        \end{tikzpicture} \\
+                        ~R1|R2~ &
+                        \begin{tikzpicture}
+                            \node[state, minimum size=1cm, initial] (0) at (0, 0) {};
+                            \node[state, minimum size=1cm, accepting] (1) at (6, 0) {};
+
+                            \node[state, minimum size=1cm] (p) at (2, 1) {$p$};
+                            \node[state, minimum size=1cm] (q) at (4, 1) {$q$};
+
+                            \node at ($0.5*(p) + 0.5*(q)$) {~R1~};
+
+                            \draw[dashed] ($(p) + (-0.75, 0.75)$) -- ($(q) + (0.75, 0.75)$) -- ($(q) + (0.75, -0.75)$) -- ($(p) + (-0.75, -0.75)$) -- cycle;
+
+                            \node[state, minimum size=1cm] (r) at (2, -1) {$r$};
+                            \node[state, minimum size=1cm] (s) at (4, -1) {$s$};
+
+                            \node at ($0.5*(r) + 0.5*(s)$) {~R2~};
+
+                            \draw[dashed] ($(r) + (-0.75, 0.75)$) -- ($(s) + (0.75, 0.75)$) -- ($(s) + (0.75, -0.75)$) -- ($(r) + (-0.75, -0.75)$) -- cycle;
+
+                            \draw
+                            (0) edge[->] (p)
+                            (0) edge[->] (r)
+                            (q) edge[->] (1)
+                            (s) edge[->] (1);
+                        \end{tikzpicture} \\
+                        ~R1*~ &
+                        \begin{tikzpicture}
+                            \node[state, minimum size=1cm, initial] (0) at (0, 0) {};
+                            \node[state, minimum size=1cm, accepting] (1) at (6, 0) {};
+
+                            \node[state, minimum size=1cm] (p) at (2, 0) {$p$};
+                            \node[state, minimum size=1cm] (q) at (4, 0) {$q$};
+
+                            \node at ($0.5*(p) + 0.5*(q)$) {~R1~};
+
+                            \draw[dashed] ($(p) + (-0.75, 0.75)$) -- ($(q) + (0.75, 0.75)$) -- ($(q) + (0.75, -0.75)$) -- ($(p) + (-0.75, -0.75)$) -- cycle;
+
+                            \draw
+                            (0) edge[->] (p)
+                            (0) edge[->, bend right=45] (1)
+                            (q) edge[->] (1)
+                            (q) edge[->, bend left=45] (p);
+                        \end{tikzpicture} \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                For example, consider the regular expressions for an identifier, following the form ~L(L | D)*~, which represents a letter followed by any combination of letters and digits.
+                Note that we are allowed to abbreviate the use of ~Letter~ to ~L~, for brevity, and similar for ~Digit~ to ~D~.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm, initial] (0) at (0, 0) {};
+                        \node[state, minimum size=1cm] (1) at (2, 0) {};
+                        \node[state, minimum size=1cm] (2) at (4, 0) {};
+                        \node[state, minimum size=1cm] (3) at (10, 0) {};
+                        \node[state, minimum size=1cm, accepting] (4) at (12, 0) {};
+                        \node[state, minimum size=1cm] (l1) at (6, 1) {};
+                        \node[state, minimum size=1cm] (l2) at (8, 1) {};
+                        \node[state, minimum size=1cm] (d1) at (6, -1) {};
+                        \node[state, minimum size=1cm] (d2) at (8, -1) {};
+
+                        \draw
+                        (0) edge[->, above] node{~L~} (1)
+                        (1) edge[->] (2)
+                        (1) edge[->, bend right=45] (4)
+                        (2) edge[->] (l1)
+                        (2) edge[->] (d1)
+                        (l1) edge[->, above] node{~L~} (l2)
+                        (d1) edge[->, above] node{~D~} (d2)
+                        (l2) edge[->] (3)
+                        (d2) edge[->] (3)
+                        (3) edge[->] (4)
+                        (3) edge[->, bend right=75] (2);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Conversion from NFA to DFA}
+                It's important to note the worst case complexities for NFA and DFA are as follows, where $n$ is the length of the input string, and $r$ is the length of the regular expression;
+                \begin{center}
+                    \begin{tabular}{l|c|c}
+                        type & space complexity & time complexity \\
+                        \hline
+                        NFA & $O(r)$ & $O(nr)$ \\
+                        DFA & $O(2^r)$ & $O(n)$
+                    \end{tabular}
+                \end{center}
+                As you can see, DFAs are much faster, but can be exponentially bigger than NFAs.
+                However, the worst case space complexity for a DFA is rarely reached for lexer analyser generators.
+                \medskip
+
+                In order to convert from NFA to DFA, we use $\epsilon$-closures.
+                To avoid repetition, I will be denoting the $\epsilon$ closure of $s$ as $\epsilon_c(s)$.
+                \begin{align*}
+                    \epsilon_c(s) & = \text{set of states reachable by zero or more $\epsilon$-transitions from $s$} \\
+                    \epsilon_c(\{s_1, \dots, s_n\}) & = \bigcup\limits_{i = 1}^{n} s_i
+                \end{align*}
+                For example, take the following NFA;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm, initial] (0) at (0, 0) {$0$};
+                        \node[state, minimum size=1cm] (1) at (2, 0) {$1$};
+                        \node[state, minimum size=1cm] (2) at (4, 0) {$2$};
+                        \node[state, minimum size=1cm, accepting] (3) at (6, 0) {$3$};
+
+                        \draw
+                        (0) edge[->] (1)
+                        (0) edge[->, bend left=45] (3)
+                        (1) edge[->, above] node{a} (2)
+                        (2) edge[->, bend right=45] (1)
+                        (2) edge[->] (3)
+                        (3) edge[->, bend left=45] (1);
+                    \end{tikzpicture}
+                \end{center}
+                Which has the following closures;
+                \begin{align*}
+                    \epsilon_c(0) & = \{ 0, 1, 3 \} \\
+                    \epsilon_c(1) & = \{ 1 \} \\
+                    \epsilon_c(2) & = \{ 1, 2, 3 \} \\
+                    \epsilon_c(3) & = \{ 1, 3 \}
+                \end{align*}
+                From our start state, we then create a node consisting of its $\epsilon$-closure.
+                We look at this new node, find the ones that have a non-$\epsilon$-transition, and handle those cases.
+                For each new case, we take the state that it goes to, and create a node consisting of its $\epsilon$-closure, and repeat the process.
+                Finally, we mark each of the states that contain an accepting state as an accepting state.
+                The example above becomes the following;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm, initial, accepting] (0) at (0, 0) {$013$};
+                        \node[state, minimum size=1cm, accepting] (1) at (2, 0) {$213$};
+                        \draw
+                        (0) edge[->, above] node{a} (1)
+                        (1) edge[->, loop, out=-30, in=30, right, distance=1.5cm] node{a} (1);
+                    \end{tikzpicture}
+                \end{center}
+        \subsection*{17th January 2020}
+            sss33
 \end{document}
