@@ -1563,4 +1563,148 @@
                     \end{tikzpicture}
                     \hfill \phantom{}
                 \end{center}
+        \subsection*{27th January 2020}
+            \subsubsection*{LR(1) Items}
+                An LR(1) item is a pair consisting of an LR(0) item, and a lookahead token ~t~.
+                The process for a terminal doesn't change much;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state] (0) at (0, 0) {$~(X~ \to ~A~ \lrbt ~BC, t)~$};
+                        \node[state] (1) at (5, 0) {$~(X~ \to ~AB~ \lrbt ~C, t)~$};
+                        \draw (0) edge[->, above] node{~B~} (1);
+                    \end{tikzpicture}
+                \end{center}
+                However, if ~B~ is a rule, then for each rule in the form $~B~ \to ~D~$, we add an $\epsilon$-transition for every token ~u~ in FIRST(~Ct~), we add a transition if and only if the string following ~B~ is derivable from ~Ct~.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state] (0) at (0, 0) {$~(X~ \to ~A~ \lrbt ~BC, t)~$};
+                        \node[state] (1) at (5, 0) {$~(B~ \to \lrbt ~D, u)~$};
+                        \draw (0) edge[->, above] node{$\epsilon$} (1);
+                    \end{tikzpicture}
+                \end{center}
+                The auxiliary item $~(X'~ \to \lrbt ~X, \$)~$ is also added to start the construction of the parsing table.
+                The reduction is only done if the current token matches ~t~.
+                Consider the following grammar (not written with the vertical separation), and the states of the DFA;
+                \begin{align*}
+                    ~S'~ & \to ~\underline{S} \$~ \\
+                    ~S~ & \to ~id~ & & ~r1~ \\
+                    ~S~ & \to ~\underline{V} = \underline{E}~ & & ~r2~ \\
+                    ~V~ & \to ~id~ & & ~r3~ \\
+                    ~E~ & \to ~\underline{V}~ & & ~r4~ \\
+                    ~E~ & \to ~int~ & & ~r5~
+                    \intertext{state 0:}
+                    ~S'~ & \to \lrbt ~\underline{S}, \$~ & \text{starting state} &\ [1] \\
+                    ~S~ & \to \lrbt ~id, \$~ & \text{derived from non-terminal in (1)} &\ [2] \\
+                    ~S~ & \to \lrbt ~\underline{V} = \underline{E}, \$~ & \text{derived from non-terminal in (1)} &\ [3] \\
+                    ~V~ & \to \lrbt ~id, =~ & \text{derived from non-terminal in (3)} &\ [4]
+                    \intertext{state 1:}
+                    ~S'~ & \to ~\underline{S}~ \lrbt ~, \$~ & \text{shift from (1)} &\ [5]
+                    \intertext{state 2:}
+                    ~S~ & \to ~id~ \lrbt ~, \$~ & \text{shift from (2)} &\ [6] \\
+                    ~V~ & \to ~id~ \lrbt ~, =~ & \text{shift from (4)} &\ [7]
+                    \intertext{state 3:}
+                    ~S~ & \to ~\underline{V}~ \lrbt ~= \underline{E}, \$~ & \text{shift from (3)} &\ [8]
+                    \intertext{state 4:}
+                    ~S~ & \to ~\underline{V} =~ \lrbt ~\underline{E}, \$~ & \text{shift from (8)} &\ [9] \\
+                    ~E~ & \to \lrbt ~int, \$~ & \text{derived from non-terminal in (9)} &\ [10] \\
+                    ~E~ & \to \lrbt ~\underline{V}, \$~ & \text{derived from non-terminal in (9)} &\ [11] \\
+                    ~V~ & \to \lrbt ~id, \$~ & \text{derived from non-terminal in (11)} &\ [12]
+                    \intertext{state 5:}
+                    ~S~ & \to ~\underline{V} = \underline{E}~ \lrbt ~, \$~ & \text{shift from (8)} &\ [13]
+                    \intertext{state 6:}
+                    ~E~ & \to ~int~ \lrbt ~, \$~ & \text{shift from (10)} &\ [14]
+                    \intertext{state 7:}
+                    ~E~ & \to ~\underline{V}~ \lrbt  ~, \$~ & \text{shift from (11)} &\ [15]
+                    \intertext{state 8:}
+                    ~V~ & \to ~id~ \lrbt ~, \$~ & \text{shift from (12)} &\ [16]
+                \end{align*}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm, initial] (0) at (0, 0) {$0$};
+                        \node[state, minimum size=1cm] (1) at (2, 2) {$1$};
+                        \node[state, minimum size=1cm] (2) at (2, 0) {$2$};
+                        \node[state, minimum size=1cm] (3) at (2, -2) {$3$};
+                        \node[state, minimum size=1cm] (4) at (4, -2) {$4$};
+                        \node[state, minimum size=1cm] (5) at (6, 2) {$5$};
+                        \node[state, minimum size=1cm] (6) at (6, 0) {$6$};
+                        \node[state, minimum size=1cm] (7) at (6, -2) {$7$};
+                        \node[state, minimum size=1cm] (8) at (6, -4) {$8$};
+                        \draw
+                        (0) edge[->, above] node{~S~} (1)
+                        (0) edge[->, above] node{~id~} (2)
+                        (0) edge[->, above] node{~V~} (3)
+                        (3) edge[->, above] node{~=~} (4)
+                        (4) edge[->, above] node{~E~} (5)
+                        (4) edge[->, above] node{~int~} (6)
+                        (4) edge[->, above] node{~V~} (7)
+                        (4) edge[->, above] node{~id~} (8);
+                    \end{tikzpicture}
+                \end{center}
+                This is represented in the following parsing table - note that the reduce state now only happens when it matches ~t~;
+                \begin{center}
+                    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+                        \hline
+                        \multirow{2}{*}{state} & \multicolumn{4}{c|}{action} & \multicolumn{3}{c|}{goto} \\
+                        \cline{2-8}
+                        & ~id~ & ~int~ & ~=~ & ~\$~ & ~\underline{E}~ & ~\underline{V}~ & ~\underline{S}~ \\
+                        \hline
+                        0 & ~s2~ & & & & & ~g3~ & ~g1~ \\
+                        1 & & & & ~a~ & & & \\
+                        2 & & & ~r3~ & ~r1~ & & & \\
+                        3 & & & ~s4~ & & & & \\
+                        4 & ~s8~ & ~s6~ & & & ~g5~ & ~g7~ & \\
+                        5 & & & & ~r2~ & & & \\
+                        6 & & & & ~r5~ & & & \\
+                        7 & & & & ~r4~ & & & \\
+                        8 & & & & ~r3~ & & & \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{LALR(1)}
+                In reality, LR(1) parsers don't really exist.
+                We optimise LR(1) by merging LR(1) items that have the same LR(0) item, but different lookaheads into a single LALR(1) item that has the LR(0) item and the combined set of lookaheads.
+                For example, we can combine these states;
+                \begin{align*}
+                    \intertext{[LR(1)] state 2:}
+                    ~X~ & \to ~\underline{E}~ \lrbt ~T, =~ \\
+                    ~V~ & \to ~id~ \lrbt ~, +~
+                    \intertext{[LR(1)] state 3:}
+                    ~X~ & \to ~\underline{E}~ \lrbt ~T, \$~ \\
+                    ~V~ & \to ~id~ \lrbt ~, /~
+                    \intertext{[LALR(1)] state 23:}
+                    ~X~ & \to ~\underline{E}~ \lrbt ~T, \{=, \$\}~ \\
+                    ~V~ & \to ~id~ \lrbt ~, \{+, /\}~
+                \end{align*}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm] (2) at (0, 0) {$2$};
+                        \node[state, minimum size=1cm] (3) at (0, -2) {$3$};
+                        \draw
+                        (-2, 0) edge[->, above] node{~int~} (2)
+                        (-2, -2) edge[->, above] node{~\underline{Y}~} (3);
+
+                        \node at (2.25, -1) {becomes};
+
+                        \node[state, minimum size=1cm] (23) at (6, -1) {$23$};
+                        \draw
+                        (4, 0) edge[->, above] node{~int~} (23)
+                        (4, -2) edge[->, above] node{~\underline{Y}~} (23);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Ambiguity and Conflicts}
+                Ambiguity can be removed by rewriting the grammar, or adding additional rules.
+                For example, we can get a shift-reduce conflict when we don't know whether to reduce an item or to continue, or we can get a reduce-reduce conflict, when it could reduce to either rule;
+                \begin{align*}
+                    \intertext{shift-reduce conflict}
+                    ~A~ & \to ~id~ & \text{can be reduced} \\
+                    ~A~ & \to ~id '[' \underline{Expr} ']'~ & \text{can be shifted}
+                    \intertext{reduce-reduce conflict}
+                    ~Expr~ & \to ~id~ \\
+                    ~Var~ & \to ~id~
+                \end{align*}
+                Similar to lexing, we'd normally continue shifting in the first case, and in the second case we give precedence to the first rule declared.
+            \subsubsection*{Parse Trees}
+                When we perform a shift, we are recognising an input and it builds a leaf node for the parse tree.
+                On the other hand, when we perform a reduce, we take the leaf nodes, and put them into a parent node for the parse tree.
+                However, this tree can have a lot of junk in it (thus being inconvenient to work with), and is either pruned in a separate pass to generate an abstract syntax tree (AST), or generated with instructions augmented onto the existing rules for the grammar to generate nodes as it is being parsed.
 \end{document}
