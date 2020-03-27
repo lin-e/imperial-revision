@@ -15,7 +15,7 @@
 \usepackage{hyperref}
 \usepackage{multirow}
 \usepackage{tipa}
-\usetikzlibrary{decorations.pathreplacing, arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning}
+\usetikzlibrary{decorations.pathreplacing, arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning, intersections}
 
 % shorthand for verbatim
 % this clashes with logicproof, so maybe fix this at some point?
@@ -1357,4 +1357,210 @@
                         For example, in the first case, if ~R~ = ~X~, then the FOLLOW set of ~R~ needs the FOLLOW set of ~R~, but there's no point in doing this.
                 \end{itemize}
                 It's also important to consider the case where it can be $\epsilon$.
+        \subsection*{24th January 2020}
+            \subsubsection*{Weights}
+                In the grammar, we've defined expressions to be right associative, hence it is a right growing tree.
+                This requires more registers if we evaluate the left side first, as we need to retain this result for the next calculation.
+                This can be shown in the example below, for the evaluation of $1 + 2 + 3$, with the left tree begin left associative $(1 + 2) + 3$, and the right tree being right associative $1 + (2 + 3)$ - note that the former uses 2 registers, whereas the latter uses 3.
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node (p1) at (0, 0) {$+ (~R0~)$};
+                        \node (p2) at (-1, -1) {$+ ~(R0)~$};
+                        \node (1) at (-2, -2) {$1 ~(R0)~$};
+                        \node (2) at (0, -2) {$2 ~(R1)~$};
+                        \node (3) at (1, -1) {$3 ~(R1)~$};
+
+                        \draw
+                        (p1) -- (p2)
+                        (p1) -- (3)
+                        (p2) -- (1)
+                        (p2) -- (2);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node (p1) at (0, 0) {$+ (~R0~)$};
+                        \node (p2) at (1, -1) {$+ ~(R1)~$};
+                        \node (1) at (-1, -1) {$1 ~(R0)~$};
+                        \node (2) at (0, -2) {$2 ~(R1)~$};
+                        \node (3) at (2, -2) {$3 ~(R2)~$};
+
+                        \draw
+                        (p1) -- (1)
+                        (p1) -- (p2)
+                        (p2) -- (2)
+                        (p2) -- (3);
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                The general idea for this is to first evaluate the subexpression that requires more registers.
+                For example, let there be a binary operator with operands $e_1$ and $e_2$, needing $L$ registers, and $R$ registers respectively.
+                If we choose to evaluate $e_1$ first, then we require $L$ registers, and $R + 1$ registers - this is because in the evaluation of $e_2$, we need to use $R$ registers, as well as maintaining the result of $e_1$.
+                Therefore, the cost (in registers) for evaluating $e_1$ first is $c_1 = \max \{ L, R + 1 \}$.
+                Under similar reasoning, the cost of evaluating $e_2$ first is $c_2 = \max \{ L + 1, R \}$.
+                Therefore, assuming we always choose the optimal subtree in terms of registers, we have the overall cost of evaluating the binary operation is $\min \{ c_1, c_2 \}$.
+                We can represent the weights as follows;
+                \begin{lstlisting}
+                    weight :: Exp -> Int
+                    weight (Const _) = 1
+                    weight (Ident _) = 1
+                    weight (Binop _ e1 e2) = min c1 c2
+                      where
+                        c1 = max (weight e1) (weight e2) + 1
+                        c2 = max (weight e1) + 1 (weight e2)
+                \end{lstlisting}
+                However, when we specify the target registers (naively) we have one of two issues;
+                \begin{itemize}
+                    \itemsep0em
+                    \item it stores the result of ~e2~ into ~r~, and ~e1~ into ~(r + 1)~, when ~e2~ is evaluated first, this leads to issues with operators that aren't commutative
+                    \item trying to fix the above, and storing ~e2~ into ~(r + 1)~, then evaluating ~e1~ into ~r~ - the evaluation of ~e1~ may modify the contents of ~(r + 1)~, hence overwriting the result of ~e2~
+                \end{itemize}
+                The fix is to give the expression translation function a list of registers it's able to use.
+                The result should be stored into the first register in that list.
+                \begin{lstlisting}
+                    transExp :: Exp -> [Register] -> [Instruction]
+                    transExp (Const n) (dst:_) = [LoadImm dst n]
+                    transExp (Ident x) (dst:_) = [LoadAbs dst x]
+                    transExp (Binop op e1 e2) (dst:nxt:rest)
+                      | weight e1 > weight e2 =
+                          transExp e1 (dst:nxt:rest) ++
+                          transExp e2 (nxt:rest) ++
+                          transBinop op dst nxt
+                      | otherwise =
+                          transExp e1 (dst:nxt:rest) ++
+                          transExp e2 (nxt:rest) ++
+                          transBinop op dst nxt
+                \end{lstlisting}
+                However, this can be further optimised by using more advanced instructions such as doing immediate addressing whenever possible.
+                The translator can use pattern-matching to detect these cases.
+                \medskip
+
+                The worst case for this is a perfectly balanced tree.
+                This is because if it is unbalanced, then we can always choose a more optimal side.
+                When there are $k$ operators, and $k - 1$ intermediate values, the number of registers is the depth of the tree ($\ceil{\log_2(k)}$).
+                This means that with $N$ registers, we can support expressions with up to $2^N$ operators.
+                \medskip
+
+                Note that the algorithm above can lead to issues when working with side effecting expressions, as the order of execution is important.
+                For example, ~(x)+(x++)~ is different from ~(x++)+(x)~.
+            \subsubsection*{Function Calls}
+                At the function call, registers may already be in use, and therefore those will need to be saved.
+                Note that the address of the next instruction also has to be saved onto the stack, for the function to return to the correct place (notice how the control paths are coloured).
+                Consider the example below, where $~body~_~0~$ requires the set of registers $M$, $~body~_~1~$ requires set $N$, and $~body~_~F~$ requires set $P$.
+                \begin{center}
+                    \begin{tikzpicture}[y=0.6cm]
+                        \node[anchor=west] (b0) at (0, 0) {$~body~_~0~$};
+                        \node[anchor=west] (j1) at (0, -1) {$~Jsr F~$};
+                        \node[anchor=west] (b1) at (0, -2) {$~body~_~1~$};
+                        \node[anchor=west] (j2) at (0, -3) {$~Jsr F~$};
+                        \node[anchor=west] (b2) at (0, -4) {$~body~_~2~$};
+                        \node[anchor=west] (f) at (3, 0) {$~F:~$};
+                        \node[anchor=west] (bf) at (3.5, -1) {$~body~_~F~$};
+                        \node[anchor=west] (r) at (3.5, -2) {$~ret~$};
+
+                        \draw[blue]
+                        (j1.east) edge[->] (f.west)
+                        (r.west) edge[->] (b1.east);
+
+                        \draw[red]
+                        (j2.east) edge[->] (f.west)
+                        (r.west) edge[->] (b2.east);
+                    \end{tikzpicture}
+                \end{center}
+                There are two conventions (and a hybrid of the two) for saving registers with regards to calls;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{caller-saved}
+                        \medskip
+
+                        Before the instruction ~Jsr F~ is executed (after $~body~_~0~$), it saves the intersection of registers currently in use, and registers that the function will use $(M \cap P)$.
+                        After the function returns, it restores $(M \cap P)$.
+                    \item \textbf{callee-saved}
+                        \medskip
+
+                        Since the callee doesn't know which jump it's coming from, it has to save everything that \textbf{might} be in use.
+                        Before $~body~_~F~$ is executed, it saves the set of registers $(M \cup N) \cap P$, and then restores it before returning.
+                \end{itemize}
+            \subsubsection*{Optimising Compilers}
+                While the Sethi-Ullman algorithm we followed is fast, and very easy to test, it's essentially a tree walk.
+                Therefore it doesn't take into context what it's translating (other than the small optimisation we used to determine weights),
+                Currently, in our implementation, we don't use registers to carry values between states, and only use them to store intermediate values for computation.
+                An optimising compiler can have named variables in the register, with no reference to the main memory, therefore being much faster.
+                Note that Sethi-Ullman is optimal in trees that have no shared subtrees.
+            \subsubsection*{Graph Colouring}
+                An obvious optimisation of the code below;
+                \begin{lstlisting}
+                    a1 := b1 + s * k
+                    a2 := b2 + s * k
+                \end{lstlisting}
+                would be compute the value of ~s * k~ into a temporary variable (stored in a register) and use it for both expressions;
+                \begin{lstlisting}
+                    t  := s * k
+                    a1 := b1 + t
+                    a2 := b2 + t
+                \end{lstlisting}
+                We need to consider all variables on equal terms (not just ones defined by the programmer) - including intermediate values during computation.
+                \medskip
+
+                This can be achieved by doing the following;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item perform a simple tree walk to generate intermediate code where temporary values are saved in named locations (three address code - looks similar to assembly but with infinite registers)
+                    \item construct an interference graph, where the nodes are temporary locations, and an arc between two nodes represents an overlap in live ranges (if they must be stored simultaneously)
+                    \item colour the graph, with each register being its own colour - no connected nodes can have the same register
+                \end{enumerate}
+                This is very straightforward in the case of straight line code, as we simply consider the live-in to be the first use of the value (when it is first declared), and the live-out to be the last use.
+                Note that the LHS and RHS of an assignment does not count as a simultaneous use.
+                \begin{lstlisting}[escapechar=!]
+                    !\tikz[remember picture] \node (l1) {};!A!\tikz[remember picture] \node (ain) {};!:=!\tikz[remember picture] \node {};!e1
+                    !\tikz[remember picture] \node (l2) {};!B!\tikz[remember picture] \node (bin) {};!:=!\tikz[remember picture] \node {};!e2
+                    !\tikz[remember picture] \node (l3) {};!...
+                    !\tikz[remember picture] \node (l4) {};!... B ...
+                    !\tikz[remember picture] \node (l5) {};!C!\tikz[remember picture] \node (cin) {};!:=!\tikz[remember picture] \node (boutp) {};!A + B!\tikz[remember picture] \node (bout) {};!
+                    !\tikz[remember picture] \node (l6) {};!...
+                    !\tikz[remember picture] \node (l7) {};!D!\tikz[remember picture] \node (din) {};!:=!\tikz[remember picture] \node (aoutp) {};!A * 5!\tikz[remember picture] \node (aout) {};!
+                    !\tikz[remember picture] \node (l8) {};!... D ...!\tikz[remember picture] \node (dout) {};!
+                    !\tikz[remember picture] \node (l9) {};!... C ...!\tikz[remember picture] \node (cout) {};!
+                \end{lstlisting}
+                \begin{tikzpicture}[remember picture, overlay]
+                    \draw[violet, dashed, name path=alive]
+                    (ain.south) -- (ain.north) -- (l1.north) -- (l7.north) -- (aoutp.north) -- (aoutp.south) -- (aout.south) |- cycle;
+
+                    \draw[blue, dashed, name path=blive]
+                    (bin.south) -- (bin.north) -- (l2.north) -- (l5.north) -- (boutp.north) -- (boutp.south) -- (bout.south) |- cycle;
+
+                    \draw[red, dashed, name path=clive]
+                    (cin.south) -- (cin.north) -- (l5.north) -- (l9.south) -- (cout.south) |- cycle;
+
+                    \draw[olive, dashed, name path=dlive]
+                    (din.south) -- (din.north) -- (l7.north) -- (l8.south) -- (dout.south) |- cycle;
+                \end{tikzpicture}
+                This gives the following interference graph, and the result of the colouring;
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm] (a) at (0, 0) {\violet{~A~}};
+                        \node[state, minimum size=1cm] (b) at (2, 0) {\blue{~B~}};
+                        \node[state, minimum size=1cm] (c) at (0, -2) {\red{~C~}};
+                        \node[state, minimum size=1cm] (d) at (2, -2) {\textcolor{olive}{~D~}};
+
+                        \draw
+                        (a) -- (b)
+                        (a) -- (c)
+                        (c) -- (d);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm] (a) at (0, 0) {\violet{~R1~}};
+                        \node[state, minimum size=1cm] (b) at (2, 0) {\blue{~R2~}};
+                        \node[state, minimum size=1cm] (c) at (0, -2) {\blue{~R2~}};
+                        \node[state, minimum size=1cm] (d) at (2, -2) {\violet{~R1~}};
+
+                        \draw
+                        (a) -- (b)
+                        (a) -- (c)
+                        (c) -- (d);
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
 \end{document}
