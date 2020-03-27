@@ -1236,4 +1236,116 @@
                     \item[type 1:] $\alpha~R~\beta \to \alpha \varphi \beta$ \hfill context sensitive grammars (linear bounded automata)
                     \item[type 0:] $\alpha \to \beta$ \hfill unrestricted grammars
                 \end{enumerate}
+        \subsection*{22nd January 2020}
+            \subsubsection*{DFA to LR(0) Parsing Table}
+                From the LR(0) items, it's fairly straightforward to determine the $\epsilon$-closures, therefore the DFA can be constructed directly (however it can also be constructed with subset construction from a NFA).
+                Continuing on with the simple expression example from last lecture, we can construct the DFA with the following rules in each state;
+                \begin{align*}
+                    \intertext{state 0:}
+                    ~E'~ & \to \lrbt ~E~ \\
+                    ~E~ & \to \lrbt ~E + int~ \\
+                    ~E~ & \to \lrbt ~int~
+                    \intertext{state 1:}
+                    ~E'~ & \to ~E~ \lrbt \\
+                    ~E~ & \to ~E~ \lrbt ~+ int~
+                    \intertext{state 2:}
+                    ~E~ & \to ~E +~ \lrbt ~int~
+                    \intertext{state 3:}
+                    ~E~ & \to ~E + int~ \lrbt
+                    \intertext{state 4:}
+                    ~E~ & \to ~int~ \lrbt
+                \end{align*}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm] (0) at (0, 0) {0};
+                        \node[state, minimum size=1cm] (4) at (2, 1) {4};
+                        \node[state, minimum size=1cm] (1) at (2, -1) {1};
+                        \node[state, minimum size=1cm] (2) at (4, -1) {2};
+                        \node[state, minimum size=1cm] (3) at (6, -1) {3};
+                        \draw
+                        (0) edge[->, above] node{~E~} (1)
+                        (0) edge[->, above] node{~int~} (4)
+                        (1) edge[->, above] node{~+~} (2)
+                        (2) edge[->, above] node{~int~} (3);
+                    \end{tikzpicture}
+                \end{center}
+                Converting from this to a parsing table, we follow these rules;
+                \begin{itemize}
+                    \itemsep0em
+                    \item for each terminal transition $~X~ \xrightarrow{~T~} ~Y~$ add ~P[X, T] = sY~ (shift ~Y~)
+                        \subitem "move from state ~X~ to state ~Y~"
+                    \item for each non-terminal transition $~X~ \xrightarrow{~N~} ~Y~$ add ~P[X, N] = gY~ (goto ~Y~)
+                    \item for each state ~X~ containing $~R'~ \to \cdots \lrbt$ add ~P[X, \$] = a~ (accept)
+                        \subitem this corresponds to the auxiliary rule, when we are done parsing
+                    \item for each state ~X~ which contains a $~R~ \to \cdots \lrbt$ add ~P[X, T] = rn~ (reduce) for every terminal ~T~, where ~n~ is ~R~'s rule number
+                        \subitem the number does not correspond to a state, it instead corresponds to a rule number, by looking at the corresponding rule, we know how many items need to be popped off the stack and reduced
+                \end{itemize}
+                For the DFA above, we can represent it as the following LR(0) parsing table;
+                Anything left blank is considered an error.
+                \begin{center}
+                    \begin{tabular}{|c|c|c|c|c|}
+                        \hline
+                        \multirow{2}{*}{state} & \multicolumn{3}{c}{action} & goto \\
+                        \cline{2-5}
+                        & ~int~ & ~+~ & ~\$~ & ~E~ \\
+                        \hline
+                        0 & ~s4~ & & & ~g1~ \\
+                        1 & & ~s2~ & ~a~ & \\
+                        2 & ~s3~ & & & \\
+                        4 & ~r1~ & ~r1~ & ~r1~ & \\
+                        3 & ~r2~ & ~r2~ & ~r2~ & \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Model of an LR Parser}
+                Assuming all the states are integers, we can approach the LR parser as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item push state 0 onto the stack
+                    \item repeatedly decide what to do next depending on the top of the stack and the current character (~switch P[S[top], curr]~)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item shift ~n~ \hfill push the state ~n~ onto the stack, and go to the next token
+                            \item reduce ~n~ \hfill (complex)
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item remove ~K~ elements off the stack, where ~K~ is the length of the RHS of \textbf{rule} ~n~
+                                    \item push ~P[S[top], L]~ where ~L~ is the LHS of \textbf{rule} ~n~; this essentially looks at the state it was in before, and performs the "goto"
+                                        \subitem in our example if we reduced to an ~E~, state 0 is most likely on the top of the stack, and therefore it goes to state 1
+                                    \item generate an AST node with this data for the rule
+                                \end{itemize}
+                            \item accept
+                            \item error \hfill report an error
+                            \item goto ~n~ \hfill not directly selected, looked up in reduce case
+                        \end{itemize}
+                \end{enumerate}
+            \subsubsection*{FIRST and FOLLOW Sets}
+                While it is possible to formally write out the algorithm for deriving the sets, it's easier to do it by intuition.
+                \begin{itemize}
+                    \itemsep0em
+                    \item FIRST set
+                        \medskip
+
+                        The FIRST set of a terminal is itself.
+                        However, the FIRST set for a rule is anything that can begin the derivation for such that particular rule.
+                        This set is constructed recursively, by looking through the FIRST sets of the first item of the LHS of each rule.
+                        However, note that because we are generating a set, we can stop when we encounter something we've already checked, as it wouldn't be added anyways.
+                    \item FOLLOW set
+                        \medskip
+
+                        The FOLLOW set of a rule is something that can come after it.
+                        The intuition in this is to look at how it is used in the RHS of productions.
+                        On the RHS, there are three cases (or more, I could be wrong), let the rule be ~R~, let ~X~, ~Y~ be arbitrary rules, and let ~t~ be a terminal;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $~X~ \to \cdots ~R~$ \hfill at the end of a rule
+                                \subitem add the FOLLOW set of ~X~, as anything following ~X~ could follow ~R~
+                            \item $~X~ \to \cdots ~R t~ \cdots$ \hfill followed by a terminal
+                                \subitem add ~t~ to the FOLLOW set of ~R~
+                            \item $~X~ \to \cdots ~R Y~ \cdots$ \hfill followed by a non-terminal / rule
+                                \subitem add the FIRST set of ~Y~, as anything that could start a derivation of ~Y~ could follow ~X~
+                        \end{itemize}
+                        Note that the same intuition on recursion applies.
+                        For example, in the first case, if ~R~ = ~X~, then the FOLLOW set of ~R~ needs the FOLLOW set of ~R~, but there's no point in doing this.
+                \end{itemize}
 \end{document}
