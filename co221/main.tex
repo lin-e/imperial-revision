@@ -1330,6 +1330,14 @@
                         However, the FIRST set for a rule is anything that can begin the derivation for such that particular rule.
                         This set is constructed recursively, by looking through the FIRST sets of the first item of the LHS of each rule.
                         However, note that because we are generating a set, we can stop when we encounter something we've already checked, as it wouldn't be added anyways.
+                        Let the rule be ~R~, let ~X~ be an arbitrary rule, and let ~t~ be a terminal;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $~R~ \to ~t~ \cdots$ \hfill starts with a terminal
+                                \subitem add ~t~ to the FIRST set of ~R~
+                            \item $~R~ \to ~X~ \cdots$ \hfill starts with a non-terminal
+                                \subitem add the FIRST set of ~X~, this can lead to recursion (which can be dealt with)
+                        \end{itemize}
                     \item FOLLOW set
                         \medskip
 
@@ -1348,4 +1356,5 @@
                         Note that the same intuition on recursion applies.
                         For example, in the first case, if ~R~ = ~X~, then the FOLLOW set of ~R~ needs the FOLLOW set of ~R~, but there's no point in doing this.
                 \end{itemize}
+                It's also important to consider the case where it can be $\epsilon$.
 \end{document}
