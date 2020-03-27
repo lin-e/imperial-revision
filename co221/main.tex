@@ -2067,4 +2067,23 @@
                         $$\text{LiveOut}(n) = \bigcup\limits_{s \in \text{succ}(n)} \text{LiveIn}(s)$$
                 \end{itemize}
                 However, writing this out for each node generates a system of simultaneous equations.
+        \subsection*{3rd February 2020}
+            This lecture starts with almost half an hour on using \textit{ANTLR4}.
+            For anyone reading this, please use parser combinators for WACC.
+            \subsubsection*{Semantic Analysis}
+                Ideally, we want to check the legality of the program at compile time.
+                However, there will be some checks that we cannot do, such as checking array bounds, and those checks will still need to be done at runtime.
+                \medskip
+
+                The idea of semantic analysis is to take in an AST, and output errors (if any) or give back semantic attributes (such as type information) augmented to the AST, as well as a symbol table (identifier map).
+                In many compilers, the goal is to do as much work as this stage as possible, allowing for much easier code generation.
+                \medskip
+
+                The rest of this lecture was him discussing one slide.
+                Literally just going through what needs to be checked for six lines of code (and it's quite obvious).
+                \begin{itemize}
+                    \itemsep0em
+                    \item in an assignment, check if the identifier is declared as a variable
+                    \item check that the RHS of the assignment can be assigned to the LHS
+                \end{itemize}
 \end{document}
