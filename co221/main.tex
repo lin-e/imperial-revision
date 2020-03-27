@@ -1707,4 +1707,110 @@
                 When we perform a shift, we are recognising an input and it builds a leaf node for the parse tree.
                 On the other hand, when we perform a reduce, we take the leaf nodes, and put them into a parent node for the parse tree.
                 However, this tree can have a lot of junk in it (thus being inconvenient to work with), and is either pruned in a separate pass to generate an abstract syntax tree (AST), or generated with instructions augmented onto the existing rules for the grammar to generate nodes as it is being parsed.
+        \subsection*{29th January 2020}
+            \subsubsection*{LL Parsing}
+                LL parsing is a natural way of hand writing a compiler, as we don't work with DFAs, but instead work with functions for each production.
+                This also can easily produce AST nodes at the same time.
+                A grammar is considered LL($k$) if a $k$-token lookahead is sufficient to determine the next step (alternative to a rule).
+            \subsubsection*{Extended BNF}
+                Due to the frequency of repeated and optional constructs in language syntax, many specifications have additional shortcuts for context free grammars;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\{ \alpha \}$ \hfill zero or more occurrences of $\alpha$
+                    \item $[ \alpha ]$ \hfill zero or one occurrences of $\alpha$
+                    \item $(\alpha)$ \hfill grouping, useful for alternatives like $(\alpha \bnfsep \beta \bnfsep \gamma)$
+                \end{itemize}
+            \subsubsection*{Grammar to Functions}
+                We assume there is some global variable ~token~ which holds the current token.
+                It's also important to note that a rule ~A~ goes to a parsing function for that rule ~A()~, and a token ~T~ goes to a match function ~match(T)~, however in the code below, we will be using the function for rules (substitute ~A()~ for ~match(A)~ if we have a token instead);
+                \begin{lstlisting}
+                    "A B" => A(); B();
+                    "A|B" => if   token in FIRST(A): A();
+                             elif token in FIRST(B): B();
+                             # FIRST(A) and FIRST(B) must be disjoint
+                    "{A}" => while token in FIRST(A): A();
+                             # FIRST(A) must be disjoint with what follows [A]
+                    "[A]" => if token in FIRST(A): A();
+                             # FIRST(A) must be disjoint with what follows [A]
+                \end{lstlisting}
+                For example, when we work with the following grammar, we can create the functions as follows;
+                \begin{align*}
+                    ~Statement~ & \to ~IfStatement~ \bnfsep ~BeginStatement~ \bnfsep ~PrintStatement~ \\
+                    ~IfStatement~ & \to ~'if' Expr 'then' Statement ['else' Statement] 'fi'~ \\
+                    ~BeginStatement~ & \to ~'begin' Statement \{';' Statement\} 'end'~ \\
+                    ~PrintStatement~ & \to ~'print' Expr~
+                \end{align*}
+                With the following code listing, for the structure of the AST, you can see it has a direct parallel with the grammar;
+                \begin{lstlisting}
+                    class StatementAST extends AST:
+                      ...
+                    class IfAST extends StatementAST:
+                      ExprAST e
+                      StatementAST t, f
+                    class BeginAST extends StatementAST:
+                      StatementAST[] statlist
+                    class PrintAST extends StatementAST:
+                      ExprAST e
+                \end{lstlisting}
+                From here, we can also directly generate the AST.
+                \begin{lstlisting}
+                    def Statement():
+                      if token == IF:      return IfStatement()
+                      elif token == BEGIN: return BeginStatement()
+                      elif token == PRINT: return PrintStatement()
+                      else: error()
+                    def IfStatement():
+                      match(IF)
+                      e = Expr()
+                      match(THEN)
+                      t = Statement()
+                      if token == ELSE:
+                        match(ELSE)
+                        f = Statement()
+                      else:
+                        f = None
+                      match(FI)
+                      return IfAST(e, t, f)
+                    def BeginStatement():
+                      match(BEGIN)
+                      statlist = []
+                      statlist.append(Statement())
+                      while token == SEMICOLON:
+                        match(SEMICOLON)
+                        statlist.append(Statement())
+                      match(END)
+                      return BeginAST(statlist)
+                    def PrintStatement():
+                      match(PRINT)
+                      return PrintAST(Expr())
+                \end{lstlisting}
+                However, it's obvious from these examples that it cannot deal with left recursion.
+                If we had an additional rule that was in the form $~Expr~ \to ~Expr '+' Expr~$, we'd end up recursing infinitely.
+                Translation from a non-LL(1) grammar to a LL(1) grammar cannot be done fully automatically, and requires some ingenuity - it needs to ensure the transformed grammar has the same semantics.
+                These three transformations are commonly used;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item left factorisation \hfill usually carried out after the others
+                        \medskip
+
+                        if two or more alternatives share a prefix, we can factor that out, such that (in EBNF) $~A~ \to ~B C~ \bnfsep ~B D~$ can be factored out as $~A~ \to ~B (C | D)~$, and $~A~ \to ~B | B C~$ would become $~A~ \to ~B [C]~$ (these would need auxiliary rules in BNF)
+                    \item substitution
+                        \medskip
+
+                        if there is a non-terminal ~B~ on the right hand side of a rule, it may make sense to replace ~B~ with a group consisting of the alternatives for ~B~ - this can make the grammar clearer, and also easier to do left factorisation
+                    \item left recursion removal
+                        \medskip
+
+                        issues with left recursion have already been discussed, the idea is to write a left recursive rule with right repetition, hence $~A~ \to ~X | A Y~$ should become $~A~ \to ~X \{ Y \}~$, or more generally;
+                        \begin{align*}
+                            ~A~ & \to ~X~_~1~ \bnfsep \cdots \bnfsep ~X~_~m~ \bnfsep ~A Y~_~1~ \bnfsep \cdots \bnfsep ~A Y~_~n~ & \Rightarrow \\
+                            ~A~ & \to (~X~_~1~ \bnfsep \cdots \bnfsep ~X~_~m~) \bnfsep ~A ~ (~Y~_~1~ \bnfsep \cdots \bnfsep ~Y~_~n~) & \Rightarrow \\
+                            ~A~ & \to (~X~_~1~ \bnfsep \cdots \bnfsep ~X~_~m~)\ \{ ~Y~_~1~ \bnfsep \cdots \bnfsep ~Y~_~n~ \} \\
+                        \end{align*}
+                        This is harder to deal with when the left recursion isn't direct.
+                \end{enumerate}
+            \subsubsection*{Error Recovery}
+                One method of error recovery is to use the concept of a "syncset".
+                If we don't encounter the token we were expecting, we can skip to a point where we do encounter it, or skip to the syncset of the higher level call.
+                Generally, the syncsets grow as you go deeper into the AST, as there are more points it can attempt to "recover" to.
 \end{document}

@@ -1861,7 +1861,7 @@
                 The $Y$ combinator is the \textbf{fixpoint operator}.
                 As such, we can define the factorial as;
                 \begin{center}
-                    $fact \triangleq F\ (\lambda f.\ \lambda n.\ ifz\ n\ \underline{1}\ (mult\ n\ (f\ (pred\ n))))$
+                    $fact \triangleq Y\ (\lambda f.\ \lambda n.\ ifz\ n\ \underline{1}\ (mult\ n\ (f\ (pred\ n))))$
                 \end{center}
             \subsubsection*{$\eta$-equivalence}
                 $(\lambda x.\ f\ x) \neq_\beta f$, despite always having the case $(\lambda x.\ f\ x)\ M =_\beta f\ M$.
