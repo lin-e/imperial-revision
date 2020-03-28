@@ -2086,4 +2086,175 @@
                     \item in an assignment, check if the identifier is declared as a variable
                     \item check that the RHS of the assignment can be assigned to the LHS
                 \end{itemize}
+        \subsection*{5th February 2020}
+            \subsubsection*{Symbol Tables}
+                Consider the symbol table as a dictionary or map (requires fast lookup) to hold data on identifiers.
+                However it is represented, it should allow for scoping (thus allowing for redeclaration in an inner scope).
+                One method for doing this is to have a global symbol table, with each entry holding auxiliary data on the scope.
+                Another approach is to have a tree of symbol tables, with one for each lexical scope, pointing to the symbol table for the parent scope.
+                The idea behind this is to first search in the local scope, then the parent scope, and so on, as it attempts to find the closest match for the identifier.
+                A global scope is also added, holding predefined identifiers, such as functions, data types, and so on.
+                When semantic analysis is done, there is also a global variable indicating the symbol table for the current lexical scope.
+                For example, the code below has the following symbol table tree (note that the arrows ($\rightarrow$ in each row represents additional information about that identifier - this can be predefined, in the case of predefined identifiers, or may refer to AST nodes if it is programmer defined);
+                \begin{center}
+                    \begin{minipage}[h]{0.3\textwidth}
+                        \begin{lstlisting}
+                            package A
+                              class B
+                                int x
+                                method B1
+                                  object x, y, z
+                              class C
+                                method C1
+                                  object p, q, r
+                                method C2
+                                  object A, x, p
+                        \end{lstlisting}
+                    \end{minipage}
+                    \begin{minipage}[h]{0.65\textwidth}
+                        \begin{center}
+                            \begin{tikzpicture}[y=0.75cm]
+                                \node (top) at (0, 0) {
+                                    \begin{tabular}{|c|c|}
+                                        \hline
+                                        \multicolumn{2}{|c|}{$~ST~_~TOP~$} \\
+                                        \hline
+                                        ~int~ & $\rightarrow$ \\
+                                        ~...~ & $\rightarrow$ \\
+                                        ~A~ & $\rightarrow$ \\
+                                        \hline
+                                    \end{tabular}
+                                };
+                                \node (a) at (3, 0) {
+                                    \begin{tabular}{|c|c|}
+                                        \hline
+                                        \multicolumn{2}{|c|}{$~ST~_~A~$} \\
+                                        \hline
+                                        ~B~ & $\rightarrow$ \\
+                                        ~C~ & $\rightarrow$ \\
+                                        \hline
+                                    \end{tabular}
+                                };
+                                \node (b) at (6, 0) {
+                                    \begin{tabular}{|c|c|}
+                                        \hline
+                                        \multicolumn{2}{|c|}{$~ST~_~B~$} \\
+                                        \hline
+                                        ~x~ & $\rightarrow$ \\
+                                        ~B1~ & $\rightarrow$ \\
+                                        \hline
+                                    \end{tabular}
+                                };
+                                \node (b1) at (9, 0) {
+                                    \begin{tabular}{|c|c|}
+                                        \hline
+                                        \multicolumn{2}{|c|}{$~ST~_~B1~$} \\
+                                        \hline
+                                        ~x~ & $\rightarrow$ \\
+                                        ~y~ & $\rightarrow$ \\
+                                        ~z~ & $\rightarrow$ \\
+                                        \hline
+                                    \end{tabular}
+                                };
+                                \node (c) at (6, -3) {
+                                    \begin{tabular}{|c|c|}
+                                        \hline
+                                        \multicolumn{2}{|c|}{$~ST~_~C~$} \\
+                                        \hline
+                                        ~C1~ & $\rightarrow$ \\
+                                        ~C2~ & $\rightarrow$ \\
+                                        \hline
+                                    \end{tabular}
+                                };
+                                \node (c1) at (9, -3) {
+                                    \begin{tabular}{|c|c|}
+                                        \hline
+                                        \multicolumn{2}{|c|}{$~ST~_~C1~$} \\
+                                        \hline
+                                        ~p~ & $\rightarrow$ \\
+                                        ~q~ & $\rightarrow$ \\
+                                        ~r~ & $\rightarrow$ \\
+                                        \hline
+                                    \end{tabular}
+                                };
+                                \node (c2) at (9, -6) {
+                                    \begin{tabular}{|c|c|}
+                                        \hline
+                                        \multicolumn{2}{|c|}{$~ST~_~C2~$} \\
+                                        \hline
+                                        ~A~ & $\rightarrow$ \\
+                                        ~x~ & $\rightarrow$ \\
+                                        ~p~ & $\rightarrow$ \\
+                                        \hline
+                                    \end{tabular}
+                                };
+                                \draw
+                                (a) edge[->] (top)
+                                (b) edge[->] (a)
+                                (b1) edge[->] (b)
+                                (c) edge[->] (a)
+                                (c1) edge[->] (c)
+                                (c2) edge[->] (c);
+                            \end{tikzpicture}
+                        \end{center}
+                    \end{minipage}
+                \end{center}
+                In the example above, when we perform semantic analysis, we add ~A~ to the symbol table for the ~TOP~ scope, and then add auxiliary information into the entry, specifying that it is a package \textbf{and} points to the new symbol table for ~A~'s scope.
+                From here, when we see the class ~B~, we add an entry into ~A~'s symbol table, specifying that ~B~ is a class, and pointing to ~B~'s symbol table.
+                Note that the referencing to the parent symbol table is done as expected.
+                In ~B~, we see the integer declaration for ~x~.
+                This is added to the symbol table as a variable, and the type of the variable references the ~int~ type declared in the global scope.
+                \medskip
+
+                In general, the symbol table is used by the AST nodes as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item variable declaration
+                        \medskip
+
+                        In the case of a variable declaration AST node, given the name of the type, and the name of the variable, we can check if type exists in \textbf{all accessible} scopes, check if the variable exists in the \textbf{local} scope.
+                        The error cases are as follows;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item identifier exists in the local scope (already declared)
+                            \item type not found (unknown type)
+                            \item type identifier found, but isn't a type
+                            \item type found but cannot be declared
+                        \end{itemize}
+                        Otherwise, add it to the current scope's symbol table, and give back this newly derived attribute to the AST.
+                    \item assignment
+                        \medskip
+
+                        Note that in this case, we also want to recursively validate the RHS of the assignment (it also assumes that this augments the type of the RHS expression to the RHS' AST node).
+                        The error cases are as follows;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item the identifier is not found (hence it hasn't been declared or isn't accessible)
+                            \item the identifier is found, but isn't a variable
+                            \item the identifier is found, and is a variable, but the types aren't compatible
+                        \end{itemize}
+                        Otherwise, add the value in the symbol table to the AST node.
+                    \item function declaration
+                        \medskip
+
+                        This starts off similar to the variable declaration check, but also must perform additional checks due to the scoping.
+                        After performing the declaration checks (almost the same, assuming no overloading is allowed), it then creates a new symbol table for the new scope, it also adds the new symbol table to the function object augmented to the AST (and added into the current symbol table).
+                        It then validates each of its parameters (into the new symbol table), and links the new objects (the "formals") into the function object.
+                    \item function call
+                        \medskip
+
+                        On a function call, it must check if the function exists, and is a function (similar to how variable assignment checks all scopes).
+                        In terms of the parameters, it also checks that the number of parameters expected (formals), matches with the number of parameters supplied (actuals).
+                        Each of the supplied parameters are then validated, and then checked that the types match up; if everything is successful, then the function object is augmented onto the call AST node.
+                        This does \textbf{not} check the return type, that should be handled by the enclosing expression.
+                \end{itemize}
+                It's also important to note that, in practice, type checking should also allow for asymmetry (such as letting an integer be assigned to a double, but not the other way around).
+                This can also include single inheritance (for example, if the LHS expected class ~A~, but got class ~B~, it should allow it if ~A~ is a superclass of ~B~);
+                \begin{lstlisting}
+                    def compatible(TYPE lhs, TYPE rhs)
+                      if lhs == rhs: return true
+                      if rhs instanceof CLASS: return compatible(lhs, rhs.superclass)
+                      ...
+                      else: return false
+                \end{lstlisting}
 \end{document}
