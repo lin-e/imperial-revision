@@ -2491,4 +2491,92 @@
                         \subitem global / static variables exist for the lifetime of a program's execution and are normally mapped to absolute positions in the static area of the data segment (can also include constants and method lookup tables)
                         \subitem dynamic variables are normally mapped to locations in the heap area, and are allocated when the program calls some allocator function (~new~ in Java, ~malloc~ in C, etc.), and de-allocated when explicitly done (~free~ in C), or automatically via garbage collection.
                 \end{itemize}
+        \subsection*{12th February 2020}
+            \subsubsection*{Explicit Heap Allocation}
+                When a block of memory of size $N$ is requested, the allocation algorithm should do the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item search through a list of free memory blocks for a block of size $N$ or greater
+                    \item if a block of exactly size $N$ is found, remove the block from the list, and return the start address of the block
+                    \item if a block larger than $N$ is found, split the block into $N$ and a residual block, leave the residual block in the free list, and return the start address of the split block
+                    \item otherwise if there is no suitable block, request more memory from the OS (otherwise handle a failure)
+                \end{itemize}
+                When memory is deallocated, insert the freed block into the list of free blocks, and attempt to coalesce the returned block with the adjacent ones (to reduce fragmentation).
+                However; manually doing this has many pitfalls, either from the programmer allocating memory and not freeing it after it is no longer needed (memory leaks), or freeing memory too early (still needed after freeing).
+                An ideal system would automatically free the memory, but still allow the programmer to manually allocate memory.
+            \subsubsection*{Garbage Collection}
+                Many modern languages prevent programmers from directly manipulating memory.
+                Garbage collection is one of the features used for this, as it automatically reclaims memory that is no longer used to be allocated later.
+                A garbage collector must have correctness (it cannot collect live data), it must be fast, and it should also have low memory overhead.
+                Some techniques are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item heap compaction (not GC)
+                        \medskip
+
+                        While this isn't necessarily a garbage collection technique, it is done after garbage collection - as that process may fragment the heap.
+                        This aims to move all the live blocks together, thus allowing for one large block of free memory, in three steps; it first marks the live blocks, then co-locates it together, and finally updates the pointers to the live blocks.
+                    \item reference counting
+                        \medskip
+
+                        This counts the uses of something on the heap.
+                        For example, in the assignment ~p = q~, if ~q~ is on the heap, the reference count of ~q~ should be incremented, and if ~p~ is on the heap, the reference count of ~p~ should be decremented - if it is 0, then it should be freed.
+                        However, a naive implementation of this cannot deal with cyclic references.
+                    \item mark-sweep
+                        \medskip
+
+                        This performs garbage collection in two phases - it first marks all the live blocks, in one pass, and then scans all the blocks, freeing any dead blocks and unmarking any live blocks.
+                        This requires one bit to indicate a block's status in each block.
+                        \begin{lstlisting}
+                            def new(size):
+                              if (freeList empty):
+                                mark_sweep()
+                              allocate(size)
+                            def mark_sweep():
+                              foreach heapRef: # all blocks reachable from non-heap references
+                                mark(heapRef.block)
+                              sweep()
+                              if (freeList empty):
+                                error
+                            def mark(block):
+                              if (block.marked == 0): # not yet marked
+                                block.marked = 1
+                                foreach childRef: # iterates through children
+                                  mark(childRef.block)
+                            def sweep():
+                              block = heapStart
+                              while block < heapEnd:
+                                if (block.marked == )0: # dead block
+                                  deallocate(block)
+                                else
+                                  block.marked = 0
+                                block = block + block.size
+                        \end{lstlisting}
+                        However, this is a recursive process and can be costly in terms of memory.
+                        Pointer reversal (\textit{Schorr and Waite}) is a method to do this without additional stack space.
+                        When visiting a child block $C$ of parent $P$, the parent of $P$'s pointer is stored in $P$, in place of where the pointer to $C$ was stored.
+                        After the visit to $C$ is complete, it restores the pointer in $P$, and can be swapped with the location of the next pointer in $C$.
+                    \item two-space
+                        \medskip
+
+                        The heap is split into two spaces (From and To), we only allocate from the From space, and when the From space is full, we copy all the live blocks from the From space to the To space - the roles are then swapped.
+                        This is fast and automatically compacts the heap, but it wastes half the memory.
+                    \item generational
+                        \medskip
+
+                        This works on the idea that newly created objects tend to die quickly, and older objects often survive longer (as they have already survived for a while).
+                        The heap is divided into generations, and allocates blocks from the youngest generation (which is also collected more frequently), and move blocks to an older generation based on age.
+                \end{itemize}
+            \subsubsection*{Debuggers and Profilers}
+                In a post-mortem dump for a program, we often want the information to be as close to the programming language as possible, to allow for the user to fix an error.
+                The Stack Traceback should return the name of the method, and the call stack (as well as local variables if possible).
+                However, since local variables may be on the stack or in registers, it's important for the debugger to know where those values are located.
+                \medskip
+
+                In terms of interactive debuggers, we need support from the architecture / OS to set breakpoints on the machine instructions.
+                This can be more difficult with optimising compilers.
+                \medskip
+
+                Profilers allow the programmer to identify where most of the time is being spent.
+                A method is to look at the program counter periodically, and relate that to the program method that is associated with it (and increment its count).
 \end{document}
