@@ -2450,4 +2450,45 @@
 
                 The idea of natural loops is linked to the dominance relation.
                 A \textbf{back edge} is an edge from some node $n$ to a node $h$ that dominates $n$.
+        \subsection*{10th February 2020}
+            \subsubsection*{Type Representation}
+                The representation typically falls into what the architecture provides.
+                \begin{itemize}
+                    \itemsep0em
+                    \item primitive types
+                        \medskip
+
+                        Primitive types, such as booleans, integers, characters, typically fit into registers.
+                        Integers are typically represented in 2's complement, floating point numbers are typically represented in IEEE standard (see last year's \textbf{CO113}), and characters may be in any encoding (such as ASCII or Unicode).
+                    \item records / structs and arrays
+                        \medskip
+
+                        Records or structs are fields grouped together (and may have different types or sizes), typically stored consecutively in memory.
+                        The fields are accessed via a constant byte offset from the start of the record.
+                        The fields do not have to be ordered in the same way they are declared - they can be rearranged by the compiler to be more optimal.
+                        On the other hand, arrays are of a fixed type, and bounds have to be checked dynamically (if the size can change) - the access is done at runtime by calculating offsets.
+                    \item objects
+                        \medskip
+
+                        These are typically stored as references to memory allocated on the heap.
+                        The record on the heap will also consist of a reference to the class' method lookup table (containing the addresses for the method calls), as well as the data fields of the object.
+                        To access a field, we need to read the memory as follows; ~Mem[Mem[@Reference] + Offset]~.
+                        When a call is made, the object reference is also implicitly given as a parameter.
+                        \medskip
+
+                        While the scheme of using a method lookup table may seem complex, it allows for inheritance and overriding for free - it can put in the addresses of the superclass' methods into its own method lookup table.
+                        Dynamic binding is also possible, as we can point to the new location of object values from the original object reference.
+                \end{itemize}
+            \subsubsection*{Program Address Space}
+                On modern architectures, a compiled program is typically given a large virtual address space.
+                This is normally divided into segments, and we consider the following three;
+                \begin{itemize}
+                    \itemsep0em
+                    \item code segment \hfill holds the compiled program code
+                    \item stack segment \hfill holds method calls and local variables
+                        \subitem typically when we make a call into a function we set the start of the frame with a reserved register (frame pointer), as the stack pointer can constantly change
+                    \item data segment \hfill holds global variables in the static area, and dynamic variables in the heap area
+                        \subitem global / static variables exist for the lifetime of a program's execution and are normally mapped to absolute positions in the static area of the data segment (can also include constants and method lookup tables)
+                        \subitem dynamic variables are normally mapped to locations in the heap area, and are allocated when the program calls some allocator function (~new~ in Java, ~malloc~ in C, etc.), and de-allocated when explicitly done (~free~ in C), or automatically via garbage collection.
+                \end{itemize}
 \end{document}
