@@ -983,4 +983,30 @@
                     \item adding jobs / removing jobs affects other jobs proportionally
                 \end{itemize}
                 However, the main obvious drawback is the unpredictable response time, and if an interactive process is unlucky, it can be unresponsive.
+        \subsection*{23rd October 2019}
+            \subsubsection*{Tutorial Questions}
+                State which of the following are true and which are false, justifying answers.
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item Interactive systems generally use non-preemptive processor scheduling.
+                        \medskip
+
+                        False.
+                        They use preemptive scheduling to guarantee a fast response to new requests.
+                        Service trivial, I/O-bound, interactive requests quickly.
+                    \item Turnaround times are more predictable in preemptive than in non-preemptive systems.
+                        \medskip
+
+                        False.
+                        In non-preemptive systems, a process will run to completion or until it blocks once it gets a processor.
+                    \item One weakness of priority scheduling is that, while a system may faithfully honour the priorities, the priorities themselves may not be meaningful.
+                        \medskip
+
+                        True.
+                        The (actual) priority of a job, and how meaningful it is, often depends on what other jobs are running.
+                \end{enumerate}
+            \subsubsection*{Synchronisation}
+                One example of synchronisation we've already seen is the joining of two ~pthreads~.
+                Note that we can often use processes and threads interchangeably, as the concepts are relevant to both.
+                A lot of the system calls that the kernel exposes for synchronisation are exposed through programming languages, as the language must have the ability to control threads.
 \end{document}
