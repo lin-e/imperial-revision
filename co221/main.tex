@@ -2739,4 +2739,61 @@
                     \item $t$ must not be LiveOut from the loop's pre-header
                         \subitem this can be done with live variables data flow analysis
                 \end{enumerate}
+            \subsubsection*{Static Single Assignment (unassessed)}
+                This is a transformation the compiler applies to the code to ensure no variable is ever redefined (and therefore defined exactly once).
+                Note that ~p(t1, t2)~ represents the $\phi$ function $\phi(t_1, t_2)$.
+                Looking at example B from before, we can put this into SSA as follows (notice the additional instruction for ~t3~);
+                \begin{center}
+                    \begin{minipage}[t]{0.3\textwidth}
+                        \begin{lstlisting}
+                            L0: # phi inserted
+                              t1 = 0
+                              ------
+                            L1:
+                              t3 = p(t1, t2)
+                              if i<N goto L2
+                              i = i + 1
+                              t2 = a O b
+                              M[i] = t2
+                              goto L1
+                            L2:
+                              x = t3
+                        \end{lstlisting}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.3\textwidth}
+                        \begin{lstlisting}
+                            L0: # code hoisted
+                              t1 = 0
+                              t2 = a O b
+                            L1:
+                              t3 = p(t1, t2)
+                              if i<N goto L2
+                              i = i + 1
+                              M[i] = t2
+                              goto L1
+                            L2:
+                              x = t3
+                        \end{lstlisting}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.3\textwidth}
+                        \begin{lstlisting}
+                            L0: # phi propagated
+                              t1 = 0
+                              t2 = a O b
+                              t3 = t1
+                            L1:
+                              if i<N goto L2
+                              i = i + 1
+                              M[i] = t2
+                              t3 = t2
+                              goto L1
+                            L2:
+                              x = t3
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                The third stage is reached when generating code from SSA.
+                In examples C and D, it's much simpler than in B which is due to a conditional - a simple renaming is sufficient.
 \end{document}
