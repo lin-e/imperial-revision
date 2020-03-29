@@ -161,6 +161,229 @@
 % actual document
 \begin{document}
     \section*{CO211 - Operating Systems}
-        \subsection*{}
+        \subsection*{4th October 2019}
+            \subsubsection*{Outline of the Course}
+                \begin{itemize}
+                    \itemsep0em
+                    \item overview and introduction \hfill structure, case studies
+                    \item processes and threads \hfill abstractions that an OS uses to execute code
+                    \item inter-process communication (IPC) \hfill allows multiple processes to communicate with each other
+                    \item memory management \hfill allocation, abstraction for virtual memory, paging
+                    \item device management \hfill types, drivers
+                    \item disk management \hfill scheduling, caching, RAID
+                    \item file systems \hfill basic abstractions for storage and implementation
+                    \item security \hfill authentication, access control
+                \end{itemize}
+                Note that this follows a similar structure to most OS courses, and therefore we can reference content from other sources.
+                \textit{Operating Systems: Three Easy Pieces} is recommended, as it bridges between this course and the PintOS lab.
+            \subsubsection*{Overview}
+                The general overview is that there is a system bus that interconnects different hardware components (including CPU and memory), and allows for communication between them.
+                \medskip
 
+                The operating system provides abstractions for programs to use, meaning that they do not have to deal with the complex hardware.
+                For example, a process abstraction expects an interface to the hardware, which allows programs to be used on different hardware.
+                This means that the OS will need how to to control the hardware with drivers.
+                The operating system has the following goals;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item \textbf{managing resources}
+                        \medskip
+
+                        The operating system must be able to expose the resources efficiently to the application, and also share these resources fairly.
+                        Some examples are;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item CPU (multiple cores) \hfill should decide what runs on each hardware thread
+                            \item memory \hfill cache, RAM
+                            \item I/O devices \hfill displays (GPUs), network interfaces
+                            \item internal devices \hfill clocks, timers, interrupt controllers
+                            \item persistent storage
+                        \end{itemize}
+                        OS uses both time and space multiplexing for sharing.
+                        An example for the former is how the effect of parallelism can be achieved with a single CPU core by splitting up the time allocated per process, and an example for the latter is splitting up memory for each process.
+                        \smallskip
+
+                        On the other hand, with allocation, the OS must also support simultaneous resource access (such as to disks, RAM, network etc.).
+                        Continuing from this, it must also offer mutual exclusion, thus protecting risky operations (such as file writing).
+                        Generally, the OS aims to protect against corruption.
+                        \smallskip
+
+                        Finally, the operating system must also handle storing data, and enforce access control.
+                    \item \textbf{clean interfaces}
+                        \medskip
+
+                        The OS should hide away the hardware, and applications use the hardware through an interface provided by the operating system.
+                        We can think of this as a virtual machine abstraction on top of the bare machine - similar to how the JVM works (but at a lower layer).
+                    \item \textbf{concurrency and non-determinism}
+                        \medskip
+
+                        The operating system must be able to deal with concurrency, for example overlapping I/O and computation.
+                        This is because I/O devices tend to be slower, and while the device is working on the task, it shouldn't prevent the CPU from doing other work.
+                        An operating system may switch activities at arbitrary times, and this must be done safely - by offering synchronisation primitives.
+                        It should also protect processes by giving each program its own space, thus preventing interference.
+                        \smallskip
+
+                        Similarly, the OS is fundamentally non-deterministic, as it needs to handle interrupts (such as the network card receiving a packet, user interrupts, etc).
+                \end{enumerate}
+            \subsubsection*{Tutorial Questions}
+                \begin{enumerate}[1)]
+                    \itemsep0em
+                    \item List the most important resources that must be managed by an operating system in the following settings;
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item supercomputer
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item computation time \hfill primarily used for intensive computations
+                                    \item memory
+                                \end{itemize}
+                            \item networked workstations connected to a server
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item bandwidth \hfill must handle packet processing and network traffic
+                                \end{itemize}
+                            \item smartphone
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item energy \hfill limited power, can power off unused hardware
+                                    \item mobile network \hfill (including other communication technology)
+                                    \item other sensors \hfill issues of privacy, when to expose GPS etc.
+                                \end{itemize}
+                        \end{enumerate}
+                        As this highlights, some uses will need specially designed operating systems.
+                        We also have general-process OS, as it takes a large amount of effort to implement a new operating system.
+                    \item What is the \textbf{kernel} of an operating system?
+                        \medskip
+
+                        The part of the OS is always in memory, and runs in the privileged part of the CPU (user mode cannot access all functionality).
+                        Implements commonly used functions of the OS and has complete access to all hardware.
+                \end{enumerate}
+            \subsubsection*{Kernel Design}
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{monolithic kernel}
+                        \medskip
+
+                        Consider it as one large program that has all the functionality that you want an OS to perform.
+                        \smallskip
+
+                        The kernel is a single executable with its own address space.
+                        There exists a \textbf{system call} interface that allows user mode applications to access the hardware.
+                        Software invokes functionality from the kernel by issuing system calls - the CPU must switch from user mode to kernel mode to support this.
+                        The kernel then executes some instruction on behalf of the application.
+                        Device drivers are part of the monolithic kernel.
+                        \begin{center}
+                            \begin{minipage}[t]{0.45\textwidth}
+                                advantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item efficient calls within the kernel, as there it remains in kernel mode
+                                    \item flexible to write kernel components due to the shared memory (direct access with no limit to APIs)
+                                \end{itemize}
+                            \end{minipage}
+                            \hfill
+                            \begin{minipage}[t]{0.45\textwidth}
+                                disadvantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item complex design
+                                    \item no protection between bits of kernel functionality, therefore any bugs within the kernel will crash the entire machine
+                                \end{itemize}
+                            \end{minipage}
+                        \end{center}
+                    \item \textbf{microkernels}
+                        \medskip
+
+                        Only includes functionality that \textbf{requires} direct access to the hardware (or to be run in kernel mode).
+                        This is a minimalistic design and has the advantage of fewer bugs (due to the smaller amount of code).
+                        \begin{center}
+                            \begin{tikzpicture}[x=2.5cm, y=1.25cm]
+                                \node[blue] at (2, -0.5) {application};
+                                \node[violet] at (0.5, -2.5) {\shortstack{application\\IPC}};
+                                \node[violet] at (1.5, -2.5) {\shortstack{UNIX\\server}};
+                                \node[violet] at (2.5, -2.5) {\shortstack{device\\driver}};
+                                \node[violet] at (3.5, -2.5) {\shortstack{file\\server}};
+                                \node[red] at (2, -4) {basic IPC, virtual memory, scheduling};
+                                \node at (2, -5) {hardware};
+
+                                \draw
+                                (0.5, -0.75) edge[<->] (0.5, -1.75)
+                                (1.5, -0.75) edge[<->] (1.5, -1.75)
+                                (2.5, -0.75) edge[<->] (2.5, -1.75)
+                                (3.5, -0.75) edge[<->] (3.5, -1.75)
+                                (0.5, -3.75) edge[->] (0.5, -3.25)
+                                (3.5, -3.75) edge[->] (3.5, -3.25)
+                                (0.5, -3.75) -- (3.5, -3.75);
+
+                                \draw (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle;
+                                \draw (0, -1.5) -- (4, -1.5) -- (4, -3.5) -- (0, -3.5) -- cycle
+                                (1, -1.5) -- (1, -3.5)
+                                (2, -1.5) -- (2, -3.5)
+                                (3, -1.5) -- (3, -3.5);
+                                \draw (0, -3.5) -- (0, -4.5) -- (4, -4.5) -- (4, -3.5);
+                                \draw (0, -4.5) -- (0, -5.5) -- (4, -5.5) -- (4, -4.5);
+                            \end{tikzpicture}
+                        \end{center}
+                        Note that both the \blue{application} and \violet{servers} run in user mode, and the \red{kernel} is in kernel mode.
+                        The kernel performs IPC between the servers, which are separated for device I/O, scheduling. file access etc.
+                        \begin{center}
+                            \begin{minipage}[t]{0.45\textwidth}
+                                advantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item less complex kernel
+                                    \item clean interfaces for the servers
+                                    \item more reliable; one of the servers could crash and then restart, without bringing the entire kernel down
+                                \end{itemize}
+                            \end{minipage}
+                            \hfill
+                            \begin{minipage}[t]{0.45\textwidth}
+                                disadvantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item performance overhead due to the requirement of message passing and transitioning between user mode and kernel mode (checks must be done to maintain the separation) - less of an issue now due to better hardware (e.g \textit{Android})
+                                \end{itemize}
+                            \end{minipage}
+                        \end{center}
+                    \item \textbf{hybrid kernel} \hfill many modern designs use a combination of both
+                        \medskip
+
+                        This is a more structured design, however user-level servers can incur a performance penalty.
+                \end{itemize}
+            \subsubsection*{Linux Kernel}
+                The structure of Linux system calls is to put arguments into registers Or on the stack, and then issue a trap to switch the CPU from user to kernel mode.
+                \medskip
+
+                While C is the dominant language for the Linux kernel, the interrupt handlers are written in assembly, as they are low level pieces of code, and require fast performance (hence a low instruction count).
+                Interrupt handlers are the primary means to interact with devices, it initiates dispatching which stops proxies, saves the state, starts the driver and returns.
+                \medskip
+
+                Typically, we can split the Linux kernel into three parts;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{I/O}
+                        \medskip
+
+                        One of the design philosophies under UNIX style operating system is to treat everything as a file, and use this file abstraction to expose different resources.
+                        Therefore, a lot of I/O resources can be hidden under this virtual file system.
+                    \item \textbf{memory management}
+                        \medskip
+
+                        Includes virtual memory with paging (and the abstractions associated with that).
+                    \item \textbf{process management}
+                        \medskip
+
+                        Includes process and thread abstraction, as well as synchronisation and scheduling between them.
+                \end{itemize}
+                In addition to this, Linux supports dynamically loaded modules into the kernel.
+                This support was important as it allowed for the hardware configuration to change (new devices drivers could be loaded into the kernel, without recompiling).
+            \subsubsection*{Windows Kernel}
+                The NTOS kernel layer implements Windows system call interface.
+                This is an example of a hybrid kernel, as programs build on dynamic code libraries (DLLs) - which also make the kernel modular, however the executive servers in the kernel adopted the server model of the microkernel, but still runs in kernel space for the performance benefits.
+                At the lower levels, there still exists a microkernel.
+                In addition, there is also a hardware abstraction layer (HAL), as this was designed for portability.
+                \medskip
+
+                It's also important to note that there are environment subsystems running in user mode allowing for different APIs to be exposed, including Win32, POSIX, and OS/2.
+                While the Windows kernel was designed with a lot of flexibility, due to its nature as proprietary software, it only really focused support (until recently) on Win32 (and also Intel in terms of the HAL).
 \end{document}
