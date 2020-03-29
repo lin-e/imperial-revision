@@ -223,7 +223,7 @@
                         It should also protect processes by giving each program its own space, thus preventing interference.
                         \smallskip
 
-                        Similarly, the OS is fundamentally non-deterministic, as it needs to handle interrupts (such as the network card receiving a packet, user interrupts, etc).
+                        Similarly, the OS is fundamentally non-deterministic, as it needs to handle interrupts (such as the network card receiving a packet, user interrupts, etc.).
                 \end{enumerate}
             \subsubsection*{Tutorial Questions}
                 \begin{enumerate}[1)]
@@ -386,4 +386,101 @@
 
                 It's also important to note that there are environment subsystems running in user mode allowing for different APIs to be exposed, including Win32, POSIX, and OS/2.
                 While the Windows kernel was designed with a lot of flexibility, due to its nature as proprietary software, it only really focused support (until recently) on Win32 (and also Intel in terms of the HAL).
+        \subsection*{9th October 2020}
+            \subsubsection*{Tutorial Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item Why is the separation into a user mode and a kernel mode considered good OS design?
+                        \medskip
+
+                        Reduce the amount of code running in kernel mode, since a bug in user mode code should not bring down the entire system.
+                    \item Which of the following instructions should only be allowed in kernel mode, and why?
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item disable all interrupts \hfill only kernel mode
+                                \subitem if a user program were to disable interrupts, it would prevent the OS from scheduling processes
+                            \item read the time of day clock \hfill not privileged
+                            \item change any memory \hfill only kernel mode
+                                \subitem typically programs can only access its own memory, such that it cannot accidentally or maliciously interfere with other memory
+                            \item set the time of day \hfill typically kernel
+                                \subitem most programs assume monotonicity of the clock, and changing to an earlier time can cause bugs
+                        \end{enumerate}
+                    \item Give an example in which the execution of a user process switches from user mode to kernel mode, and then back to user mode.
+                        \medskip
+
+                        Reading a file.
+                        Essentially anything that requires a system call, as it requires a switch from user mode to kernel mode, and then back.
+                    \item A portable operating system is one that can be ported from one system architecture to another with little modification - explain why it is infeasible to build an OS that is portable without any modification.
+                        \medskip
+
+                        At some point in the kernel, it will need to know about the ISA (instruction set architecture) of the CPU (hardware), and what instructions it can support.
+                        Some parts of the OS require assembly, and therefore requires modification.
+                        The hardware abstraction layer in the Windows kernel makes this easier.
+                \end{enumerate}
+            \subsubsection*{Processes}
+                One of the oldest abstractions in computing.
+                This is an instance of a program being executed - this is useful as we can then execute multiple programs "simultaneously" on one processor, especially if not all resources are needed at the same time.
+                This provides isolation between programs (own address space), and therefore doesn't interfere with other unrelated processes - if it needs to, then the IPC provided can be used.
+                It also makes programming easier, as a programmer can assume it is the only process running.
+            \subsubsection*{Concurrency}
+                It's important to note that there exists both pseudo-concurrency (on one CPU core), as well as real concurrency (across multiple CPU cores).
+                The latter will still use the former per core, as the number of processes is much higher than the number of physical cores.
+                In the case of multiple cores, we have to deal with conflicting accesses, whereas in the case with a single core, there is only one process really running at a time.
+                \medskip
+
+                One method of creating the illusion of concurrency is time slicing.
+                The OS switches the process currently running on the CPU with another runnable process, saving the original process' execution state, and then restoring it after it is switched back.
+                Note that a runnable process isn't waiting for input, as we want to minimise the amount of time the CPU is idle.
+                We also must ensure that the switching is fair - for example, if process ~A~ has a long execution time, compared to an interactive process ~B~, letting ~A~ run for a long period would cause the interactive process to become unresponsive - therefore the time slice tends to be quite short (how often it lets a process run before switching).
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item If on average a process computes $20\%$ of the time, then with 5 processes, we should have $100\%$ CPU utilisation, right?
+                        \medskip
+
+                        Only in the ideal case, when they never wait for I/O at the same time.
+                        A better estimate is to look at the probability (assuming independence), with $n$ being the number of processes, and $p$ being the fraction of time a process is waiting for I/O.
+                        The probability that all are waiting for I/O would be $p^n$, and therefore the CPU utilisation would be $1 - p^n$.
+                    \item How many processes nee to be running to only waste $10\%$ of CPU if they spend $80\%$ waiting for I/O?
+                        \begin{center}
+                            $1 - 0.8^n = 0.9 \Rightarrow 0.8^n = 0.1 \Rightarrow n = \log_{0.8}(0.1) \approx 10$ concurrent processes
+                        \end{center}
+                \end{enumerate}
+            \subsubsection*{Context Switches}
+                A context switch is when the processor switches execution from process ~A~ to process ~B~.
+                This is done as part of a scheduling decision.
+                With timer interrupts, the currently executing program passes control back to the kernel, which can then make a scheduling decision, changing what is currently running, possibly a different program and performing a context switch.
+                This causes the order of execution between processes to become non-deterministic, as these events cannot be pre-determined.
+                \medskip
+
+                This needs to be transparent to the process, therefore the state needs to be restored exactly, including anything currently in registers (this is saved by the hardware to the stack, before the hardware invokes the interrupt handler).
+                This data is stored in a process descriptor, or a process control block (PCB), kept in the process table.
+                The process has its own virtual machine;
+                \begin{itemize}
+                    \itemsep0em
+                    \item own virtual CPU
+                    \item own address space (stack, heap, text, data, etc.)
+                    \item resources it has access to (open file descriptors, etc.)
+                \end{itemize}
+                The information in registers (such as the program counter, page table register, stack pointer, etc), the process management information (process ID, parents, etc.), as well as file management information also needs to be stored (root directory, working directory, file descriptors, etc.).
+                \medskip
+
+                It's also important to avoid unnecessary context switches as they are expensive, not just from the direct cost of managing state, but also the indirect cost to caching (as the old cache contents are no longer relevant).
+                Therefore it has to balance fairness, and the frequency of context switches.
+            \subsubsection*{Process Lifecycle}
+                Processes are created at the startup of a system, by the request of a user, or through a specific system call by a running process.
+                These processes can be foreground processes, that the user interacts with, or background processes that provide services (such as printing or mail) or APIs that can be used by other processes (daemons).
+                \medskip
+
+                A process can terminate under these conditions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item normal completion, where the process completes execution
+                    \item through a system call (~exit()~ in UNIX or ~ExitProcess()~ in Windows)
+                    \item abnormal exit, where the process has run into an error or unhandled exception - this is the importance of user and kernel space separation
+                    \item aborted, due to another process overruling its execution (such as killing from terminal)
+                    \item never - some processes such as daemons should run infinitely and never terminate (unless an error occurs)
+                \end{itemize}
+                UNIX allows for a process hierarchy (tree), by running ~init~ (typically), and all processes then form a tree.
+                On the other hand, Windows has no notion of hierarchy, and rather the parent of a child process is given a token (a handle) to control it.
+                This handle can be passed to another process.
 \end{document}
