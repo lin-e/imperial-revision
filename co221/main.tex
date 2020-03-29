@@ -1532,7 +1532,7 @@
                     \draw[red, dashed, name path=clive]
                     (cin.south) -- (cin.north) -- (l5.north) -- (l9.south) -- (cout.south) |- cycle;
 
-                    \draw[olive, dashed, name path=dlive]
+                    \draw[teal, dashed, name path=dlive]
                     (din.south) -- (din.north) -- (l7.north) -- (l8.south) -- (dout.south) |- cycle;
                 \end{tikzpicture}
                 This gives the following interference graph, and the result of the colouring;
@@ -1542,7 +1542,7 @@
                         \node[state, minimum size=1cm] (a) at (0, 0) {\violet{~A~}};
                         \node[state, minimum size=1cm] (b) at (2, 0) {\blue{~B~}};
                         \node[state, minimum size=1cm] (c) at (0, -2) {\red{~C~}};
-                        \node[state, minimum size=1cm] (d) at (2, -2) {\textcolor{olive}{~D~}};
+                        \node[state, minimum size=1cm] (d) at (2, -2) {\textcolor{teal}{~D~}};
 
                         \draw
                         (a) -- (b)
@@ -2579,4 +2579,164 @@
 
                 Profilers allow the programmer to identify where most of the time is being spent.
                 A method is to look at the program counter periodically, and relate that to the program method that is associated with it (and increment its count).
+        \subsection*{14th February 2020}
+            \subsubsection*{Natural Loops}
+                Given a back edge $(n, h)$, such that $h$ dominates $n$, we can define the natural loop set $S$ (with header $h$) as the set of nodes $x$ such that $x$ is dominated by $h$, and there is a path from $x$ to $n$, which doesn't contain $h$.
+                It's also important to note that there can exist some ambiguity, for example in the second CFG (from the last lecture) there are two back edges, and it can correspond to the same loop, or two loops with the same entry point.
+                In the example below, we demonstrate a nested loop (the back edges are highlighted in \violet{violet});
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node (1) at (0, 0) {1};
+                        \node (2) at (0, -1) {2};
+                        \node (3) at (-1, -2) {3};
+                        \node (4) at (1, -2) {4};
+                        \node (5) at (0, -3) {5};
+                        \node (6) at (2, -3) {6};
+                        \node (7) at (1, -4) {7};
+                        \node (8) at (-1, -4) {8};
+                        \node (9) at (-1, -5) {9};
+                        \node (10) at (-1, -6) {10};
+                        \node (11) at (1, -5) {11};
+                        \node (12) at (0, -6) {12};
+
+                        \draw[blue, dashed]
+                        (-1.25, -0.75) -- (1.25, -0.75) -- (1.25, -2.25) -- (-1.25, -2.25) -- cycle;
+                        \draw[red, dashed]
+                        (-1.25, -3.75) -- (-0.75, -3.75) -- (-0.75, -5.25) -- (-1.25, -5.25) -- cycle;
+                        \draw[teal, dashed]
+                        (-1.5, -2.75) -- (0.25, -2.75) -- (0.25, -3.25) -- (-0.5, -4) -- (-0.5, -6.25) -- (-1.5, -6.25) -- cycle;
+                        \draw[olive, dashed]
+                        (-1.75, 0.25) -- (2.25, 0.25) -- (2.25, -6.5) -- (-1.75, -6.5) -- cycle;
+                        \draw
+                        (1) edge[->] (2)
+                        (2) edge[->] (3)
+                        (2) edge[->] (4)
+                        (4) edge[->] (5)
+                        (4) edge[->] (6)
+                        (5) edge[->] (7)
+                        (5) edge[->] (8)
+                        (6) edge[->] (7)
+                        (7) edge[->] (11)
+                        (8) edge[->] (9)
+                        (9) edge[->] (10)
+                        (10) edge[->] (12)
+                        (11) edge[->] (12);
+
+                        \draw[violet]
+                        (3) edge[->, bend left=60] (2)
+                        (4) edge[->, bend right=60] (2)
+                        (9) edge[->, bend left=45] (8)
+                        (10) edge[->, bend left=90] (5);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node[olive, dashed, draw] (1) at (0, 0) {\shortstack{1 \\ 6, 7, 11, 12}};
+                        \node[blue, dashed, draw] (2) at (-1, -2.75) {\shortstack{2 \\ 3, 4}};
+                        \node[teal, dashed, draw] (5) at (1, -2.75) {\shortstack{5 \\ 10}};
+                        \node[red, dashed, draw] (8) at (1, -5.5) {\shortstack{8 \\ 9}};
+
+                        \draw
+                        (1) edge[->] (2)
+                        (1) edge[->] (5)
+                        (5) edge[->] (8);
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                Suppose we have loops $A$ and $B$, with headers $a$ and $b$ ($a \neq b$), and $b$ is in $A$ ($b \in A$).
+                Then all the nodes of $B$ must be a proper subset of the nodes of $A$ ($B \subset A$).
+                $B$ is therefore nested within $A$ ($B$ is the inner loop).
+                By identifying these loops (and generating a control tree), we can reconstruct the structured control flow from the CFG.
+                From here, we can lift loop-invariant code to a point just before the header.
+                However, if a header has multiple predecessors, then we insert a pre-header, and move the code there.
+                Note that we can't always lift loop-invariant code (the line ~t = a O b~ would be moved to the dashed line before the loop header);
+                \begin{enumerate}[(A)]
+                    \itemsep0em
+                    \item it is fine to move code out
+                    \item loop invariant node does not dominate all loop exits
+                        \subitem you can reach the exit without passing through the loop invariant code
+                    \item more than one definition of ~t~ in the loop
+                        \subitem ~t~ can be redefined in the loop
+                    \item ~t~ is LiveOut from the loop's header
+                        \subitem there is another definition of ~t~ that is produced before the header and used on the way in - by moving it out, we kill that value
+                \end{enumerate}
+                \begin{center}
+                    \begin{minipage}[t]{0.23\textwidth}
+                        \begin{lstlisting}
+                            L0: # EXAMPLE A
+                              t = 0
+                              -----
+                            L1:
+                              i = i + 1
+                              t = a O b
+                              M[i] = t
+                              if i<N goto L1
+                            L2:
+                              x = t
+                        \end{lstlisting}
+                        In this example, it is fine to move the instruction out of the loop.
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.23\textwidth}
+                        \begin{lstlisting}
+                            L0: # EXAMPLE B
+                              t = 0
+                              -----
+                            L1:
+                              if i<N goto L2
+                              i = i + 1
+                              t = a O b
+                              M[i] = t
+                              goto L1
+                            L2:
+                              x = t
+                        \end{lstlisting}
+                        This would give ~x~ the wrong value if it fails ~i<N~ on the first iteration.
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.23\textwidth}
+                        \begin{lstlisting}
+                            L0: # EXAMPLE C
+                              t = 0
+                              -----
+                            L1:
+                              i = i + 1
+                              t = a O b
+                              M[i] = t
+                              t = 0
+                              M[j] = t
+                              if i<N goto L1
+                            L2:
+                        \end{lstlisting}
+                        This would leave ~M[i]~ with the wrong value on the second iteration.
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.23\textwidth}
+                        \begin{lstlisting}
+                            L0: # EXAMPLE D
+                              t = 0
+                              -----
+                            L1:
+                              M[j] = t
+                              i = i + 1
+                              t = a O b
+                              M[i] = t
+                              t = 0
+                              if i<N goto L1
+                            L2:
+                        \end{lstlisting}
+                        This would leave ~M[j]~ with the wrong value on the first iteration.
+                    \end{minipage}
+                \end{center}
+                Therefore, the conditions for moving a CFG node $d: t = a \oplus b$ out of a loop are as follows;
+                \begin{enumerate}
+                    \item loop invariant - all reaching definitions used by $d$ must occur outside the loop
+                        \subitem this can be done with reaching definitions data flow analysis
+                    \item loop invariant node must dominate all loop exits
+                        \subitem use dominators analysis
+                    \item there must be just one definition of $t$ in the loop
+                        \subitem trivial to count
+                    \item $t$ must not be LiveOut from the loop's pre-header
+                        \subitem this can be done with live variables data flow analysis
+                \end{enumerate}
 \end{document}
