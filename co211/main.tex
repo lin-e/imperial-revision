@@ -121,11 +121,11 @@
         \BODY
     \end{tabularx}
 }
-\newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \smallskip \\}
-\newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
-\newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
-\newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
-\newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
+\newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \medskip \\}
+\newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \medskip \\}
+\newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \medskip \\}
+\newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \medskip \\}
+\newcommand{\prooftherefore}[1]{& $\therefore #1$ \medskip \\}
 \newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
 \newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
 
@@ -201,12 +201,12 @@
                         \end{itemize}
                         OS uses both time and space multiplexing for sharing.
                         An example for the former is how the effect of parallelism can be achieved with a single CPU core by splitting up the time allocated per process, and an example for the latter is splitting up memory for each process.
-                        \smallskip
+                        \medskip
 
                         On the other hand, with allocation, the OS must also support simultaneous resource access (such as to disks, RAM, network etc.).
                         Continuing from this, it must also offer mutual exclusion, thus protecting risky operations (such as file writing).
                         Generally, the OS aims to protect against corruption.
-                        \smallskip
+                        \medskip
 
                         Finally, the operating system must also handle storing data, and enforce access control.
                     \item \textbf{clean interfaces}
@@ -221,7 +221,7 @@
                         This is because I/O devices tend to be slower, and while the device is working on the task, it shouldn't prevent the CPU from doing other work.
                         An operating system may switch activities at arbitrary times, and this must be done safely - by offering synchronisation primitives.
                         It should also protect processes by giving each program its own space, thus preventing interference.
-                        \smallskip
+                        \medskip
 
                         Similarly, the OS is fundamentally non-deterministic, as it needs to handle interrupts (such as the network card receiving a packet, user interrupts, etc.).
                 \end{enumerate}
@@ -265,7 +265,7 @@
                         \medskip
 
                         Consider it as one large program that has all the functionality that you want an OS to perform.
-                        \smallskip
+                        \medskip
 
                         The kernel is a single executable with its own address space.
                         There exists a \textbf{system call} interface that allows user mode applications to access the hardware.
@@ -620,13 +620,13 @@
                         This essentially opens a byte stream from process ~A~ to process ~B~, allowing ~A~ to send data to process ~B~.
                         This is commonly used in the command line, for example ~cat file.txt | grep foobar~ (the output of ~cat~ is now the input for ~grep~).
                         There are two types; unnamed (default) and named (can be referred to).
-                        \smallskip
+                        \medskip
 
                         This is opened with the ~int pipe(int fd[2])~ system call, which returns two file descriptors, the read end being in ~fd[0]~, and the write end being in ~fd[1]~.
                         If the receiver is reading from an empty pipe, it blocks until data is written, and if the sender is writing to a full pipe, it blocks until data is read.
                         The parent typically makes the system call, and then forks the process, passing the file descriptors to the child.
                         The sender should close the read end, and the receiver should close the write end.
-                        \smallskip
+                        \medskip
 
                         A persistent pipe can outlive the process that created it - it is stored on the file system, and has different semantics since it is flushed when read from.
                         \begin{enumerate}[1.]
@@ -681,11 +681,11 @@
                 \end{center}
                 Threads allow for programs to execute in parallel, but more importantly they can block independently, therefore blocking in one part of the program (waiting for I/O, etc) does not affect the rest of it.
                 This is useful, over having many processes, as processes have too much overhead, it is difficult to communicate between address spaces, and anything that blocks may switch out the entire application.
-                \smallskip
+                \medskip
 
                 However, there can be issues with multiple threads.
                 Since we are working with the same address space, we need to handle synchronisation, and prevent threads from interfering with each other accidentally (such as stack corruption).
-                \smallskip
+                \medskip
 
                 Typically, when a ~fork~ is performed from a thread, only a single thread is created - however this can lead to issues if the parent is holding locks, the thread now also holds them.
                 Generally, we want to avoid calling ~fork~ in a thread.
@@ -713,19 +713,19 @@
                         \subitem if we want to pass in more arguments, pass in a struct, since it is in the same address space
                 \end{itemize}
                 A thread can be terminated with ~pthread\_exit(void *value\_ptr)~, which terminates the thread, and makes the ~value\_ptr~ available to any successful join (this is fine as threads reside in the same address space).
-                \smallskip
+                \medskip
 
                 It's also important to note that a thread is automatically allocated for the main entry point (starting ~main()~).
                 If the main thread terminates without calling ~pthread\_exit()~, the entire process is terminated, however if it does call it, the remaining threads continue until termination (or ~exit()~ is called).
-                \smallskip
+                \medskip
 
                 Yielding a thread with ~int pthread\_yield(void)~ would be done for the same reasons as the system call ~nice()~ is done for processes (lowering priority in the scheduler).
                 It releases the CPU to let another thread run, and will always return 0 (success) on Linux.
-                \smallskip
+                \medskip
 
                 In order to join threads, ~int pthread\_join(pthread\_t thread, void **value\_ptr)~ can be used.
                 This blocks the caller until ~thread~ terminates, and the value can be accessed.
-                \smallskip
+                \medskip
 
                 All of the content mentioned before assumes a kernel-level thread, such that all of the scheduling is managed by the kernel.
                 However, a process can manage its own user-level threads.
@@ -736,5 +736,251 @@
                 It takes 15ms to get a request for work, dispatch it, and do the rest of the necessary processing assuming that the data needed are in the block cache.
                 A disk operation is needed $\frac{1}{3}$ of the time, requiring an additional 75ms, during which time the thread sleeps.
                 Assume that thread switching time is negligible.
-                How many requests per second can the server handle if it is single threaded.
+                How many requests per second can the server handle if it is;
+                \begin{itemize}
+                    \itemsep0em
+                    \item single-threaded?
+                        \medskip
+
+                        In this case, we should take the weighted average; in a cache hit, it takes the 15ms for the request.
+                        However, in a cache miss, it takes the 15ms, as well as the additional I/O operation, which gives a total of 90ms.
+                        Taking the weighted average, with the probability given, it takes 40ms.
+                        This means that it can perform 25 requests per second.
+                    \item multithreaded?
+                        \medskip
+
+                        Each request needs 15ms of CPU time, and an average of ($\frac{1}{3} \cdot 75=$)25ms I/O time.
+                        Therefore, the probability of a thread being blocked is $\frac{25}{40} = \frac{5}{8}$, as 25ms of the total 40ms is I/O.
+                        Assuming that they are independent, the probability of all $n$ threads sleeping is $\frac{5}{8}^n$.
+                        \medskip
+
+                        With $100\%$ CPU utilisation, we can do $\frac{1000}{15}$ requests per second, and therefore with the blocking, we will do
+                        $$\left(1 - \frac{5}{8}^n\right) \cdot \frac{1000}{15} \text{ requests per second}$$
+                \end{itemize}
+        \subsection*{17th October 2019}
+            This starts with the tutorial question in the last lecture.
+            \subsubsection*{Kernel Threads}
+                The advantages of kernel threads are that it can easily accommodate blocking calls, such as I/O, allowing for other threads in the process to be scheduled.
+                However, this has more scheduling overhead, as we need to transition to and from kernel space.
+                This also causes synchronisation to become more expensive, as well as switching before more expensive (still remains cheaper than process switches).
+                We are also stuck with what the kernel gives us in terms of scheduling.
+                \medskip
+
+                An approach for to take advantage of both types of threads is to use kernel threads and multiplex user-level threads onto some / all of the kernel threads.
+                This allows multiple user threads on a single kernel thread.
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item
+                        If in a multithreaded web server the only way to read from a file is the normal blocking ~read()~ system call, do you think user-level threads or kernel-level threads are being used?
+                        \medskip
+
+                        Kernel-level thread, as it loses the point of being a multithreaded web server if the entire application blocks on a file read.
+                \end{enumerate}
+            \subsubsection*{Process States}
+                The states of a process are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item new \hfill the process is being created
+                    \item ready \hfill runnable and waiting for the processor
+                    \item running \hfill executing on a processor
+                    \item waiting (blocked) \hfill waiting for an event
+                    \item terminated \hfill process is being deleted
+                \end{itemize}
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=2cm]
+                        \node (nw) at (0, 0) {new};
+                        \node (rd) at (2, 0) {ready};
+                        \node (rn) at (4, 0) {running};
+                        \node (tr) at (6, 0) {terminated};
+                        \node (wt) at (4, -1) {waiting};
+
+                        \draw
+                        (nw) edge[->, above] node{(1)} (rd)
+                        (rd) edge[->, above, bend right=30] node{(2)} (rn)
+                        (rn) edge[->, above] node{(3)} (tr)
+                        (rn) edge[->, above, bend right=30] node{(4)} (rd)
+                        (rn) edge[->, right] node{(5)} (wt)
+                        (wt) edge[->, below, bend left=30] node{(6)} (rd);
+                    \end{tikzpicture}
+                \end{center}
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item once the process has been initialised / enabled (PCB created) and exists as an entity
+                    \item selected by the scheduler to execute
+                    \item exits in some way
+                    \item preempted - scheduler decides to stop running a process on a CPU core and returns it to the ready state
+                    \item performing some blocking I/O operation
+                    \item after the blocking operation completes
+                \end{enumerate}
+            \subsubsection*{Scheduling}
+                The states above are for a single process, and as such, multiple processes can be in the ready state (able to run on a CPU core, but not running).
+                The job of the scheduler is to decide which one should run.
+                A scheduling algorithm has the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ensure fairness \hfill all processes are "competing" for CPU time
+                    \item avoid starvation \hfill no process should never be assigned to the running state
+                    \item enforce policy \hfill may need to respect priorities
+                    \item maximise resource utilisation \hfill make sure all CPU cores are busy
+                    \item minimise overhead
+                    \item system specific;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item batch systems \hfill e.g. a compute cluster
+                                \subitem we want to minimise the time between job submission and completion (turnaround time), and maximise throughput (the number of jobs per unit of time)
+                            \item interactive systems \hfill desktop system with UI
+                                \subitem we want fast response times
+                            \item real-time systems
+                        \end{itemize}
+                \end{itemize}
+                We also need to consider the types of scheduling;
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        non-preemptive
+                        \begin{itemize}
+                            \itemsep0em
+                            \item cannot stop it until it stops itself
+                            \item let a process run until it blocks or voluntarily releases CPU
+                        \end{itemize}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        preemptive (most modern operating systems)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item let a process run for a maximum amount of fixed time
+                            \item requires a clock interrupt
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+                We can also classify the nature of processes;
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        CPU-bound
+                        \begin{itemize}
+                            \itemsep0em
+                            \item bottlenecked resource is the CPU (most of the time it is doing computation)
+                            \item performance limited by how fast it can run computations
+                        \end{itemize}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        I/O-bound
+                        \begin{itemize}
+                            \itemsep0em
+                            \item occasionally uses CPU
+                            \item most of time is spent waiting for I/O
+                            \item for example, a terminal waiting for user to enter command
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+                Some common scheduling algorithms are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{first-come-first-served} (non-preemptive)
+                        \medskip
+
+                        The ready state is kept as a queue, and new processes are added to the back of the queue.
+                        The head of the queue is the next process to be scheduled, and when a waiting process finishes waiting it is added to the back of the queue.
+                        \begin{center}
+                            \begin{minipage}[t]{0.45\textwidth}
+                                advantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item no indefinite postponement as all processes are eventually scheduled
+                                    \item very easy to implement
+                                \end{itemize}
+                            \end{minipage}
+                            \hfill
+                            \begin{minipage}[t]{0.45\textwidth}
+                                disadvantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item in the case a long job is followed many short jobs, head of line blocking occurs, and the average turnaround time suffers
+                                \end{itemize}
+                            \end{minipage}
+                        \end{center}
+                    \item \textbf{round-robin scheduling}
+                        \medskip
+
+                        The general structure is similar to first-come-first-served, but we have the addition of preemption.
+                        We keep a process running until it blocks (like in FCFS), but we also preempt it, and place it in the back of the ready queue, once it exceeds some time quantum.
+                        \begin{center}
+                            \begin{minipage}[t]{0.45\textwidth}
+                                advantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item fair due to ready jobs getting equal share of CPU
+                                    \item good response time for a small number of jobs
+                                \end{itemize}
+                            \end{minipage}
+                            \hfill
+                            \begin{minipage}[t]{0.45\textwidth}
+                                disadvantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item low turnaround time when run-times are different (a short job would need less time quanta)
+                                    \item poor turnaround time when run-times are similar (all finish at the same time)
+                                \end{itemize}
+                            \end{minipage}
+                        \end{center}
+                        However, we need to decide on the round robin quantum (time slice).
+                        For example, with a quantum of 4ms, and 1ms for context switching, 20\% of the time becomes overhead.
+                        For a 1s quantum, only 0.1\% is overhead.
+                        Therefore for large quantum, there is less overhead, but a worse response time (as the quantum approaches infinity, we go back to FCFS).
+                        The reverse is true for small quantum.
+                        The typical values lie between 10ms-200ms, Linux uses 100ms, Windows client uses 20ms, and Windows server uses 180ms.
+                    \item \textbf{shortest job first} (non-preemptive)
+                        \medskip
+
+                        If we know all the run-times in advance, we can pick the jobs that require the least CPU time first.
+                        This method is optimal when all the jobs are given simultaneously,
+                    \item \textbf{shortest remaining time}
+                        \medskip
+
+                        This is a preemptive version of SJF - when a new process arrives with a shorter execution time than the remaining time for the currently running process, it should be run.
+                        This allows new short jobs to get good service.
+                        \medskip
+
+                        However, these two methods require knowing the run-times, which isn't always possible.
+                \end{itemize}
+                Some scheduling algorithms take priority into account (priority scheduling).
+                The priority of a job may be defined by the user, or based on some metrics determined by the OS.
+                They can also be static (and remain constant) or dynamic (changes during execution).
+                The goal is to run jobs based on their priority.
+                \medskip
+
+                In general, we want to favour short and I/O bound jobs - this allows for good resource utilisation and short response times (I/O bound jobs are waiting anyways, and therefore don't need much CPU time).
+                A general-purpose scheduler can quickly determine the nature of a certain job, and then adapt to those changes.
+            \subsubsection*{Multilevel Feedback Queues (MLFQ)}
+                A form of priority scheduling is a multilevel feedback queue, which is implemented by many operating systems.
+                This has a queue for each priority level, and runs a job from the highest non-empty priority queue, usually using round-robin.
+                However, this has the issue that if high priority jobs keep being added, then something of a lower priority might never be run, leading to starvation.
+                A way around this is to have a feedback mechanism in place, where the job priority is recomputed periodically based on how much CPU they have used recently.
+                This is an exponentially-weighted moving average.
+                Additionally, a job's priority it should increase as it waits.
+                \medskip
+
+                However, this has a few drawbacks;
+                \begin{itemize}
+                    \itemsep0em
+                    \item priorities make no guarantees - assume a system of 16 queues, and a job is given a priority of 15, this can mean nothing if there are many jobs of priority 16
+                    \item priority assignment requires a warm-up period, when the operating system needs to work out what the job does
+                    \item cheating is a concern - a program may issue I/O requests to boost priority
+                    \item cannot donate priority
+                \end{itemize}
+            \subsubsection*{Lottery Scheduling}
+                By \textit{Waldspurger and Weihl}.
+                Jobs receive lottery tickets for the resources they need (such as CPU time).
+                At each scheduling decision, one ticket is chosen at random, and the job holding that ticket wins.
+                Priorities in this scheme are done by biasing the number of tickets - in a system with 100 tickets for CPU time, and giving a job 20 tickets means that it will have 20\% of the CPU time in the long run.
+                This also has additional nice properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item no starvation (as every job will almost certainly be done at some point)
+                    \item highly responsive, as it will have the number of tickets needed to get a certain percentage chance of getting the resource at the \textbf{next} decision
+                    \item supports priority donation, as a process can give tickets to another
+                    \item adding jobs / removing jobs affects other jobs proportionally
+                \end{itemize}
+                However, the main obvious drawback is the unpredictable response time, and if an interactive process is unlucky, it can be unresponsive.
 \end{document}
