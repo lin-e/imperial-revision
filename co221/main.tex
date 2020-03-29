@@ -2894,4 +2894,38 @@
                             \end{tikzpicture}
                         \end{center}
                 \end{enumerate}
+        \subsection*{19th February 2020 \hfill Tutorial}
+            \subsubsection*{LL Parsing}
+                Note that we are able to use EBNF, which can make the grammar cleaner (without needing auxiliary rules).
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item Write an LL(1) grammar with EBNF for boolean expressions consisting of the constants ~true~, ~false~, parentheses, and the operators ~and~, ~or~, ~not~, ensuring the following;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item precedence, from high to low, is ~not~, ~and~, ~or~
+                            \item allow consecutive ~not~s
+                        \end{itemize}
+                        \begin{align*}
+                            ~BoolExpr~ & \to ~AndExpr \{ 'or' AndExpr \}~ \\
+                            ~AndExpr~ & \to ~NotExpr \{ 'or' NotExpr \}~ \\
+                            ~NotExpr~ & \to ~'not' NotExpr~ \bnfsep ~Operand~ \\
+                            ~Operand~ & \to ~'true'~ \bnfsep ~'false'~ \bnfsep ~'(' BoolExpr ')'~
+                        \end{align*}
+                \end{enumerate}
+            \subsubsection*{Semantic Analysis}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \setcounter{enumi}{2}
+                    \item
+                        This question concerns the semantics of a return statement.
+                        Note that we assume there exists some function that obtains the enclosing method for this statement.
+                        The idea here is that we check the type of the return expression with the return type of the enclosing function, or check that it can accept a return without an expression (methods or "~void~" etc).
+                        It's also important to remember that generally grammars describe statements in general, and do not provide context - therefore a body that shouldn't allow returns isn't captured by the syntax, and therefore must be checked in the semantic analysis stage.
+                \end{enumerate}
+            \subsubsection*{Runtime Organisation}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item For this question, just look at his slides about the memory organisation of classes (MLTs etc.)
+                    \item If we are frequently modifying a string in a loop, it will often need a new memory block to be created to hold the new string (if it grows), requiring the old block to be freed, as well as copying memory - this can be slow and lead to heap fragmentation.
+                \end{enumerate}
 \end{document}
