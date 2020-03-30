@@ -1009,4 +1009,228 @@
                 One example of synchronisation we've already seen is the joining of two ~pthreads~.
                 Note that we can often use processes and threads interchangeably, as the concepts are relevant to both.
                 A lot of the system calls that the kernel exposes for synchronisation are exposed through programming languages, as the language must have the ability to control threads.
+            \subsubsection*{Mutual Exclusion}
+                This goes through a standard example of race conditions due to shared data;
+                \begin{lstlisting}
+                    void extract(int acc, int sum) {
+                      int b = accs[acc];
+                      accs[acc] = b - sum;
+                    }
+                \end{lstlisting}
+                The code above is a critical section (processes access a shared resource), and we need mutual exclusion (such that ensures that if a process is in a critical section, no other process can execute it, hence processes must request permission to enter).
+                Therefore, some synchronisation mechanism is required at the entry and exit of this section.
+                The requirements for mutual exclusion are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item no two processes may be simultaneously inside a critical section
+                    \item no processes running outside the critical section may prevent other processes from entering the critical section (any process requesting permission to enter should be allowed to when there is no process inside that section)
+                    \item no process should be delayed from entering the critical section forever
+                    \item cannot assume about the progress of processes (while it may be easy to assume that two threads are making the same progress, it is really up to the scheduler)
+                \end{itemize}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node (a) at (0, 0) {process ~A~};
+                        \node (b) at (0, -2) {process ~B~};
+                        \node (t1) at (3, -3) {$T_1$};
+                        \node (t2) at (4, -3) {$T_2$};
+                        \node (t3) at (7, -3) {$T_3$};
+                        \node (t4) at (9, -3) {$T_4$};
+
+                        \draw
+                        (a) -- (3, 0)
+                        (7, 0) -- (10, 0)
+                        (b) -- (4, -2)
+                        (9, -2) -- (10, -2)
+                        (3, 0.25) -- (7, 0.25) -- (7, -0.25) -- (3, -0.25) -- cycle
+                        (7, -1.75) -- (9, -1.75) -- (9, -2.25) -- (7, -2.25) -- cycle;
+
+                        \draw[dotted]
+                        (4, -2) -- (7, -2);
+
+                        \draw[dashed]
+                        (3, 0) -- (t1)
+                        (4, -0.25) -- (t2)
+                        (7, 0) -- (t3)
+                        (9, 0) -- (t4);
+                    \end{tikzpicture}
+                \end{center}
+                \begin{enumerate}[$T_1$:]
+                    \itemsep0em
+                    \item ~A~ enters the critical region
+                    \item ~B~ attempts to enter the critical region, ~B~ is blocked
+                    \item ~A~ leaves the critical region, ~B~ is unblocked, and enters the critical region
+                    \item ~B~ leaves the critical region
+                \end{enumerate}
+                Some methods of preventing this are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{disabling interrupts}
+                        \medskip
+
+                        A very simple way of doing this is to disable interrupts;
+                        therefore we can have ~CLI()~ before line 2, and ~STI()~ after line 3.
+                        As no timer interrupts can occur, the processor cannot context switch to another thread.
+                        This has some major issues;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item only works on single-processor systems, as we have true parallelism (such that multiple processes can truly run at the same time - no context switching needed) with multiple processors
+                            \item slows down the system, as nothing else can run during that time
+                            \item because there is no way for the kernel to take back control, a bug in this critical section cannot be recovered from - this mechanism is typically only used by kernel code
+                        \end{itemize}
+                    \item \textbf{strict alternation} \hfill software solution
+                        \medskip
+
+                        The idea here is to maintain a global ~turn~ variable.
+                        While the thread is not on its turn, it simply "busy waits" for the variable to change to its turn.
+                        Once it is, it can then assume that any other thread attempting to access the critical section is now waiting in the loop.
+                        After it has finished execution, it can change the turn.
+                        \begin{center}
+                            \begin{minipage}[t]{0.45\textwidth}
+                                thread 0
+                                \begin{lstlisting}
+                                    while (true) {
+                                      while (turn != 0)
+                                        /* busy wait */;
+                                      critical();
+                                      turn = 1;
+                                      noncritical0();
+                                    }
+                                \end{lstlisting}
+                            \end{minipage}
+                            \hfill
+                            \begin{minipage}[t]{0.45\textwidth}
+                                thread 1
+                                \begin{lstlisting}
+                                    while (true) {
+                                      while (turn != 1)
+                                        /* busy wait */;
+                                      critical();
+                                      turn = 0;
+                                      noncritical1();
+                                    }
+                                \end{lstlisting}
+                            \end{minipage}
+                        \end{center}
+                        This also has issues;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item by doing this we've assumed a form of alternation, that it switches between the threads (switches from thread 0 to thread 1, and vice versa); this means that if thread 0 wishes to enter the critical region again, after finishing a short non-critical region, it must wait for thread 1 to enter the critical region and set ~turn~
+                                \subitem thread 1 can take a long time in its non-critical region, causing non-critical code to prevent entry to critical code
+                            \item we are also performing a busy wait - this wastes CPU time as we are continuously checking a global variable, therefore we need kernel support to prevent this
+                        \end{itemize}
+                    \item \textbf{Peterson's solution} \hfill software solution
+                        \begin{lstlisting}
+                            int turn = 0;
+                            int interested[2] = { 0, 0 };
+
+                            void enter_critical(int thread) {
+                              int other = 1 - thread; // thread is 0 or 1
+                              interested[thread] = 1;
+                              turn = other;
+                              while (turn == other && interested[other])
+                                /* busy wait */;
+                            }
+
+                            void leave_critical(int thread) {
+                              interested[thread] = 0;
+                            }
+                        \end{lstlisting}
+                        While this still uses the global ~turn~, we have an additional ~interested~ variable.
+                        Note that when a thread enters, it marks that it is interested.
+                        When both thread 0 and thread 1 attempt to enter the section, turn only allows one thread to enter.
+                        If thread 0 is in the critical section, then thread 1 must wait for thread 0 to set interested to 0, which can only happen after thread 0 leaves, and vice versa.
+                    \item \textbf{lock variables}
+                        \medskip
+
+                        We can utilise a TSL (test and set lock) instruction, which is an atomic instruction provided by most CPUs.
+                        ~TSL(LOCK)~ atomically sets the memory location ~LOCK~ to 1, and returns the old value.
+                        Note that locks that rely on busy waiting are called \textbf{spin locks} - these can still be used if we have a very short wait time, as we don't need to handle the overhead from context switching.
+                        Spin locks are still used by the kernel, as it cannot use a blocking abstraction.
+                        \medskip
+
+                        It's also important to consider lock granularity (the amount of data a lock is protecting).
+                        Note that in the ~extract~ example at the start, attempting to withdraw from different accounts shouldn't interfere with each other, and therefore it shouldn't be a global lock, but rather a lock per account.
+                        \medskip
+
+                        Similarly, we should also consider the overhead of using locks, such as the memory space from storing data about them, the time used for initialisation, and the time needed to acquire and release them.
+                        With higher lock contention (the number of processes waiting for a lock), we have less parallelism.
+                        \begin{center}
+                            \begin{minipage}[t]{0.45\textwidth}
+                                coarser granularity
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item less lock overhead (less locks)
+                                    \item more lock contention
+                                    \item less complex to implement
+                                \end{itemize}
+                            \end{minipage}
+                            \hfill
+                            \begin{minipage}[t]{0.45\textwidth}
+                                finer granularity
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item more lock overhead
+                                    \item less lock contention
+                                    \item more complex to implement
+                                \end{itemize}
+                            \end{minipage}
+                        \end{center}
+                        To maximise concurrency, we need to choose a finer lock granularity (understanding the tradeoffs).
+                        The goal is to make the critical sections smaller, and release locks as soon as they aren't needed.
+                        For example, in the code below, we should release the outer lock ~L\_accs~ after creating the account, as it is only needed for that part.
+                        \begin{lstlisting}
+                            void addAccount(int acc, int balance) {
+                              lock(L_accs);
+                              createAccount(acc);
+                              lock(L[acc]);
+                              accs[acc] = balance;
+                              unlock(L[acc]);
+                              unlock(L_accs);
+                            }
+                        \end{lstlisting}
+                        Additionally, we should differentiate between locks held for reading and writing.
+                        Two threads attempting to \textbf{read} the same data should be allowed to do so, and it reduces parallel unnecessarily if they block each other.
+                        ~lock\_RD(L)~ acquires lock ~L~ in read mode, and ~lock\_WR(L)~ acquires it in write mode.
+                        In write mode, no other thread can acquire either a read or a write lock, however multiple threads can acquire a lock in read mode.
+                \end{itemize}
+            \subsubsection*{Priority Inversion}
+                Assume we have two processes, ~H~ and ~L~ with high and low priority, respectively.
+                Our scheduler should always schedule ~H~ if it is runnable.
+                Now, ~H~ is waiting for I/O, is therefore blocked, and ~L~ is scheduled.
+                ~L~ acquires lock ~A~ for a critical section.
+                I/O arrives for ~H~, and it is unblocked, ~L~ is preempted and ~H~ is scheduled.
+                ~H~ then attempts to acquire lock ~A~, but ~L~ is holding that lock.
+                \medskip
+
+                If we were to use a busy wait in software, the kernel does not know that ~H~ is blocked, and will continue to schedule it, thus not allowing ~L~ to be scheduled, and the lock is never released.
+                This is called priority inversion, as a higher priority process is being blocked from running by a lower priority process.
+                \medskip
+
+                Therefore, preemptive scheduling needs to take into account the lock implementation and mutual exclusion.
+            \subsubsection*{Race Condition}
+                This occurs when multiple threads or processes read and write shared data, and the final results depends on the relative timing of their execution (on the exact process or thread interleaving).
+                \medskip
+
+                Consider the following three threads (tutorial question);
+                \begin{enumerate}[~T1~:]
+                    \itemsep0em
+                    \item ~a = 1; b = 2~
+                    \item ~b = 1;~
+                    \item ~a = 2;~
+                \end{enumerate}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item How many possible interleavings are there? \hfill 12 interleavings
+                    \item If all thread interleavings are as likely to occur, what is the probability to have ~a = 1~, and ~b = 1~ after all threads complete execution?
+                        \medskip
+
+                        $\frac{1}{12}$, as ~T2~ must occur after ~T1~, and ~T3~ must occur before ~T1~.
+                \end{enumerate}
+                From this, we can see why multithreaded applications are difficult to debug, as the results can be unpredictable (and only occasionally cause bugs).
+            \subsubsection*{Memory Models}
+                It's important to remember that modern CPUs can execute instructions out of order in the interest of performance.
+                We've assumed the operation of each thread appear in program order (and each operation executes atomically).
+                This is not necessarily what the CPU or the compiler assumes, and can lead to unexpected behaviour.
+                Therefore, we should not rely on expected behaviour of a memory model, and just avoid data races (such that they are protected and will work regardless of the model).
+                We assume strong memory models in this course.
 \end{document}
