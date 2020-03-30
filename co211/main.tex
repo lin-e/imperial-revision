@@ -1818,4 +1818,129 @@
 
                         Looking at the first 6 bits, it's in page table entry 3, which is marked as invalid.
                 \end{enumerate}
+                The page size is $2^10$ bytes, hence the least significant 10 bits are used for the offset.
+        \subsection*{13th November 2019}
+            This starts with the exam question shown last lecture.
+            Note that all of the translations we just manually performed must be done at every memory access.
+            This overhead is outweighed by the flexibility of virtual memory.
+            \subsubsection*{Page Table Implementation}
+                We need to look at the representation of the page table, as it can grow very large, as well as handle the performance impacts caused by the overhead of using page tables.
+                The page table is kept in main memory, and the page table base register (PTBR) points to the base of the page table, and the page table length register (PTLR) indicates the size.
+                This needs to be changed when the processor switches processes.
+                \medskip
+
+                As previously mentioned, we now need to perform two memory accesses per data access; one for the page table, and one for the actual data.
+                Most modern CPUs cache frequently translated memory addresses - this is done in hardware (in order to achieve very high performance), and uses this cache as associative memory (supporting parallel search).
+                This is referred to as the translation look-aside buffer (TLB).
+                The cache can be thought of as a table which holds the page number and frame number - before accessing the page table on memory, it checks if the page is in associative register, and if it is; it can obtain the frame number, otherwise the frame number has to be obtained from the table in memory.
+                Some also store address-space identifiers (ASIDs) in entries, which uniquely identify each process to provide address-space protection.
+                This cache needs to be flushed on a context switch (this is another overhead of context switches; initially the memory access will be slower) - the kernel can be mapped into every virtual address space to prevent this issue.
+                \medskip
+
+                We can calculate the effective access time as follows;
+                \begin{align*}
+                    \text{associative lookup} & = \epsilon \\
+                    \text{assume memory cycle time} & = 1 & \mu\text{sec} \\
+                    \text{hit ratio} & = \alpha & \text{page found in associative registers} \\
+                    \text{EAT} & = (\epsilon + 1)\alpha + (\epsilon + 2)(1 - \alpha) \\
+                    & = 2 + \epsilon - \alpha
+                \end{align*}
+                If our hit ratio is close to 1, then we have a very low overhead for paging.
+            \subsubsection*{Page Table Size}
+                As we are thinking of the page table as an array, each storing an address (4 bytes on 32-bit, 8 bytes on 64-bit), the sizes can be an issue.
+                For example, on a 32-bit machine with 4KB pages, the page table will be at least 4MB, which is manageable.
+                However, on a 64-bit machine, with 4KB pages, the page table will need $2^{52}$ entries.
+                At 8 bytes per entry, that will be over 30 million GB.
+                While we will have a very large address space, we are unlikely to actually need it all, and many entries in the page table will be unmapped.
+                Some approaches are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item hierarchical page table
+                        \medskip
+
+                        In a two-level page table, the outer page table will point to an inner page table (which handles all addresses falling within that range), instead of a frame.
+                        The inner page table will only exist if there is at least one address in that range, meaning that we don't need to allocate a page table for the entire address space.
+                        From the inner page table, we can get the actual frame.
+                        \medskip
+
+                        In this scenario, we're still assuming a 32-bit machine with a 1K page size.
+                        The page offset therefore has to consist of 10 bits, and and a page number of 22 bits.
+                        Since we've split the page tables, we also need to split the page number into a 12-bit page number ($p_1$), and a 10-bit page offset ($p_2$).
+                        $p_1$ is the index into the outer page table, and $p_2$ is the displacement within the page that the outer page table is pointing too.
+                        This can be expanded further with larger address spaces.
+                        \begin{center}
+                            \begin{tikzpicture}[x=1.5cm]
+                                \node at (6, -3) {outer page table};
+                                \node at (10, -3) {page table};
+                                \node at (14, -3) {physical memory};
+                                \node at (4.5, 1.5) {$p_1$};
+                                \node at (5.5, 1.5) {$p_2$};
+                                \node at (6.5, 1.5) {$d$};
+                                \draw
+                                (4, 2) -- (7, 2) -- (7, 1) -- (4, 1) -- cycle
+                                (5, 2) -- (5, 1)
+                                (6, 2) -- (6, 1);
+
+                                \node at (6, -0.5) {$\vdots$};
+                                \node at (6, -2) {$\vdots$};
+                                \draw
+                                (5, 0) -- (7, 0) -- (7, -2.5) -- (5, -2.5) -- cycle
+                                (5, -1) -- (7, -1)
+                                (5, -1.5) -- (7, -1.5);
+
+                                \node at (10, -0.5) {$\vdots$};
+                                \node at (10, -2) {$\vdots$};
+                                \draw
+                                (9, 0) -- (11, 0) -- (11, -2.5) -- (9, -2.5) -- cycle
+                                (9, -1) -- (11, -1)
+                                (9, -1.5) -- (11, -1.5);
+
+                                \node at (14, -0.5) {$\vdots$};
+                                \node at (14, -2) {$\vdots$};
+                                \draw
+                                (13, 0) -- (15, 0) -- (15, -2.5) -- (13, -2.5) -- cycle
+                                (13, -1) -- (15, -1)
+                                (13, -1.5) -- (15, -1.5);
+
+                                \draw
+                                (7, -1.25) edge[bend right=30] (8, -0.625)
+                                (8, -0.625) edge[->, bend left=30] (9, 0)
+                                (11, -1.25) edge[bend right=30] (12, -0.625)
+                                (12, -0.625) edge[->, bend left=30] (13, 0);
+
+                                \draw
+                                (4.5, 1) -- (4.5, -1.25) edge[->] (5, -1.25)
+                                (5.5, 1) -- (5.5, 0.333) -- (8, 0.33) -- (8, -1.25) edge[->] (9, -1.25)
+                                (6.5, 1) -- (6.5, 0.666) -- (12, 0.66) -- (12, -1.25) edge[->] (13, -1.25);
+                            \end{tikzpicture}
+                        \end{center}
+                        However, this makes memory access even slower, since we need to do more accesses.
+                    \item hashed page table
+                        \medskip
+
+                        Ideally we'd want a structure for a page table that grows with the number of frames, which is a data structure that is linear with the physical memory.
+                        Here, the page table contains a chain of elements hashing to the same location, and we can search for a match of the virtual page number in the chain.
+                        This gives us the exact corresponding physical frame if a match is found.
+                        However, this is more difficult to implement as it has to be done in hardware, including the hashing function.
+                    \item inverted page table
+                        \medskip
+
+                        Index the page table by the frame address.
+                        Each entry then contains a page address and the process identifier.
+                        This way the structure grows with the frames, however this increases the time as each lookup now requires a linear search through the table.
+                \end{itemize}
+            \subsubsection*{Tutorial Question}
+                Assuming that time for a memory access is 100ns, and for TLB access 20ns.
+                Calculate the access times for a four-level paging system assuming a TLB hit ratio of
+                \begin{enumerate}[(a)]
+                    \itemsep0em
+                    \item 80\%
+                        \medskip
+
+                        The time for translation is $0.8 \cdot (100 + 20) + 0.2 \cdot (500 + 20)$, which is 200ns - thus 100\% slower than unpaged memory access (with one level, it is 140ns, thus 40\%).
+                    \item 98\%
+                        \medskip
+
+                        The time for translation is $0.98 \cdot (100 + 20) + 0.02 \cdot (500 + 20)$, which is 128ns - thus 28\% slower than unpaged memory access (with one level, it is 122ns, thus 22\%).
+                \end{enumerate}
 \end{document}
