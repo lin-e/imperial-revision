@@ -1597,5 +1597,225 @@
                         However, if ~B~ asks for them in the order 3, 2, 1, then deadlock is possible.
                         With three resources there are $3! = 6$ possible combinations each process can request resources.
                         What fraction of all combinations is guaranteed to be deadlock free?
+                        \medskip
+
+                        Assuming that ~A~ does ask for it in the order 1, 2, 3, if ~B~ requests 1 first, then it will block.
+                        Whichever of the two processes acquires 1 first will win and run to completion.
+                        Therefore, $\frac{1}{3}$ of cases are deadlock free.
+                \end{enumerate}
+        \subsection*{7th November 2019}
+            This starts by answering the last question in the previous lecture.
+            \subsubsection*{Memory Management}
+                Every instruction that is executed will involve at least one memory access.
+                This is because the instruction itself is stored in memory.
+                The operating kernel needs to provide memory allocation as well as memory protection (isolation between processes, and containing failures).
+                It also needs to abstract away from the hardware.
+                It's also important to consider the memory hierarchy, as it gets larger, it tends to be slower and have more latency.
+            \subsubsection*{Logical vs. Physical Address Space}
+                Physical addresses are the actual addresses used to access DRAM (physical system memory), typically the program will not deal with physical memory addresses, and only deals with logical memory addresses.
+                The memory management system binds local address space to physical address space.
+                \medskip
+
+                For this to be done quickly it is typically built into hardware.
+                The memory management unit (MMU) maps logical to physical addresses, for example a simple method is to have a relocation register, the contents of which are added to the logical address in order to calculate the physical address.
+                The benefit of doing this is that we can, at compile time, give it logical addresses for it to use.
+                This can then be restricted at runtime by the hardware to a physical address range.
+                Another program may also be running at the same time, with the same logical addresses, but this can then be mapped to a different location on physical memory - thus sharing physical memory between processes.
+            \subsubsection*{Contiguous Memory Allocation}
+                We typically split the main memory into two partitions, kernel memory (usually held in low memory, with the interrupt vector - well known address for the hardware to find the interrupt handler), and user memory (typically held in high memory).
+                This separation must be maintained, such that the user memory cannot access kernel memory and corrupt the state of the machine.
+                We need a base register for the smallest physical address, as well as a limit register which restricts the amount of memory we can give to a process.
+                Therefore the physical range for a process' addresses are from the base register, to the base register + the limit register.
+                However, this approach has drawbacks - if a process were to require more memory, it couldn't overwrite the process located after it, meaning it would have to move a large chunk of memory.
+                Additionally, when a process is freed, it could lead to memory fragmentation;
+                \begin{itemize}
+                    \itemsep0em
+                    \item external fragmentation \hfill there is enough memory, but not together (contiguous)
+                    \item internal fragmentation \hfill able to find contiguous slot, but will have leftover space
+                \end{itemize}
+                While this is very limited, it is still occasionally used.
+                For example, this can be used in embedded system because we know exactly what we're running, and the amount of memory it requires.
+            \subsubsection*{Swapping}
+                A process that isn't running (blocked, etc) does not have to exist in physical memory, and can be stored somewhere else (on disk) to make space for other processes.
+                This is the swap space, which is a file or partition on the disk.
+                However, reading and writing from disk has some latency, which gives a hit to performance.
+                This will be revisited in demand paging.
+            \subsubsection*{Virtual Memory with Paging}
+                Instead of thinking of the memory we allocate to processes as a single fixed block of contiguous memory, we now subdivide memory into a number of fixed sized pages, which lives in virtual memory.
+                The address space of the virtual / logical memory is typically much larger than the physical address space (the former is determined by how many bits we use to represent a memory address - 64 bits on modern hardware).
+                These pages are then mapped to virtual memory, but do not have to be contiguous (for example, page 1 does not have to follow page 0, when mapped to physical memory).
+                This however requires a more complex data structure.
+                The virtual address space for a given process typically looks like the following;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=0.75cm]
+                        \draw
+                        (0, 0) -- (2, 0) -- (2, -8) -- (0, -8) -- cycle
+                        (0, -2) -- (2, -2)
+                        (0, -5) -- (2, -5)
+                        (0, -6) -- (2, -6)
+                        (0, -7) -- (2, -7)
+                        (1, -2) edge[->] (1, -3)
+                        (1, -5) edge[->] (1, -4);
+
+                        \node at (1, -1) {stack};
+                        \node at (1, -5.5) {heap};
+                        \node at (1, -6.5) {data};
+                        \node at (1, -7.5) {code};
+                        \node at (-0.5, 0) {max};
+                        \node at (-0.5, -8) {0};
+                    \end{tikzpicture}
+                \end{center}
+                The process is able to use the entire virtual address space, as if it were the only user.
+                If a process attempted to access a part of virtual memory that isn't mapped, it would result in a segmentation fault.
+                \medskip
+
+                \textbf{Pages} are fixed size blocks of virtual memory that live in the virtual address space.
+                Once a page is mapped to physical memory, the fixed size block of memory is a page \textbf{frame} (the size of a frame and the size of a page are the same, and fixed).
+                For example, we can think of all page sizes as 4KB blocks.
+                To load a binary of some size, we'd calculate $n$ pages to load the binary into memory, and find $n$ free frames.
+                The page table is then set up to translate logical to physical addresses.
+                \begin{center}
+                    \begin{tikzpicture}[x=3cm]
+                        \node at (0.5, 0.5) {virtual memory};
+                        \node at (2.5, 0.5) {page table};
+                        \node at (4.5, 0.5) {physical memory};
+                        \node at (0.5, -0.5) {page 0};
+                        \node at (0.5, -1.5) {page 1};
+                        \node at (0.5, -2.5) {page 2};
+                        \node at (4.5, -1.5) {page 0};
+                        \node at (4.5, -0.5) {page 1};
+                        \node at (4.5, -3.5) {page 2};
+                        \node at (0.5, -4) {$\vdots$};
+                        \node at (0.5, -5.5) {page $v$};
+                        \draw
+                        (1, -0.5) edge[->] (2, -1.25)
+                        (3, -1.25) edge[->] (4, -1.5)
+                        (1, -1.5) edge[->] (2, -1.75)
+                        (3, -1.75) edge[->] (4, -0.5)
+                        (1, -2.5) edge[->] (2, -2.25)
+                        (3, -2.25) edge[->] (4, -3.5);
+                        \draw
+                        (0, 0) -- (1, 0) -- (1, -6) -- (0, -6) -- cycle
+                        (0, -1) -- (1, -1)
+                        (0, -2) -- (1, -2)
+                        (0, -3) -- (1, -3)
+                        (0, -5) -- (1, -5);
+                        \draw
+                        (2, -1) -- (3, -1) -- (3, -5) -- (2, -5) -- cycle
+                        (2, -1.5) -- (3, -1.5)
+                        (2, -2) -- (3, -2)
+                        (2, -2.5) -- (3, -2.5)
+                        (2, -3) -- (3, -3)
+                        (2, -3.5) -- (3, -3.5)
+                        (2, -4) -- (3, -4)
+                        (2, -4.5) -- (3, -4.5);
+                        \draw
+                        (4, 0) -- (5, 0) -- (5, -6) -- (4, -6) -- cycle
+                        (4, -1) -- (5, -1)
+                        (4, -2) -- (5, -2)
+                        (4, -3) -- (5, -3)
+                        (4, -4) -- (5, -4)
+                        (4, -5) -- (5, -5);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Tutorial Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item What is the advantage of a paged virtual memory system with;
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item a small page size \hfill less unused memory (less fragmentation)
+                            \item a large page size \hfill less entries in page table (less overhead, and faster access)
+                        \end{enumerate}
+                    \item Describe how a context switch affects the virtual memory system.
+                        \medskip
+
+                        The page table needs to be changed, as the page table is process specific.
+                        This updates the base register in the MMU.
+                        It also needs to clear cached address translations.
+                \end{enumerate}
+            \subsubsection*{Address Translation}
+                Memory is byte addressable, and therefore memory addresses should refer to a specific byte in memory.
+                For a logical address space $2^m$, and a page size of $2^n$, the address generated by the CPU should be divided into the page number $p$ (which is used as the index into the page table, which contains the base addresses of pages in physical memory), and the page offset $d$, which is which byte in the page we want to access.
+                The page offset is the least significant (last) $n$ bits, and the page number is the remaining $m - n$ bits.
+                Due to the size of the frame being the same as the size of the page, the offset does not need to change;
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=0.9cm]
+                        \node at (4, 0.5) {logical address};
+                        \node at (8, 0.5) {physical address};
+                        \node at (11, 0.5) {physical memory};
+                        \node at (6, -2) {page table};
+                        \node at (1, -1) {CPU};
+                        \node at (3.5, -1) {$p$};
+                        \node at (4.5, -1) {$d$};
+                        \node at (7.5, -1) {$f$};
+                        \node at (8.5, -1) {$d$};
+                        \node at (6, -3) {$\vdots$};
+                        \node at (6, -3.75) {$f$};
+                        \node at (6, -4.5) {$\vdots$};
+                        \draw
+                        (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle
+                        (3, -0.5) -- (5, -0.5) -- (5, -1.5) -- (3, -1.5) -- cycle
+                        (4, -1.5) -- (4, -0.5)
+                        (7, -0.5) -- (9, -0.5) -- (9, -1.5) -- (7, -1.5) -- cycle
+                        (8, -1.5) -- (8, -0.5)
+                        (5, -2.5) -- (7, -2.5) -- (7, -5) -- (5, -5) -- cycle
+                        (5, -3.5) -- (7, -3.5)
+                        (5, -4) -- (7, -4);
+
+                        \draw (2, -1) edge[->] (3, -1);
+                        \draw (9, -1) edge[->] (10, -1);
+                        \draw (3.5, -1.5) -- (3.5, -3.75) edge[->] (5, -3.75);
+                        \draw (7, -3.75) -- (7.5, -3.75) edge[->] (7.5, -1.5);
+                        \draw (4.5, -0.5) -- (4.5, 0) -- (8.5, 0) edge[->] (8.5, -0.5);
+
+                        \draw
+                        (10, 0) -- (12, 0) -- (12, -2) -- (10, -2) -- cycle;
+
+                        \node at (11, -0.25) {~f0000...0000~};
+                        \node at (11, -1.75) {~f1111...1111~};
+                    \end{tikzpicture}
+                \end{center}
+                Note that it's also important to maintain a list of free frames, which are then taken to update the page table for a new process.
+            \subsubsection*{Memory Protection}
+                In the page table, we attach a valid-invalid bit to each entry;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{valid} indicates a legal page (has been allocated, and is mapped to physical memory)
+                    \item \textbf{invalid} indicates the page is missing, either from the page not being in the process' virtual address space (page fault), or it exists but needs to be loaded from disk (demand paging) - kernel deals with this page fault
+                \end{itemize}
+                As each page table entry is just the frame address (as the offset is discarded), this can be stored in that part as simple book-keeping data.
+            \subsubsection*{Tutorial / Exam Question}
+                An embedded system uses a 16-bit big-endian architecture.
+                It supports virtual memory management with a one-level page table.
+                It has a page size of 1 KByte.
+                The least significant bit of each page table entry represent a valid bit; the second least significant bit is the modified (dirty) but.
+                The following are the current entries in the page table;
+                \begin{center}
+                    ~0x2C00~ \\
+                    ~0x2403~ \\
+                    ~0xCC01~ \\
+                    ~0x0000~ \\
+                    ~0x7C01~
+                \end{center}
+                Translate the following virtual memory addresses to physical memory addresses using the page table given above (if possible);
+                \begin{enumerate}[(i)]
+                    \itemsep0em
+                    \item ~0xB85~ \hfill ~0b0000101110000101~
+                        \medskip
+
+                        Looking at the first 6 bits, it's in page table entry 2, hence it is address ~0b1100111110000101~, which is ~0xCF85~
+                    \item ~0x1420~ \hfill ~0b0001010000100000~
+                        \medskip
+
+                        Looking at the first 6 bits, it's in page table entry 5, which doesn't exist, hence it page faults (beyond end)
+                    \item ~0x1000~ \hfill ~0b0001000000000000~
+                        \medskip
+
+                        Looking at the first 6 bits, it's in page table entry 4, hence it is address ~0b0111110000000000~, which is ~0x7C00~
+                    \item ~0xC9A~ \hfill ~0b0000110010011010~
+                        \medskip
+
+                        Looking at the first 6 bits, it's in page table entry 3, which is marked as invalid.
                 \end{enumerate}
 \end{document}
