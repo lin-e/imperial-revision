@@ -1535,5 +1535,67 @@
                             \end{tabular}
                         \end{center}
                     \item \textbf{prevention} \hfill ensure at least one of the four conditions cannot occur
+                        \medskip
+
+                        See next lecture.
+                \end{enumerate}
+        \subsection*{6th November 2019}
+            \subsubsection*{Deadlock Prevention}
+                \begin{itemize}
+                    \itemsep0em
+                    \item attacking mutual exclusion condition \hfill share the resource if it is safe
+                    \item attacking the hold and wait condition
+                        \medskip
+
+                        Requires all the processes to request resources before starting, however this has an issue as the process needs to know what it will need in advance (not realistic since we want finer lock granularity).
+                        Block if not all resources are available.
+                    \item attacking no preemption condition \hfill difficult for a programmer to reason about
+                    \item attacking circular wait condition
+                        \medskip
+
+                        Force all processes to ask for resources in order - however this can be difficult to organise.
+                        This means that the process holding the highest (in this ordering) resource will never ask for a resource that has already been assigned.
+                \end{itemize}
+            \subsubsection*{Communication Deadlock}
+                This can also happen over a network.
+                For example, let ~A~ send a message to ~B~, and blocks until ~B~ replies.
+                If ~B~ never gets the message, due to some failure, ~B~ is blocked waiting for a message, and ~A~ is blocked as ~B~ will not reply.
+                A common method of dealing with this is to use timeouts, and performing some recovery action if the request times out.
+            \subsubsection*{Livelock}
+                This occurs when the processes and threads aren't blocked, but they are not making progress.
+                For example, let ~A~ acquire ~resource1~, and ~B~ acquire ~resource2~.
+                Now ~A~ tries to acquire ~resource2~, but fails, releases locks, and then reacquires ~resource1~ - this cycle continues to happen.
+            \subsubsection*{Starvation}
+                A particular thread can be \textbf{starved} when the scheduler makes biases against it.
+                If it is never scheduled to get the resource, it cannot make any progress - a fair scheduling algorithm prevents this, however a priority based scheduling algorithm may cause this.
+            \subsubsection*{Tutorial Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item Is this system in a safe state? (available: ~A~: 2, ~B~: 3, ~C~: 0)
+                        \begin{center}
+                            \begin{tabular}{lcccccc}
+                                \multirow{2}{*}{process} & \multicolumn{3}{c}{allocation} & \multicolumn{3}{c}{need} \\
+                                & ~A~ & ~B~ & ~C~ & ~A~ & ~B~ & ~C~ \\
+                                \hline
+                                ~P1~ & 0 & 1 & 0 & 7 & 4 & 3 \\
+                                ~P2~ & 3 & 0 & 2 & 0 & 2 & 0 \\
+                                ~P3~ & 3 & 0 & 2 & 6 & 0 & 0 \\
+                                ~P4~ & 2 & 1 & 1 & 0 & 1 & 1 \\
+                                ~P5~ & 0 & 0 & 2 & 4 & 3 & 1
+                            \end{tabular}
+                        \end{center}
+                        Yes, this system is in a safe state.
+                        Note that for this I will be using the notation (~A~, ~B~, ~C~) to denote how much we have available for each resource.
+                        We start at (2, 3, 0), by satisfying ~P2~ and freeing, we have (5, 3, 2), satisfying ~P5~ gives us (5, 3, 4), satisfying ~P4~ gives us (7, 4, 5), satisfying ~P3~ gives us (10, 4, 7), and finally satisfying ~P1~ gives us the expected (10, 5, 7).
+                    \item Can we accept ~P1~'s request for 2 instances of ~B~?
+                        \medskip
+
+                        No, if we're at a point when we only have (2, 1, 0), nothing can be allocated its maximum resource.
+                    \item
+                        Two processes, ~A~ and ~B~, each need three records, 1, 2, and 3, in a database.
+                        If ~A~ asks for them in the order 1, 2, 3, and ~B~ asks for them in the same order, deadlock is not possible.
+                        However, if ~B~ asks for them in the order 3, 2, 1, then deadlock is possible.
+                        With three resources there are $3! = 6$ possible combinations each process can request resources.
+                        What fraction of all combinations is guaranteed to be deadlock free?
                 \end{enumerate}
 \end{document}
