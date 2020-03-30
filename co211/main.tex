@@ -1233,4 +1233,307 @@
                 This is not necessarily what the CPU or the compiler assumes, and can lead to unexpected behaviour.
                 Therefore, we should not rely on expected behaviour of a memory model, and just avoid data races (such that they are protected and will work regardless of the model).
                 We assume strong memory models in this course.
+        \subsection*{24th October 2019}
+            \subsubsection*{Happens-Before Relationship}
+                In order to formalise the execution of events, we think about instructions that are executed as events in a trace.
+                We then have a partial ordering denoted by $a \to b$.
+                Consider two events, $a, b$, with $a$ occurring before $b$ in the trace;
+                \begin{itemize}
+                    \itemsep0em
+                    \item if $a$ and $b$ are in the same thread, then $a \to b$
+                    \item if $a$ is ~unlock(L)~, and $b$ is ~lock(L)~, then $a \to b$ (this can be used to enforce an ordering between threads)
+                \end{itemize}
+                This has the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\forall a.\ a \not\to a$ \hfill irreflexive
+                    \item $\forall a, b.\ a \to b \Rightarrow b \not\to a$ \hfill antisymmetric
+                    \item $\forall a, b, c.\ a \to b \land b \to c \Rightarrow a \to c$ \hfill transitive
+                \end{itemize}
+                Therefore, we can formally define a data race between $a$ and $b$ in the trace if and only if;
+                \begin{itemize}
+                    \itemsep0em
+                    \item they access the same memory location
+                    \item at least one is a write
+                    \item they are unordered according to the relation we just defined
+                \end{itemize}
+                When the ordering is drawn, we are assuming a particular execution order between threads (in terms of locks) - for example we can assume ~T1~ runs before ~T2~, and therefore the lock in ~T2~ happens after the unlock in ~T1~, but it can also be the other way around; therefore to notice race conditions we may still need to enumerate the executions.
+                \begin{lstlisting}
+                    int a, int b;
+                    void T1 {                                void T2 {
+                      a++;                                     lock(L);
+                      lock(L);                                 b++;
+                      b++;                                     unlock(L);
+                      unlock(L);                               a++
+                    }                                        }
+                \end{lstlisting}
+                This is safe if the ~lock(L)~ in ~T2~ is after the ~unlock(L)~ in ~T1~, however if ~T2~ were to lock first, then there is a data race between ~a++~ in both ~T1~ and ~T2~.
+            \subsubsection*{Semaphores}
+                A semaphore can be thought of as a signalling mechanism between two threads.
+                A process will stop, waiting for a specific signal, and a process will continue if it has received a specific signal.
+                The semaphore ~s~ can be accessed via these atomic operations;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~down(s)~ \hfill waiting to receive a signal
+                    \item ~up(s)~ \hfill triggering and sending a signal
+                    \item ~init(s, i)~ \hfill initialising a semaphore
+                \end{itemize}
+                Semaphores have two private components; a counter (which is a non-negative integer), and a queue of processes currently waiting for that semaphore.
+                \begin{lstlisting}
+                    init(s, i): counter(s) = i
+                                queue(s) = { }
+
+                       down(s): if counter(s) > 0
+                                  counter(s) = counter(s) - 1
+                                else
+                                  add P to queue(s)
+                                  suspend P
+
+                         up(s): if queue(s) not empty:
+                                  resume a process in queue(s)
+                                else
+                                  counter(s) = counter(s) + 1
+                \end{lstlisting}
+                This can be used to perform the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{mutual exclusion}
+                        \medskip
+
+                        We can use a semaphore to implement mutual exclusion - via the use of a binary semaphore (where we initialise it to 1).
+                        Therefore a process can acquire the "lock" with ~down(s)~, perform work in the critical section, and then release the "lock" with ~up(s)~.
+                    \item \textbf{ordering events}
+                        \begin{lstlisting}
+                            process A
+                              ...
+                              (critical section)
+                              up(s)
+                              ...
+                            end
+                            process B
+                              ...
+                              down(s)
+                              (critical section)
+                              ...
+                            end
+                        \end{lstlisting}
+                        With the semaphore initialised to 0, this forces ~process A~ to execute its critical section before ~process B~ can execute its critical section, forcing an ordering.
+                    \item \textbf{multiple producers and multiple consumers}
+                        \medskip
+
+                        You can consider the number of processes that are allowed into the critical region as the initial value of the counter.
+                        \medskip
+
+                        Consider the scenario where there is a shared data structure, such as a buffer, a set of producers (threads that are writing into the buffer), and a set of consumers (threads reading from the buffer if there are new elements).
+                        We then have the following constraints;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item producer
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item items can only be deposited in the buffer if there is space (block if it is full)
+                                    \item items can only be written if mutual exclusion is ensured (we don't want writes to interfere)
+                                \end{itemize}
+                            \item consumer
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item items can only be fetched if buffer is non-empty (block if empty)
+                                    \item items can only be read if mutual exclusion is ensured (don't want to read incomplete items)
+                                \end{itemize}
+                            \item buffer \hfill can hold between 0 and $N$ items
+                        \end{itemize}
+                        \begin{lstlisting}
+                            var item, space, mutex: Semaphore
+                            init(item, 0) // signalling between producer and consumer
+                            init(space, N) // ^
+                            init(mutex, 1) // initialised to 1 to ensure mutual exclusion
+
+                            procedure producer()
+                              loop
+                                (produce item)
+                                down(space)
+                                down(mutex)
+                                (deposit item)
+                                up(mutex)
+                                up(item)
+                              end
+                            end
+
+                            procedure consumer()
+                              loop
+                                down(item)
+                                down(mutex)
+                                (fetch item)
+                                up(mutex)
+                                up(space)
+                                (consume item)
+                              end
+                            end
+                        \end{lstlisting}
+                        Looking at the producer, we can see it performs the following steps;
+                        \begin{enumerate}[(1)]
+                            \itemsep0em
+                            \item it first produces an item
+                            \item it attempts to ~down~ the ~space~ semaphore, it blocks if the buffer is full and will resume once a consumer reads
+                            \item it then enters the critical region, deposits the item, and exits
+                            \item it ~up~s the ~item~ semaphore, signalling that there is an item
+                        \end{enumerate}
+                        On the other hand, the consumer does the following;
+                        \begin{enumerate}[(1)]
+                            \itemsep0em
+                            \item it attempts to ~down~ the ~item~ semaphore, if it is 0, there are no items to be read, and will block until a producer deposits
+                            \item it then enters the mutual exclusion zone, fetches it, exits, and frees space in the buffer, finally consuming the item
+                        \end{enumerate}
+                \end{itemize}
+            \subsubsection*{Monitors and Condition Variables}
+                This is a higher level synchronisation primitive.
+                The monitor protects shared data, and has a procedure that must be called to enter the monitor from outside.
+                There are then internal procedures that can only be called from monitor procedures (the monitor itself is implicitly protected by a lock), and has one or more condition variables.
+                Processes can only call entry procedures, and cannot directly access internal data - one process in the monitor at a time.
+                \medskip
+
+                Condition variables are associated with high-level conditions, similar to what we used for the final example in semaphores, such as "some space has become available".
+                This can be thought of as a signalling mechanism that something has occurred between two threads.
+                It has the following operations;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~wait(c)~ \hfill release monitor lock, and waits for ~c~ to be signalled
+                    \item ~signal(c)~ \hfill wakes up a process waiting for ~c~
+                    \item ~broadcast(c)~ \hfill wakes up all processes waiting for ~c~
+                \end{itemize}
+                Unlike semaphores, signals do not accumulate, therefore if ~signal~ is called with no waiting thread, the signal is lost.
+                Hence if ~signal~ was called before ~wait~, then the ~wait~ would have to wait until the next ~signal~ is called (can be indefinite if no ~signal~ is called in the future - this causes bugs if a thread "misses" its signal).
+                The same model as above can be done with monitors as follows;
+                \begin{lstlisting}
+                    monitor ProducerConsumer
+                      condition not_full, not_empty
+                      int count = 0
+
+                      entry procedure insert(item)
+                        while (count == N) wait(not_full) // block until signalled if full
+                        insert_item(item)
+                        count++
+                        signal(not_empty) // wakes up a waiting thread
+
+                      entry procedure remove(item)
+                        while (count == 0) wait(not_empty)
+                        remove_item(item)
+                        count--
+                        signal(not_full)
+                    end monitor
+                \end{lstlisting}
+                Note the use of ~while~ as the condition, instead of ~if~ as we always need to re-check the condition.
+                There is some subtlety on what happens on a signal;
+                \begin{itemize}
+                    \itemsep0em
+                    \item Hoare \hfill a process waiting for a signal is immediately scheduled
+                        \begin{itemize}
+                            \itemsep0em
+                            \item easy to reason about
+                            \item inefficient - the signalling process switches out even if it has not finished yet with the monitor
+                            \item places extra constraints on scheduler
+                        \end{itemize}
+                    \item Lampson \hfill sending signal and waking up from a wait is not atomic
+                        \begin{itemize}
+                            \itemsep0em
+                            \item harder to understand, need to take extra care when waking up from ~wait~ (hence re-checking)
+                            \item more efficiently, no constraints on scheduler
+                            \item more error tolerant, if condition being notified is wrong, simply discarded when rechecked
+                        \end{itemize}
+                        This is usually used.
+                \end{itemize}
+                Two threads in the same process can synchronise using a kernel semaphore only if they are implemented by the kernel, because the kernel needs to be able to see the threads and manipulate them.
+            \subsubsection*{Deadlocks}
+                A set of processes is deadlocked if each process is waiting for an event that only another process can cause.
+                This is similar to a data race in the sense that this may not always happen, and execution may be able to proceed as expected.
+                Consider the two processes;
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        P0:
+                        \begin{lstlisting}
+                            down(scanner);
+                            down(cd_writer);
+                            scan_and_record();
+                            up(cd_writer);
+                            up(scanner);
+                        \end{lstlisting}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        P1:
+                        \begin{lstlisting}
+                            down(cd_writer);
+                            down(scanner);
+                            scan_and_record();
+                            up(scanner);
+                            up(cd_writer);
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                If P0 downs the ~scanner~, and then it context switches to P1, which downs the ~cd\_writer~, they are in deadlock.
+                The each want to down the semaphore the other have downed, but neither can progress.
+                For resource deadlock, the most common, these 4 conditions must hold;
+                \begin{itemize}
+                    \itemsep0em
+                    \item mutual exclusion \hfill each resource is either available or assigned to one process
+                    \item hold and wait \hfill process can request resources while it holds other resources
+                    \item no preemption \hfill resources given cannot be forcibly revoked
+                    \item circular wait \hfill two or more processes in a circular chain, waiting for a held resource
+                \end{itemize}
+                Brief tutorial questions;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item Can the set of processes deadlocked include processes that are not in the circular chain in the corresponding resource allocation graph?
+                        \medskip
+
+                        Yes - a process may be waiting on a resource that is held in a circular chain, but not holding a resource (that's needed in the chain)
+                    \item
+                        Can a single-processor system have no processes ready and no process running?
+                        Is this a deadlocked system?
+                        \medskip
+
+                        Yes (all processes waiting for I/O) - but this is not a deadlocked system.
+                        Typically, we have an idle process created by the kernel that runs when there are no other processes ready (this powers down the core / lowers the core frequency).
+                        Therefore we cannot see if we are in a deadlock just by checking that there are no processes running and none are ready.
+                \end{enumerate}
+            \subsubsection*{Resource Allocation Graph and Dealing with Deadlocks}
+                This is a directed graph that models resource allocation, an arc from a resource to a process means that the process owns that resource, and an arc from a process to a resource means that the process is blocked waiting for that resource.
+                If a cycle is present, then there is a deadlock.
+                Some strategies are as follows;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item \textbf{ignore it} \hfill when it is such a rare occurrence, it can be ignored
+                    \item \textbf{detection and recovery}
+                        \medskip
+
+                        Dynamically build the resource ownership graph and look for cycles.
+                        Mark a visited arc, if we encounter a visited arc, then a cycle is present.
+                        \medskip
+
+                        Once we've figured out we have a deadlock, we can preempt a process in the cycle - however this can break the program.
+                        A method that is less damaging would be to rollback to a previously checkpointed state, redo the computation, ensuring that the same scheduling decisions aren't made.
+                        Another strategy is to kill a random process in the cycle, assuming that the process can handle it.
+                    \item \textbf{dynamic avoidance} \hfill decide whether it is safe to grant access to resource when requested
+                        \medskip
+
+                        Banker's Algorithm, by \textit{Dijkstra}.
+                        Essentially, it models resources available similar to how a bank can give customers (threads) a credit limit, and the bank can reserve less than the sum of all the credit limits.
+                        Each process can have less than, or equal to, its limit.
+                        \medskip
+
+                        A state is considered safe if there are enough resources to satisfy the maximum request from any customer.
+                        This creates some sequence of allocations that guarantees that all customers can be satisfied.
+                        For example, in the state below (with 2 free resources), it is safe, as we can satisfy ~C~, which frees all 4 resources, allowing us to satisfy ~B~ or ~D~, and so on.
+                        \begin{center}
+                            \begin{tabular}{lcc}
+                                & has & max \\
+                                \hline
+                                ~A~ & 1 & 6 \\
+                                ~B~ & 1 & 5 \\
+                                ~C~ & 2 & 4 \\
+                                ~D~ & 4 & 7
+                            \end{tabular}
+                        \end{center}
+                    \item \textbf{prevention} \hfill ensure at least one of the four conditions cannot occur
+                \end{enumerate}
 \end{document}
