@@ -2238,7 +2238,225 @@
                 Show the contents of the frames after each memory reference (and how many page faults occur in each case), assuming
                 \begin{enumerate}[(a)]
                     \itemsep0em
-                    \item the LRU replacement policy
-                    \item the clock policy
+                    \item the LRU replacement policy \hfill 11 faults
+                        \begin{center}
+                            \begin{tabular}{l|ccccccccccccccccc}
+                                \multirow{2}{*}{frame} & \multicolumn{17}{c}{reference} \\
+                                & 1 & 2 & 1 & 3 & 2 & 1 & 4 & 3 & 1 & 1 & 2 & 4 & 1 & 5 & 6 & 2 &  1 \\
+                                \hline
+                                0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 2 & 2 \\
+                                1 &   & 2 & 2 & 2 & 2 & 2 & 2 & 3 & 3 & 3 & 3 & 4 & 4 & 4 & 6 & 6 & 6 \\
+                                2 &   &   &   & 3 & 3 & 3 & 4 & 4 & 4 & 4 & 2 & 2 & 2 & 5 & 5 & 5 & 1 \\
+                                fault & $\times$ & $\times$ & & $\times$ & & & $\times$ & $\times$ & & & $\times$ & $\times$ & & $\times$ & $\times$ & $\times$ & $\times$
+                            \end{tabular}
+                        \end{center}
+                    \item the clock policy \hfill 9 faults
+                        \begin{center}
+                            \begin{tabular}{l|ccccccccccccccccc}
+                                \multirow{2}{*}{frame} & \multicolumn{17}{c}{reference} \\
+                                & 1 & 2 & 1 & 3 & 2 & 1 & 4 & 3 & 1 & 1 & 2 & 4 & 1 & 5 & 6 & 2 &  1 \\
+                                \hline
+                                0 & 1 & 1 & 1 & 1 & 1 & 1 & 4 & 4 & 4 & 4 & 4 & 4 & 4 & 5 & 5 & 5 & 5 \\
+                                1 &   & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 1 & 1 & 1 & 1 & 1 & 1 & 6 & 6 & 6 \\
+                                2 &   &   &   & 3 & 3 & 3 & 3 & 3 & 3 & 3 & 2 & 2 & 2 & 2 & 2 & 2 & 1 \\
+                                fault & $\times$ & $\times$ & & $\times$ & $\times$ & & $\times$ & & $\times$ & & $\times$ & & & $\times$ & $\times$ & &
+                            \end{tabular}
+                        \end{center}
+                \end{enumerate}
+        \subsection*{28th November 2019}
+            This starts with the tutorial question given at the end of the last lecture.
+            \subsubsection*{Device Management}
+                The goals for an OS regarding device management are the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item fair access (processes competing for resources such as disk, network card etc.)
+                    \item exploit parallelism (such as SSD access)
+                    \item hide complexity of I/O devices
+                \end{itemize}
+                We also want device independence from both the type (terminal, disk, DVD etc.) and the instance (which disk it's actually referring to).
+                We want to have the following properties for each device class (what they can achieve);
+                \begin{itemize}
+                    \itemsep0em
+                    \item unit of data transfer
+                        \begin{itemize}
+                            \itemsep0em
+                            \item character \hfill input devices one character at a time
+                            \item block \hfill fixed sized blocks
+                                \subitem makes more sense to read / write a large amount of data than many individual requests
+                        \end{itemize}
+                        \begin{center}
+                            \begin{tikzpicture}[x=1.5cm, y=0.75cm]
+                                \node at (2, -0.5) {file subsystem};
+                                \node at (3, -2.5) {buffer cache};
+                                \node at (1, -4.5) {character};
+                                \node at (3, -4.5) {block};
+                                \node at (2, -5.5) {device drivers};
+                                \draw
+                                (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle
+                                (2, -2) -- (4, -2) -- (4, -3) -- (2, -3) -- cycle
+                                (0, -4) -- (4, -4) -- (4, -6) -- (0, -6) -- cycle
+                                (0, -5) -- (4, -5)
+                                (2, -4) -- (2, -5);
+                                \draw
+                                (1, -1) edge[<->] (1, -4)
+                                (3, -1) edge[<->] (3, -2)
+                                (3, -3) edge[<->] (3, -4);
+                            \end{tikzpicture}
+                        \end{center}
+                        When working with blocks, we can use a cache, whereas this isn't needed with characters.
+                    \item supported operations \hfill read, write, seek, etc.
+                    \item synchronous (block until response) or asynchronous (will raise interrupt on response)
+                    \item shareable (such as disks) or single user (such as optical disk drives)
+                        \medskip
+
+                        A dedicated device needs a simple policy, such as failing to open a device if it is already opened, or queuing requests.
+                        On the other hand, the OS can provide an abstracted file system which is then exposed to programs.
+                    \item types of error conditions
+                \end{itemize}
+                In I/O layering, the rest of the OS needs to communicate with the drivers, which in turn communicate with the hardware controllers on the actual devices.
+                At the top is user-level I/O software, followed by device-independent operating system software, then device drivers, interrupt handlers, and then the hardware.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{interrupt handler}
+                        \medskip
+
+                        This processes each interrupt received from an I/O device.
+                        For block devices, this is signalled on the completion of a block (compared to an interrupt per character).
+                        When a character is transferred, it needs to process the next character.
+                        The interrupt handlers are needed as I/O devices behave in a fundamentally asynchronous fashion.
+                    \item \textbf{device drivers}
+                        \medskip
+
+                        Specific to a type of device (implemented by the device manufacturer).
+                        It can implement reading and writing to the device, access to the devices' registers, scheduling requests, and error handling (transparent to OS).
+                        \medskip
+
+                        Memory-mapped I/O allows a device to be addressed as a memory location.
+                        \begin{itemize}
+                            \itemsep0em
+                            \item programmed I/O \hfill inefficient as we don't want to keep polling
+                            \item interrupt-driven I/O \hfill hardware raises interrupt to be handled
+                            \item DMA (direct memory access) \hfill bypassing CPU without interrupt
+                                \subitem only raises one interrupt to the CPU once everything is done, reducing number of interrupts
+                        \end{itemize}
+                    \item \textbf{device independent OS layer}
+                        \medskip
+
+                        Attempts to standardise interface for a specific class of driver.
+                        This provides device independence, such as naming devices (as we don't want processes to refer directly to physical device but our logical naming abstraction of it).
+                        This is required since a component can be updated on a device, and the software would not be able to deal with it (if it were referring to a specific physical device).
+                        \medskip
+
+                        This layer also provides request validation - verifying that the operation we want to carry out is supported by the device.
+                        It also gives us resource allocation for a device that can't be shared, as well as user access validation.
+                        Buffering of blocks is also implemented in this layer, allowing it to be used across all devices.
+                        \medskip
+
+                        A way of allocating nonsharable devices is to use a process called spooling, instead of blocking each process until it is free.
+                        An example of a spooled device is a printer, where the output is saved to a disk file first.
+                        This is then printed out by a spooler daemon, which is the only process that has direct access to the printer.
+                        This allows any process to send data to a printer, and have it eventually be printed.
+                        \medskip
+
+                        Buffered I/O means that all I/O requests to and from a device goes through this cache (transparent).
+                        This gives better performance.
+                        On the other hand, having unbuffered I/O goes directly from the user space to / from the device.
+                        This has better latency, compared to the use of a buffer cache.
+                        Another use of unbuffered I/O is for databases, as we want to have the guarantee of durability, and that we write to the disk straight away.
+                    \item \textbf{user-level I/O interface}
+                        \medskip
+
+                        This is a higher abstraction we give to processes (device independent), and exposes both blocking and non-blocking APIs, from which the application can then choose what to use.
+                        Unix gives an I/O API where everything is accessible as files - this allows the same API to be used for device I/O as for the file system.
+                \end{itemize}
+            \subsubsection*{Linux Implementation}
+                Linux provides device drivers through the use of loadable kernel modules (LKM).
+                Dynamically inject code into kernel - this contains object code which is loaded on demand, and is typically provided by the hardware vendor.
+                However, as the code is being injected into the kernel, it requires binary compatibility, as modules written fro different kernel versions may not work together.
+                Kmod is a kernel subsystem that manages modules on-demand, such as when a new device is plugged in.
+                It also handles module dependencies, if there are any.
+                Every LKM consists of at least two basic functions, and is loaded by ~insmod module.o~;
+                \begin{lstlisting}
+                    int init_module(void) {
+                      // all initialisation code
+                    }
+                    void cleanup_module(void) {
+                      // clean shutdown
+                    }
+                \end{lstlisting}
+                Linux provides a common interface for I/O system calls.
+                Devices are grouped into classes, where members perform similar functions (such as input devices).
+                The individual devices are identified by major and minor identification numbers, where devices of the same major number are controlled by the same driver, and minor numbers allow the system to distinguish between devices of the same class.
+                The devices can be listed by looking at the contents of ~/dev~ - which also shows the major and minor numbers.
+                Therefore instead of writing to an actual file in ~/dev~, Linux will look up the device driver, which then sends the data to the device in question.
+                \medskip
+
+                While this abstraction is powerful, as we can have every operation go through the virtual file system (VFS) which distinguishes between a file system operation and a device operation, it cannot support all operations on devices.
+                Additional functionality is done through the ~ioctl~ system call, which supports special tasks such as ejecting the CD-ROM tray, or retrieving status information from the printer.
+                \medskip
+
+                Devices are represented as follows in Linux;
+                \begin{itemize}
+                    \itemsep0em
+                    \item character devices
+                        \medskip
+
+                        This transmits data as a stream of bytes, and is represented by a ~device\_struct~ which contains the driver name and a pointer to the driver's ~file\_operations~ structure.
+                        All the registered drivers are referenced by the ~chrdevs~ vector.
+                    \item block devices
+                        \medskip
+
+                        Due to the additional complexity, there is an entire block I/O subsystem.
+                        The kernel also implements strategies to minimise the amount of time accessing block devices by caching data and clustering I/O operations.
+                        \medskip
+
+                        When data is requested from the block device, the kernel first attempts to search the block cache - if it is found the data is copied to the process' address space, otherwise it is added to the request queue.
+                        Direct I/O is also supported, which bypasses the kernel cache.
+                \end{itemize}
+                The I/O classes are as follows;
+                \begin{center}
+                    \begin{tabular}{ll}
+                        I/O class & types \\
+                        \hline
+                        character (unstructured) & files and devices \\
+                        block (structured) & devices \\
+                        pipes (message) & interprocess communication \\
+                        socket (message) & network interface (bidirectional communication)
+                    \end{tabular}
+                \end{center}
+                The API is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~fd = create(filename, permission)~
+                    \item ~fd = open(filename, mode)~ \hfill mode is 0, 1, or 2 for read, write, read and write
+                    \item ~close(fd)~ \hfill release resources when done
+                    \item ~bytesread = read(fd, buffer, numbytes)~ \hfill reads into ~buffer~, returns actual number read
+                    \item ~byteswritten = write(fd, buffer, numbytes)~
+                        \subitem writes into ~fd~ from ~buffer~, returns actual number written
+                    \item ~fd = mknod(filename, permission, dev)~
+                        \subitem creates a new special file (character or block device)
+                \end{itemize}
+                Each process has its own file descriptor table, with the first 3 (0, 1, 2) being ~stdin~, ~stdout~, and ~stderr~.
+                These normally refer to the terminal that the process was started from.
+            \subsubsection*{Blocking vs Non-blocking}
+                With blocking I/O, the call returns when the operation completes, however during this time the processor is likely to context switch to something else, as this process is now waiting.
+                This is easy to reason about, but can lead to multi-threaded code if work needs to be done in the background.
+                On the other hand, non-blocking I/O does as much work as possible.
+                To enable this for a file descriptor, the ~fcntl~ system call is used, and any future read / write to the file descriptor will give non-blocking semantics.
+                Application-level polling now needs to be implemented.
+                \medskip
+
+                A more modern style of doing I/O is to do asynchronous I/O.
+                This effectively provides a "callback", where a request is made to the kernel through a system call, which is then initiated.
+                The application continues on (this is non-blocking), and once the kernel has a read response, it then signals the process that the operation is complete.
+            \subsubsection*{Tutorial Question}
+                In which of the four I/O software layers (user-level I/O software, device-independent OS software, device drivers and interrupt handlers) is each of the following done?
+                \begin{enumerate}[(a)]
+                    \itemsep0em
+                    \item Computing the track, sector and head for a disk read \hfill device drivers
+                    \item Maintaining a cache of recently used blocks \hfill device-independent OS software
+                    \item Writing commands to the drive registers \hfill device drivers or interrupt handler
+                    \item Checking to see if the user is permitted to use the device \hfill device-independent OS software
+                    \item Converting binary integers to ASCII for printing \hfill user-level I/O software
                 \end{enumerate}
 \end{document}
