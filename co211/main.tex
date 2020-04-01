@@ -2591,13 +2591,300 @@
                 RAID allows for parallel disk I/O.
                 Instead of using one disk, and accessing it sequentially, RAID uses an array of physical drives appearing as a single virtual drive allowing for parallel access (by storing data distributed over the array - striping).
                 The redundant disk capacity can also be used to respond to disk failure, thus improving reliability.
+                RAID 0 was done in this lecture, but the rest will be covered in the next one, so I will put it there.
+        \subsection*{5th December 2019}
+            \subsubsection*{RAID Continued}
                 Some levels are as follows;
                 \begin{itemize}
                     \itemsep0em
-                    \item RAID 0 (Striping)
+                    \item RAID 0 (striping)
                         \medskip
 
                         This uses multiple disks to spread out data - if we are accessing strips of data on different disks, this can be done in parallel.
+                        This has the combined capacity of all the disks.
                         However, there is no redundancy, and if any of the drives in the array fails, all data can be lost.
+                    \item RAID 1 (mirroring)
+                        \medskip
+
+                        This mirrors data across both disks - thus giving us redundancy.
+                        It also improves the reads, as reading can be done from either disks (thus in parallel), however writing is slower as we must update both disks in parallel.
+                        Since we have a redundant disk, there is a higher cost since we have less storage.
+                    \item RAID 2 (bit-level hamming)
+                        \medskip
+
+                        This gives high throughput for reads and writes since all disks participate in I/O requests (due to the bit level striping).
+                        Additionally, we can have smarter error correction - if we have 4 disks for bit striping, we can have an additional 3 disks for error correction (instead of what would be the equivalent of 4 disks for RAID 1).
+                        However, this comes at an actual economic cost, as well as a cost for writing as we have to write to all the data disks, as well as recomputing the error correction bits.
+                    \item RAID 3 (byte-level XOR)
+                        \medskip
+
+                        This only stores a single parity strip, and any missing data can be recomputed from the parity and remaining data.
+                        This has lower storage overhead than RAID 2, but I/O still cannot be parallel we need all disks for reading and writing.
+                    \item RAID 4 (block-level XOR)
+                        \medskip
+
+                        It does the same as RAID 3, but on a block level.
+                        Since we are dealing with data at the granularity of a block, we can still have the possibility of parallel reading.
+                        However, the parity disk becomes the bottleneck when we attempt parallel writing, as the parity disk must be updated.
+                    \item RAID 5 (block-level distributed XOR)
+                        \medskip
+
+                        This is the most commonly used RAID level today, for file servers.
+                        It is similar to RAID 4, but instead of storing a single parity disk, the parity is across all the disks in the array.
+                        However, the reconstruction of a failed disk is non-trivial (and also slow).
                 \end{itemize}
+                In summary, the levels are as follows (~+~ is better than single disk, ~0~ is same, ~-~ is worse, X is I/O data transfer and Y is I/O request rate);
+                \begin{center}
+                    \begin{tabular}{lclcc}
+                        category & level & description & X (R/W) & Y (R/W) \\
+                        striping & 0 & non-redundant & ~+ / +~ & ~+ / +~ \\
+                        mirroring & 1 & mirrored & ~+ / 0~ & ~+ / 0~ \\
+                        \multirow{2}{*}{parallel access} & 2 & redundant via Hamming code & ~++/++~ & ~0 / 0~ \\
+                        & 3 & bit interleaved parity & ~++/++~ & ~0 / 0~ \\
+                        \multirow{2}{*}{independent access} & 4 & block interleaved parity & ~+ / -~ & ~+ / -~ \\
+                        & 5 & block interleaved distributed parity & ~+ / -~ & ~+ / 0~
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Disk Caching}
+                Since the disk is a block device, we have the use of the buffer cache to improve performance.
+                The buffer in main memory contains a copy of some sectors from the disk, however it has a finite space and therefore needs a replacement policy for when the buffer is full.
+                This is similar to what we have for pages.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{least recently used}
+                        \medskip
+
+                        As the name implies, we replace the block that was longest in the cache with no references.
+                        The cache consists of a stack of blocks, and the most recently referenced block is put on to the top of the stack (when it is referenced or brought into cache).
+                        The block at the bottom of the stack is removed when a new block is brought in.
+                        We keep a stack of pointers instead of actually moving the blocks around in memory.
+                        However, this doesn't take into account the popularity of a block.
+                    \item \textbf{least frequently used}
+                        \medskip
+
+                        Similar to LFU for pages, but here we replace the block that has experienced the fewest number of references.
+                        This can however lead to a misleading count, and therefore we want to use a frequency-based replacement policy.
+                    \item \textbf{frequency-based replacement}
+                        \medskip
+
+                        This divides the LRU stack into two sections (new and old).
+                        If a block is referenced then we move it to the top of the stack, and only increment the reference count if it is not in the new section (prevents frequent access from increasing the count too often).
+                        This may cause blocks to age out too quickly, and three sections are used instead, only replacing blocks from the old section.
+                \end{itemize}
+            \subsubsection*{File Systems}
+                The objectives a file system are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item long term persistent (nonvolatile) storage
+                    \item share data between processes
+                    \item concurrent access to shared data
+                    \item organisation and management of data (hierarchical namespace - directories)
+                \end{itemize}
+                A file can be considered as a \textbf{named} collection of data of an arbitrary size (not fixed, unlike pages and blocks).
+                The types of files are as follows;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node (f) at (0, 0) {files};
+                        \node (l) at (-6, -1) {links};
+                        \node (r) at (-2, -1) {regular file};
+                        \node (d) at (2, -1) {directory};
+                        \node (s) at (6, -1) {special file};
+                        \node (hl) at (-7, -2) {hard link};
+                        \node (sl) at (-5, -2) {soft link};
+                        \node (t) at (-3, -2) {text};
+                        \node (b) at (-1, -2) {binary};
+                        \node (csf) at (4.5, -2.5) {\shortstack{character\\special file}};
+                        \node (bsf) at (7.5, -2.5) {\shortstack{block\\special file}};
+                        \draw
+                        (f) edge[->] (l)
+                        (f) edge[->] (r)
+                        (f) edge[->] (d)
+                        (f) edge[->] (s)
+                        (l) edge[->] (sl)
+                        (l) edge[->] (hl)
+                        (r) edge[->] (t)
+                        (r) edge[->] (b)
+                        (s) edge[->] (csf)
+                        (s) edge[->] (bsf);
+                        \draw[dashed] (3, -2) -- (9, -2) -- (9, -3) -- (3, -3) -- cycle;
+                        \node at (6, -3.5) {devices};
+                    \end{tikzpicture}
+                \end{center}
+                Note that directories are considered files, the contents of which is a listing of files that live in that directory.
+                The links can be thought of as "pointers" in the file system.
+                The Unix/Linux file system calls are as follows;
+                \begin{center}
+                    \begin{tabular}{ll}
+                        system call & description \\
+                        \hline
+                        ~fd = open(file, mode)~ & open file for reading / writing \\
+                        ~s = close(fd)~ & closing an open file \\
+                        ~n = read(fd, buffer, nbytes)~ & read data from file to buffer \\
+                        ~n = write(fd, buffer, nbytes)~ & write data from buffer to file \\
+                        ~position = lseek(fd, offset, whence)~ & move file pointer \\
+                        ~s = stat(name, \&buf)~ & get meta-data \\
+                        ~s = fcntl(fd, cmd, ...)~ & other operations
+                    \end{tabular}
+                \end{center}
+                Functions of a file system;
+                \begin{itemize}
+                    \itemsep0em
+                    \item logical name to physical disk address translation
+                        \subitem mapping from a path ~/home/admin/foobar~ to disk 2, block 492 etc
+                    \item management of disk space \hfill allocation and deallocation
+                    \item locking for exclusive access
+                    \item optimisation \hfill caching and buffering
+                    \item protection against system failure \hfill back-up and restoration
+                    \item security \hfill access control
+                \end{itemize}
+                The attributes that may be held with a file on the file system should be split into categories; basic information such as the name, type, organisation (sequential or random), and the creator, as well as address information.
+                The address information would include where it is on the disk (which drive, which partition), the start address (LBA etc).
+                Note that it will also be useful to keep the size used as well as the size allocated, as small files may still require the a larger amount to be allocated.
+                The file attributes may also contain access control information (who can access the file), and the usage information (such as the creation / last modified timestamps).
+                In Linux, with the ~ls -l~ command;
+                \begin{center}
+                    ~brw-rw---- 1 root disk 3, 5 May 21 2001 /dev/hda5~
+                \end{center}
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~b~ \hfill file type; ~(b)~lock device, ~(c)~haracter device, ~(d)~irectory, ~(l)~ink, ~-~ is a regular file
+                    \item ~rw-rw----~ \hfill file protection
+                    \item ~1~ \hfill number of links
+                    \item ~root~ \hfill user id of owner
+                    \item ~disk~ \hfill group id of owner
+                    \item ~3~ \hfill major number if device, file size if file
+                    \item ~1~ \hfill minor number if device
+                    \item ~May 21 2001~ \hfill date of creation
+                    \item ~/dev/hda5~ \hfill file name
+                \end{itemize}
+            \subsubsection*{File System Organisation}
+                Dynamic space management must occur since file sizes are naturally variable, but space is allocated in blocks (typically of 512 - 8192 bytes).
+                If the block size is too large, then we waste space for small files, however if the block size is too small, then we have a lot of management overhead for large files.
+                Small blocks also lead to high file transfer time, since there may be a higher seek time.
+                There are various methods for accessing blocks belonging to a file (typically the latter two are used today);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{contiguous file allocation}
+                        \medskip
+
+                        The idea here is that we allocate file data in contiguous blocks on the storage device.
+                        This can still be used for read-only storage (such as optical media), as we know there won't be any changes.
+                        \begin{center}
+                            \begin{minipage}[t]{0.45\textwidth}
+                                advantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item easy to keep track of - only need to know first and last block
+                                    \item successive records are typically physically adjacent
+                                \end{itemize}
+                            \end{minipage}
+                            \hfill
+                            \begin{minipage}[t]{0.45\textwidth}
+                                disadvantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item same issues as naive memory allocation, such as fragmentation
+                                    \item poor performance if files grow and shrink over time
+                                \end{itemize}
+                            \end{minipage}
+                        \end{center}
+                    \item \textbf{block chaining}
+                        \medskip
+
+                        "Linked list" structure, where the user directory points to the first block, the first block then points to the second and so on.
+
+                        \begin{center}
+                            \begin{minipage}[t]{0.45\textwidth}
+                                advantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item efficient insertion and deletion
+                                \end{itemize}
+                            \end{minipage}
+                            \hfill
+                            \begin{minipage}[t]{0.45\textwidth}
+                                disadvantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item wastes space in each block to store pointer
+                                    \item mixes actual data of fixed size block with meta-data
+                                    \item random access not possible, as seek requires traversal of pointers
+                                    \item data dispersed, many seeks
+                                \end{itemize}
+                            \end{minipage}
+                        \end{center}
+                    \item \textbf{block / file allocation table}
+                        \medskip
+
+                        Similar idea to block chaining.
+                        The location in the user directory refers to the first block containing the file, that index is then used to look up in the block allocation table to find the second block, as well as storing a pointer to the next entry in the table.
+                        \begin{center}
+                            \begin{minipage}[t]{0.45\textwidth}
+                                advantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item easy to manipulate (more efficient allocation decisions)
+                                    \item metadata stored separate from actual data
+                                    \item more efficient chaining as we can load the pointers into memory
+                                \end{itemize}
+                            \end{minipage}
+                            \hfill
+                            \begin{minipage}[t]{0.45\textwidth}
+                                disadvantages
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item data structure grows linearly with number of blocks (requires an entry for each block on disk)
+                                    \item can still have issue of fragmentation
+                                \end{itemize}
+                            \end{minipage}
+                        \end{center}
+                    \item \textbf{index blocks}
+                        \medskip
+
+                        Representing each file with an index block.
+                        Instead of having a global file allocation table, the index block(s) contain a list of pointers that point to file data blocks.
+                        It may store use the last few entries to store pointers to more index blocks if needed.
+                        The file's directory entry points to its index block.
+                        This has multiple advantages as the amount of metadata grows with the number of blocks (thus less overhead), and can load the index block into memory similar to FAT.
+                        \medskip
+
+                        However, this traversal still isn't ideal.
+                        Instead, modern operating systems uses inodes, which contain metadata about the file, as well as multiple levels of blocks.
+                        The first level, used for small files, is directly pointing to the file data blocks.
+                        The next level points to data block pointers, which then points to data blocks.
+                        The level after then points to indirect points, which point to data block pointers, which point to data blocks.
+                        The last level points to doubly indirect pointers, which points to indirect pointers, and so on (only used for very large files).
+                        This is unique for each file.
+                \end{itemize}
+            \subsubsection*{Tutorial Questions}
+                Consider a disk with a block size of 1024 byes.
+                Each disk address can be stored in 4 bytes.
+                Block linkage is used for file storage, i.e. each block contains the address of the next block in the file.
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item How many block reads will be needed to access the
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item $1022^\text{nd}$ data byte? \hfill 2 reads
+                            \item $510100^\text{th}$ data byte? \hfill 501 reads
+                        \end{enumerate}
+                    \item How does this change if a file allocation table (FAT) is used?
+                        \medskip
+
+                        Each block of the FAT can represent 256 data blocks (4 bytes per address).
+                        (a) would require an initial read for the file allocation table, and then another one for the actual memory access, hence a total of two blocks are needed.
+                        On the other hand, in the ideal case, the first 499 blocks of the file may be on 2 FAT blocks, meaning that two reads are needed for the file allocation table.
+                        However, on the worst case, we will need 499 reads of the FAT.
+                        Since another read is required for the actual disk access, it will need between 3 and 500 reads.
+                \end{enumerate}
+                In a particular OS, an inode contains 6 direct pointers, a pointer to a single indirect block, and 1 pointer to a doubly indirect block.
+                Each of these pointers is 8 bytes long.
+                Assume a disk block is 1024 bytes, and that each indirect block fills a single block.
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item What is the maximum file size for this file system?
+                        $$\underbrace{6 \times 1024}_\text{direct} + \underbrace{128 \times 1024}_\text{indirect} + \underbrace{128 \times 128 \times 1024}_\text{doubly indirect} = 169114432\text{B} \approx 16.13\text{MB}$$
+                    \item What is the maximum file size if the OS would use triply indirect pointers?
+                    $$\underbrace{6 \times 1024}_\text{direct} + \underbrace{128 \times 1024}_\text{indirect} + \underbrace{128 \times 128 \times 1024}_\text{doubly indirect} + \underbrace{128 \times 128 \times 128 \times 1024}_\text{triply indirect} \approx 2.02\text{GB}$$
+                \end{enumerate}
 \end{document}
