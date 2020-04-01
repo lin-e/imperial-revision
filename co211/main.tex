@@ -2522,4 +2522,82 @@
                         However, this has to be done for each sector, therefore 2560 times, with a total time of 33.328 seconds.
                 \end{itemize}
                 This shows that storing data close together is extremely important for performance.
+        \subsection*{4th December 2019}
+            \subsubsection*{Disk Scheduling}
+                As seen in the example at the end of the last lecture, the number of seeks can have a large effect on the performance of a disk.
+                This is either done in the disk controller, or done from the operating system when it's making the requests.
+                Some scheduling methods are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{first come first served}
+                        \medskip
+
+                        This has no ordering of requests, which would lead to random seek patterns.
+                        This is fine for a disk which has light load, and it is a fair scheduling method.
+                        However, when there is heavy load, there can be poor performance (with many requests waiting in the queue).
+                    \item \textbf{shortest seek time first}
+                        \medskip
+
+                        This orders requests according to the distance from the current location of the head.
+                        However, this discriminates against the innermost / outermost tracks (as the read / write head tends to now stay in the middle), and it is also unpredictable.
+                        Because this isn't a static list, incoming requests could cause an old request to not be serviced if the newer requests are closer to the head.
+                    \item \textbf{SCAN scheduling / elevator scheduling}
+                        \medskip
+
+                        It chooses requests which result in the shortest seek time, but in a preferred direction.
+                        The direction only change when there are no more requests in the preferred direction (therefore also changes at the outermost / innermost cylinders).
+                        However it still has long delays for requests at extreme locations.
+                    \item \textbf{C-SCAN}
+                        \medskip
+
+                        This is similar to the previous algorithm, but it only scans in one direction.
+                        Once it reaches the innermost request, it jumps to the outermost request, without servicing the ones in between.
+                        This reduces the variance of requests on extreme tracks.
+                    \item \textbf{N-Step SCAN}
+                        \medskip
+
+                        Similar to SCAN, but only services requests which were in the queue before the sweep began.
+                        This alleviates the issue of indefinite delays, and then processes the next "batch" of requests (requests arriving during a sweep) on the return sweep.
+                \end{itemize}
+            \subsubsection*{Linux Disk Scheduling}
+                I/O is done at the level of block devices.
+                It assumes that block devices have the ability to service a queue of requests.
+                The reordering is typically done within the device driver, as it needs to know the geometry of the disk, but the kernel may choose to prioritise certain requests and reorder operations.
+                \medskip
+
+                The default algorithm is a variation of SCAN, with certain optimisations such as merging requests to adjacent blocks.
+                It also implements a deadline scheduler, where if it notices a request has been waiting for an extended period of time, it ensures it will be performed by some deadline (which eliminates starvation).
+                Another optimisation is the anticipatory scheduler, which delays after a read request completes.
+                This is due to the idea that once a part of the disk is read, if a program is scanning through a large file, it is likely to request something else close by.
+                This has a risk as it reduces the efficiency if there isn't a read request during the delay.
+            \subsubsection*{Tutorial Question}
+                Suppose that the current position of the disk arm is over cylinder 200.
+                The disk request queue contains requests for sectors on the following cylinders: 400, 20, 19, 74, 899.
+                In which order will the requests be handled under:
+                \begin{enumerate}[(a)]
+                    \itemsep0em
+                    \item the FCFS policy? \hfill 400, 20, 19, 74, 899
+                    \item the SSTF policy? \hfill 74, 20, 19, 400, 899
+                    \item the SCAN policy? \hfill (assuming going up) 400, 899, 74, 20, 19
+                    \item the C-SCAN policy? \hfill (assuming going up) 400, 899, 19, 20, 74
+                \end{enumerate}
+            \subsubsection*{Solid State Drives}
+                Compared to HDDs, you have more bandwidth as HDDs are physically limited by movement (1GB/s compared to 100MB/s).
+                SSDs are also able to handle parallel operations, whereas HDDs physically cannot.
+                However, the cost of SSDs (per GB) is higher than the cost of HDDs, and therefore not always viable.
+                For this reason, SSDs are not used as often in data centres.
+            \subsubsection*{Redundant Array of Inexpensive Disks (RAID)}
+                RAID was a solution to a specific problem; where the CPU performance was increasing exponentially, disk performance has not been able to catch up.
+                RAID allows for parallel disk I/O.
+                Instead of using one disk, and accessing it sequentially, RAID uses an array of physical drives appearing as a single virtual drive allowing for parallel access (by storing data distributed over the array - striping).
+                The redundant disk capacity can also be used to respond to disk failure, thus improving reliability.
+                Some levels are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item RAID 0 (Striping)
+                        \medskip
+
+                        This uses multiple disks to spread out data - if we are accessing strips of data on different disks, this can be done in parallel.
+                        However, there is no redundancy, and if any of the drives in the array fails, all data can be lost.
+                \end{itemize}
 \end{document}
