@@ -1943,4 +1943,203 @@
 
                         The time for translation is $0.98 \cdot (100 + 20) + 0.02 \cdot (500 + 20)$, which is 128ns - thus 28\% slower than unpaged memory access (with one level, it is 122ns, thus 22\%).
                 \end{enumerate}
+        \subsection*{14th November 2019}
+            \subsubsection*{Tutorial Question}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item
+                        A pure paging system uses a three level page table.
+                        Virtual addresses are decomposed into four fields $(a, b, c, d)$ with $d$ being the offset.
+                        In terms of these constants, what is the maximum number of pages in a virtual address space?
+                        \medskip
+
+                        $2^{a + b + c}$, since we have $2{a + b + c + d}$ total addresses, and $2^d$ on each page.
+                \end{enumerate}
+            \subsubsection*{Shared Memory}
+                The idea is that there is memory accessible from two (or more) processes.
+                This creates a mechanism for two processes to communicate.
+                When process 1 attempts to access the shared page, the page table entry will point it to the same frame that process 2 points to, and vice versa.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=0.75cm]
+                        \node at (1, 2) {\shortstack{process 1\\virtual memory}};
+                        \node at (5, 2) {physical memory};
+                        \node at (9, 2) {\shortstack{process 2\\virtual memory}};
+                        \node at (1, 0.5) {$\vdots$};
+                        \node at (1, -3.5) {$\vdots$};
+                        \node at (5, 1.5) {$\vdots$};
+                        \node at (5, -4.5) {$\vdots$};
+                        \node at (9, 0.5) {$\vdots$};
+                        \node at (9, -3.5) {$\vdots$};
+                        \node at (5, -1.5) {shared};
+                        \draw
+                        (0, 0) -- (2, 0) -- (2, -3) -- (0, -3) -- cycle
+                        (0, -1) -- (2, -1)
+                        (0, -2) -- (2, -2)
+                        (4, 1) -- (6, 1) -- (6, -4) -- (4, -4) -- cycle
+                        (4, 0) -- (6, 0)
+                        (4, -1) -- (6, -1)
+                        (4, -2) -- (6, -2)
+                        (4, -3) -- (6, -3)
+                        (8, 0) -- (10, 0) -- (10, -3) -- (8, -3) -- cycle
+                        (8, -1) -- (10, -1)
+                        (8, -2) -- (10, -2);
+                        \draw
+                        (2, -0.5) edge[->] (4, -1.5)
+                        (2, -1.5) edge[->] (4, -0.5)
+                        (2, -2.5) edge[->] (4, -2.5)
+                        (8, -0.5) edge[->] (6, -3.5)
+                        (8, -1.5) edge[->] (6, 0.5)
+                        (8, -2.5) edge[->] (6, -1.5);
+                    \end{tikzpicture}
+                \end{center}
+                After this is established, it appears as memory both processes can access, therefore there is no need for kernel involvement (hence no need for the context switching overhead).
+                To establish this, there are the following system calls;
+                \begin{center}
+                    \begin{tabular}{ll}
+                        call & explanation \\
+                        \hline
+                        ~shmget~ & allocates a shared memory segment \\
+                        ~shmat~ & attaches a shared memory segment to the address space of a process \\
+                        ~shmctl~ & change properties associated with a shared memory segment \\
+                        ~shmdt~ & detaches a shared memory segment from a process
+                    \end{tabular}
+                \end{center}
+                It would be better for two processes to communicate via pipes due to the flexibility of bi-directional communication, however it's not better for uni-directional communication as there is no synchronisation provided by the kernel (compared to pipes).
+                Because the kernel provides no abstractions for this, synchronisation between two processes using the same shared memory will have to be done in a similar way to two threads concurrently executing on the same memory (locking, etc).
+                \medskip
+
+                As this can also be mapped to a file (and not just a location on main memory), this can be used for dynamic linking of libraries - thus allowing for libraries to be shared.
+            \subsubsection*{Linux Virtual Memory Layout (32-bit)}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (0, 0.5) {0};
+                        \node at (10, 0.5) {896MB};
+                        \node at (0, -7.5) {0};
+                        \node at (6, -7.5) {3GB};
+                        \node at (17, -7.5) {4GB};
+                        \node[rotate=90] at (-0.5, -1) {main memory};
+                        \node[rotate=90] at (-0.5, -6) {virtual memory};
+                        \node at (1, -1) {DMA};
+                        \node at (6.5, -1) {normal memory};
+                        \node at (13, -1) {high memory};
+                        \node at (3, -6) {user process};
+                        \draw
+                        (0, 0) -- (12, 0)
+                        (12, 0) edge[dashed] (14, 0)
+                        (14, 0) -- (16, 0)
+                        (0, -2) -- (12, -2)
+                        (12, -2) edge[dashed] (14, -2)
+                        (14, -2) -- (16, -2)
+                        (0, -2) -- (0, 0)
+                        (2, -2) -- (2, 0)
+                        (3, -2) -- (3, 0)
+                        (16, -2) -- (16, 0)
+                        (10, -2) -- (10, 0);
+                        \draw
+                        (0, -5) -- (2, -5)
+                        (2, -5) edge[dashed] (4, -5)
+                        (4, -5) -- (17, -5)
+                        (0, -7) -- (2, -7)
+                        (2, -7) edge[dashed] (4, -7)
+                        (4, -7) -- (17, -7)
+                        (0, -7) -- (0, -5)
+                        (6, -7) -- (6, -5)
+                        (8, -7) -- (8, -5)
+                        (9, -7) -- (9, -5)
+                        (16, -7) -- (16, -5)
+                        (17, -7) -- (17, -5);
+                        \draw[dashed]
+                        (0, -2) edge[<->] (6, -5)
+                        (2, -2) edge[<->] (8, -5)
+                        (3, -2) edge[<->] (9, -5)
+                        (10, -2) edge[<->] (16, -5);
+                    \end{tikzpicture}
+                \end{center}
+                Note that the $n^\text{th}$ page of the kernel address space (3GB - 4GB in virtual memory) maps to the $n^\text{th}$ page frame of main memory.
+                For legacy reasons, we have the interrupt vectors stored at low addresses.
+                DMA is used for direct memory access from I/O devices, such as network cards, to allow them to write to memory, bypassing the CPU.
+                The kernel address space is mapped into virtual memory as well, meaning that when a system call is performed, the page tables don't have to be switched thus removing that overhead.
+                The additional space at the end of virtual memory is used for on-demand mapping, which is done when the kernel wants to access physical memory beyond the 896MB boundary, by creating inserting a mapping into the page table (this isn't needed for 64-bit architectures, as we can map the entirety of main memory).
+                A process attempting to access beyond the 3GB boundary will result in a page fault, as it is essentially attempting to access privileged kernel memory.
+                Another benefit of having a larger address space is that the operating system can randomise the locations of data structures and libraries, making it more difficult for an attacker to locate a vulnerable library.
+                \medskip
+
+                On IA-32, the page size is usually 4KB, with a 4GB virtual address space, whereas on x86-64, there are larger page sizes (such as 4MB), and up to a four-level page table.
+                The implementation of the two-level page table in x86 is as previously discussed (the outer page table is referred to as the \textbf{page global directory}).
+                As the offset bits are unused, it will be used to store the metadata, such as dirty, read / write, etc.
+            \subsubsection*{Meltdown (Not Examinable)}
+                \begin{lstlisting}
+                    ...
+                    if (v == 0) {
+                      w = kernel_mem[addr];
+                      x = w & 0x01;
+                      y = x * 4096;
+                      z = user_mem[u];
+                    }
+                \end{lstlisting}
+                By speculative execution, it executes the code in the branch.
+                It will not page fault straight away, as that branch may not be reached - however the instructions will be executed.
+                Looking at the last bit of the data stored in the kernel address will result in an access to the user memory at either 0 or 4096, bringing it into cache.
+                The attacker can then check how long it takes to access these (the one with the faster access has been brought into cache).
+                To fix this, Linux moved the kernel address space into its own virtual address space, thus requiring a context switch.
+                Due to the additional complexity, the processor cannot speculate across this.
+            \subsubsection*{Demand Paging}
+                The idea behind this is to think of pages for programs which aren't currently running as swapped out.
+                We are then only loading pages on demand; consider the example of running a large binary - we don't need to load the entire binary into memory before execution, as we only need the instructions for the main entry point.
+                When we encounter a page fault, it may still be caused by an actual invalid reference, but also may be caused by the page not being in memory (thus requiring the OS to load it in).
+                \medskip
+
+                To indicate whether something is in memory, we use the valid-invalid bit, with everything initially set to 0.
+                If it is 1 during address translation, we simply bring it in as before, but if it is 0, we let the OS trap the page fault.
+                This is then checked against another table, if it is still invalid, we abort, otherwise we handle the request.
+                This is done by obtaining an empty frame, swapping the page into the frame, setting the table's valid bit to 1, and restarting the instruction that caused the fault.
+                \medskip
+
+                We can reason about this in a similar way, with a page fault rate $0 \leq p \leq 1$, where if $p = 0$, we have no page faults.
+                The effective access time is $(1 - p) \cdot \text{memory access} + p \cdot (\text{page fault overhead} + \text{page swap out?} + \text{page swap in} + \text{restart overhead})$.
+                If a free frame is not available, a page may have to be swapped out.
+                Overall, we have a much higher overhead; with insufficient memory, this leads to thrashing due to the I/O overhead the OS must perform for this swapping.
+                \medskip
+
+                Virtual memory allows us to do the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{copy-on-write}
+                        \medskip
+
+                        This is useful in ~fork~, as we share many of the pages (thus it would be very wasteful to copy it all).
+                        When either process modifies a shared page, only then do we copy them.
+                    \item \textbf{memory-mapped files}
+                        \medskip
+
+                        When we memory map a file, associating it with pages in the virtual address space, we bring them in on the first access with demand paging.
+                        This is a very efficient way of performing I/O on large files, as we do not need the overhead of system calls.
+                \end{itemize}
+            \subsubsection*{Page Replacement}
+                When we are out of free frames on main memory, we need to find an unused page that we can swap out.
+                Our policy must minimise the number of page faults (ideally replacing one that will not be used), ensure that we do not over-allocate memory, and ensuring that only modified (dirty) pages to write to disk (we shouldn't write an unmodified page to the disk).
+                The dirty bit is set by hardware on a write.
+                A basic replacement algorithm is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item find location of desired page on disk
+                    \item find a free frame, if one is not found, we select a victim frame
+                    \item read the desired page into the frame
+                    \item update page and frame tables
+                    \item restart the process
+                \end{itemize}
+                Some eviction algorithms are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{first-in-first-out (FIFO)}
+                        \medskip
+
+                        This simply evicts the oldest page - this may however replace a heavily used page.
+                        This suffers from Belady's anomaly, where we have can have more page faults with more physical frames.
+                    \item \textbf{optimal algorithm}
+                        \medskip
+
+                        The theoretical optimal is to evict the page that won't be used for the longest time.
+                        This obviously cannot be done (perfectly or easily) in practice, but can be used to judge how well another page replacement strategy performs.
+                \end{itemize}
 \end{document}
