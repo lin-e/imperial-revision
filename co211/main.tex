@@ -2142,4 +2142,103 @@
                         The theoretical optimal is to evict the page that won't be used for the longest time.
                         This obviously cannot be done (perfectly or easily) in practice, but can be used to judge how well another page replacement strategy performs.
                 \end{itemize}
+        \subsection*{27th November 2019}
+            \subsubsection*{Page Replacement}
+                This continues with page eviction algorithms.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{least recently used (LRU)}
+                        \medskip
+
+                        The idea for this algorithm is to evict the least recently used (since it's possible that the program no longer requires this page), via the use of a counter (per page entry).
+                        On a reference, the clock is copied into the counter, and when a page needs to be replace, we choose to evict the one with the lowest counter.
+                        However, this is expensive as we need to copy the entire counter, and we use single register approximations.
+                    \item \textbf{reference bit}
+                        \medskip
+
+                        This is an approximation of LRU, but does not provide proper order.
+                        We associate a reference bit with each page, initially set to 0.
+                        When it is referenced, it is set to 1 (can be set by hardware), and on a replacement it attempts to find a page with the bit set to 0.
+                        Periodically, all the reference bits are reset to 0.
+                    \item \textbf{second chance / clock}
+                        \medskip
+
+                        This uses the idea of a reference bit, as well as an order of when pages are brought into memory.
+                        When a page is brought into memory, it is stored in a linked list.
+                        We have a pointer into the linked list (clock hand) which points at the oldest page.
+                        If this page has a reference bit of 0, then we evict it, however if it is 1, we set it to 0, and move to the second oldest page.
+                        This continues until we find a page that can be evicted.
+                        The idea behind this is that while a page may be old, if it was recently accessed, it may still be in use, and we wouldn't want to evict that.
+                    \item \textbf{least frequently used (LFU)}
+                        \medskip
+
+                        The previous algorithms do not take into account the frequency of accesses, just that it was or wasn't.
+                        For this algorithms, we maintain a count of the number of references.
+                        Here we replace the page with the smallest count - however this may replace a page that was recently brought in.
+                        Additionally, if there was a heavily used page that is no longer needed, it may not be evicted - we need to reset counters or age the counters.
+                    \item \textbf{most frequently used (MFU)}
+                        \medskip
+
+                        Replace pages with a large count - if we haven't used it recently, then it's likely it is no longer needed.
+                        While this may seem counterintuitive, memory accesses tend to fall within working sets; after a data structure is no longer used, it will no longer experience more references.
+                \end{itemize}
+            \subsubsection*{Locality of Reference}
+                A property of many programs is that it tends to favour a subset of pages, which it accesses most frequently.
+                There is locality of space as well as time - for example, iterating over a data structure gives spatial locality, and doing this repeatedly gives us temporal locality.
+                This also gives better performance due to the caching in the TLB, preventing the walk through the page tables.
+                \medskip
+
+                We define the working set of pages as $W(t, w)$ - the set of pages referenced by a process during the time interval $t - w$ to $t$.
+                The working set can change over time for a given process.
+                This can be used with the WS clock algorithm, by tracking the "time of last use".
+                At each page fault, we do the following check on the page we're pointing at;
+                \begin{itemize}
+                    \itemsep0em
+                    \item if the referenced bit is set to 1, reset it to 0, and move to the next page
+                    \item if the referenced bit is not set, we calculate its age
+                        \begin{itemize}
+                            \itemsep0em
+                            \item if the age is less than the working set age, continue (as the page is in the WS)
+                            \item if the age is older than the working set age, we replace it (writing back to disk if required)
+                        \end{itemize}
+                \end{itemize}
+                We however need to model the size of the working set.
+                This can be done by observing the page fault frequency - if we estimate incorrectly (too low), we will encounter many page faults, thus having a low interval between page faults.
+                If $w$ is too high, thus we are assuming the working set is larger than it is, we will have diminishing returns (the page fault frequency doesn't change, as the entire working set is now in pages).
+                We can tune this dynamically.
+                \medskip
+
+                A local page replacement strategy is when each process gets a fixed allocation of physical memory, and we need to pick up the changes in the working set size.
+                On the other hand, a global strategy dynamically shares memory between runnable processes, and considers page fault frequency to tune allocation (gives more to a process by taking from another).
+                Linux uses a global page replacement strategy, whereas Windows uses local.
+            \subsubsection*{Linux Page Replacement}
+                Linux uses a variation of the clock algorithm (to approximate LRU).
+                The memory manager uses two linked list (as well as reference bits) - the active list containing active pages, with the most recently used pages near the head of the active list, as well as an inactive list, which has the least-recently used pages near the tail.
+                Unused pages from the active list are moved to the head of the inactive list.
+                It only replaces pages in the inactive list.
+                \medskip
+
+                From a practical point of view, we cannot simply perform this eviction on a fault, as we don't tend to have the granularity of allocating memory in just pages.
+                For example, if the memory was full, and we performed a ~malloc~ for a large amount of memory, we don't want to do many evictions as that would be slow.
+                Instead, this is done asynchronously by the following (when the processor is idle);
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~kswapd~ (swap daemon)
+                        \subitem reclaims pages in the inactive list when memory is low to a dedicated swap partition or file, and handles locked and shared pages
+                    \item ~pdflush~ (kernel thread)
+                        \subitem periodically flushes dirty pages to disk (allows for easier eviction) - done when there is low I/O load
+                \end{itemize}
+            \subsubsection*{Tutorial Question}
+                Suppose that pages in a virtual address space are referenced in the following order;
+                \begin{center}
+                    ~1 2 1 3 2 1 4 3 1 1 2 4 1 5 6 2 1~
+                \end{center}
+                There are 3 empty frames available.
+                Assume that paging decisions are made on demand, i.e. when page faults occur.
+                Show the contents of the frames after each memory reference (and how many page faults occur in each case), assuming
+                \begin{enumerate}[(a)]
+                    \itemsep0em
+                    \item the LRU replacement policy
+                    \item the clock policy
+                \end{enumerate}
 \end{document}
