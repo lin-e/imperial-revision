@@ -1996,7 +1996,7 @@
                 To establish this, there are the following system calls;
                 \begin{center}
                     \begin{tabular}{ll}
-                        call & explanation \\
+                        system call & explanation \\
                         \hline
                         ~shmget~ & allocates a shared memory segment \\
                         ~shmat~ & attaches a shared memory segment to the address space of a process \\
@@ -2887,4 +2887,199 @@
                     \item What is the maximum file size if the OS would use triply indirect pointers?
                     $$\underbrace{6 \times 1024}_\text{direct} + \underbrace{128 \times 1024}_\text{indirect} + \underbrace{128 \times 128 \times 1024}_\text{doubly indirect} + \underbrace{128 \times 128 \times 128 \times 1024}_\text{triply indirect} \approx 2.02\text{GB}$$
                 \end{enumerate}
+        \subsection*{6th December 2019}
+            \subsubsection*{Free Space Management}
+                The file system now needs a way to manage the device's free space, requiring quick access to free blocks for allocation.
+                Some methods are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{free list}
+                        \medskip
+
+                        This is simply a linked list containing the location of free blocks, and when new blocks are needed they are allocated from the beginning of this list.
+                        When blocks are freed, they are appended to the end of this list.
+                        This has low overhead to perform maintenance on the free list, however it can often lead to allocating non-contiguous blocks (unless we sort it, which then adds overhead).
+                    \item \textbf{bitmap}
+                        \medskip
+
+                        The bitmap has one bit (in memory) for each disk block, where the $i^\text{th}$ bit corresponds to the $i^\text{th}$ block on the disk.
+                        This bit is set to 1 if the bit is free, otherwise it is 0 if it is allocated.
+                        As this is a very compact representation, we can load the entire bitmap into memory, and can therefore quickly determine available contiguous blocks (since this would be done in memory).
+                \end{itemize}
+            \subsubsection*{File System Layout}
+                The general layout (with inodes), is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item boot block
+                    \item superblock
+                        \medskip
+
+                        This contains metadata for the file system, such as the number if inodes, the number of data blocks, the start of the bitmaps, the first data block, the block size, and the maximum file size.
+                    \item free inode bitmap
+                    \item free block (zone) bitmap
+                    \item data and inode blocks
+                        \medskip
+
+                        We want the inodes to be spread out, as we don't want any hotspots.
+                        This also gives us the benefit of access locality.
+                \end{itemize}
+                Directories aid with file organisation, as well as ensuring the uniqueness of names.
+                Most operating systems give a hierarchical file system (tree structure), with a root directory.
+                The directory system calls in Unix/Linux are as follows;
+                \begin{center}
+                    \begin{tabular}{ll}
+                        system call & description \\
+                        \hline
+                        ~s = mkdir(path, mode)~ & create a new directory \\
+                        ~s = rmdir(path)~ & remove directory \\
+                        ~s = link(oldpath, newpath)~ & create a new (hard) link \\
+                        ~s = unlink(path)~ & unlink a file \\
+                        ~s = chdir(path)~ & change working directory \\
+                        ~dir = opendir(path)~ & open directory for reading \\
+                        ~s = closedir(path)~ & close directory \\
+                        ~dirent = readdir(dir)~ & read one entry from directory \\
+                        ~rewinddir(dir)~ & rewind directory to re-read
+                    \end{tabular}
+                \end{center}
+                When we look up a file, it starts from the root directory (which is in a well-known inode).
+                The next directory is found in the listing for the root directory (which contains which inode refers to the directory), and then that inode is checked.
+                The block that this directory is on is found in the inode, and that block is then read.
+                This continues until we get to the last directory in the path, and locate the file's inode in the directory block, and read the file's block from that inode to get the location on disk.
+                As we are traversing through inodes, it also contains the access permissions (which is then used to verify the user is allowed to access those files).
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (-1, -0.5) {directory};
+                        \node at (1, -0.5) {\shortstack{directory\\entry 1}};
+                        \node at (3, -0.5) {\shortstack{directory\\entry 2}};
+                        \node at (5, -0.5) {\shortstack{directory\\entry 3}};
+                        \node at (7, -0.5) {\shortstack{directory\\entry 4}};
+                        \node at (11, -0.5) {\shortstack{directory\\entry $n$}};
+                        \draw
+                        (0, 0) -- (8, 0) -- (8, -1) -- (0, -1) -- cycle
+                        (2, 0) -- (2, -1)
+                        (4, 0) -- (4, -1)
+                        (6, 0) -- (6, -1)
+                        (8, 0) edge[dashed] (10, 0)
+                        (8, -1) edge[dashed] (10, -1)
+                        (10, 0) -- (12, 0) -- (12, -1) -- (10, -1) -- cycle;
+                    \end{tikzpicture}
+                \end{center}
+                Each directory entry is the following;
+                \begin{lstlisting}
+                    struct dirent {
+                      long d_ino;                // inode number
+                      off_t d_off;               // offset to this dirent
+                      unsigned short d_reclen;   // length of this d_name
+                      char d_name[NAME_MAX + 1]; // file name (null terminated)
+                    }
+                \end{lstlisting}
+            \subsubsection*{Links}
+                Links can be thought of as pointers from one part of a file system tree to another part of the same file system tree.
+                Hard links are references to the inode of a file (can be with a different name) - often unsupported for directories as it can cause a cycle in what would otherwise be a directory tree.
+                Symbolic (soft) are a special type of file that reference the full pathname of another file or directory (this is ignored in a full file system traversal).
+                \medskip
+
+                Recall that the file metadata contained the number of (hard) links.
+                This is used for the deletion of files, as we are essentially performing reference counting.
+                When a file is deleted, we decrement this, and actually free the data (deallocate the inode) when there are no other hard links to it.
+                This means that a hard link can never be "dangling" as it will always point to an inode, whereas a soft link can be, since the path it is pointing to may be deleted.
+            \subsubsection*{Mounting}
+                The mounting operation allows for multiple file systems to be combined into a single namespace.
+                Soft links to files in mounted file systems are supported, but hard links are not supported as not all file systems use inodes.
+                The directory in the native file system that is assigned to the root of the mounted file system is known as the \textbf{mount point}.
+                The file system manages mounted directories with mount tables, which contain information about the location of mount points and devices (when a mount point is encountered, the mount table is used to determine the device and type of the mounted file system).
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}[x=2cm]
+                        \node at (0, 0) {file system A};
+                        \node (r) at (0, -1) {~/~};
+                        \node (ru) at (-1, -2) {~usr/~};
+                        \node (rh) at (0, -2) {~home/~};
+                        \node (rm) at (1, -2) {~mnt/~};
+                        \node (rmx) at (0.5, -3) {~xfs/~};
+                        \node (rmn) at (1.5, -3) {~newfs/~};
+                        \node (rmnf) at (0.5, -4) {~foo~};
+                        \node (rmnb) at (1.5, -4) {~bar~};
+                        \node (rmnd) at (2.5, -4) {~dir/~};
+
+                        \draw
+                        (r) -- (ru)
+                        (r) -- (rh)
+                        (r) -- (rm)
+                        (rm) -- (rmx)
+                        (rm) -- (rmn)
+                        (rmn) -- (rmnf)
+                        (rmn) -- (rmnb)
+                        (rmn) -- (rmnd);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}[x=2cm]
+                        \node at (0, 0) {file system B};
+                        \node (r) at (0, -1) {~/~};
+                        \node (ru) at (-1, -2) {~usr/~};
+                        \node (rh) at (0, -2) {~home/~};
+                        \node (rm) at (1, -2) {~mnt/~};
+                        \node (rub) at (-1, -3) {~bin/~};
+                        \node at (0, -4) {\phantom{~dir/~}};
+
+                        \draw
+                        (r) -- (ru)
+                        (r) -- (rh)
+                        (r) -- (rm)
+                        (ru) -- (rub);
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                The trees above are from before mounting, and the tree below is after file system B is mounted at ~/mnt/newfs~ in file system A.
+                Note that the content originally at the mount point is no longer accessible.
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node at (0, 0) {file system A};
+                        \node (r) at (0, -1) {~/~};
+                        \node (ru) at (-1, -2) {~usr/~};
+                        \node (rh) at (0, -2) {~home/~};
+                        \node (rm) at (1, -2) {~mnt/~};
+                        \node (rmx) at (0.5, -3) {~xfs/~};
+                        \node (rmn) at (1.5, -3) {~newfs/~};
+                        \node (rmnu) at (0.5, -4) {~usr/~};
+                        \node (rmnub) at (0.5, -5) {~bin/~};
+                        \node (rmnh) at (1.5, -4) {~home/~};
+                        \node (rmnm) at (2.5, -4) {~mnt/~};
+
+                        \draw
+                        (r) -- (ru)
+                        (r) -- (rh)
+                        (r) -- (rm)
+                        (rm) -- (rmx)
+                        (rm) -- (rmn)
+                        (rmn) -- (rmnu)
+                        (rmn) -- (rmnh)
+                        (rmn) -- (rmnm)
+                        (rmnu) -- (rmnub);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Linux ext2fs}
+                The goal is a general purpose file system that gives high performance.
+                It has typical block sizes of 1024, 2048, 4096, or 8192 bytes.
+                There is also an additional safety process that reserves 5\% of blocks for root.
+                For example, if a malicious or errant user process consumes all disk space, daemons such as loggers can no longer write to the disk.
+                \medskip
+
+                The inodes in ext2 consist of 15 pointers; the first 12 are direct pointers to 12 data blocks, followed by an indirect pointer, a doubly-indirect pointer, and then finally a triply indirect pointer.
+                This provides fast access to small files, but also supports very large files.
+                \medskip
+
+                As we tend to want to use contiguous blocks, ext2fs has the addition of block groups, which are clusters of contiguous blocks.
+                The file system attempts to store related data in the same block group, thus reducing seek time for accessing related data - this encourages locality of allocation.
+                This looks similar to a self contained file system;
+                \begin{itemize}
+                    \itemsep0em
+                    \item superblock \hfill contains redundant copies of superblock - limits data loss to some block groups
+                    \item group descriptors \hfill block numbers for the following data
+                    \item block allocation bitmap \hfill blocks used within groups
+                    \item inode allocation bitmap \hfill which inodes have already been allocated
+                    \item inode table \hfill where the inodes are located on the blocks
+                    \item data blocks
+                \end{itemize}
+                The file system can then be considered as a sequence of these block groups.
 \end{document}
