@@ -2459,4 +2459,67 @@
                     \item Checking to see if the user is permitted to use the device \hfill device-independent OS software
                     \item Converting binary integers to ASCII for printing \hfill user-level I/O software
                 \end{enumerate}
+        \subsection*{29th November 2019}
+            \subsubsection*{Disk Management}
+                Note that while the capacity of storage mediums grow exponentially, the same cannot be said for access speeds, due to physical limitations - for example HDDs must physically move components.
+                The surface of a HDD is organised into tracks (rings), which are subdivided into sectors.
+                Between each sector there is an inter-sector gap, and between tracks are inter-track gaps.
+                Each platter can have 2 surfaces (one on each side) - and there is a read / write for each surface.
+                For multiple platters, there are two read / write heads between each platter (other than the first and last).
+                \medskip
+
+                As all the arms move together, tracks which are on top of each other are referred to as a cylinder - and therefore can be read at the same time.
+                Note that it's desirable to have the same size per sector.
+                However, the inner tracks will physically have smaller sectors, therefore the outer tracks will have more sectors than the inner tracks.
+                The zones are then exposed with virtual geometry, where it appears to have the same number of sectors per track.
+                \medskip
+
+                In the past, the disk was physically addressed with the cylinder, surface, and sector.
+                Modern disks use logical sector addressing (or logical block addressing - LBA), where all sectors are numbered consecutively (thus the OS doesn't need to know about the physical geometry).
+                \medskip
+
+                It's also important to note that disk manufacturers use powers of 10, instead of powers of 2, for capacities - for the exam, either is fine as long as it is consistent.
+                \medskip
+
+                Before a disk is used, it needs to be formatted.
+                At a low level, in addition to the actual data, each disk sector stores an ECC (error correction code) at the end, as well as a preamble, which can be used to indicate the start of a sector.
+                In addition to this, there is a higher level formatting system.
+            \subsubsection*{Tutorial Question}
+                A disk controller with enough memory can perform read-ahead, reading blocks on the current track into its memory before the CPU asks for them.
+                Should it also do write-behind, i.e. report back to the CPU that a block has been written once it is stored in the disk controller's memory?
+                \medskip
+
+                Not in general, as the OS should rely on a page remaining written even in the event of an immediate crash.
+                Reporting this completion before writing violates this rule.
+                A controller can only do write-behind if its local memory is battery backed for long enough that it can perform the write that was reported complete before the crash.
+            \subsubsection*{Disk Delay}
+                There are numerous points which contribute to the latency of using a disk (where $b$ is the number of bytes to be transferred, $N$ is the number of bytes per track, and $r$ is the rotation speed in revolutions per second);
+                \begin{itemize}
+                    \itemsep0em
+                    \item seek time \hfill time it takes for the read / write head to move to the correct track ($t_\text{seek}$)
+                    \item rotational delay / latency time \hfill time for the sector to be in the right place ($t_\text{latency} = \frac{1}{2r}$)
+                    \item transfer time \hfill the actual time the data read / write takes ($t_\text{transfer} = \frac{b}{rN}$)
+                \end{itemize}
+                This gives a total access time of
+                $$t_\text{access} = t_\text{seek} + \frac{1}{2r} + \frac{b}{rN}$$
+                For an operating system to optimise this, we want to minimise seek times by ordering pending disk requests with respect to the current head position.
+                \medskip
+
+                For example, take the average seek time to be 10ms, a rotation speed of 10,000rpm, 512 byte sectors, 320 sectors per track and a file size of 1.3MB (2560 sectors).
+                \begin{itemize}
+                    \itemsep0em
+                    \item case A - file stored as compactly as possible \hfill occupies all sectors on 8 adjacent tracks
+                        \medskip
+
+                        The first track takes 10ms to seek to.
+                        The rotational delay is 3ms, with the formula above, and the time it takes to read 320 sectors is 6ms.
+                        Therefore it takes $10 + 8(3 + 6) = 82$ms, which is 0.082 seconds (assuming negligible time between adjacent tracks).
+                    \item case B - randomly stored
+                        \medskip
+
+                        The seek and rotational delay remain the same, at 10ms and 3ms respectively.
+                        The time it takes to read one sector is 0.01875ms - we are reading 512 bytes, with $512 \cdot 320$ bytes per track.
+                        However, this has to be done for each sector, therefore 2560 times, with a total time of 33.328 seconds.
+                \end{itemize}
+                This shows that storing data close together is extremely important for performance.
 \end{document}
