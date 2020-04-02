@@ -570,8 +570,103 @@
                                     E(X^2) & = 3^2 \cdot P(\text{correct}) + (-1)^2 \cdot P(\text{incorrect}) \\
                                     & = 9 \cdot \frac{1}{4} + 1 \cdot \frac{3}{4} \\
                                     & = 4 & \Rightarrow \\
-                                    \text{sd}(X) & = \sqrt{3}
+                                    \text{sd}(X) & = \sqrt{3 - 0^2} \\
+                                    & = \sqrt{3}
                                 \end{align*}
                         \end{enumerate}
                 \end{enumerate}
+        \subsection*{29th January 2020}
+            \subsubsection*{Probability Generating Function}
+                The \textbf{probability generating function}, $G_X(z)$ or just $G(z)$, is defined as;
+                $$G_X(z) = E_X(z^X) = \summation{x}{} p_X(x) z^x$$
+                Moments of a random variable $X$, $M_n$ and $M_n^f$, are defined as follows;
+                \begin{align*}
+                    M_n & = E(X^n) & n^\text{th} \text{ moment} \\
+                    M_n^f & = E(X(X - 1) \dots (X - n + 1)) & n^\text{th} \text{ factorial moment}
+                \end{align*}
+                It's also important to note that the first moment, $M_1$ is the mean, and the second moment $M_2 = \text{Var}(X) + E(X)^2$.
+                Generally, we can use the factorial moments, as they will also contain the polynomial term - but can be obtained from taking derivatives of $G$;
+                \begin{align*}
+                    G^n(z) & = E(X(X - 1) \dots (X - n + 1)z^{X - n}) & \Rightarrow \\
+                    M_n^f & = G^n(1) \\
+                    M_0 & = M_0^f \\
+                    & = G(1) \\
+                    & = 1 \\
+                    M_1 & = M_1^f \\
+                    & = G^\prime(1) \\
+                    M_2 & = M_2^f + M_1^f \\
+                    & = G^{\prime\prime}(1) + G^\prime(1)
+                \end{align*}
+                This gives us the variance as follows;
+                \begin{center}
+                    $\text{Var}(X) = M_2 - M_1^2 = G^{\prime\prime}(1) + G^\prime(1) - G^\prime(1)^2$
+                \end{center}
+            \subsubsection*{Sum of Random Variables}
+                If we let $X_1, X_2, \dots, X_n$ be $n$ random variables (not necessarily with the same distribution, nor necessarily independent).
+                \begin{align*}
+                    S_n & = \summation{i = 1}{n} X_i & \text{sum of those variables} \\
+                    E(S_n) & = \summation{i = 1}{n} E(X_i) \\
+                    E\left(\frac{S_n}{n}\right) & = \frac{\summation{i = 1}{n} E(X_i)}{n} & \text{expectation of the average}
+                    \intertext{if they are \textbf{independent}}
+                    \text{Var}(S_n) & = \summation{i = 1}{n} \text{Var}(X_i) \\
+                    \text{Var}\left(\frac{S_n}{n}\right) & = \frac{\summation{i = 1}{n} \text{Var}(X_i)}{n^2}
+                    \intertext{if they are \textbf{independent} and \textbf{identically distributed}, with $E(X_i) = \mu_X$ and $\text{Var}(X_i) = \sigma_X^2$}
+                    E\left(\frac{S_n}{n}\right) & = \mu_X \\
+                    \text{Var}\left(\frac{S_n}{n}\right) & = \frac{\sigma_X^2}{n} & \text{variance decreases with more samples}
+                \end{align*}
+                Note that we can prove the independent variance result as follows, "inductively";
+                \begin{align*}
+                    \text{Var}(X + Y) & = \violet{E((X + Y)^2)} - \blue{E(X + Y)^2} \\
+                    & = \underbrace{\violet{E(X^2)} - \blue{E(X)^2}}_{\text{Var}(X)} + \underbrace{\violet{E(Y^2)} - \blue{E(Y)^2}}_{\text{Var}(Y)} + \underbrace{\violet{2E(XY)} - \blue{2E(X)E(Y)}}_{= 0 \text{ if independent}}
+                \end{align*}
+                We're able to obtain the probability generating function of a sum of \textbf{independent} random variables as;
+                $$G_{S_n}(z) = \product{i = 1}{n} G_{X_i}(z)$$
+                This is due to the following;
+                \begin{align*}
+                    G_{S_n}(z) & = E(z^{\summation{i = 1}{n} X_i}) \\
+                    & = E\left(\product{i = 1}{n} z^{X_i}\right) \\
+                    & = \product{i = 1}{n} E(z^{X_i}) & \text{only if independent} \\
+                    & = \product{i = 1}{n} G_{X_i}(z)
+                \end{align*}
+                Additionally, if they are also \textbf{identically distributed}, $G_{S_n}(z) = G_{X_i}(z)^n$
+            \subsubsection*{Discrete Distributions}
+                Some examples of commonly encountered distributions are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{bernoulli} \hfill $X \sim \text{Bernoulli}(p)$
+                        \medskip
+
+                        Consider an experiment that has two possible outcomes; with a random variable $X$ taking 1 with probability $p$, and 0 with probability $1 - p$.
+                        The probability mass function is (note that since there are only two cases, it can be written out per case);
+                        \begin{center}
+                            $p(x) = p^x(1 - p)^{1 - x}$, for $x = 0, 1$
+                        \end{center}
+                        The standard formulae for can then be used to obtain the following results;
+                        \begin{align*}
+                            \mu & = E(X) \\
+                            & = 0 \cdot (1 - p) + 1 \cdot p \\
+                            & = p \\
+                            \sigma^2 & = E(X^2) - E(X)^2 \\
+                            & = 0^2 \cdot (1 - p) + 1^2 \cdot p - p^2 \\
+                            & = p(1 - p) \\
+                            G(z) & = (1 - p)z^0 + pz^1 \\
+                            & = 1 - p + pz \\
+                            & = 1 - p(1 - z)
+                        \end{align*}
+                    \item \textbf{binomial} \hfill $X \sim \text{Binomial}(n, p)$
+                        \medskip
+
+                        Consider $n$ identical, independent Bernoulli($p$) trials $X_1, \dots, X_n$.
+                        Let $X$ be the total number of 1s observed in the $n$ trials;
+                        $$X = \summation{i = 1}{n} X_i$$
+                        Therefore, $X$ is a random variable taking values in $\{ 0, 1, 2, \dots, n \}$.
+                        The probability mass function is (for $0 \leq x \leq n$);
+                        $$p(x) = \binom{n}{x} p^x(1 - p)^{n - x}$$
+                        The following values can be obtained with the standard formulae, or by taking the sums of random variables;
+                        \begin{align*}
+                            \mu & = np \\
+                            \sigma^2 & = np(1 - p) \\
+                            \gamma_1 & = \frac{1 - 2p}{\sqrt{np(1 - p)}}
+                        \end{align*}
+                \end{itemize}
 \end{document}
