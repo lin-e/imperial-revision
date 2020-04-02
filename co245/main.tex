@@ -215,4 +215,133 @@
                     \item $P(\emptyset) = 0$ \hfill special case of the above, when $E = S$
                     \item for any events $E$ and $F$ \hfill $P(E \cup F) = P(E) + P(F) - P(E \cap F)$
                 \end{itemize}
+        \subsection*{16th January 2020}
+            \subsubsection*{Independent Events}
+                It's important to note that independent events are \textbf{not} the same as disjoint events.
+                Two events $E$ and $F$ are independent iff $P(E \cap F) = P(E) P(F)$ - sometimes written as $E \perp F$.
+                Generally, a set of events $\{ E_1, E_2, \dots \}$ are set to be independent if for any finite subset $\{ E_{i_1}, E_{i_2}, \dots, E_{i_n} \}$;
+                $$P\left(\bigcap\limits_{j = 1}^n E_{i_j}\right) = \product{j = 1}{n}P(E_{i_j})$$
+                Where we have $\{ i_j \bnfsep 1 \leq j \leq n \}$ is any set of distinct positive integers.
+                Note that independence is more than just pairwise independence.
+                \medskip
+
+                We propose that if events $E$ and $F$ are independent, then $\bar{E}$ and $F$ are also independent.
+                Note that $E$ and $\bar{E}$ form a partition of $S$ (they are disjoint, and union to $S$).
+                $F = (E \cap F) \cup (\bar{E} \cap F)$ is a disjoint union (and also a partition of $F$), this gives us $P(F) = P(E \cap F) + P(\bar{E} \cap F) \Rightarrow P(\bar{E} \cap F) = P(F) - P(E \cap F)$;
+                \begin{align*}
+                    P(\bar{E} \cap F) & = P(F) - P(E \cap F) & \text{$E$ and $F$ are independent}, \Rightarrow \\
+                    & = P(F) - P(E) P(F) & \Rightarrow \\
+                    & = (1 - P(E))P(F) & \text{probability of complement}, \Rightarrow \\
+                    & = P(\bar{E}) P(F) & \text{hence independent}, \blacksquare
+                \end{align*}
+            \subsubsection*{Interpretations of Probability}
+                In order to assign meaning to $P$, we need to have some interpretation of probability, such as the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{classical}
+                        \medskip
+
+                        If $S$ is finite, and the elementary events are "equally likely", then for an event $E \subseteq S$, the probability is the number of outcomes in $E$ out of the total number of possible outcomes ($S$);
+                        $$P(E) = \frac{| E |}{| S |}$$
+                        This idea of "equally likely" (uniform) can be extended to infinite spaces.
+                        Instead of taking the set cardinality, another standard measure (such as area or volume) can be used instead.
+                    \item \textbf{frequentist}
+                        \medskip
+
+                        The idea is that if someone were to perform the same experiment ($E$ may or may not occur) in identical random situations many times, then the proportion of times $E$ occurs will tend to some limiting value, which would be $P(E)$.
+                    \item \textbf{subjective}
+                        \medskip
+
+                        Not assessed.
+                        Probability is the degree of belief held by an individual (see \textit{De Finetti}) - suppose a random event $E \subseteq S$ is to be performed, and an individual enters a game regarding this experiment, with two choices;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item gamble \hfill if $E$ occurs they win \$1, otherwise if $\bar{E}$ occurs they win \$0
+                            \item stick \hfill regardless of the outcome, the individual receives \$$P(E)$
+                        \end{itemize}
+                        The critical value of $P(E)$, where the individual is indifferent between the choices, is their probability of $E$.
+                \end{itemize}
+            \subsubsection*{Dependent Probabilities and Conditional Probability}
+                For the standard example of flipping a coin and rolling a die (assuming both fair), we have independence - the probability of each elementary event is $\frac{1}{2} \cdot \frac{1}{6} = \frac{1}{12}$.
+                \medskip
+
+                However, consider the case where we have two die, where the first is fair, and the second is a "top", where we only have odd numbers (such that a roll of a 2 is mapped to a 5, 4 to 3, and 6 to 1).
+                When we now flip the coin, if it is heads, we use the normal die, otherwise if it is tails, we use the "top".
+                As expected, this is no longer independent.
+                \medskip
+
+                For two events $E$ and $F$ in $S$, where $P(F) \neq 0$, we can define the probability of $E$ occurring, given that we know $F$ has occurred to be;
+                $$P(E|F) = \frac{P(E \cap F)}{P(F)}$$
+                Note that this also holds for independence ($P(E)$ doesn't change, as expected);
+                $$P(E|F) = \frac{P(E \cap F)}{P(F)} = \frac{P(E) P(F)}{P(F)} = P(E)$$
+                An example of this is as follows - suppose we roll two normal dice, with one from each hand.
+                The sample space is all the ordered pairs of possible values $S = \{ (1, 1), (1, 2), \dots, (6, 6) \}$.
+                Let the event $E$ be defined as the die from the left hand has a higher value than the die from the right hand.
+                Looking at all possible combinations, we have;
+                $$P(E) = \frac{15}{36}$$
+                Suppose we now know $F$, the value of the left die being 5, has occurred.
+                Since we know $F$ has occurred, the only events that could have happened are $F = \{ (5, 1), (5, 2), \dots, (5, 6) \}$.
+                Similarly, the only sample space elements in $E$ that could've occurred are $E \cap F = \{ (5, 1), (5, 2), (5, 3), (5, 4) \}$.
+                Our probability is as follows;
+                $$\frac{| E \cap F |}{| F |} = \frac{4}{6} = \frac{\frac{4}{36}}{\frac{1}{6}} = \frac{P(E \cap F)}{P(F)} \equiv P(E|F)$$
+
+                One way to think about probability conditioning as a shrinking of the sample space, with events being replaced by intersections with the reduced space, and a rescaling of the probabilities.
+                For example, with $F = S$, we have the following;
+                $$P(E) = \frac{P(E)}{1} = \frac{P(E \cap S)}{P(S)} = P(E|S)$$
+                Furthermore, we can extend the idea of independence of events with respect to a probability measure $P$ to conditional probabilities.
+                $P(\cdot |F)$ is a valid probability measure which obeys the axioms of probability on the set $F$.
+                For three events $E_1, E_2, F$, the event pair $E_1$ and $E_2$ are conditionally independent given $F$ (sometimes written as $E_1 \bot E_2|F$) if and only if;
+                \begin{center}
+                    $P(E_1 \cap E_2 | F) = P(E_1|F) P(E_2|F)$
+                \end{center}
+            \subsubsection*{Bayes Theorem}
+                For two events $E$ and $F$ in $S$, we have $P(E \cap F) = P(F) P(E|F)$, and $P(E \cap F) = P(E) P(F|E)$ (interchanging, and noting commutativity of $\cap$).
+                Hence we have Bayes Theorem;
+                $$P(E|F) = \frac{P(E) P(F|E)}{P(F)}$$
+            \subsubsection*{Partition Rule}
+                Consider a set of events $\{ F_1, F_2, \dots \}$, which form a partition of $S$ (they are disjoint, and union together to form $S$).
+                Then for any event $E \subseteq S$, the partition rule states;
+                $$P(E) = \summation{i}{} P(E|F_i) P(F_i)$$
+                The proof is as follows;
+                \begin{align*}
+                    E & = E \cap S \\
+                    & = E \cap \bigcup\limits_i F_i & \text{by definition of partitions} \\
+                    & = \bigcup\limits_i (E \cap F_i) & \text{by distributivity of intersection} \\
+                    P(E) & = P\left(\bigcup\limits_i (E \cap F_i)\right) \\
+                    & = \summation{i}{} P(E \cap F_i) & \text{disjoint union} \\
+                    & = \summation{i}{} P(E|F_i) P(F_i)
+                \end{align*}
+                Note that $\{ E \cap F_1, E \cap F_2, \dots \}$ is disjoint if $\{ F_1, F_2, \dots \}$ is.
+                Assume there is an element $s \in E \cap F_i$ and $s \in E \cap F_j$ (where $i \neq j$), if it is in both, then $s \in F_i$ and $s \in F_j$, which is not possible.
+                \medskip
+
+                Note that $\{ F, \bar{F} \}$ forms a partition of $S$, therefore by the Law of Total Probability we have;
+                \begin{center}
+                    $P(E) = P(E \cap F) + P(E \cap \bar{F}) = P(E|F) P(F) + P(E|\bar{F}) P(\bar{F})$
+                \end{center}
+            \subsubsection*{Terminology}
+                \begin{itemize}
+                    \itemsep0em
+                    \item conditional probabilities \hfill $P(E|F)$
+                    \item joint probabilities \hfill $P(E \cap F)$
+                    \item marginal probabilities (margins of a table) \hfill $P(E)$
+                        \subitem margins of a table
+                \end{itemize}
+            \subsubsection*{Likelihood and Posterior Probability}
+                Suppose we have a probability model with parameters $\theta$, that define a model instance (such as $\mu$ and $\sigma$), and a set of observations (or evidence) $X$.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{likelihood function} (probability of the evidence, given  the parameters) \hfill $P(X|\theta)$
+                        \subitem what is the probability our model will predict that evidence?
+                    \item \textbf{posterior probability} (probability of the parameters, given the evidence) \hfill $P(\theta|X)$
+                        \subitem what is the probability the actual parameters are $\theta$, given our evidence?
+                    \item \textbf{prior probability} (not taking into account the evidence) \hfill $P(\theta)$
+                \end{itemize}
+                This is related by Bayes theorem;
+                $$P(\theta|X) = \frac{P(X|\theta) P(\theta)}{P(X)}$$
+                \begin{center}
+                    posterior probability $\propto$ likelihood $\times$ prior probability
+                \end{center}
+                This is then divided by the normalising constant;
+                $$\summation{\theta}{} P(X|\theta) P(\theta) = P(X)$$
 \end{document}
