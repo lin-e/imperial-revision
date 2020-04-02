@@ -1,8 +1,8 @@
 import os
 import shutil
 output_path = os.path.realpath(".") + "/_output/"
-total_page = 0
-total_line = 0
+total_pages = { }
+total_lines = { }
 for d in filter(lambda x : os.path.isdir(x), os.listdir(".")):
     if d in [".git", "_output", "programming", ".metals"]:
         continue
@@ -12,10 +12,14 @@ for d in filter(lambda x : os.path.isdir(x), os.listdir(".")):
     cmd = "pdfinfo " + d + "/main.pdf | grep 'Pages' | awk '{print $2}'"
     pages = int(os.popen(cmd).read().strip())
     lines = sum(1 for line in open(os.path.realpath(d) + "/main.tex"))
-    total_page += pages
-    total_line += lines
+    total_pages["y" + d[2]] = total_pages.get("y" + d[2], 0) + pages;
+    total_lines["y" + d[2]] = total_lines.get("y" + d[2], 0) + lines;
     print(d + ": " + str(pages) + " pages")
     print(d + ": " + str(lines) + " lines")
 print("Complete!")
-print("Total pages: " + str(total_page))
-print("Total lines: " + str(total_line))
+print("Total pages:")
+for key, val in total_pages.items():
+    print("  " + key + ": " + str(val))
+print("Total lines:")
+for key, val in total_lines.items():
+    print("  " + key + ": " + str(val))

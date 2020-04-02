@@ -3082,4 +3082,314 @@
                     \item data blocks
                 \end{itemize}
                 The file system can then be considered as a sequence of these block groups.
+        \subsection*{11th December 2019}
+            \subsubsection*{Tutorial Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item Why are security and protection important even for computers that do not contain sensitive data?
+                        \medskip
+
+                        If a machine is compromised, it can be used to perform attacks under a botnet, or mine cryptocurrencies.
+                    \item
+                        Sharing and protection are conflicting goals.
+                        Give 3 examples of sharing in OSs and explain what protection mechanisms are necessary.
+                        \begin{itemize}
+                            \itemsep0em
+                            \item sharing virtual memory \hfill OS page protection
+                            \item sharing processor cores \hfill context switches, interrupts
+                            \item sharing files \hfill access control lists, encryption
+                        \end{itemize}
+                \end{enumerate}
+            \subsubsection*{Security Goals}
+                Our goals are generally to prevent unauthorised access to the system, and permit authorised sharing of resources.
+                We care about data confidentiality (sensitive data is not stolen), data integrity (data is not altered or destroyed), and system availability (denial of service).
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        security policy (what security is provided)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item what is protected
+                            \item who has access
+                            \item what access is permitted
+                        \end{itemize}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        security mechanism
+                        \begin{itemize}
+                            \itemsep0em
+                            \item how to implement security policy
+                            \item same mechanisms can support different policies
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+                Note that there are three main aspects to security;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{people security} \hfill insider, social engineering attacks
+                        \medskip
+
+                        Employees need privileges to perform duties, but can abuse those privileges for gain.
+                        Social engineering is another issue, where an attack may try to convince an individual to reveal sensitive details - furthermore, people may have incorrect expectations for security.
+                        Another issue is working around security measures - for example forcing users to change passwords may lead to weak passwords.
+                        \medskip
+
+                        In general, this focuses on organisational policies, and how we handle mechanisms.
+                    \item \textbf{hardware security} \hfill physically stealing disks
+                        \medskip
+
+                        With physical access, they can bypass security mechanisms much more easily - for example by physically removing a disk and reading the contents (hence full disk encryption may be required).
+                        Network traffic can also be sniffed, if it is unencrypted.
+                        Hardware implementations can also be exploited (such as Spectre or Meltdown).
+                    \item \textbf{software security} \hfill exploiting bugs to gain permissions
+                        \medskip
+
+                        Bugs may allow an attacker to compromise a system.
+                        These tend to exploit buffer overflows, integer overflows, and format string vulnerabilities.
+                        This is more prevalent in memory unsafe languages such as C, which is what operating systems are generally written in.
+                \end{itemize}
+            \subsubsection*{Access Control}
+                This is implemented by the OS, and typically carried out in two parts;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{authentication} \hfill verify identity of users
+                        \medskip
+
+                        The verification of identity of principal (generic term for user or process) is based on;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item personal characteristics (such as finger prints, retina patterns)
+                                \medskip
+                                This can suffer from high equipment cost, as well as false positives or negatives.
+                            \item possessions (based on physical possessions such as RFID cards)
+                                \medskip
+
+                                This can ensure physical security, however it is expensive and impersonation attacks can happen if the item is lost.
+                                Typically combined as part of two factor authentication for additional security.
+                            \item knowledge (such as password)
+                                \medskip
+
+                                This is very cheap to implement, however dictionary attacks are able to find insecure passwords.
+                                Furthermore, password reuse is also a big issue.
+                                \medskip
+
+                                Passwords should never be stored in plain text, as it is very vulnerable to data theft or disclosure through system administrators.
+                                Modern systems store encrypted versions of passwords, computed with a one-way cryptographic hash function.
+                                \medskip
+
+                                This continues with the flaws of hashing due to rainbow tables and computational power, as well as the use of salting.
+                        \end{itemize}
+                    \item \textbf{authorisation} \hfill allow users to perform actions only when authorised
+                        \medskip
+
+                        The default decision (when a policy cannot be found) depends on the type of system, default to no access for a more security focused system.
+                        When designing policies, the Principle of Least Privilege (PoLP) should be followed, which gives the user the minimum rights for a task.
+                        This ensures that the minimum amount of damage is done if that particular user is compromised - however more rights are given for convenience.
+                \end{itemize}
+            \subsubsection*{Authorisation}
+                A protection domain is a set of access rights, which is defined as a set of objects and the operations permitted on them.
+                A principal executing in domain $D$ has access rights specified by $D$.
+                This can be written as an access control matrix, where the rows represent principals (users, user groups), and the columns represent target objects (files, devices, processes);
+                \begin{center}
+                    \begin{tabular}{l|c|c|c|c|c}
+                        & object 1 & object 2 & object 3 & object 4 & object 5 \\
+                        \hline
+                        principal 1 & read & & read & & read \\
+                        principal 2 & & execute & & read, print & \\
+                        principal 3 & read & read, print & & execute & read \\
+                        principal 4 & read, write & & read, write & &
+                    \end{tabular}
+                \end{center}
+                However, this is expensive to implement as a 2D array.
+                We have two options;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{access-control lists (ACLs)} \hfill taking a column of the matrix
+                        \medskip
+
+                        This is stored with each object, and store it as part of the file's metadata (in the inode).
+                    \item \textbf{capabilities} \hfill taking a row of the matrix
+                        \medskip
+
+                        Possession of a capability gives the right to perform the operations specified by it, similar to the possession of a key.
+                        This is often not directly accessible by the user, and is therefore maintained by the OS, or an encrypted version is given to the user to ensure it has not been tampered with.
+                \end{itemize}
+                Comparing these options on the following criteria;
+                \begin{itemize}
+                    \itemsep0em
+                    \item principle of least privilege
+                        \medskip
+
+                        Capabilities are better for this, as we are giving specific access rights to a principal - if they don't have it, then they are denied access.
+                    \item revocation
+                        \medskip
+
+                        This is easier with an ACL as we simply need to update the permission bits associated with a file.
+                        On the other hand, this is harder to do with a capability, as it cannot be easily taken away.
+                        Operating systems use revocation lists to handle this.
+                    \item rights transfer
+                        \medskip
+
+                        Capabilities are easier for rights transfer, as they can be given to another principal.
+                    \item persistence
+                        \medskip
+
+                        ACLs are better for this as they can be stored as part of the file's attributes (natural way of storing them).
+                \end{itemize}
+            \subsubsection*{UNIX / Linux}
+                Users are the principals, and have a unique user id.
+                The superuser, root, has a user id of 0, and can access any resource.
+                As everything is a file in UNIX (and therefore accessed under the same access control mechanism), there are three types of operations; (R)ead, (W)rite, and e(X)ecute.
+                Each user can belong to one or more groups, but each file can only belong to one group.
+                Recall how running ~ls -l~ would give a line that started with the following;
+                \begin{center}
+                    \violet{~-~}\blue{~rw-~}\red{~r--~}\textcolor{teal}{~r--~}
+                \end{center}
+                \begin{itemize}
+                    \itemsep0em
+                    \item \violet{~-~} \hfill file type
+                    \item \blue{~rw-~} \hfill access rights of file owner
+                    \item \red{~r--~} \hfill access rights of group members
+                    \item \textcolor{teal}{~r--~} \hfill access writes of everybody else
+                \end{itemize}
+                The abbreviations are as follows;
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        file type
+                        \begin{itemize}
+                            \itemsep0em
+                            \item ~-~ \hfill regular file
+                            \item ~d~ \hfill directory
+                            \item ~b~ \hfill block file
+                            \item ~c~ \hfill character file
+                            \item ~l~ \hfill symbolic link
+                            \item ~p~ \hfill pipe
+                            \item ~s~ \hfill socket
+                        \end{itemize}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        permission bits
+                        \begin{itemize}
+                            \itemsep0em
+                            \item ~-~ \hfill none
+                            \item ~r~ \hfill read
+                            \item ~w~ \hfill write
+                            \item ~x~ \hfill execute
+                            \item ~s~ \hfill setuid, setgid
+                            \item ~t~ \hfill sticky bit
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+                For directories, a permission bit of ~r~ is interpreted as permission to list the contents of the directory, ~w~ is permission to create / delete (owned) files, and ~x~ is permission to enter the directory and get access to files.
+                \medskip
+
+                When a process is run, it inherits the access permissions of the user launching the process.
+                It is essentially running on your behalf.
+                Running ~passwd~ is a privileged operation, as only root should have access, however we are able to change our own passwords.
+                By running the command ~ls -l \$(which passwd)~, we are able to see the following;
+                \begin{center}
+                    ~-rwsr-xr-x 1 root root 59640 Mar 22  2019 /usr/bin/passwd~
+                \end{center}
+                Note where the execute permission would be, there is an ~s~.
+                This "set user id" bit runs it as the owner of the file, thus increasing privileges when using system programs.
+                Each process has three IDs;
+                \begin{itemize}
+                    \itemsep0em
+                    \item real UID \hfill ID of the user who started the process
+                    \item effective UID \hfill this is used in access control checks
+                    \item saved UID \hfill a saved ID to which the effective ID can be changed to
+                        \subitem PoLP; even if it can execute as root, it uses a less privileged user if possible.
+                \end{itemize}
+            \subsubsection*{Tutorial Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item
+                        Represent the ownerships and permissions shown in this UNIX directory listing as an access control matrix.
+                        Treat each of the two users and two groups as principals.
+                        Note: ~a~ is a member of ~users~ and ~systems~, ~b~ is a member of ~users~ only.
+                        \begin{lstlisting}
+                            -rw-r--r-- 3 b    systems  ...  .emacs
+                            -rwxr-xr-x 3 b    users    ...  os.pptx
+                            -rw-rw---- 1 b    systems  ...  notes.txt
+                            -rw-r----- 3 b    users    ...  index.html
+                        \end{lstlisting}
+                        \begin{center}
+                            \begin{tabular}{l|cccc}
+                                & ~.emacs~ & ~os.pptx~ & ~notes.txt~ & ~index.html~ \\
+                                \hline
+                                ~a~ & ~rw~ & ~rx~ & ~rw~ & ~rw~ \\
+                                ~b~ & ~r~ & ~rwx~ & ~rw~ & ~r~ \\
+                                ~users~ & ~r~ & ~rx~ & & ~r~ \\
+                                ~systems~ & ~r~ & ~rx~ & ~rw~ &
+                            \end{tabular}
+                        \end{center}
+                    \item Why would ~setuid~ programs need to drop privileges?
+                        \medskip
+
+                        Only privileged tasks should be performed with elevated privileges to reduce the attack surface.
+                        This is anther instance of the principle of least privilege.
+                    \item
+                        Consider a file with the following UNIX permissions;
+                        \begin{center}
+                            ~-rwsrwxrwx 1 root lsds  ...  wombat~
+                        \end{center}
+                        What kind of security implications does this file have?
+                        \medskip
+
+                        Since all users have write permissions, the contents can be changed to anything (including malicious code).
+                        Due to the ~s~ bit being set for execution, every execution of this process will run as root, thus allowing anyone to execute instructions as the superuser.
+                        \medskip
+
+                        Therefore it is important to ensure that access to writing ~setuid~ binaries is extremely limited.
+                \end{enumerate}
+            \subsubsection*{Richer Access Control Models}
+                Discretionary Access Control (DAC) models allow for principals to determine who may access their objects.
+                On the other hand, there is Mandatory Access Control (MAC) models, which has a privileged entity set access control rights for files and resources.
+                The latter is much more secure (which is why this is used more in the web / cloud context - it is better for preventing data leakage), however the former is much more flexible.
+                \medskip
+
+                The \textbf{Bell-LaPadula} model is an example of MAC.
+                We maintain the idea of objects and principals, and they each have an assigned security level (unclassified, confidential, top secret, etc).
+                This enforces two rules;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{the simple security property}
+                        \medskip
+
+                        A process running at security level $k$ can only read objects at its level or lower.
+                    \item \textbf{the * property}
+                        \medskip
+
+                        A process running at security level $k$ can write only objects at its level or higher.
+                \end{itemize}
+                This means that accidental disclosure cannot occur, as something from a higher level cannot be written down into a lower level, thus constricting the "flow" of information.
+                This maintains confidentiality, but not integrity - which is what the next model does.
+                \medskip
+
+                The \textbf{Biba} model guarantees integrity in the following two rules;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{the simple integrity principle}
+                        \medskip
+
+                        A process running at security level $k$ can write only objects at its level or lower (no write up).
+                    \item \textbf{the integrity * property}
+                        \medskip
+
+                        A process running at security level $k$ can read only objects at its level or higher (no read down).
+                \end{itemize}
+                This mirrors the previous model, in the sense that it guarantees integrity (we regard a higher level as being higher integrity).
+                We can read data from a higher level, and write it down, which maintains integrity, but not read data with worse integrity (lower level), and write it up.
+            \subsubsection*{Design Principles for Security}
+                One of the mistakes early operating systems made was not including security mechanisms, as they simply assumed all users are trusted and malicious users didn't exist.
+                Adding security mechanisms to an operating system is difficult.
+                \begin{itemize}
+                    \itemsep0em
+                    \item give each process the least privilege possible \hfill default should be no privilege
+                    \item protection mechanism should be simple and uniform
+                        \subitem complexity can lead to bugs, or the user not understanding (thus incorrect policies)
+                    \item psychologically acceptable \hfill usability
+                    \item system design should be public \hfill security through obscurity is a bad idea
+                \end{itemize}
 \end{document}
