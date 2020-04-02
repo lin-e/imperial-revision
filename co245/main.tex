@@ -419,4 +419,159 @@
                                 \end{align*}
                         \end{enumerate}
                 \end{enumerate}
+        \subsection*{23rd January 2020}
+            \subsubsection*{Simple Random Variables}
+                Suppose we have identified a sample space $S$ and a probability measure $P(E)$ on (measurable subsets) $E \subseteq S$.
+                A random variable is a mapping from the sample space to the real numbers, such that a random variable $X : S \to \mathbb{R}$.
+                Each element $s \in S$ is assigned a numerical value $X(s)$ (not always unique).
+                We denote the outcome of the random experiment as $s^*$, the corresponding unknown outcome of the random variable $X(s^*)$ will be referred to as $X$.
+                \medskip
+
+                The probability measure $P$ defined on $S$ induces a \textbf{probability distribution function}, $P_X$, on the random variable $X \in \mathbb{R}$.
+                For each $x \in \mathbb{R}$, let $S_x \subseteq S$ be the set containing the elements of $S$ which are mapped by $X$ to numbers no greater than $x$, precisely $S_x = X^{-1}((-\infty, x])$.
+                \begin{center}
+                    $P_X(X \leq x) = P(S_x)$
+                \end{center}
+                We define the image of $S$ under $X$ as the range of  the random variable $X$;
+                \begin{center}
+                    $\text{range}(X) \equiv X(S) = \{ x \in \mathbb{R} \bnfsep \exists s \in S.\ [X(s) = x] \}$
+                \end{center}
+                Consider this applied to the experiment of a fair coin toss, with $S = \{ H, T \}$, probability measure $P(\{ H \}) = P(\{ T \}) = \frac{1}{2}$, and a random variable $X : \{ H, T \} \to \mathbb{R}$ (such that $X(T) = 0$ and $X(H) = 1$);
+                \begin{align*}
+                    X^{-1}((-\infty, x]) & = \begin{cases}
+                        \emptyset & x < 0 \\
+                        \{ T \} & 0 < x < 1 \\
+                        \{ H, T \} & x \geq 1
+                    \end{cases} \\
+                    P_X(X \leq x) & = \begin{cases}
+                        P(\emptyset) & x < 0 \\
+                        P(\{ T \}) & 0 < x < 1 \\
+                        P(\{ H, T \}) & x \geq 1
+                    \end{cases} \\
+                    & = \begin{cases}
+                        0 & x < 0 \\
+                        \frac{1}{2} & 0 < x < 1 \\
+                        1 & x \geq 1
+                    \end{cases}
+                \end{align*}
+                The \textbf{cumulative distribution function} of a random variable $X$, $F_X(x)$ is the probability that $X$ takes a value less than or equal to $x$;
+                \begin{center}
+                    $F_X(x) = P_X(X \leq x)$
+                \end{center}
+                To verify a function $F_X(x)$ is a valid cdf, we need to verify the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $0 \leq F_X(x) \leq 1$, $\forall x \in \mathbb{R}$
+                    \item $\forall x_1, x_2 \in \mathbb{R}.\ [x_1 \leq x_2 \Rightarrow F_X(x_1) \leq F_X(x_2)]$ \hfill monotonicity
+                    \item $F_X(-\infty) = 0$, and $F_X(\infty) = 1$
+                \end{itemize}
+                Note that for finite intervals $(a, b] \subseteq \mathbb{R}$; $P_X(a < X \leq b) = F_X(b) - F_X(a)$.
+                Unless there is ambiguity, we can generally omit the subscript of $P_X$, to just write $P$ - thus we just consider the random variable from the start, letting the range of $X$ be the sample space.
+                \medskip
+
+                We define a random variable as simple if it can only take a finite number of possible values.
+                Suppose $X$ is simple, and can take $m$ values $\mathcal{X} = \{ x_1, x_2, \dots, x_m \}$, ordered $x_1 < x_2 < \dots < x_m$.
+                Each $s \in S$ is mapped to one of these values by $X$.
+                The sample space $S$ can then be partitioned into $m$ disjoint subsets, $\{ E_1, E_2, \dots, E_m \}$, such that $s \in E_i \Leftrightarrow X(s) = x_i$.
+                Therefore we have $P_X(X = x_i) = P(E_i)$, and $P_X(X = x_i) = F_X(x_i) - F_X(x_{i - 1})$, with $x_0 = -\infty$.
+                \medskip
+
+                A random variable is simply a numeric relabelling of  our underlying sample space.
+            \subsubsection*{Discrete Random Variables}
+                A random variable is discrete if it can take only a \textbf{countable} number of possible values (the range is countable).
+                Therefore a simple random variable is a special case of a discrete random variable.
+                Similar to above, we can partition $S$ into a countable collection of disjoint subsets.
+                For a discrete random variable $X$, $F_X$ is a monotonic increasing step function with jumps at points in $\mathcal{X} = \{ x_1, x_2, \dots \}$, where $x_1 < x_2 < \dots$, continuous on the right.
+                \medskip
+
+                For a discrete random variable $X$ and $x \in \mathbb{R}$, we define the \textbf{probability mass function}, $p_X(x)$ or just $p(x)$ as;
+                \begin{center}
+                    $p_X(x) = P_X(X = x)$
+                \end{center}
+                Given that $X$ can take the values $\mathcal{X} = \{ x_1, x_2, \dots \}$, then the following must hold;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $0 \leq p_X(x) \leq 1$, $\forall x \in \mathbb{R}$
+                    \item $\summation{x \in \mathcal{X}}{} p_X(x) = 1$
+                \end{itemize}
+                Either the probability mass function (pmf) or the cumulative distribution function (cdf) of a random variable fully characterises its distribution, as we can work one out from the other;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $p(x_i) = F(x_i) - F(x_{i - 1})$
+                    \item $F(X_i) = \summation{j = 1}{i} p(x_j)$
+                \end{itemize}
+            \subsubsection*{Link to Statistics}
+                Consider the set of data $(x_1, x_2, \dots, x_n)$ as $n$ realisations of a random variable $X$.
+                The frequency counts in the histogram for that set of data can be seen as an estimate for the probability mass function.
+                Similarly, a cumulative histogram is an estimate of the cumulative distribution function.
+            \subsubsection*{Expectation}
+                We define the \textbf{expectation} (also written as $E(X)$ or $\mu_X$) of a discrete random variable $X$ as
+                $$E_X(X) = \summation{x}{} x p_X(x)$$
+                This gives a weighted average of the possible values, with the weights coming from the probability of a particular outcome.
+                Occasionally referred to as the mean of the distribution.
+                \medskip
+
+                The expectation of a function of a random variable is denoted $E\{g(X)\}$, where $g : \mathbb{R} \to \mathbb{R}$.
+                We notice that $g(X)(s) = (g \circ X)(s)$ is also a random variable, therefore the expectation is;
+                $$E_X\{g(X)\} = \summation{x}{} g(x) p_X(x)$$
+                \medskip
+
+                Note that for a linear function $g(X) = aX + b$, where $a, b \in \mathbb{R}$, we have $E_X(aX + b) = aE_X(X) + b$.
+                Similarly, for two linear functions $g, h$, $E_X(g(x) + h(x)) = E_X(g(x)) + E_X(h(x))$.
+                Therefore expectation is a linear operator.
+                \medskip
+
+                The variance is the expectation of $X$, with $g(X) = (X - E(X))^2$.
+                This is denoted $\text{Var}_X(X)$, or sometimes $\sigma_X^2$.
+                \begin{center}
+                    $\text{Var}_X(X) = E_X((X - E_X(X))^2) = E(X^2) - E(X)^2$
+                \end{center}
+                The variance of a linear function of a random variable is as follows;
+                \begin{center}
+                    $\text{Var}(aX + b) = a^2\text{Var}(X)$
+                \end{center}
+                The standard deviation of a random variable, $\text{sd}_X(X)$ (also $\sigma_X$) is the square root of the variance.
+                \begin{center}
+                    $\text{sd}_X(X) = \sqrt{\text{Var}_X(X)}$
+                \end{center}
+                The skewness $\gamma_1$ of a discrete random variable $X$ is defined;
+                $$\gamma_1 = \frac{E_X((X - E_X(X))^3)}{\text{sd}_X(X)^3} \violet{= \frac{E_X((X - \mu)^3)}{\sigma^3}}$$
+                The part in \violet{violet} is when $\mu = E(X), \sigma = \text{sd}(X)$.
+            \subsubsection*{Example Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item If $X$ is a random variable taking the integer value scored with a single roll of a fair die, what is
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item the expected value
+                                \begin{align*}
+                                    E(X) & = \summation{x = 1}{6} x p(x) \\
+                                    & = 1 \cdot \frac{1}{6} + 2 \cdot \frac{1}{6} + 3 \cdot \frac{1}{6} + 4 \cdot \frac{1}{6} + 5 \cdot \frac{1}{6} + 6 \cdot \frac{1}{6} \\
+                                    & = \frac{21}{6} & (= 3.5)
+                                \end{align*}
+                            \item the variance
+                                \begin{align*}
+                                    \text{Var}(X) & = \summation{x = 1}{6} x^2 p(x) - 3.5^2 \\
+                                    & = 1^2 \cdot \frac{1}{6} + 2^2 \cdot \frac{1}{6} + 3^2 \cdot \frac{1}{6} + 4^2 \cdot \frac{1}{6} + 5^2 \cdot \frac{1}{6} + 6^2 \cdot \frac{1}{6} - \left(\frac{7}{2}\right)^2 \\
+                                    & = \frac{35}{12}
+                                \end{align*}
+                        \end{enumerate}
+                    \item A student gets $X$ marks answering a single multiple choice question with four options, where 3 marks are awarded for a correct answer, and -1 for a wrong answer - what is
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item the expected value
+                                \begin{align*}
+                                    E(X) & = 3 \cdot P(\text{correct}) + -1 \cdot P(\text{incorrect}) \\
+                                    & = 3 \cdot \frac{1}{4} + -1 \cdot \frac{3}{4} \\
+                                    & = 0
+                                \end{align*}
+                            \item the standard deviation
+                                \begin{align*}
+                                    E(X^2) & = 3^2 \cdot P(\text{correct}) + (-1)^2 \cdot P(\text{incorrect}) \\
+                                    & = 9 \cdot \frac{1}{4} + 1 \cdot \frac{3}{4} \\
+                                    & = 4 & \Rightarrow \\
+                                    \text{sd}(X) & = \sqrt{3}
+                                \end{align*}
+                        \end{enumerate}
+                \end{enumerate}
 \end{document}
