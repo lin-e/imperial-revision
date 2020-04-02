@@ -161,6 +161,58 @@
 % actual document
 \begin{document}
     \section*{CO245 - Probability and Statistics}
-        \subsection*{}
+        \subsection*{15th January 2020}
+            Probability is a mathematical formalism used to describe and quantify uncertainty.
+            \subsubsection*{Sample Spaces and Events}
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{sample space} \hfill $S$ or $\Omega$
+                        \subitem a set containing the possible outcomes of a random experiment
+                        \subitem for example; sample space of two coin tosses \hfill $S = \{ (H, H), (H, T), (T, H), (T, T)\}$
+                    \item \textbf{event} \hfill $E$ ($E \subseteq S$)
+                        \subitem any subset of the sample space (collection of some possible events)
+                        \subitem for example; event of the first coin being heads in two tosses \hfill $E = \{ (H, H), (H, T) \}$
+                        \subitem the extremes are $\emptyset$ (the null event) which will never occur, or $S$ (the universal event) which will always occur - there is only uncertainty when the events are strictly between the events, such that $\emptyset \subset E \subset S$
+                    \item \textbf{elementary event} \hfill singleton subset containing exactly one element from $S$
+                \end{itemize}
+                When performing a random experiment, the outcome will be a single element $s^* \in S$.
+                Then an event $E \subseteq S$ has \textbf{occurred} iff $s^* \in E$.
+                If it has not occurred, then $s^* \notin E \Leftrightarrow s^* \in \bar{E}$ (can be read as not $E$).
+                \medskip
 
+                With a set of events $\{ E_1, E_2, \dots \}$, we can have the following set operations;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\bigcup\limits_i E_i = \{ s \in S \bnfsep \exists i.\ [s \in E_i] \}$ \hfill will only occur if at least one of the events $E_i$ occurs ("or")
+                    \item $\bigcap\limits_i E_i = \{ s \in S \bnfsep \forall i.\ [s \in E_i] \}$ \hfill will only occur if all of the events $E_i$ occurs ("and")
+                    \item $\forall i, j.\ E_i \cap E_j = \emptyset$ \hfill ($i \neq j$) if they are mutually exclusive (at most one can occur)
+                \end{itemize}
+            \subsubsection*{$\sigma$-algebra}
+                In an uncountably infinite set, the event set you are assigning probabilities to cannot be every subset, as the probabilities cannot be made to sum to 1 under reasonable axioms.
+                \medskip
+
+                We define the $\sigma$-algebra as the subset of events which we can assign probabilities to.
+                We want to define a probability function $P$ that corresponds to the subsets of $S$ that we wish to \textbf{measure}.
+                This set of subsets is referred to as $\mathfrak{S}$ (the event space), with the following three properties (corresponding to the axioms of probability);
+                \begin{itemize}
+                    \itemsep0em
+                    \item nonempty \hfill $S \in \mathfrak{S}$
+                    \item closed under complements \hfill $E \in \mathfrak{S} \Rightarrow \bar{E} \in \mathfrak{S}$
+                    \item closed under countable union (therefore any countable set is fine) \hfill $E_1, E_2, \dots \in \mathfrak{S} \Rightarrow \bigcup\limits_i E_i \in \mathfrak{S}$
+                \end{itemize}
+                A probability measure on the pair $(S, \mathfrak{S})$ is a mapping $P : \mathfrak{S} \to [0, 1]$, satisfying the following three axioms;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\forall E \in \mathfrak{S}.\ [0 \leq P(E) \leq 1]$
+                    \item $P(S) = 1$
+                    \item countably additive, for \textbf{disjoint subsets} $E_1, E_2, \dots \in \mathfrak{S}$ \hfill $P\left(\bigcup\limits_i E_i\right) = \summation{i}{} P(E_i)$
+                \end{itemize}
+                From these, we can derive the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $P(\bar{E}) = 1 - P(E)$
+                        $$\underbrace{P(E) + P(E)}_\text{disjoint} = P(\underbrace{E \cup \bar{E}}_{E \cup \bar{E} = S}) = P(S) = 1$$
+                    \item $P(\emptyset) = 0$ \hfill special case of the above, when $E = S$
+                    \item for any events $E$ and $F$ \hfill $P(E \cup F) = P(E) + P(F) - P(E \cap F)$
+                \end{itemize}
 \end{document}
