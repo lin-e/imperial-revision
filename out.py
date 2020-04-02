@@ -1,10 +1,13 @@
 import os
 import shutil
+
+exclude = [ "co000_testing" ]
+
 output_path = os.path.realpath(".") + "/_output/"
 total_pages = { }
 total_lines = { }
 for d in filter(lambda x : os.path.isdir(x), os.listdir(".")):
-    if d in [".git", "_output", "programming", ".metals"]:
+    if not (d[0:2] == "co" and d[2].isdigit()) or d in exclude:
         continue
     print("Copying " + d)
     year = "y" + d[2] + "/"
