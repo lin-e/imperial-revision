@@ -344,4 +344,79 @@
                 \end{center}
                 This is then divided by the normalising constant;
                 $$\summation{\theta}{} P(X|\theta) P(\theta) = P(X)$$
+        \subsection*{22nd January 2020}
+            \subsubsection*{Example Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item
+                        There are 5000 VLSI chips, 1000 from company $X$ (which has a 10\% chance of being defective), and 4000 from company $Y$ (which has a 5\% chance of being defective).
+                        If a chip is defective, what is the probability it came from company $X$?
+                        \medskip
+
+                        Let $E$ be the event that the randomly selected chip was made by $X$, and $F$ be the event that the chip is defective.
+                        \begin{align*}
+                            P(E) & = \frac{1000}{5000} \\
+                            & = 0.2 \\
+                            P(\bar{E}) & = \frac{4000}{5000} \\
+                            & = 0.8 \\
+                            P(F|E) & = 0.1 & \text{given} \\
+                            P(F|\bar{E}) & = 0.05 & \text{given} \\
+                            P(E \cap F) & = P(F|E) P(E) \\
+                            & = 0.02 \\
+                            P(\bar{E} \cap F) & = P(F|\bar{E}) P(\bar{E}) \\
+                            & = 0.04
+                        \end{align*}
+                        This gives us enough to fill in the table, as well as the \violet{missing entries} with the law of total probabilities;
+                        \begin{center}
+                            \begin{tabular}{c|cc|c}
+                                & $E$ & $\bar{E}$ & \\
+                                \hline
+                                $F$ & 0.02 & 0.04 & 0.06 \\
+                                $\bar{F}$ & \violet{0.18} & \violet{0.76} & \violet{0.94} \\
+                                \hline
+                                & 0.2 & 0.8 &
+                            \end{tabular}
+                        \end{center}
+                        $$P(E|F) = \frac{P(E \cap F)}{P(F)} = \frac{0.02}{0.06} = \frac{1}{3}$$
+                    \item
+                        A multiple choice question has $c$ available choices.
+                        Let $p$ be the probability the student knows the right answer.
+                        When he doesn't know, he chooses an answer at random.
+                        Given that the answer the student chooses is correct, what is the probability that the student knew the correct answer?
+                        \medskip
+
+                        Let $A$ be the event that the question is answered correctly, and $K$ be the event that the student knew the correct answer.
+                        We therefore want to find $P(K|A)$.
+                        $$P(K|A) = \frac{P(A|K) P(K)}{P(A)}$$
+                        We know $P(A|K) = 1$ (given that they don't purposely choose a wrong answer), and $P(K) = p$.
+                        By the partition rule, we have $P(A) = P(A|K) P(K) + P(A|\bar{K}) P(\bar{K})$.
+                        Substituting values we get;
+                        $$P(A) = 1 \cdot p + \frac{1}{c} \cdot (1 - p) = p + \frac{1 - p}{c}$$
+                        Therefore,
+                        $$P(K|A) = \frac{p}{p + \frac{1 - p}{c}} = \frac{cp}{cp + 1 - p}$$
+                    \item
+                        A new HIV test is claimed to correctly identify 95\% of people who are really HIV positive and 98\% of people who are really HIV negative.
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item If only 1 in a 1000 of the population are HIV positive, what is the probability that someone who tests positive actually has HIV?
+                                \medskip
+
+                                Let $H$ be the event that someone has the virus ($P(H) = 0.001$), and $T$ be the event that someone tests positive.
+                                Similar to above, we want to find the following, and can use the partition rule again.
+                                $$P(H|T) = \frac{P(T|H) P(H)}{P(T)} = \frac{P(T|H) P(H)}{P(T|H) P(H) + P(T|\bar{H}) P(\bar{H})} \approx 0.045$$
+                                Therefore, less than 5\% of those who test positive really have HIV.
+                            \item Is this acceptable? \hfill no
+                            \item Would a repeat test be appropriate for someone who tests positive?
+                                \medskip
+
+                                Let $T_i$ denote the event that the $i^\text{th}$ test is positive.
+                                Suppose that the correctness of the test stays the same, and the test results are conditionally independent.
+                                \begin{align*}
+                                    P(H|T_1 \cap T_2) & = \frac{P(T_1 \cap T_2|H) P(H)}{P(T_1 \cap T_2)} \\
+                                    & = \frac{P(T_1 \cap T_2|H) P(H)}{P(T_1 \cap T_2|H) P(H) + P(T_1 \cap T_2|\bar{H}) P(\bar{H})} \\
+                                    & = \frac{P(T_1|H) P(T_2|H) P(H)}{P(T_1|H) P(T_2|H) P(H) + P(T_1|\bar{H}) P(T_2|\bar{H}) P(\bar{H})} \\
+                                    & \approx 0.693
+                                \end{align*}
+                        \end{enumerate}
+                \end{enumerate}
 \end{document}
