@@ -1447,4 +1447,51 @@
                         \end{align*}
                         Hence $f_X(x)f_Y(y) \neq f_{XY}(x, y)$, therefore $X$ and $Y$ are not independent.
                 \end{enumerate}
+        \subsection*{19th February 2020}
+            \subsubsection*{Statistical Modelling}
+                Statistics is the science of developing knowledge through the use of empirical data.
+                The goal is to use statistical methods to relate the measurements of a sample to the characteristics of the entire population.
+                Modern statistical methods are largely driven by the notion of a model, which is an approximation to a structure, which could've led to the data (commonly used models are parametric).
+                This reduces the problem of learning about the underlying population to learning about a finite set of parameters.
+            \subsubsection*{Estimation Theory}
+                For a sample of data $\ulsmash{x} = (x_1, \dots x_n)$, we consider the these observed values as realisations of corresponding random variables $\ulsmash{X} = (X_1, \dots, X_n)$.
+                Note that the underlining denotes a collection.
+                \medskip
+
+                If the distribution of a single random draw $X$ has probability distribution (probability mass function for discrete, and probability density for continuous) $P_{X|\theta}(\cdot|\theta)$, where $\theta$ is a generic parameter, we then assume our $n$ data point random variables $\ulsmash{X}$ are iid, with $P_{X|\theta}(\cdot|\theta)$
+            \subsubsection*{Example Models}
+                \begin{enumerate}[(I)]
+                    \itemsep0em
+                    \item
+                        Suppose we want the ages of people in this course - we could ask everyone in this population their age, and calculate the population mean $\mu$, and the population variance $\sigma^2$.
+                        This may not always be feasible - we can collect a \textbf{sample} of 20 observations from the population, and calculate a sample mean $\bar{x}$, and sample variance $s^2$;
+                        $$\bar{x} = \frac{1}{20} \summation{i = 1}{20} x_i \text{ and } s^2 = \frac{1}{20} \summation{i = 1}{20} (x_i - \bar{x})^2$$
+                        If this is done with replacement (for iid model), then we know (by CLT) the sample mean $\bar{x}$ is a random variable whose distribution is approximated by;
+                        $$\bar{x} \sim \text{N}\left(\mu, \frac{\sigma^2}{20}\right)$$
+                    \item
+                        Suppose we have a random variable $X$ representing a random draw from our underlying population;
+                        $$X \sim \text{Binomial}(10, p) \text{ with } P_X(x) = \binom{10}{x}p^x(1 - p)^{10 - x}$$
+                        Where $p$ is unknown.
+                        Suppose we draw a sample size of 100 from the population (100 independent binomial random variables), and observe the following;
+                        \begin{center}
+                            \begin{tabular}{l|ccccccccccc}
+                                $x$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                                \hline
+                                frequency & 2 & 16 & 35 & 22 & 21 & 3 & 1 & 0 & 0 & 0 & 0
+                            \end{tabular}
+                        \end{center}
+                        How might we estimate $p$?
+                \end{enumerate}
+            \subsubsection*{Estimators}
+                Consider a sequence of random variables $\ulsmash{X} = (X_1, \dots, X_n)$, corresponding to $n$ iid data samples from a population with distribution $P_X$.
+                Let $\ulsmash{x} = (x_1, \dots, x_n)$ be the values we observe for these random variables.
+                We define a \textbf{statistic} (which is a random variable) as;
+                \begin{center}
+                    $T = T(X_1, \dots, X_n) = T(\ulsmash{X})$
+                \end{center}
+                The realised value of a statistic is $t = t(\underline{x})$.
+                For example;
+                $$\bar{X} = \frac{1}{n} \summation{i = 1}{n} X_i \text{ is a statistic, and } \bar{x} = \frac{1}{n} \summation{i = 1}{n} x_i \text{ is a realised value}$$
+                If a statistic $T(\ulsmash{X})$ is to be used to approximate parameters of the distribution $P_{X|\theta}(\cdot|\theta)$, we say $T$ is an \textbf{estimator} for those parameters.
+                The realised value of the estimator for a data sample is an \textbf{estimate}.
  \end{document}
