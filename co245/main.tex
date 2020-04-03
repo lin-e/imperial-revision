@@ -17,6 +17,8 @@
 \usepackage{tipa}
 \usetikzlibrary{decorations.pathreplacing, arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning, intersections}
 
+\allowdisplaybreaks
+
 % shorthand for verbatim
 % this clashes with logicproof, so maybe fix this at some point?
 \catcode`~=\active
@@ -1325,6 +1327,124 @@
                     \item \textbf{discrete}
                         $$p_X(x) = \summation{y}{} p_{X|Y}(x|y) p_Y(y)$$
                     \item \textbf{continuous}
-                        $$f_X(x) = \defint{y = -\infty}{\infty}{f_{X|Y}(x, y)f_Y(y)}{y} \text{ \textbf{and also} } F_X(x) = \defint{y = -\infty}{\infty}{F_{X|Y}(x, y)f_Y(y)}{y}$$
+                        $$f_X(x) = \defint{y = -\infty}{\infty}{f_{X|Y}(x|y)f_Y(y)}{y} \text{ \textbf{and also} } F_X(x) = \defint{y = -\infty}{\infty}{F_{X|Y}(x|y)f_Y(y)}{y}$$
                 \end{itemize}
+        \subsection*{13th February 2020}
+            \subsubsection*{Expectation of a Function of Random Variables}
+                Let $g : \mathbb{R} \times \mathbb{R} \to \mathbb{R}$ be a bivariate function of the random variables $X$ and $Y$.
+                We define the expectations as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{discrete}
+                        $$E_{XY}(g(X, Y)) = \summation{y}{} \summation{x}{} g(x, y)p_{XY}(x, y)$$
+                    \item \textbf{continuous}
+                        $$E_{XY}(g(X, Y)) = \defint{y = -\infty}{y = \infty}{\defint{x = -\infty}{x = \infty}{g(x, y)f_{XY}(x, y)}{x}}{y}$$
+                \end{itemize}
+                From these definitions, we have the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item if $g(X, Y) = g_1(X) + g_2(Y)$; \hfill $E_{XY}(g_1(X) + g_2(Y)) = E_X(g_1(X)) + E_Y(g_2(Y))$
+                    \item if $g(X, Y) = g_1(X)g_2(Y)$ and $X, Y$ independent \hfill $E_{XY}(g_1(X)g_2(Y)) = E_X(g_1(X))E_Y(g_2(Y))$
+                    \item if $g(X, Y) = XY$ and $X, Y$ independent \hfill $E_{XY}(XY) = E_X(X)E_Y(Y)$
+                \end{itemize}
+                The conditional expectation of a random variable $Y$, given that a random variable $X = x$ is;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{discrete}
+                        $$E_{Y|X}(Y|x) = \summation{y}{} yp_{Y|X}(y|x)$$
+                    \item \textbf{continuous}
+                        $$E_{Y|X}(Y|x) = \defint{y = -\infty}{\infty}{yf_{Y|X}(y|x)}{y}$$
+                \end{itemize}
+                In either case, the conditional expectation is a function of $x$, and not of the random variable $Y$.
+                \medskip
+
+                Note that we can also define a random variable as follows;
+                \begin{center}
+                    $Z = E_{Y|X}(Y|X)$ where $Z(s) = E_{Y|X}(Y|X(s))$
+                \end{center}
+                This then gives us;
+                \begin{center}
+                    $E_Y(Y) = E_X(E_{Y|X}(Y|X))$
+                \end{center}
+                I hope the tower rule is not examinable.
+            \subsubsection*{Covariance and Correlation}
+                For a single random variable $X$, we considered the expectation of $g(X) = (X - \mu_X)(X - \mu_X)$ as the variance, and denoted it $\sigma_X^2$.
+                The extension of this, to two variables, is the expectation of $g(X, Y) = (X - \mu_X)(Y - \mu_Y)$, which we denote the \textbf{covariance}, $\sigma_{XY}$.
+                \begin{align*}
+                    \sigma_{XY} & = \text{Cov}(X, Y) \\
+                    & = E_{XY}((X - \mu_X)(Y - \mu_Y)) \\
+                    & = E_{XY}(XY) - \mu_X\mu_Y
+                \end{align*}
+                Note that for \textbf{independent} random variables, $E_{XY}(XY) = E_X(X)E_Y(Y) = \mu_X\mu_Y$, therefore $\sigma_{XY} = 0$.
+                This measures how two random variables change in tandem with one another.
+                \medskip
+
+                This is closely related to the idea of correlation, and therefore the correlation of $X$ and $Y$ can be defined as;
+                $$\rho_{XY} = \text{Cor}(X, Y) = \frac{\sigma_{XY}}{\sigma_X\sigma_Y}$$
+                This is invariant to the scale of the random variables (and therefore lies between -1 and 1).
+                Additionally, if $X$ and $Y$ are independent, then $\sigma_{XY} = \rho_{XY} = 0$ (does not necessarily apply the other way around).
+            \subsubsection*{Example Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item a
+                        Let $X, Y$ be independent exponential random variables with parameters $\lambda, \mu$ respectively.
+                        What is the probability $X < Y$?
+                        \begin{enumerate}[{s}1:]
+                            \itemsep0em
+                            \item direct
+                                \begin{align*}
+                                    P(X < Y) & = \defint{x < y}{}{f_{XY}(x, y)}{x\mathrm{d}y} \\
+                                    & = \defint{y = -\infty}{y = \infty}{\defint{x = -\infty}{x = y}{f_{XY}(x, y)}{x}}{y} \\
+                                    & = \defint{y = -\infty}{y = \infty}{\defint{x = -\infty}{x = y}{f_X(x)f_Y(y)}{x}}{y} & \text{by independence} \\
+                                    & = \defint{y = -\infty}{y = \infty}{f_Y(y) \defint{x = -\infty}{x = y}{f_X(x)}{x}}{y} & f_Y(y) \text{ is constant w.r.t $x$} \\
+                                    & = \defint{y = -\infty}{y = \infty}{F_X(y) f_Y(y)}{y} & \text{by definition of cdf} \\
+                                    & = \defint{0}{\infty}{(1 - e^{-\lambda y}) \mu e^{-\mu y}}{y} \\
+                                    & = \intbracket{0}{\infty}{-e^{-\mu y}} - \intbracket{0}{\infty}{-\frac{\mu}{\mu + \lambda}e^{-(\mu + \lambda)y}} \\
+                                    & = 1 - \frac{\mu}{\mu + \lambda} \\
+                                    & = \frac{\lambda}{\mu + \lambda}
+                                \end{align*}
+                            \item intuition (with partition rule)
+                                \begin{align*}
+                                    P(X < Y) & = \defint{y = -\infty}{y = \infty}{\defint{x = -\infty}{x = y}{f_{XY}(x, y)}{x}}{y} \\
+                                    & = \defint{y = -\infty}{y = \infty}{\defint{x = -\infty}{x = y}{f_{X|Y}(x|y) f_Y(y)}{x}}{y} \\
+                                    & = \defint{y = -\infty}{y = \infty}{F_{X|Y}(y|y) f_Y(y)}{y} & \text{intuition here} \\
+                                    & = \defint{y = -\infty}{y = \infty}{F_X(y) f_Y(y)}{y} & \text{by independence} \\
+                                    & = \cdots
+                                \end{align*}
+                        \end{enumerate}
+                    \item
+                        Suppose that the lifetime, $X$, and brightness, $Y$, of a light bulb are modelled as continuous random variables.
+                        Let their joint probability distribution function be given by;
+                        \begin{center}
+                            $f(x, y) = \lambda_1\lambda_2e^{-\lambda_1 x - \lambda_2 y}$ for $x, y > 0$
+                        \end{center}
+                        Are lifetime and brightness independent?
+                        \begin{align*}
+                            f_X(x) & = \defint{-\infty}{\infty}{f(x, y)}{y} \\
+                            & = \defint{-\infty}{\infty}{\lambda_1\lambda_2e^{-\lambda_1 x - \lambda_2 y}}{y} \\
+                            & = \defint{-\infty}{\infty}{\lambda_1 e^{-\lambda_1 x} \lambda_2 e^{-\lambda_2 y}}{y} \\
+                            & = \lambda_1 e^{-\lambda_1 x} \defint{-\infty}{\infty}{\lambda_2 e^{-\lambda_2 y}}{y} \\
+                            & = \lambda_1 e^{-\lambda_1 x} & \text{note it is a pdf, hence integrates to 1} \\
+                            f_Y(y) & = \lambda_2 e^{-\lambda_2 y} & \text{same as above} \\
+                            f_{XY}(x, y) & = f_X(x)f_Y(y)
+                        \end{align*}
+                        Hence $X$ and $Y$ are independent.
+                    \item Suppose continuous random variables $(X, Y) \in \mathbb{R}^2$ have joint probability density function
+                        $$f(x, y) = \begin{cases}
+                            1 & | x | + | y | < \frac{1}{\sqrt{2}} \\
+                            0 & \text{otherwise}
+                        \end{cases}$$
+                        Determine the marginal probability density functions for $X$ and $Y$.
+                        \medskip
+
+                        First determine the range of values for $y$;
+                        $$| x | + | y | < \frac{1}{\sqrt{2}} \Leftrightarrow | y | < \frac{1}{\sqrt{2}} - | x | \Leftrightarrow  -\left(\frac{1}{\sqrt{2}} - | x |\right) < y < \frac{1}{\sqrt{2}} - | x |$$
+                        \begin{align*}
+                            f_X(x) & = \defint{y = -\infty}{y = \infty}{f(x, y)}{y} \\
+                            & = \defint{y = -\left(\frac{1}{\sqrt{2}} - | x |\right)}{y = \frac{1}{\sqrt{2}} - | x |}{1}{y} \\
+                            & = \sqrt{2} - 2| x | \\
+                            f_Y(y) & = \sqrt{2} - 2| y | & \text{same as above}
+                        \end{align*}
+                        Hence $f_X(x)f_Y(y) \neq f_{XY}(x, y)$, therefore $X$ and $Y$ are not independent.
+                \end{enumerate}
  \end{document}

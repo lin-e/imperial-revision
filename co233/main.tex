@@ -17,6 +17,8 @@
 \usepackage{tipa}
 \usetikzlibrary{decorations.pathreplacing, arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning, intersections}
 
+\allowdisplaybreaks
+
 % shorthand for verbatim
 % this clashes with logicproof, so maybe fix this at some point?
 \catcode`~=\active
@@ -673,7 +675,7 @@
                     \lambda_2 & = 5 \\
                     \vec{v_{2, 1}} & = \begin{bmatrix}
                         1 \\ 2 \\ 1
-                    \end{bmatrix} \displaybreak \\
+                    \end{bmatrix} \\
                     \mat{B} & = \begin{bmatrix}
                         0 & -1 & 1 \\
                         1 & 0 & 2 \\
@@ -745,7 +747,7 @@
                     \intertext{this has rank 1, and therefore by rank-nullity theorem (rank + nullity = 3), has 2 linearly independent solutions, therefore $\ell_1 = 2 < 3 = m_1$}
                     \vec{v_1} & = \begin{bmatrix}
                         0 \\ 1 \\ -1
-                    \end{bmatrix} \displaybreak \\
+                    \end{bmatrix} \\
                     \vec{v_2} & = \begin{bmatrix}
                         1 \\ 0 \\ 0
                     \end{bmatrix}
@@ -808,7 +810,7 @@
                     \mat{J_j} \\
                     & \ddots \\
                     & & \mat{J_j}
-                \end{bmatrix} & \text{all $\mat{J_j}$ can be of different sizes, $\mat{B_j} \in \mathbb{R}^{m_j \times m_j}$} \displaybreak \\
+                \end{bmatrix} & \text{all $\mat{J_j}$ can be of different sizes, $\mat{B_j} \in \mathbb{R}^{m_j \times m_j}$} \\
                 \mat{J_i} & = \begin{bmatrix}
                     \lambda_i & 1 \\
                     & \lambda_i & \ddots \\
@@ -1289,7 +1291,7 @@
                         0 & 0 \\
                         0 & 0
                     \end{bmatrix} \\
-                    & = [\sqrt{6} \vec{u_1}, \vec{0}] & \Rightarrow \displaybreak \\
+                    & = [\sqrt{6} \vec{u_1}, \vec{0}] & \Rightarrow \\
                     \vec{u_1} & = \frac{1}{\sqrt{6}}\mat{A}\vec{v_1} \\
                     & = \frac{1}{\sqrt{3}} \begin{bmatrix}
                         1 \\ -1 \\ 1
@@ -1348,7 +1350,7 @@
                     \end{bmatrix} \\
                     \vec{u_1} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
                         1 \\ 1
-                    \end{bmatrix} & \text{orthogonal to $\vec{u_2}$} \displaybreak \\
+                    \end{bmatrix} & \text{orthogonal to $\vec{u_2}$} \\
                     \mat{U} & = \frac{1}{\sqrt{2}} \begin{bmatrix}
                         1 & 1 \\
                         1 & -1
@@ -1782,7 +1784,7 @@
                     \vec{z} & = \begin{bmatrix}
                         s_0 \\ s_1
                     \end{bmatrix} \\
-                    \mat{A}\vec{z} & = \vec{b} & \Rightarrow \displaybreak \\
+                    \mat{A}\vec{z} & = \vec{b} & \Rightarrow \\
                     \begin{bmatrix}
                         1 & a_1 \\
                         1 & a_2 \\
@@ -2159,7 +2161,7 @@
                     \mat{A}\delta\vec{x_A} + \delta\mat{A}\vec{x} & = \vec{0} & \Rightarrow \\
                     \mat{A}\delta\vec{x_A} & = -\delta\mat{A}\vec{x} & \text{assuming a solution exists}, \Rightarrow \\
                     \delta\vec{x_A} & = -\mat{A}^{-1}\delta\mat{A}\vec{x} & \text{by consistency, norm is positive}, \Rightarrow \\
-                    \Vert \delta\vec{x_A} \Vert & \leq \Vert \mat{A}^{-1} \Vert \Vert \delta\mat{A} \Vert \Vert \vec{x} \Vert & \Rightarrow \displaybreak \\
+                    \Vert \delta\vec{x_A} \Vert & \leq \Vert \mat{A}^{-1} \Vert \Vert \delta\mat{A} \Vert \Vert \vec{x} \Vert & \Rightarrow \\
                     \frac{\Vert \delta\vec{x_A} \Vert}{\Vert \vec{x} \Vert} & \leq \Vert \mat{A}^{-1} \Vert \Vert \delta\mat{A} \Vert & \text{we want relative change}, \Rightarrow \\
                     \frac{\Vert \delta\vec{x_A} \Vert}{\Vert \vec{x} \Vert} & \leq \Vert \mat{A}^{-1} \Vert \Vert \mat{A} \Vert \frac{\Vert \delta\mat{A} \Vert}{\Vert \mat{A} \Vert}
                 \end{align*}
