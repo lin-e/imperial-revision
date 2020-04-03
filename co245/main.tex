@@ -669,4 +669,171 @@
                             \gamma_1 & = \frac{1 - 2p}{\sqrt{np(1 - p)}}
                         \end{align*}
                 \end{itemize}
+        \subsection*{30th January 2020}
+            \subsubsection*{Derivation of Binomial PMF with PGF}
+                \begin{align*}
+                    G_\text{bern}(z) & = (1 - p) + pz \\
+                    G_\text{bin}(z) & = (G_\text{bern}(z))^n & \text{sum of independent, identically distributed RVs} \\
+                    & = ((1 - p) + pz)^n \\
+                    \text{coeff. of } z^x & = \binom{n}{x} p^x(1 - p)^{n - x} & 0 \leq x \leq n
+                \end{align*}
+            \subsubsection*{Distributions (Continued)}
+                Continuing from the last lecture;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{geometric} \hfill $X \sim \text{Geometric}(p)$
+                        \medskip
+
+                        Consider a potentially infinite sequence of independent Bernoulli($p$) random variables $X_1, X_2, \dots$
+                        We can define a quantity $X$ as the index of the first Bernoulli trial to result in a 1.
+                        \begin{center}
+                            $X = \min \{ i \bnfsep X_i = 1 \}$
+                        \end{center}
+                        Therefore $X$ is a random variable, with values $X \in \mathbb{Z}^+ = \{ 1, 2, \dots \}$.
+                        The probability mass function can be deduced intuitively; for the $x^\text{th}$ trial to be the first resulting in a 1, we must've had $x - 1$ trials resulting in a 0, and the last one resulting in a 1, therefore, for $x \in \mathbb{Z}^+$;
+                        \begin{center}
+                            $p(x) = p(1 - p)^{x - 1}$
+                        \end{center}
+                        The mean, variance, and skewness are;
+                        \begin{align*}
+                            \mu & = \frac{1}{p} \\
+                            \sigma^2 & = \frac{1 - p}{p^2} \\
+                            \gamma_1 & = \frac{2 - p}{\sqrt{1 - p}} & \text{note it is always positive}
+                        \end{align*}
+                    \item \textbf{poisson} \hfill (rate parameter $\lambda$) $X \sim \text{Poi}(\lambda)$
+                        \medskip
+
+                        The previous three distributions were concerned with the success or failure of a trial.
+                        Let $X$ be a random variable on $\mathbb{N}$, with the probability mass function;
+                        $$p(x) = \frac{e^{-\lambda}\lambda^x}{x!}$$
+                        To verify this is a valid pmf, we need to check the following;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item positive for all $x$ \hfill yes, all components are positive (assuming $\lambda > 0$)
+                            \item sums to 1 \hfill yes, $\summation{x = 0}{\infty} \frac{\lambda^x}{x!} = e^\lambda$ (Taylor expansion)
+                        \end{itemize}
+                        These random variables are concerned with the number of random events per unit of time or space, when there is a constant underlying "rate" of events occurring across this unit.
+                        Some examples of this are the number of particles emitted by a radioactive substance in a given time, the number of minor car crashes per day, the number of jobs arriving at a server per hour, or the number of potholes in each mile of road.
+                        \medskip
+
+                        Note that it has equal mean and variance (fine as it is dimensionless), and that the skewness is always positive, but decreases as $\lambda$ increases;
+                        \begin{align*}
+                            \mu & = \lambda \\
+                            \sigma^2 & = \lambda \\
+                            \gamma_1 & = \frac{1}{\sqrt{\lambda}}
+                        \end{align*}
+                        The probability generating function can be derived as follows;
+                        \begin{align*}
+                            G_{\text{Poi}(\lambda)}(z) & = \summation{x = 0}{\infty} e^{-\lambda} \frac{\lambda^x}{x!} z^x \\
+                            & = e^{-\lambda} \summation{x = 0}{\infty} \frac{(\lambda z)^x}{x!} \\
+                            & = e^{-\lambda}e^{\lambda z} \\
+                            & = e^{-\lambda(1 - z)}
+                        \end{align*}
+                        An example of fitting the distribution to data goes back to the idea of counting radioactive particles.
+                        For 2608 time intervals, each of length 7.5 seconds, the number of particles emitted was measured as follows (such that there were 57 time intervals with 0 emissions, 203 time intervals with 1 emission, and so on);
+                        \begin{center}
+                            \begin{tabular}{c|ccccccccccc}
+                                $x$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & $\geq 10$ \\
+                                \hline
+                                $O(n_x) = n_x$ & 57 & 203 & 383 & 525 & 532 & 408 & 273 & 139 & 45 & 27 & 16 \\
+                                \violet{$E(n_x)$} & \violet{54.4} & \violet{210.5} & \violet{407.4} & \violet{525.5} & \violet{508.4} & \violet{393.5} & \violet{253.8} & \violet{140.3} & \violet{67.9} & \violet{29.2} & \violet{17.1}
+                            \end{tabular}
+                        \end{center}
+                        Let the average number per interval to be the total number of particles divided by the total number of intervals;
+                        $$\frac{\summation{x}{} xn_x}{\summation{x}{} n_x} = \frac{10094}{2608} \approx 3.87$$
+                        Let us set the mean of the Poisson distribution to the observed (sample) mean, therefore $\lambda = 3.87$.
+                        We can then say our expectation of the number of 0 counts is $n \cdot p(0) \approx 54.4$.
+                        The expected values are added in \violet{violet} in the table.
+                        \medskip
+
+                        As the two sets of numbers are sufficiently close - it suggests the Poisson approximation is good.
+                    \item \textbf{discrete uniform} \hfill $X \sim U(\{ 1, 2, \dots, n \})$
+                        \medskip
+
+                        Let $X$ be a random variable on $\{ 1, 2, \dots, n \}$, with the following probability mass function ($x = 1, 2, \dots, n$);
+                        $$p(x) = \frac{1}{n}$$
+                        We have the following values for the mean and variance (note that the skewness is clearly 0, as intuitively it looks at the tilt of the distribution, which doesn't really apply here);
+                        \begin{align*}
+                            \mu & = \frac{n + 1}{2} \\
+                            \sigma^2 & = \frac{n^2 - 1}{12} \\
+                            \gamma_1 & = 0
+                        \end{align*}
+                \end{itemize}
+            \subsubsection*{Approximation of Binomial Distribution with Poisson Distribution}
+                The Poisson distribution with rate parameter $np$, Poi($np$), can approximate Binomial($n, p$), when $p$ is small ($p < 0.1$), and $n$ is large, which is often the case.
+                This is useful as the generating function for the Poisson distribution is easy to deal with, and tabulating a single Poi($\lambda$) encompasses all the possible corresponding Binomial($n, \frac{\lambda}{n}$).
+                \medskip
+
+                An example of this is as follows - suppose a manufacturer produces chips, with 1\% being defective.
+                Find the probability that in a box of 100 chips, none are defective.
+                This can be a binomial distribution, Binomial($100, 0.01$) - however as $n$ is large, and $p$ is small, we can approximate this distribution with Poi($1$).
+                $$p(0) \approx \frac{e^{-1}\lambda^0}{0!} \approx 0.3679$$
+                Note that the actual value, with the Binomial distribution, $\approx 0.366$.
+                \medskip
+
+                A sketch of this proof is as follows;
+                \begin{align*}
+                    \text{let } p & = \frac{\lambda}{n} & \text{and let } n \to \infty \text{, hence } p \to 0 \\
+                    G(z) & = (1 - p(1 - z))^n & \text{pgf of Binomial random variable} \\
+                    & = \left(1 - \frac{\lambda(1 - z)}{n}\right)^n & \text{substituting our value for } p \\
+                    & \to e^{-\lambda(1 - z)} & \text{as } n \to \infty
+                \end{align*}
+                This proof shows that the pgf of a Binomial random variable approaches that of a Poisson random variable.
+            \subsubsection*{Continuous Random Variables}
+                Recall that a random variable is defined as a mapping $X : S \to \mathbb{R}$, from the sample space $S$ to the real numbers.
+                This induces a probability measure $P_X(B) = P(\{ X^{-1}(B) \})$, where $B \subseteq \mathbb{R}$.
+                Note that the inverse set is the set of all items in the sample space that would result in elements of $B$.
+                We define $X$ to be continuous if there exists a function $f_X : \mathbb{R} \to \mathbb{R}$ (the \textbf{probability density function} of $X$);
+                $$P_X(B) = \defint{x \in B}{}{f_X(x)}{x}$$
+                Note the following consequences;
+                \begin{itemize}
+                    \itemsep0em
+                    \item the probability assigned to a singleton subset $B = \{ x \}$, where $x \in \mathbb{R}$ is zero for a continuous random variable;
+                        \begin{center}
+                            $P_X(X = x) = P_X(\{ x \}) = 0$
+                        \end{center}
+                    \item the probability of a countable set $B = \{ x_1, x_2, \dots \} \subseteq \mathbb{R}$ will also have zero probability measure;
+                        \begin{center}
+                            $P_X(X \in B) = P_X(X = x_1) + P_X(X = x_2) + \dots = 0 + 0 + \dots = 0$
+                        \end{center}
+                    \item the range of a continuous random variable must therefore be uncountable (otherwise would not sum to 1)
+                \end{itemize}
+            \subsubsection*{Example Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item
+                        Suppose that 10 users are authorised to use a particular computer system, but that the system crashes if 7 or more users attempt to be logged on simultaneously.
+                        Suppose that each user has the same probability $p = 0.2$ of wishing to log in during the each hour.
+                        What's the probability that the system will crash in a given hour?
+                        \medskip
+
+                        The probability of exactly $x$ users wanting to log in can be represented as a binomial distribution $X \sim \text{Binomial}(10, 0.2)$ (assuming independence).
+                        Therefore we want to find $P(7 \leq X \leq 10)$;
+                        $$p(7) + p(8) + p(9) + p(10) = \binom{10}{7} 0.2^7 0.8^3 + \dots + \binom{10}{10} 0.2^10 0.8^0 \approx 0.00086$$
+                        \medskip
+
+                        Using this, we can calculate the mean time to a crash as approximately 1163 hours, with a geometric distribution.
+                    \item Suppose people have problems logging on to a particular website once every 5 attempts, on average.
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item Assuming that the attempts are independent, what is the probability that an individual will not succeed until the $4^\text{th}$?
+                                \medskip
+
+                                Let $p = \frac{4}{5} = 0.8$.
+                                This is a geometric distribution, hence;
+                                \begin{center}
+                                    $p(4) = (1 - p)^3p = 0.2^30.8 = 0.0064$
+                                \end{center}
+                            \item On average, how many trials must one make until succeeding?
+                                \medskip
+
+                                The mean is $\mu = \frac{1}{p} = 1.25$.
+                            \item What's the probability the first successful attempt is the $7^\text{th}$ or later?
+                                \medskip
+
+                                Due to the nature of a geometric series, it will eventually have a success.
+                                For it to be on attempt 7, or later, there must have already been 6 failures.
+                                Therefore $P(X \geq 7) = (1 - p)^6 = 0.2^6 = 0.000064$.
+                        \end{enumerate}
+                \end{enumerate}
 \end{document}
