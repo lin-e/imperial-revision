@@ -995,4 +995,195 @@
                                 \end{align*}
                         \end{enumerate}
                 \end{enumerate}
+        \subsection*{6th February 2020}
+            \subsubsection*{Continuous Distributions}
+                Some encountered distributions are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{uniform} \hfill $X \sim \text{U}(a, b)$
+                        \medskip
+
+                        A continuous random variable $X$ with a range $(a, b)$ has a uniform distribution if its probability density function (or cumulative distribution function) is;
+                        \begin{align*}
+                            f(x) & = \begin{cases}
+                                \frac{1}{b - a} & a < x < b \\
+                                0 & \text{otherwise}
+                            \end{cases} \\
+                            F(x) & = \begin{cases}
+                                0 & x \leq a \\
+                                \frac{x - a}{b - a} & a < x < b \\
+                                1 & x \geq b
+                            \end{cases}
+                        \end{align*}
+                        Note that $\text{U}(0, 1)$ is considered to be the "standard" uniform distribution.
+                        Let $X \sim \text{U}(0, 1)$, therefore $F_X(x) = x$, for $0 \leq x \leq 1$.
+                        To map this to a general interval $(a, b)$, where $a < b \in \mathbb{R}$, we define a new random variable $Y = a + (b - a)X$, and observe the following;
+                        $$Y \leq y \Leftrightarrow a + (b - a)X \leq y \Leftrightarrow X \leq \frac{y - a}{b - a}$$
+                        Therefore $Y \sim \text{U}(a, b)$;
+                        $$F_Y(y) = P(Y \leq y) = P\left(X \leq \frac{y - a}{b - a}\right) = F_X\left(\frac{y - a}{b - a}\right) = \frac{y - a}{b - a}$$
+                        With the standard methods, we can compute the mean and variance to be the following;
+                        \begin{align*}
+                            \mu & = \frac{a + b}{2} \\
+                            \sigma^2 & = \frac{(a + b)^2}{12}
+                        \end{align*}
+                    \item \textbf{(negative) exponential} \hfill $X \sim \text{Exp}(\lambda)$
+                        \medskip
+
+                        Suppose $X$ is a random variable with range $\mathbb{R}^+ = [0, \infty)$, and a probability density function (or cumulative distribution function) of;
+                        \begin{align*}
+                            f(x) & = \begin{cases}
+                                \lambda e^{-\lambda x} & x \geq 0 \\
+                                0 & \text{otherwise}
+                            \end{cases} \\
+                            F(x) & = \begin{cases}
+                                1 - e^{-\lambda x} & x \geq 0 \\
+                                0 & \text{otherwise}
+                            \end{cases}
+                        \end{align*}
+                        Then $X$ is a (negative) exponential random variable with rate parameter $\lambda$.
+                        Note that this is a \textbf{memoryless property} (see below).
+                        \medskip
+
+                        These are used to model time until occurrence of a random event when there is an assumed constant risk, or rate, of the event happening over time.
+                        Hence it is frequently used as a simplest model.
+                        Some examples of this include the time to failure of a component in a system, the time until the next request arrives at a webserver, or the distance along a road between potholes.
+                        \medskip
+
+                        Note these examples have a duality with the ones we saw for a Poisson distribution.
+                        However, instead of the number of events, we are now considering the time between events.
+                        Thus we claim if events in a random process occur according to a Poisson distribution with rate $\lambda$, then the time between consecutive events has an exponential distribution with parameter $\lambda$.
+                        The proof of this as follows;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item suppose the number of events occurring in the "time" interval $[0, x]$ ($\forall x > 0$), denoted as $N_x$, follows a Poisson distribution with rate parameter $\lambda$, such that $N_x \sim \text{Poi}(\lambda x)$ - this process is known as a \textbf{(homogeneous) Poisson process} (homogeneous because the rate stays the same)
+                                \subitem note that we multiply by $x$ as there would be more events, intuitively, for a longer period
+                            \item let $X$ be the time until the first event of this process occurs - therefore if $X > x$ means that no event has occurred in the time interval
+                                \begin{align*}
+                                    P(X > x) & \equiv P(N_x = 0) \\
+                                    & = \frac{(\lambda x)^0 e^{-\lambda x}}{0!} \\
+                                    & = e^{-\lambda x} & \Rightarrow \\
+                                    P(X \leq x) & = 1 - e^{-\lambda x}
+                                \end{align*}
+                            \item therefore $X \sim \text{Exp}(\lambda)$
+                        \end{itemize}
+                    \item \textbf{normal (Gaussian)} \hfill $X \sim \text{N}(\mu, \sigma^2)$
+                        \medskip
+
+                        A normal (or Gaussian) random variable with a range across all real numbers has the following probability density function (and corresponding cumulative distribution function);
+                        \begin{align*}
+                            f(x) & = \frac{1}{\sigma \sqrt{2 \pi}}e^{-\frac{(x - \mu)^2}{2 \sigma^2}} \\
+                            F(x) & = \frac{1}{\sigma \sqrt{2 \pi}} \defint{-\infty}{x}{e^{-\frac{(t - \mu)^2}{2 \sigma^2}}}{t}
+                        \end{align*}
+                        It can be shown that $X$ has mean $\mu$ and variance $\sigma^2$.
+                        Note that when $\mu = 0$, and $\sigma = 1$, we have the standard normal distribution, $Z \sim \text{N}(0, 1)$, which has the following simplified probability density function, and cumulative distribution function;
+                        \begin{align*}
+                            f(z) & \equiv \phi(z) \\
+                            & = \frac{1}{\sqrt{2 \pi}} e^{-\frac{z^2}{2}} \\
+                            F(z) & \equiv \Phi(z) \\
+                            & = \frac{1}{\sqrt{2 \pi}} \defint{-\infty}{z}{e^{-\frac{t^2}{2}}}{t}
+                        \end{align*}
+                        As the cdf is not analytically available, numerical integration procedures are used to approximate probabilities to an arbitrary degree of accuracy.
+                        Statistical tables contain values of the standard normal cdf $\Phi(z)$, for a range of $z$ values, and the quantiles $\Phi^{-1}(\alpha)$, for a range of values $\alpha \in (0, 1)$.
+                        Since it is only tabulated for $z \geq 0$ (due to the symmetry), we can do the following;
+                        \begin{align*}
+                            \Phi(z) & = 1 - \Phi(-z) \\
+                            P(Z > z) & = 1 - \Phi(z)
+                        \end{align*}
+                        Suppose $X \sim \text{N}(\mu, \sigma^2)$, then applying a linear transformation with constants $a, b \in \mathbb{R}$, $aX + b$ also has a normal distribution (follows from the general results for expectation and variance);
+                        \begin{center}
+                            $X \sim \text{N}(\mu, \sigma^2) \Rightarrow aX + b \sim \text{N}(a\mu + b, a^2\sigma^2)$
+                        \end{center}
+                        This allows us to standardise any normal random variable;
+                        $$X \sim \text{N}(\mu, \sigma^2) \Rightarrow \frac{X - \mu}{\sigma} \sim \text{N}(0, 1)$$
+                        This allows us to write the cdf of $X$ in terms of $\Phi$;
+                        $$\text{let } Z = \frac{X - \mu}{\sigma} \text{ then } X \leq x \Leftrightarrow \frac{X - \mu}{\sigma} \leq \frac{x - \mu}{\sigma} \Leftrightarrow Z \leq \frac{x - \mu}{\sigma}$$
+                        Therefore
+                        $$F_X(x) = P(X \leq x) = P\left(Z \leq \frac{x - \mu}{\sigma}\right) = \Phi\left(\frac{x - \mu}{\sigma}\right)$$
+                        See \textbf{central limit theorem} below, for more applications.
+                \end{itemize}
+            \subsubsection*{Memoryless Property}
+                Note that the complementary cumulative distribution function (shortened to ccdf) is $P(X > x)$, for a random variable $X$.
+                \medskip
+
+                Note that for an exponential distribution $X \sim \text{Exp}(\lambda)$, the cdf is $1 - e^{-\lambda x}$, and therefore the ccdf is $e^{-\lambda x}$.
+                \medskip
+
+                Consider the probability that $X$ is greater than $x + s$, given that we know it is already greater than $s$;
+                $$P(X > x + s | X > s)  = \frac{P((X > x + s) \cap (X > s))}{P(X > s)} = \frac{P(X > x + s)}{P(X > s)}$$
+                The third equality can be established, since it is obvious that if it is greater than $x + s$, it must already be greater than $s$.
+                Taking $X$ as an exponential distribution, with parameters $\lambda$;
+                $$P(X > x + s | X > s) = \frac{e^{-\lambda x + s}}{e^{-\lambda s}} = e^{-\lambda x}$$
+                This is an exponential ccdf with parameter $\lambda$.
+                If we think of this (exponential) random variable as the time to an event, the knowledge that we have already waited $s$ for the event doesn't give us any information about how much longer we will have to wait - hence it has \textbf{no memory}.
+            \subsubsection*{Central Limit Theorem}
+                Let $X_1, X_2, \dots, X_n$ be $n$ independent and identically distributed (iid) random variables from any probability distribution, with mean $\mu$ and variance $\sigma^2$.
+                We know the following;
+                \begin{align*}
+                    E\left(\summation{i = 1}{n} X_i\right) & = n\mu \\
+                    \text{Var}\left(\summation{i = 1}{n} X_i\right) & = n\sigma^2
+                    \intertext{subtracting $n\mu$}
+                    E\left(\summation{i = 1}{n} X_i - n\mu\right) & = 0 \\
+                    \text{Var}\left(\summation{i = 1}{n} X_i - n\mu\right) & = n\sigma^2
+                    \intertext{dividing by $\sqrt{n}\sigma$}
+                    E\left(\frac{\summation{i = 1}{n} X_i - n\mu}{\sqrt{n}\sigma}\right) & = 0 \\
+                    \text{Var}\left(\frac{\summation{i = 1}{n} X_i - n\mu}{\sqrt{n}\sigma}\right) & = 1
+                \end{align*}
+                This gives the result
+                $$\limit{n}{\infty} \frac{\summation{i = 1}{n} X_i - n\mu}{\sqrt{n}\sigma} \sim \text{N}(0, 1)$$
+                Which can also be written as
+                $$\limit{n}{\infty} \frac{\bar{X} - \mu}{\frac{\sigma}{\sqrt{n}}} \sim \Phi \text{ where } \bar{X} = \frac{\summation{i = 1}{n} X_i}{n}$$
+                The CLT implies for large $n$;
+                $$\bar{X} \sim \text{N}\left(\mu, \frac{\sigma^2}{n}\right) \text{ or } \summation{i = 1}{n}X_i \sim \text{N}(n\mu, n\sigma^2)$$
+                The results are exact when $X_i \sim \text{N}(\mu, \sigma^2)$, the results are exact, as the sum of independent normally distributed random variables is also randomly distributed.
+                A sketch proof of this is as follows - given $n$ iid random variables $X_1, X_2, \dots, X_n$ let;
+                $$Z_n = \frac{\summation{i = 1}{n} X_i - n\mu}{\sqrt{n\sigma^2}} = \summation{i = 1}{n} \frac{Y_i}{\sqrt{n}} \text{ where } Y_i = \frac{X_i - \mu}{\sigma}$$
+                Note that we've normalised the random variable $X_i$, but we could've taken $X_i$ with mean 0 and variance 1 without loss of generality.
+                The characteristic function of $Z_n$ is therefore (using a property of a probability generating function of a sum of iid random variables);
+                $$\phi_{Z_n}(t) = \phi_Y\left(\frac{t}{\sqrt{n}}\right)^n$$
+                As a side note, we can apply Taylor's theorem to the characteristic function as follows;
+                \begin{align*}
+                    \phi_X(t) & = \phi_X(0) + \phi_X^\prime(0)t + \frac{\phi_X^{\prime\prime}(0)t^2}{2!} + \cdots \\
+                    \phi_X^{(n)}(0) & = i^n M_n & \text{using the definition for the $n^\text{th}$ moment of $X$}
+                \end{align*}
+                Note that because we've normalised $Y$, the first moment is 0, and the second moment is 1.
+                As such, we can write the characteristic function of $Y$ as follows;
+                \begin{align*}
+                    \phi_Y\left(\frac{t}{\sqrt{n}}\right) & = 1 + \frac{i^2t^2}{2n} + M_3\frac{i^3t^3}{6n^\frac{3}{2}} + \cdots
+                \end{align*}
+                Hence as $n \to \infty$;
+                $$\Phi_{Z_n}(t) = \left(1 + \frac{i^2t^2}{2n} + M_3\frac{i^3t^3}{6n^\frac{3}{2}} + \cdots\right)^n \to e^{-\frac{t^2}{2}} \text{ (characteristic function of N($0, 1$))}$$
+                Note that as $n$ goes to infinity, the any term after $t^2$ go towards zero, much faster than the $t^2$ term.
+                Therefore, by Levy's continuity theorem; $Z_n \sim \text{N}(0, 1)$ as $n \to \infty$.
+                \medskip
+
+                The simplest application of this would be a set of iid Bernoulli($p$) random variables $X_1, X_2, \dots$. with $\mu = p$ and $\sigma^2 = p(1 - p)$.
+                Then for any $n$ (has $\mu = np$ and $\sigma^2 = np(1 - p)$);
+                $$\summation{i = 1}{n} X_i \sim \text{Binomial}(n, p)$$
+                By CLT, for large $n$;
+                $$\summation{i = 1}{n} X_i \sim \text{N}(np, np(1 - p))$$
+                This then shows that, for a large $n$, $\text{Binomial}(n, p) \approx \text{N}(np, np(1 - p))$.
+                However, the LHS is a discrete distribution, whereas the RHS is a continuous distribution.
+            \subsubsection*{Example Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item An analogue signal received at a detector (measured in microvolts) may be modelled as a Gaussian random variable $X \sim \text{N}(200, 256)$.
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item What is the probability that the signal will exceed 240$\mu$V?
+                                \begin{align*}
+                                    P(X > 240) & = 1 - P(X \leq 240) \\
+                                    & = 1 - \Phi\left(\frac{240 - 200}{16}\right) \\
+                                    & \approx 1 - 0.994 \\
+                                    & = 0.006
+                                \end{align*}
+                            \item What is the probability that the signal is larger than 240$\mu$V, given that it is greater than 210$\mu$V?
+                            \begin{align*}
+                                P(X > 240|X > 210) & = \frac{P(X > 240)}{P(X > 210)} \\
+                                & = \frac{1 - P(X \leq 240)}{1 - P(X \leq 210)} \\
+                                & = \frac{1 - \Phi\left(\frac{240 - 200}{16}\right)}{1 - \Phi\left(\frac{210 - 200}{16}\right)} \\
+                                & \approx \frac{1 - 0.994}{1 - 0.734} \\
+                                & = 0.023
+                            \end{align*}
+                        \end{enumerate}
+                \end{enumerate}
 \end{document}
