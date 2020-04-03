@@ -836,4 +836,163 @@
                                 Therefore $P(X \geq 7) = (1 - p)^6 = 0.2^6 = 0.000064$.
                         \end{enumerate}
                 \end{enumerate}
+        \subsection*{5th February 2020}
+            \subsubsection*{Continuous Cumulative Distribution Function}
+                The \textbf{cumulative distribution function}, $F_X(x)$, where the continuous random variable takes a value less than or equal to $x$ is as follows (for all real $x$);
+                $$F_X(x) = \defint{-\infty}{x}{f_X(t)}{t}$$
+                Therefore, if we are given the cumulative distribution function of a random variable $X$, we can define the probability density function as;
+                $$f_X(x) = \dif{}{x}F_X(x) = F_X^\prime(x)$$
+                The pdf cannot be negative, as it is the derivative of the cdf (which is always non-decreasing); therefore we have the following properties for a pdf $f_X(x)$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f_X(x) \geq 0$, $\forall x \in \mathbb{R}$
+                    \item $\defint{-\infty}{\infty}{f_X(x)}{x} = 1$ \hfill $= F_X(\infty)$
+                \end{itemize}
+                The probability that a continuous random variable $X$ lies in an interval $(a, b]$ is as follows (note that the inclusive / exclusive bounds don't really matter, as the probability of it being exactly $a$ or $b$ is zero);
+                \begin{align*}
+                    P_X(a < X \leq b) & = P_X(X \leq b) - P_X(X \leq a) \\
+                    & = F_X(b) - F_X(a) \\
+                    & = \defint{a}{b}{f_X(x)}{x} & \text{the area under the pdf curve between $a$ and $b$}
+                \end{align*}
+                The following observations can also be made;
+                \begin{itemize}
+                    \itemsep0em
+                    \item the cumulative distribution function $F_X$ of a continuous random variable $X$ is a non-decreasing function, and is also absolutely continuous
+                    \item since $P(X = x) = 0$, $F_X(x) = P(X \leq x) \equiv P(X < x)$
+                    \item small $h$, $f_X(x)h$ is approximately the probability that $X$ takes a value in $[x, x + h)$
+                    \item we don't require $f_X(x) \leq 1$, since the probability distribution function $f_X(x)$ is not itself a probability, unlike the probability mass function of a discrete random variable
+                    \item the probability density function $f_X$, when it exists, completely characterises its distribution, so we often just specify $f_X$
+                \end{itemize}
+            \subsubsection*{Transformation of Random Variables}
+                Given a continuous random variable $X$, let $Y$ be the \textbf{transformed} random variable $Y = g(X)$, where $g : \mathbb{R} \to \mathbb{R}$ is continuous and strictly monotonic (such that $g^{-1}$ exists).
+                Consider the two cases for $g$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item Suppose $g$ is monotonic \textbf{increasing}, then we have, for $y \in \mathbb{R}$;
+                        \begin{center}
+                            $Y \leq y \Leftrightarrow X \leq g^{-1}(y)$
+                        \end{center}
+                        Then we have the following result, for the cumulative distribution function of $Y$;
+                        \begin{center}
+                            $F_Y(y) = P_Y(Y \leq y) = P_X(X \leq g^{-1}(y)) = F_X(g^{-1}(y))$
+                        \end{center}
+                        Via differentiation (with the chain rule), we have the following result for the probability density function $f_Y$;
+                        $$f_Y(y) = F_Y^\prime(y) = \dif{}{y}F_X(g^{-1}(y)) = f_X(g^{-1}(y))g^{-1^\prime}(y)$$
+                        We can also be sure that the derivative of $g^{-1}(y)$, with respect to $y$, is positive as we assumed it was increasing.
+                    \item Suppose $g$ is monotonic \textbf{decreasing}, then we have, for $y \in \mathbb{R}$;
+                        \begin{center}
+                            $Y \leq y \Leftrightarrow X \geq g^{-1}(y)$
+                        \end{center}
+                        Then we have the following result, for the cumulative distribution function of $Y$;
+                        \begin{center}
+                            $F_Y(y) = P_Y(Y \leq y) = P_X(X \geq g^{-1}(y)) = 1 - P_X(X \leq g^{-1}(y)) = 1 - F_X(g^{-1}(y))$
+                        \end{center}
+                        Via differentiation (with the chain rule), we have the following result for the probability density function $f_Y$;
+                        $$f_Y(y) = F_Y^\prime(y) = \dif{}{y}(1 - F_X(g^{-1}(y))) = -f_X(g^{-1}(y))g^{-1^\prime}(y)$$
+                        We can also be sure that the derivative of $g^{-1}(y)$, with respect to $y$, is negative as we assumed it was decreasing.
+                \end{itemize}
+                In either case, when $Y = g(X)$, we have;
+                \begin{center}
+                    $f_Y(y) = f_X(g^{-1}(y))| g^{-1^\prime}(y) |$
+                \end{center}
+            \subsubsection*{Expectation and Variance of a Continuous Random Variable}
+                Similar to before, we can define the mean, or expectation, as follows;
+                $$\mu_X = E_X(X) = \defint{-\infty}{\infty}{xf_X(x)}{x}$$
+                And generally, for a function of interest $g : \mathbb{R} \to \mathbb{R}$;
+                $$E_X(g(X)) = \defint{-\infty}{\infty}{g(x)f_X(x)}{x}$$
+                Similarly, we can define the variance as follows;
+                $$\sigma_X^2 = \text{Var}_X(X) = E((X - \mu_X)^2) = \defint{-\infty}{\infty}{(x - \mu_X)^2f_X(x)}{x}$$
+                It's also possible to use the following form (which can be derived similar to the discrete case, but with linearity of integration);
+                $$\text{Var}_X(X) = \defint{-\infty}{\infty}{x^2f_X(x)}{x} - \mu_X^2 = E(X^2) - E(X)^2$$
+                Again, for a linear transformation, $\text{Var}(aX + b) = a^2\text{Var}(X)$
+            \subsubsection*{Moment Generating Function and Characteristic Function}
+                The moment generating function $M_X(t)$ for a continuous random variable $X$ is;
+                $$M_X(t) = E(e^{tX}) = \defint{-\infty}{\infty}{e^{tx}f_X(x)}{x}$$
+                As such, the $n^\text{th}$ moment is;
+                $$M_n  = \left.\dif{^n}{t^n}M_X(t)\right|_{t = 0}$$
+                However, this integral may not exist, such as for $f_X(x) > e^{-tX}$ and $t > 0$.
+                \medskip
+
+                We also define the \textbf{characteristic function} as the Fourier transform of the probability density function (which always exists);
+                $$\phi_X(t) = E(e^{itX}) = \defint{-\infty}{\infty}{e^{itx}f_X(x)}{x}$$
+                The $n^\text{th}$ moment is then;
+                $$M_n  = \left.(-i)^n\dif{^n}{t^n}\phi_X(t)\right|_{t = 0}$$
+                \medskip
+
+                Note that these are both instances of a probability generating function, where $M(t) = G(e^t)$ and $\phi(t) = G(e^{it})$.
+            \subsubsection*{Sums of Independent Random Variables}
+                As the moment generating function and characteristic functions are both instances of a probability generating function, the same properties hold with respect to the sums of independent random variables;
+                $$S_n = \summation{j = 1}{n} X_j$$
+                Therefore, if $X_1, X_2, \dots, X_n$ are independent, then;
+                $$\phi_{S_n}(t) = \product{j = 1}{n} \phi_{X_j}(t) \text{ and } M_{S_n}(t) = \product{j = 1}{n} M_{X_j}(t)$$
+                This can be proven as follows, for the characteristic function;
+                \begin{align*}
+                    \phi_{S_n}(t) & = E(e^{it\summation{j = 1}{n} X_j}) \\
+                    & = E\left(\product{j = 1}{n} e^{itX_j} \right) \\
+                    & = \product{j = 1}{n} E\left(e^{itX_j} \right) & \text{by independence} \\
+                    & = \product{j = 1}{n} \phi_{X_j}(t)
+                \end{align*}
+            \subsubsection*{Quantiles}
+                We define the lower quartile as a point $\frac{1}{4}$ of the way through the ordered sample, and similarly $\frac{1}{2}$ for the median, $\frac{3}{4}$ for the upper quartile.
+                Generally, for a random variable $X$, we define the $\alpha$-quantile $Q_X(\alpha)$, for $0 \leq \alpha \leq 1$, as the least number satisfying;
+                $$P(X \leq Q_X(\alpha)) = \alpha = F_X(Q_X(\alpha)) \Rightarrow Q_X(\alpha) = F_X^{-1}(\alpha)$$
+                For example, the median of a random variable $X$ is;
+                $$F_X^{-1}\left(\frac{1}{2}\right)$$
+            \subsubsection*{Example Questions}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item Suppose we have a continuous random variable $X$ with probability density function (with some unknown constant $c$), given by;
+                        $$f(x) = \begin{cases}
+                            cx^2 & 0 < x < 3 \\
+                            0 & \text{otherwise}
+                        \end{cases}$$
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item determine $c$
+                                \begin{align*}
+                                    \defint{-\infty}{\infty}{f(x)}{x} & = \defint{-\infty}{0}{f(x)}{x} + \defint{0}{3}{f(x)}{x} + \defint{3}{\infty}{f(x)}{x} \\
+                                    & = \intbracket{0}{3}{\frac{1}{3}cx^3} \\
+                                    & = 9c \\
+                                    & = 1 & \text{property of pdf}, \Rightarrow \\
+                                    c & = \frac{1}{9}
+                                \end{align*}
+                            \item find the cumulative distribution function of $X$
+                                $$F(x) = \begin{cases}
+                                    0 & x < 0 \\
+                                    \frac{1}{27}x^3 & 0 \leq x \leq 3 \\
+                                    1 & x > 3
+                                \end{cases}$$
+                            \item calculate $P(1 < X < 2)$
+                                \begin{align*}
+                                    P(1 < X < 2) & = F(2) - F(1) \\
+                                    & = \frac{8}{27} - \frac{1}{27} \\
+                                    & = \frac{7}{27} \\
+                                    & \approx 0.2593
+                                \end{align*}
+                            \item calculate $E(X)$
+                                \begin{align*}
+                                    E(X) & = \defint{-\infty}{\infty}{xf(x)}{x} \\
+                                    & = \defint{0}{3}{\frac{1}{9}x^3}{x} & \text{bounds changed} \\
+                                    & = \intbracket{0}{3}{\frac{1}{36}x^4} \\
+                                    & = 2.25
+                                \end{align*}
+                            \item calculate $\text{Var}(X)$
+                                \begin{align*}
+                                    \text{Var}(X) & = E(X^2) - E(X)^2 \\
+                                    & = \defint{-\infty}{\infty}{x^2f(x)}{x} - 9 \\
+                                    & = \defint{0}{3}{\frac{1}{9}x^4}{x} - 9 \\
+                                    & = \intbracket{0}{3}{\frac{1}{45}x^5} - 9 \\
+                                    & = \frac{3^5}{45} - 2.25 \\
+                                    & = 0.3375
+                                \end{align*}
+                            \item calculate the median of $X$
+                                \begin{align*}
+                                    F(x) & = \frac{1}{2} & \Rightarrow \\
+                                    \frac{1}{27}x^3 & = \frac{1}{2} & \Rightarrow \\
+                                    x^3 & = \frac{27}{2} & \Rightarrow \\
+                                    x & = \frac{3}{2^{\frac{1}{3}}} \\
+                                    & \approx 2.3811
+                                \end{align*}
+                        \end{enumerate}
+                \end{enumerate}
 \end{document}
