@@ -1186,4 +1186,145 @@
                             \end{align*}
                         \end{enumerate}
                 \end{enumerate}
-\end{document}
+        \subsection*{12th February 2020}
+            \subsubsection*{Joint Random Variables}
+                Suppose we have two random variables $X, Y$, which are mappings from the sample space to the real numbers.
+                The sample space has a probability measure $P(E)$, where $E \subseteq S$.
+                $S$ could be the set of outcomes from two experiments, with $X$ relating to the first experiment, and $Y$ to the second.
+                We can then define marginal probability distributions $P_X$ and $P_Y$ for $B \subseteq \mathbb{R}$;
+                \begin{center}
+                    $P_X(B) = P(X^{-1}(B))$ and $P_Y(B) = P(Y^{-1}(B))$
+                \end{center}
+                The \textbf{joint probability distribution} $P_{XY}$ is defined (for $B_X, B_Y \subseteq \mathbb{R}$) as;
+                \begin{center}
+                    $P_{XY}(P_X, B_Y) = P(\{ X^{-1}(B_X) \cap Y^{-1}(B_Y) \})$
+                \end{center}
+                Therefore, it is the probability measure of the set of all points in the sample space that get mapped into $B_X$ by $X$, and also into $B_Y$ by $Y$.
+                In practice, it is the probability that $X \in B_X$ and $Y \in B_Y$.
+                \medskip
+
+                We can specifically define a region $B_{XY} \subseteq \mathbb{R}^2$, and therefore the corresponding sample space points;
+                \begin{center}
+                    $S_{XY} = \{ s \in S \bnfsep (X(s), Y(s)) \in B_{XY} \}$ and define $P_{XY}(B_{XY}) = P(S_{XY})$
+                \end{center}
+                We can then define the \textbf{joint cumulative distribution function} for $x, y \in \mathbb{R}$ as;
+                \begin{center}
+                    $F_{XY}(x, y) = P_{XY}((-\infty, x], (-\infty, y])$
+                \end{center}
+                We can also recover the marginal cumulative distribution functions for $X$ and $Y$ as;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $F_X(x) = F_{XY}(x, \infty)$ \hfill $x \in \mathbb{R}$
+                    \item $F_Y(y) = F_{XY}(\infty, y)$ \hfill $y \in \mathbb{R}$
+                \end{itemize}
+                To verify that $F_{XY}$ is a valid joint cumulative distribution function, the following conditions must hold;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $0 \leq F_{XY}(x, y) \leq 1$, $\forall x, y \in \mathbb{R}$
+                    \item $\forall x_1, x_2, y_1, y_2 \in \mathbb{R}$: \hfill monotonicity
+                        \subitem $x_1 < x_2 \Rightarrow F_{XY}(x_1, y_1) \leq F_{XY}(x_2, y_1)$ \hfill and
+                        \subitem $y_1 < y_2 \Rightarrow F_{XY}(x_1, y_1) \leq F_{XY}(x_1, y_2)$
+                    \item $F_{XY}(x, -\infty) = F_{XY}(-\infty) = 0$ and $F_{XY}(\infty, \infty) = 1$, $\forall x, y \in \mathbb{R}$
+                \end{itemize}
+                Interval probabilities are done as follows;
+                \begin{align*}
+                    P_{XY}(x_1 < X \leq x_2, Y \leq y) & = F_{XY}(x_2, y) - F_{XY}(x_1, y) \\
+                    P_{XY}(x_1 < X \leq x_2, y_1 < Y \leq y_2) & = \underbrace{F_{XY}(x_2, y_2)}_{a + b + c + d} - \underbrace{F_{XY}(x_1, y_2)}_{b + d} - \underbrace{F_{XY}(x_2, y_1)}_{c + d} + \underbrace{F_{XY}(x_1, y_1)}_{d}
+                \end{align*}
+                With an interval on both, we can visualise it as follows (which is why we add the last region);
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (1.5, 1.5) {$a$};
+                        \node at (0.5, 1.5) {$b$};
+                        \node at (1.5, 0.5) {$c$};
+                        \node at (0.5, 0.5) {$d$};
+                        \node at (0.75, -0.5) {$x_1$};
+                        \node at (1.75, -0.5) {$x_2$};
+                        \node at (-0.5, 0.75) {$y_1$};
+                        \node at (-0.5, 1.75) {$y_2$};
+                        \draw
+                        (1, -0.1) -- (1, 0.1)
+                        (2, -0.1) -- (2, 0.1)
+                        (-1, 0) edge[->] (3, 0)
+                        (-0.1, 1) -- (0.1, 1)
+                        (-0.1, 2) -- (0.1, 2)
+                        (0, -1) edge[->] (0, 3);
+                        \draw[dashed]
+                        (2, 2) edge[->] (-1, 2)
+                        (2, 2) edge[->] (2, -1)
+                        (2, 1) edge[->] (-1, 1)
+                        (1, 2) edge[->] (1, -1);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Joint Probability Mass Function}
+                If $X$ and $Y$ are both discrete random variables, we can define the joint probability mass function (for $x, y \in \mathbb{R}$) as;
+                \begin{center}
+                    $p_{XY}(x, y) = P_{XY}(X = x, Y = y)$
+                \end{center}
+                And recover the marginal probability mass functions $p_X$ and $p_Y$ by the law of total probability;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $p_X(x) = \summation{y}{} p_{XY}(x, y)$ \hfill $\forall x \in \mathbb{R}$
+                    \item $p_Y(y) = \summation{x}{} p_{XY}(x, y)$ \hfill $\forall y \in \mathbb{R}$
+                \end{itemize}
+                Similarly, for $p_{XY}$ to be valid, the following conditions must hold;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $0 \leq p_{XY}(x, y) \leq 1$, $\forall x, y \in \mathbb{R}$
+                    \item $\summation{y}{} \summation{x}{} p_{XY}(x, y) = 1$
+                \end{itemize}
+            \subsubsection*{Joint Probability Density Function}
+                On the other hand, we say $X$ and $Y$ are \textbf{jointly continuous} if there exists a \textbf{joint probability density function} $f_{XY} : \mathbb{R} \times \mat{R} \to \mathbb{R}$, such that the following holds ($B_{XY} \subseteq \mathbb{R} \times \mathbb{R}$);
+                $$P_{XY}(B_{XY}) = \defint{(x, y) \in B_{XY}}{}{f_{XY}(x, y)}{x\mathrm{d}y}$$
+                We can then define the \textbf{joint cumulative distribution function} $F_{XY}$, for $x, y \in \mathbb{R}$ as;
+                $$F_{XY}(x, y) = \defint{t = -\infty}{t = y}{\defint{s = -\infty}{s = x}{f_{XY}(s, t)}{s}}{t}$$
+                The joint probability density function can be identified as follows;
+                $$f_{XY}(x, y) = \pdif{^2}{x\partial y}F_{XY}(x, y)$$
+                The marginal densities $f_X$ and $f_Y$ can be obtained as follows;
+                \begin{align*}
+                    f_X(x) & = \dif{}{x}F_X(x) \\
+                    & = \dif{}{x}F_{XY}(x, \infty) \\
+                    & = \dif{}{x} \defint{y = -\infty}{y = \infty}{\defint{s = -\infty}{s = x}{f_{XY}(s, y)}{s}}{y} \\
+                    & = \defint{y = -\infty}{y = \infty}{f_{XY}(x, y)}{y} \\
+                    f_Y(y) & = \dif{}{y} \defint{x = -\infty}{x = \infty}{\defint{s = -\infty}{s = y}{f_{XY}(x, s)}{s}}{x} \\
+                    & = \defint{x = -\infty}{x = \infty}{f_{XY}(x, y)}{x} \\
+                \end{align*}
+                Similarly, for $f_{XY}$ to be valid, the following conditions must hold;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $f_{XY}(x, y) \geq 0$, $\forall x, y \in \mathbb{R}$
+                    \item $\defint{y = -\infty}{y = \infty}{\defint{x = -\infty}{x = \infty}{f_{XY}(x, y)}{x}}{y} = 1$
+                \end{itemize}
+            \subsubsection*{Independence of Random Variables and Conditional Distributions}
+                Two random variables $X, Y$ are independent if, and only if, $\forall B_X, B_Y \subseteq \mathbb{R}$;
+                \begin{center}
+                    $P_{XY}(B_X, B_Y) = P_X(B_X) P_Y(B_Y)$
+                \end{center}
+                Or more specifically, $\forall x, y \in \mathbb{R}$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{discrete} \hfill $p_{XY}(x, y) = p_X(x) p_Y(y)$
+                    \item \textbf{continuous} \hfill $f_{XY}(x, y) = f_X(x) f_Y(y)$
+                \end{itemize}
+                We define the conditional probability distribution $P_{Y|X}$, for $B_X, B_Y \subseteq \mathbb{R}$ as follows;
+                $$P_{Y|X}(B_Y|B_X) = \frac{P_{XY}(B_X, B_Y)}{P_X(B_X)}$$
+                Which is the revised probability of $Y$ falling in $B_Y$, given we know $X \in B_X$.
+                Therefore, $X$ and $Y$ are independent if, and only if, $P_{Y|X}(B_Y|B_X) = P_Y(B_Y)$, $\forall B_X, B_Y \subseteq \mathbb{R}$.
+                Or more specifically, $\forall x, y \in \mathbb{R}$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{discrete} \hfill $p_{Y|X}(y|x) = \frac{p_{XY}(x, y)}{p_X(x)}$
+                    \item \textbf{continuous} \hfill $f_{Y|X}(y|x) = \frac{f_{XY}(x, y)}{f_X(x)}$
+                \end{itemize}
+                Similarly, $X$ and $Y$ are independent if, and only, if $p_{Y|X}(y|x) = p_Y(y)$ or $f_{Y|X}(y|x) = f_Y(y)$, $\forall x, y \in \mathbb{R}$.
+                \medskip
+
+                We can also define the partition rule as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{discrete}
+                        $$p_X(x) = \summation{y}{} p_{X|Y}(x|y) p_Y(y)$$
+                    \item \textbf{continuous}
+                        $$f_X(x) = \defint{y = -\infty}{\infty}{f_{X|Y}(x, y)f_Y(y)}{y} \text{ \textbf{and also} } F_X(x) = \defint{y = -\infty}{\infty}{F_{X|Y}(x, y)f_Y(y)}{y}$$
+                \end{itemize}
+ \end{document}
