@@ -1869,7 +1869,7 @@
                         \begin{center}
                             $R = (-\infty, -z_{1 - \frac{\alpha}{2}}) \cup (z_{1 - \frac{\alpha}{2}}, \infty) \approx (-\infty, -2.576) \cup (2.576, \infty)$
                         \end{center}
-                        We have $z \notin R$, therefore we retain the null hypothesis at the 1\% level (hence we are 95\% sure that the mean weight is incorrect).
+                        We have $z \notin R$, therefore we retain the null hypothesis at the 1\% level.
                 \end{itemize}
         \subsection*{6th March 2019 (old Panopto)}
             \subsubsection*{Proof of $p$-value}
@@ -1978,4 +1978,120 @@
                     $t_{n_1 + n_2 - 2, 1 - \alpha} = t_{28, 0.95} \approx 1.71$
                 \end{center}
                 As it falls in the rejection region, we reject the null hypothesis at a 5\% significance level (therefore the second compiler produced faster code).
+        \subsection*{11th March 2020}
+            \subsubsection*{Goodness of Fit}
+                The previous sections relied on the data following a normal distribution, or having the sample mean be approximated to be normally distributed (via CLT).
+                Another problem concerns model checking, which can be addressed through a more general consideration of count data for simple (discrete and finite) distributions.
+                \medskip
+
+                Let $X$ be a simple random variable, taking values in the range $\{ x_1, \dots, x_k \}$ with probability mass function (for $1 \leq j \leq k$) depending on an unknown parameter $\theta$;
+                \begin{center}
+                    $p_j = P(X = x_j|\theta)$
+                \end{center}
+                We can then summarise a random sample size $n$ from the distribution of $X$ with the \textbf{observed frequency counts};
+                $$\ulsmash{O} = (O_1, \dots, O_k) \text{ at the points } x_1, \dots, x_k \text{ thus } \summation{j = 1}{k} O_j = n$$
+                The observed frequency counts are the number of times we observe each value in $n$ samples.
+                \medskip
+
+                Suppose our null hypothesis is $H_0 : \theta = \theta_0$.
+                Therefore, under $H_0$, we know the probability mass function $p_j$.
+                The \textbf{expected frequency counts} can then be calculated as;
+                $$\ulsmash{E} = (E_1, \dots, E_k) \text{ where } E_j = np_j \text{ thus } \summation{j = 1}{k} E_j = n$$
+                Therefore, to test for goodness of fit, we want to quantitatively compare the observed frequencies $\ulsmash{O}$ with the expected frequencies $\ulsmash{E}$.
+            \subsubsection*{Chi-Square Test}
+                To test the hypotheses;
+                \begin{center}
+                    $H_0 : \theta = \theta_0$ versus $H_1 : \theta \neq \theta_0$
+                \end{center}
+                We used the chi-square statistic;
+                $$X^2 = \summation{i = 1}{k} \frac{(O_i - E_i)^2}{E_i}$$
+                If $H_0$ were true, then $X^2$ would follow a chi-square distribution $\chi_\nu^2$, with $\nu = k - p - 1$ degrees of freedom ($k$ is the number of values $X$ can take, and $p$ is the number of parameters being estimated).
+                For this approximation to be valid, we need $\forall j.\ E_j \geq 5$ - if not, we can merge values ($E_a + E_b = F_a = n(p_a + p_b)$).
+                \medskip
+
+                Clearly, from our definition of the chi-square statistic, larger values of $X^2$ correspond to larger deviations from the model proposed by the null hypothesis, and if $X^2 = 0$, the observed counts match exactly to what our model expects.
+                \medskip
+
+                We always perform a \textbf{one-sided goodness of fit} test using the $\chi^2$ statistic, looking at the upper tail of the distribution.
+                The rejection region, at the $100\alpha\%$ level, is given by;
+                \begin{center}
+                    $R = \{ x^2 \bnfsep x^2 > \chi_{k - p - 1, 1 - \alpha}^2 \}$
+                \end{center}
+            \subsubsection*{Examples}
+                \begin{itemize}
+                    \itemsep0em
+                    \item A study in the Journal of the American Medical Association gave the following causes of 95 ADEs (adverse drug effects);
+                        \begin{center}
+                            \begin{tabular}{lc}
+                                cause & number of ADEs \\
+                                \hline
+                                lack of knowledge of drug & 29 \\
+                                rule violation & 17 \\
+                                faulty dose checking & 13 \\
+                                slips & 9 \\
+                                other & 27
+                            \end{tabular}
+                        \end{center}
+                        Test whether the true percentages of ADEs differ across the 5 causes.
+                        \medskip
+
+                        Our null hypothesis, $H_0$, is that they all share the same proportion.
+                        Therefore, our expected value $E_j = \frac{95}{5} = 19$, for $1 \leq j \leq 5$.
+                        \begin{align*}
+                            X^2 & = \summation{i = 1}{k} \frac{(O_i - E_i)^2}{E_i} \\
+                            & = \summation{i = 1}{5} \frac{(O_i - 19)^2}{19} \\
+                            & = \frac{(29 - 19)^2}{19} + \frac{(17 - 19)^2}{19} + \frac{(13 - 19)^2}{19} + \frac{(9 - 19)^2}{19} + \frac{(27 - 19)^2}{19} \\
+                            & = 16
+                        \end{align*}
+                        We then compare this to the $\chi_\nu^2$ distribution, with $\nu = 5 - 0 -1 = 4$ (5 possible values, and 0 parameters).
+                        Let $\alpha = 0.05$, hence at a 5\% level, we have $\chi_{4, 0.95}^2 = 9.49$, hence we reject the null hypothesis at a 5\% level (since 16 > 9.49) - the true percentages do differ (not all the same proportion).
+                    \item
+                        Recall the example from discrete random variables concerning the number of particles emitted by a radioactive substance.
+                        For 2608 time intervals, each of length 7.5 seconds, these are the number of particles emitted.
+                        \begin{center}
+                            \begin{tabular}{c|ccccccccccc}
+                                $x$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & $\geq 10$ \\
+                                \hline
+                                $O$ & 57 & 203 & 383 & 525 & 532 & 408 & 273 & 139 & 45 & 27 & 16 \\
+                                \violet{$E$} & \violet{54.4} & \violet{210.5} & \violet{407.4} & \violet{525.5} & \violet{508.4} & \violet{393.5} & \violet{253.8} & \violet{140.3} & \violet{67.9} & \violet{29.2} & \violet{17.1} \\
+                                $\frac{(O - E)^2}{E}$ & 0.124 & 0.267 & 1.461 & 0 & 1.096 & 0.534 & 1.452 & 0.012 & 7.723 & 0.166 & 0.071
+                            \end{tabular}
+                        \end{center}
+                        In total, we observe 10094 counts, thus the mean number per interval is 3.87.
+                        Since the mean of a Poisson($\lambda$) random variable is $\lambda$, we can set $\lambda = 3.87$.
+                        \medskip
+
+                        Then we have;
+                        $$X^2 = \summation{i = 1}{11} \frac{(O_i - E_i)^2}{E_i} \approx 12.906$$
+                        We compare the statistic with a $\chi_{11 - 1 - 1}^2 = \chi_9^2$ distribution (11 possible values, and 1 parameter).
+                        At the 5\% level, let $\alpha = 0.05$, $\chi_{k - p - 1, 1 - \alpha}^2 = \chi_{9, 0.95}^2 = 16.91$.
+                        Since $12.906 < 16.91$, we retain the null hypothesis at the 5\% level, hence the model Poisson(3.87) is good.
+                \end{itemize}
+            \subsubsection*{Independence Testing}
+                Suppose two random variables $X$ (with range $\{ x_1, \dots, x_k \}$) and $Y$ (with range $\{ y_1, \dots, y_l \}$) are jointly distributed with unknown probability mass function $p_{XY}$.
+                We often want to determine whether the two random variables are independent, which is the same as determining whether
+                \begin{center}
+                    $p_{XY}(x, y) = p_X(x)p_Y(y)$
+                \end{center}
+                Then $n$ iid samples from the joint distribution of $(X, Y)$ can be represented as a list of counts $n_{i, j}$ of the number of times we observe the pair $(x_i, y_i)$, obviously with $1 \leq i \leq k$ and $1 \leq j \leq l$.
+                This can be tabulated as follows - a $k \times l$ contingency table;
+                \begin{center}
+                    \begin{tabular}{c|cccc|c}
+                        & $y_1$ & $y_2$ & $\cdots$ & $y_l$ & \\
+                        \hline
+                        $x_1$ & $n_{1, 1}$ & $n_{1, 2}$ & $\cdots$ & $n_{1, l}$ & $n_{1, \times}$ \\
+                        $x_2$ & $n_{2, 1}$ & $n_{2, 2}$ & $\cdots$ & $n_{2, l}$ & $n_{2, \times}$ \\
+                        $\vdots$ & $\vdots$ & $\vdots$ & $\ddots$  & $\vdots$ & $\vdots$ \\
+                        $x_k$ & $n_{k, 1}$ & $n_{k, 2}$ & $\cdots$ & $n_{k, l}$ & $n_{k, \times}$ \\
+                        \hline
+                        & $n_{\times, 1}$ & $n_{\times, 2}$ & $\cdots$ & $n_{\times, l}$ & $n$
+                    \end{tabular}
+                \end{center}
+                Under our null hypothesis, $H_0$, we take $X$ and $Y$ to be independent.
+                Therefore, the expected values are given from the product of the row and column sums (for $1 \leq i \leq k, 1 \leq j \leq l$);
+                $$\hat{n}_{i, j} = \frac{n_{i, \times} \cdot n_{\times, j}}{n}$$
+                This is because we can approximate $p_X(x_i)$ by $\hat{p}_{i, \times} = \frac{n_{i, \times}}{n}$, and similarly $p_Y(y_j)$ by $\hat{p}_{\times, j} = \frac{n_{\times, j}}{n}$.
+                Under independence, we can estimate it as;
+                $$\hat{p}_{i, j} = \hat{p}_{i, \times} \cdot \hat{p}_{\times, j} = \frac{n_{i, \times} \cdot n_{\times, j}}{n^2}$$
+                We then perform the standard test, comparing it to $\chi_\nu^2$, where $\nu = (k - 1)(l - 1)$ degrees of freedom.
 \end{document}
