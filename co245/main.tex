@@ -1845,7 +1845,7 @@
                 $$z = \frac{\bar{x} - \mu_0}{\frac{\sigma}{\sqrt{n}}} \in R$$
                 The $p$-value is given by;
                 $$2(1 - \Phi(| z |)) = 2\left(1 - \Phi\left| \frac{\bar{x} - \mu_0}{\frac{\sigma}{\sqrt{n}}} \right|\right)$$
-            \subsubsection*{Example of Hypothesis Testing}
+            \subsubsection*{Example of Hypothesis Testing (Know Variance)}
                 A company makes packets of snack foods, with the weight on the bags being 454 grams.
                 Suppose we know the variance is 70.
                 We then have the mass, in grams) of 50 randomly sampled packets - not writing them out.
@@ -1871,4 +1871,111 @@
                         \end{center}
                         We have $z \notin R$, therefore we retain the null hypothesis at the 1\% level (hence we are 95\% sure that the mean weight is incorrect).
                 \end{itemize}
+        \subsection*{6th March 2019 (old Panopto)}
+            \subsubsection*{Proof of $p$-value}
+                We claim that the $p$-value, $\alpha_0 = 2(1 - \Phi(| z |))$.
+                By the definition of the $p$-value, we want the critical point, that is when $z_{1 - \frac{\alpha}{2}} = | z |$
+                Therefore, we have;
+                \begin{center}
+                    $\Phi^{-1}(1 - \frac{\alpha_0}{2}) = | z | \Rightarrow \alpha_0 = 2(1 - \Phi(| z |))$
+                \end{center}
+            \subsubsection*{Population Mean with Unknown Variance}
+                This is done similarly to the case with a known variance, but instead we use the bias corrected sample standard deviation $s_{n - 1}$, and the student $t$ distribution, with $n - 1$ degrees of freedom.
+                $$T = \frac{\bar{X} - \mu_0}{\frac{s_{n - 1}}{\sqrt{n}}} \sim t_{n - 1}$$
+                Therefore, for a test
+                \begin{center}
+                    $H_0 : \mu = \mu_0$ versus $H_1 : \mu \neq \mu_0$
+                \end{center}
+                The rejection region of our observed test statistic
+                $$t = \frac{\bar{x} - \mu_0}{\frac{s_{n - 1}}{\sqrt{n}}}$$
+                Is given by
+                \begin{center}
+                    $R = (-\infty, -t_{n - 1, 1 - \frac{\alpha}{2}}) \cup (t_{n - 1, 1 - \frac{\alpha}{2}}, \infty)$
+                \end{center}
+                Again $P(T \in R|H_0) = \alpha$.
+            \subsubsection*{Example of Hypothesis Testing (Unknown Variance)}
+                A piece of computer code takes a random time to run on a computer, with an average time of 6 seconds.
+                The code is optimised, and the programmer wishes to know whether the mean run time has changed.
+                The re-optimised code is run 16 times, with a sample mean run time of 5.8 seconds, and a bias-corrected sample standard deviation of 1.2 seconds.
+                Is the code any faster?
+                \begin{itemize}
+                    \itemsep0em
+                    \item $H_0 : \mu = 6$ \hfill (code isn't faster) null hypothesis
+                    \item $H_1 : \mu \neq 6$ \hfill (code is faster) alternative hypothesis
+                \end{itemize}
+                We can invoke the central limit theorem (as $n$ is fairly large), thus (under $H_0$);
+                $$T = \frac{\bar{X} - \mu}{\frac{s_{n - 1}}{\sqrt{n}}} \sim t_{n - 1}$$
+                Plugging in values, we have our realised test statistic as;
+                $$t = \frac{5.8 - 6}{\frac{1.2}{\sqrt{16}}} = -\frac{2}{3}$$
+                Looking at the value of $t_{15, 0.975}$ (at a 5\% significance level), we have 2.13.
+                Therefore we retain the null hypothesis at a 5\% significance level, thus the code isn't faster.
+            \subsubsection*{Samples from Two Populations}
+                Suppose we have a random sample $\ulsmash{X} = (X_1, \dots, X_{n_1})$ from an unknown population distribution $P_X$, and another sample $\ulsmash{Y} = (Y_1, \dots, Y_{n_2})$, with another unknown population distribution $P_Y$.
+                We are often interested in testing whether $P_X$ and $P_Y$ have the same means;
+                \begin{center}
+                    $H_0 : \mu_X = \mu_Y$ versus $H_1 : \mu_X \neq \mu_Y$
+                \end{center}
+                A \textbf{special} case of this is when $\ulsmash{X}$ and $\ulsmash{Y}$ are paired, if $n_1 = n_2 = n$, and the data are collected as pairs $(X_1, Y_1), \dots, (X_n, Y_n)$, such that for each $i$, $X_i$ and $Y_i$ are possibly dependent.
+                For a test of equal means, we can then consider the sample of differences $Z_1 = X_1 - Y_1, \dots Z_n = X_n - Y_n$, and then test for $H_0 : \mu_Z = 0$ (with the previous single sample methods).
+                \medskip
+
+                An example of this is a sample of $n$ individuals, with $X_i$ representing the heart rate before light exercise, and $Y_i$ representing the heart rate after, for the $i^\text{th}$ person.
+                \medskip
+
+                Consider the following cases (excluding the special case with paired data);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{known variance}
+                        \medskip
+
+                        Suppose we have $\ulsmash{X} = (X_1, \dots, X_{n_1})$ iid with $N(\mu_X, \sigma_X^2)$, with $\mu_X$ unknown, and $\ulsmash{Y} = (Y_1, \dots, Y_{n_2})$ iid with $N(\mu_Y, \sigma_Y^2)$, also with $\mu_Y$ unknown - also the two samples are independent.
+                        Then we still have the following;
+                        $$\bar{X} \sim N\left(\mu_X, \frac{\sigma_X^2}{n_1}\right) \text{ and } \bar{Y} \sim N\left(\mu_Y, \frac{\sigma_Y^2}{n_2}\right)$$
+                        From here, it follows that the difference in sample means is distributed as;
+                        $$\bar{X} - \bar{Y} \sim N\left(\mu_X - \mu_Y, \frac{\sigma_X^2}{n_1} + \frac{\sigma_Y^2}{n_2}\right) \Rightarrow \frac{(\bar{X} - \bar{Y}) - (\mu_X - \mu_Y)}{\sqrt{\frac{\sigma_X^2}{n_1} + \frac{\sigma_Y^2}{n_2}}} \sim N(0, 1)$$
+                        Therefore, under $H_0 : \mu_X = \mu_Y$, obviously $\mu_X - \mu_Y = 0$, we have;
+                        $$Z = \frac{\bar{X} - \bar{Y}}{\sqrt{\frac{\sigma_X^2}{n_1} + \frac{\sigma_Y^2}{n_2}}} \sim N(0, 1)$$
+                        Given that we know $\sigma_X^2$ and $\sigma_Y^2$, we have the test statistic as;
+                        $$z = \frac{\bar{x} - \bar{y}}{\sqrt{\frac{\sigma_X^2}{n_1} + \frac{\sigma_Y^2}{n_2}}}$$
+                        This can be compared against the quantiles of a standard normal distribution, in the same way as before.
+                    \item \textbf{unknown variance}
+                        \medskip
+
+                        Suppose we have $\ulsmash{X}$ and $\ulsmash{Y}$ the same as before, with the means unknown, but also the variances unknown.
+                        If we know $\sigma_X^2 = \sigma_Y^2 = \sigma^2$, with unknown $\sigma^2$, we can still proceed as follows;
+                        $$\frac{(\bar{X} - \bar{Y}) - (\mu_X - \mu_Y)}{\sigma \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}} \sim N(0, 1)$$
+                        And similarly we can take a test statistic under $H_0$ for the same reason as;
+                        $$\frac{\bar{X} - \bar{Y}}{\sigma \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}} \sim N(0, 1)$$
+                        We however cannot combine the samples into one large sample - we don't know whether the means are the same (since that's what we're attempting to work out), and thus we would over-estimate the variance.
+                        The \textbf{bias-corrected pooled sample variance} is defined as;
+                        $$S_{n_1 + n_2 - 2}^2 = \frac{\summation{i = 1}{n_1} (X_i - \bar{X})^2 + \summation{i = 1}{n_1} (Y_i - \bar{Y})^2}{n_1 + n_2 - 2} = \underbrace{\frac{n_1 - 1}{n_1 + n_2 - 2}S_{n_1 - 1}^2 + \frac{n_2 - 1}{n_1 + n_2 - 2}S_{n_2 - 1}^2}_\text{see below}$$
+                        The part above shows that $s_{n_1 + n_2 - 2}^2$ is an unbiased estimate of $\sigma^2$, as it is a weighted average of the bias-corrected sample variances for each of the individual samples (both of which are unbiased estimates).
+                        \medskip
+
+                        By substituting $S_{n_1 + n_2 - 2}$ in for $\sigma$, we have;
+                        $$\frac{(\bar{X} - \bar{Y}) - (\mu_X - \mu_Y)}{S_{n_1 + n_2 - 2} \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}} \sim t_{n_1 + n_2 - 2}$$
+                        And similarly, assuming $H_0 : \mu_X = \mu_Y$, we have;
+                        $$T = \frac{\bar{X} - \bar{Y}}{S_{n_1 + n_2 - 2} \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}} \sim t_{n_1 + n_2 - 2}$$
+                        Therefore, our rejection region for a $100\alpha\%$ significance level is;
+                        \begin{center}
+                            $R = (-\infty, -t_{n_1 + n_2 - 2, 1 - \frac{\alpha}{2}}) \cup (t_{n_1 + n_2 - 2, 1 - \frac{\alpha}{2}}, \infty)$
+                        \end{center}
+                \end{itemize}
+            \subsubsection*{Example of Hypothesis Testing (Two Populations - Known Variance)}
+                Suppose the same piece of C code was repeatedly run after compilation under two different compilers.
+                The sample mean and bias-corrected sample variance for compiler 1 were 114s, and 310s respectively, and the corresponding figures for compiler 2 were 94s and 290s.
+                Both sets of data were based on 15 runs each.
+                Suppose compiler 2 is a refined version of compiler 1 - hence if $\mu_1$ and $\mu_2$ were the run times of code under compilers 1 and 2 respectively, assume $\mu_2 \leq \mu_1$.
+                At the 5\% level, conduct the hypothesis;
+                \begin{center}
+                    $H_0 : \mu_1 = \mu_2$ versus $H_1 : \mu_1 > \mu_2$
+                \end{center}
+                Let the realised value of the test statistic be;
+                $$t = \frac{\bar{x} - \bar{y}}{s_{n_1 + n_2 - 2}\sqrt{\frac{1}{n_1} + \frac{1}{n_2}}} = \frac{114 - 94}{\sqrt{\frac{310 + 290}{2}} \sqrt{\frac{1}{15} + \frac{1}{15}}} \approx 3.162$$
+                Note that this is a one sided test.
+                Therefore we compare it with;
+                \begin{center}
+                    $t_{n_1 + n_2 - 2, 1 - \alpha} = t_{28, 0.95} \approx 1.71$
+                \end{center}
+                As it falls in the rejection region, we reject the null hypothesis at a 5\% significance level (therefore the second compiler produced faster code).
 \end{document}
