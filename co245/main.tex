@@ -1494,4 +1494,100 @@
                 $$\bar{X} = \frac{1}{n} \summation{i = 1}{n} X_i \text{ is a statistic, and } \bar{x} = \frac{1}{n} \summation{i = 1}{n} x_i \text{ is a realised value}$$
                 If a statistic $T(\ulsmash{X})$ is to be used to approximate parameters of the distribution $P_{X|\theta}(\cdot|\theta)$, we say $T$ is an \textbf{estimator} for those parameters.
                 The realised value of the estimator for a data sample is an \textbf{estimate}.
+        \subsection*{20th February 2020}
+            \subsubsection*{Estimators (Continued)}
+                Consider sample data $\ulsmash{x} = (x_1, \dots, x_n)$, which comes from an exponentially distributed population;
+                \begin{center}
+                    $X_i \sim \text{Exp}(\lambda)$ with pdf $f_X(x) = \lambda e^{-\lambda x}$
+                \end{center}
+                We can then attempt to estimate the mean $(= \frac{1}{\lambda})$, or attempt to estimate the variance $(= \frac{1}{\lambda^2})$.
+                Some candidates for estimators are as follows - but we need to quantify which is better;
+                \begin{enumerate}[1)]
+                    \itemsep0em
+                    \item first data point \hfill $T_1(\ulsmash{X}) = X_1$
+                    \item sample mean \hfill $T_2(\ulsmash{X}) = \frac{1}{n} \summation{i = 1}{n} X_i$
+                    \item median (suppose data is ordered) \hfill $T_3(\ulsmash{X}) = X_{\frac{n + 1}{2}}$
+                \end{enumerate}
+                Suppose we knew the parameter values $\theta$ for our population distribution $P_{X|\theta}(\cdot|\theta)$.
+                Since we considered our sampled data as iid realisations from this distribution, any statistic $T = T(\ulsmash{X})$ is also a random variable with some distribution, depending on the same parameters.
+                If we can identify this \textbf{sampling distribution of our statistic} $P_{T|\theta}$, we can then find the expectation, variance, etc. of our statistic.
+                Provided $n$ is large, CLT gives an approximation for $P_{T|\theta}$, if
+                $$T = \bar{X} = \frac{1}{n} \summation{i = 1}{n} X_i \text{ is the sample mean}$$
+                Regardless of the form of $P_{X|\theta}$, we know that approximately;
+                $$\bar{X} \sim \text{N}\left(E(X), \frac{\text{Var}(X)}{n}\right)$$
+                Considering the initial example, where we have an exponential distribution, it can be shown (somehow) our statistic $T = \bar{X}$ is a continuous random variable with probability density function;
+                $$f_{T|\lambda}(t|\lambda) = \frac{(n \lambda)^nt^{n - 1}e^{-n \lambda t}}{(n - 1)!}$$
+                As an aside, the probability density function for $\text{Gamma}(\alpha, \beta)$ is
+                $$f(x) = \frac{\beta^\alpha x^{\alpha - 1} e^{-\beta x}}{(\alpha - 1)!}$$
+                Hence, we have $\alpha = n$ and $\beta = n\lambda$;
+                \begin{center}
+                    $T \sim \text{Gamma}(n, n\lambda)$
+                \end{center}
+                Note that $\text{Gamma}(\alpha, \beta)$ has expectation $\frac{\alpha}{\beta}$, we can then say;
+                $$E(\bar{X}) = E_{T|\lambda}(T|\lambda) = \frac{n}{n\lambda} = \frac{1}{\lambda}$$
+                Note that this is the same as the mean of our population distribution, $E(X)$.
+                This suggests that the sample mean $\bar{X}$ is a good statistic for estimating the mean of an exponential distribution.
+            \subsubsection*{Bias of Estimators}
+                The \textbf{bias} of an estimator $T$ for a parameter $\theta$ is;
+                \begin{center}
+                    $\text{bias}(T) = E(T|\theta) - \theta$
+                \end{center}
+                If this value is 0, then the estimator is unbiased.
+                Note that in the previous example, the sample mean gave an unbiased estimate of the mean of an exponential distribution (which is $\frac{1}{\lambda}$).
+                This is true for any distribution - the sample mean $\bar{x}$ is an unbiased estimate for the population mean $\mu$;
+                $$E(\bar{X}) = E\left(\frac{\summation{i = 1}{n} X_i}{n}\right) = \frac{\summation{i = 1}{n} E(X_i)}{n} = \frac{n\mu}{n} = \mu$$
+                Similarly, the \textbf{bias-corrected sample variance} is as follows;
+                $$S_{n - 1}^2 = \frac{1}{n - 1} \summation{i = 1}{n} (X_i - \bar{X})^2$$
+                Note that this is not the same as the sample variance, which has a denominator of $n$ instead of $n - 1$ as it has one too many degrees of freedom (it would be valid if we knew the population mean $\mu$, instead of using $\bar{X}$).
+                The proof for the bias-correct sample variance is as follows;
+                \begin{align*}
+                    E\left(S_{n - 1}^2\right) & = \frac{1}{n - 1} \summation{i = 1}{n} E\left((X_i - \bar{X})^2\right) \\
+                    & = \frac{1}{n - 1} \summation{i = 1}{n} E\left(\left(X_i - \frac{1}{n} \summation{k = 1}{n} X_j\right)^2\right) \\
+                    & = \frac{1}{n - 1} \summation{i = 1}{n} E\left(X_i^2 - \violet{\frac{2}{n}\summation{j = 1}{n} X_iX_j} + \blue{\frac{1}{n^2} \summation{j, k = 1}{n} X_jX_k}\right) \\
+                    & = \frac{1}{n - 1} \summation{i = 1}{n} E\left(X_i^2 - \violet{\frac{2}{n} X_i^2} - \violet{\frac{2}{n} \summation{j \neq i}{} X_iX_j} + \blue{\frac{1}{n^2} \summation{j = 1}{n} X_j^2} + \blue{\frac{1}{n^2} \summation{j \neq k}{} X_jX_k}\right) \\
+                    & = \frac{1}{n - 1} \summation{i = 1}{n} \left(\frac{n - 2}{n}E\left(X_i^2\right) - \frac{2}{n} \summation{j \neq i}{} E(X_iX_j) + \frac{1}{n^2} \summation{j = 1}{n} E\left(X_j^2\right) + \frac{1}{n^2} \summation{j = 1}{n} \summation{k \neq j}{} E(X_jX_k) \right)
+                    \intertext{we can use the following;}
+                    E(X_iX_j) & = E(X_i)E(X_j) \\
+                    & = \mu^2 \\
+                    E(X_i^2) & = \sigma^2 + \mu^2
+                    \intertext{continuing on;}
+                    & = \frac{1}{n - 1} \summation{i = 1}{n} \left(\frac{n - 2}{n}(\sigma^2 + \mu^2) - \frac{2}{n} (n - 1) \mu^2 + \frac{1}{n^2} n (\sigma^2 + \mu^2) + \frac{1}{n^2} n (n - 1) \mu^2 \right) \\
+                    & = \frac{1}{n - 1} n \left(\frac{n - 2}{n}(\sigma^2 + \mu^2) - \frac{2}{n} (n - 1) \mu^2 + \frac{1}{n^2} n (\sigma^2 + \mu^2) + \frac{1}{n^2} n (n - 1) \mu^2 \right) \\
+                    & = \frac{1}{n - 1} \left((n - 2)(\sigma^2 + \mu^2) - 2(n - 1)\mu^2 + (\sigma^2 + \mu^2) + (n - 1) \mu^2 \right) \\
+                    & = \cdots \\
+                    & = \sigma^2
+                \end{align*}
+            \subsubsection*{Efficiency of Estimators}
+                Let $\hat{\Theta}(\ulsmash{X})$ and $\tilde{\Theta}(\ulsmash{X})$ be two unbiased estimators for a parameter $\theta$.
+                Suppose we have the sampling distributions for these estimators $P_{\hat{\Theta|\theta}}$, and $P_{\tilde{\Theta|\theta}}$ respectively (and so can calculate their means and variances).
+                We say $\hat{\Theta}$ is more efficient than $\tilde{\Theta}$ if;
+                \begin{center}
+                    $\forall \theta\ \text{Var}_{\hat{\Theta}|\theta}(\hat{\Theta}|\theta) \leq \text{Var}_{\tilde{\Theta}|\theta}(\tilde{\Theta}|\theta)$
+                \end{center}
+                Additionally, we can say it is strictly more efficient if there is a $\theta$ such that it is a strict inequality.
+                \medskip
+
+                If $\hat{\Theta}$ is more efficient than any other possible estimator, then we can say it is efficient.
+            \subsubsection*{Example of Bias and Efficiency}
+                Suppose we have a population with mean $\mu$, and variance $\sigma^2$, with $n$ samples $\ulsmash{X}$.
+                Two estimators of $\mu$ are as follows (both of which have expectation $\mu$, and are therefore unbiased);
+                \begin{itemize}
+                    \itemsep0em
+                    \item the sample mean \hfill $\hat{M} = \bar{X}$
+                        \subitem $E(\bar{X}) = \mu$ (proven)
+                        \subitem $\text{Var}(\bar{X}) = \frac{\sigma^2}{n}$
+                    \item the first observation \hfill $\tilde{M} = X_1$
+                        \subitem $E(X_1) = \mu$ (trivial)
+                        \subitem $\text{Var}(X_1) = \sigma^2$
+                \end{itemize}
+                Looking at the variances, for $n \geq 2$, $\hat{M}$ is more efficient than $\tilde{M}$ as an estimator for $\mu$.
+            \subsubsection*{Consistency of Estimators}
+                The worst aspect of taking the first observation is that it does not change with a larger sample, whereas the variance the sample mean decreases with larger $n$.
+                We say the $\hat{\Theta}$ is a \textbf{consistent} estimator for $\theta$ if;
+                \begin{center}
+                    $\forall \epsilon > 0\ P(|\hat{\Theta} - \theta) > \epsilon) \to 0$ as $n \to \infty$
+                \end{center}
+                Additionally, if the estimator is unbiased;
+                $$\limit{n}{\infty} \text{Var}(\hat{\Theta}) = 0 \Rightarrow \hat{\Theta} \text{ is consistent}$$
+                Therefore $\bar{X}$ is a consistent estimator of $\mu$ for any underlying population.
  \end{document}
