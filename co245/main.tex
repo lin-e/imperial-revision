@@ -1594,7 +1594,7 @@
                 Therefore $\bar{X}$ is a consistent estimator of $\mu$ for any underlying population.
         \subsection*{26th February 2020}
             \subsubsection*{Maximum Likelihood Estimator}
-                The general setting is as follows; we have $n$ iid samples with probability distribution function $P_{X|\theta}(x_i)$.
+                The general setting is as follows; we have $n$ iid samples with probability distribution (density in the case of continuous, mass in the case of discrete) function $P_{X|\theta}(x_i)$.
                 We denote the set of observed data $\ulsmash{x} = (x_1, \dots, x_n)$.
                 The joint probability of getting the data $\ulsmash{x}$ is the \textbf{likelihood function}, which is a function of $\theta$ for fixed data - "the probability to observe this data";
                 $$L(\theta|\ulsmash{x}) \triangleq \product{i = 1}{n} P_{X|\theta}(x_i)$$
@@ -1603,4 +1603,46 @@
 
                 However, we can maximise the log-likelihood function;
                 $$\ell(\theta|\ulsmash{x}) = \log L(\theta|\ulsmash{x}) = \summation{i = 1}{n} \log P_{X|\theta}(x_i)$$
+                Therefore our $\hat{\theta}$ must satisfy the following;
+                $$\underbrace{\left.\pdif{}{\theta} \ell(\theta|\ulsmash{x}) = 0\right|_{\theta = \hat{\theta}}}_\text{stationary point} \text{and} \underbrace{\left.\pdif{^2}{\theta^2} \ell(\theta|\ulsmash{x}) < 0\right|_{\theta = \hat{\theta}}}_\text{maximum point}$$
+                For this to work, our probability distribution function must be differentiable.
+                \medskip
+
+                Applying this to our example, based on the binomial distribution, where we have 100 samples $\ulsmash{x}$, and
+                $$P_{X|p}(x_i) = \binom{10}{x_i}p^{x_i}(1 - p)^{10 - x_i}$$
+                \begin{align*}
+                    L(p|\ulsmash{x}) & = L(p) \\
+                    & = \product{i = 1}{100} \binom{10}{x_i}p^{x_i}(1 - p)^{10 - x_i} & \Rightarrow \\
+                    \ell(p) & = \summation{i = 1}{100} \ln \left(\binom{10}{x_i}p^{x_i}(1 - p)^{10 - x_i}\right) \\
+                    & = \summation{i = 1}{100} \ln \binom{10}{x_i} + \ln(p)\summation{i = 1}{100} x_i + \ln(1 - p) \left(10 \cdot 100 - \summation{i = 1}{100} x_i\right) & \Rightarrow \\
+                    \pdif{}{p} \ell(p) & = \frac{\summation{i = 1}{100} x_i}{p} - \frac{10 \cdot 100 - \summation{i = 1}{100} x_i}{1 - p} & \text{set $= 0$, solve for $p$}, \Rightarrow \\
+                    \hat{p}_\text{MLE} & = \frac{\summation{i = 1}{100} x_i}{10 \cdot 100} \\
+                    & = \frac{\bar{x}}{10} \\
+                    \pdif{^2}{p^2} \ell(p) & = \cdots \\
+                    & = -100 \left(\frac{\bar{x}}{p^2} + \frac{10 - \bar{x}}{(1 - p)^2}\right) & \text{check maximum}
+                \end{align*}
+                Plugging in the values from the the example, we get $p \approx 0.257$.
+                \medskip
+
+                Another example is to work out the MLE for $\mu$ for random variables following the normal distribution;
+                $$X \sim \text{N}(\mu, \sigma^2) \text{ and } f_X(x_i) = \frac{1}{\sigma\sqrt{2 \pi}}e^{-\frac{(x_i - \mu)^2}{2\sigma^2}}$$
+                \begin{align*}
+                    L(\mu|\ulsmash{x}) & = L(\mu) \\
+                    & = \product{i = 1}{n} \frac{1}{\sigma\sqrt{2 \pi}}e^{-\frac{(x_i - \mu)^2}{2\sigma^2}} & \Rightarrow \\
+                    \ell(\mu) & = \summation{i = 1}{n} \ln\left(\frac{1}{\sigma\sqrt{2 \pi}}e^{-\frac{(x_i - \mu)^2}{2\sigma^2}}\right) \\
+                    & = \summation{i = 1}{n} \ln\left(\frac{1}{\sigma\sqrt{2 \pi}}\right) - \summation{i = 1}{n} \frac{(x_i - \mu)^2}{2\sigma^2} \\
+                    & = \summation{i = 1}{n} \ln\left(\frac{1}{\sigma\sqrt{2 \pi}}\right) - \frac{1}{2\sigma^2} \summation{i = 1}{n} (x_i - \mu)^2 \\
+                    & = \summation{i = 1}{n} \ln\left(\frac{1}{\sigma\sqrt{2 \pi}}\right) - \frac{1}{2\sigma^2} \summation{i = 1}{n} x_i^2 + \frac{1}{2\sigma^2} 2\mu \summation{i = 1}{n} x_i - \frac{1}{2\sigma^2} n\mu^2 & \Rightarrow \\
+                    \pdif{}{\mu} \ell(\mu) & = \frac{\summation{i = 1}{n} x_i}{\sigma^2} - \frac{n\mu}{\sigma^2} & \text{set $= 0$, solve for $\mu$}, \Rightarrow \\
+                    \hat{\mu}_\text{MLE} & = \bar{x}
+                \end{align*}
+                However, is the MLE a good estimator of $\theta$?
+                \begin{itemize}
+                    \itemsep0em
+                    \item not necessarily unbiased
+                    \item for large $n$, the MLE is approximately normally distributed with mean $\theta$
+                    \item it is consistent
+                    \item always asymptotically efficient, and if there exists an efficient estimator, it's the MLE
+                \end{itemize}
+                We can quantify the degree of uncertainty with confidence intervals.
  \end{document}
