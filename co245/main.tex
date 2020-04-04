@@ -1070,7 +1070,7 @@
                                 \end{align*}
                             \item therefore $X \sim \text{Exp}(\lambda)$
                         \end{itemize}
-                    \item \textbf{normal (Gaussian)} \hfill $X \sim \text{N}(\mu, \sigma^2)$
+                    \item \textbf{normal (Gaussian)} \hfill $X \sim N(\mu, \sigma^2)$
                         \medskip
 
                         A normal (or Gaussian) random variable with a range across all real numbers has the following probability density function (and corresponding cumulative distribution function);
@@ -1079,7 +1079,7 @@
                             F(x) & = \frac{1}{\sigma \sqrt{2 \pi}} \defint{-\infty}{x}{e^{-\frac{(t - \mu)^2}{2 \sigma^2}}}{t}
                         \end{align*}
                         It can be shown that $X$ has mean $\mu$ and variance $\sigma^2$.
-                        Note that when $\mu = 0$, and $\sigma = 1$, we have the standard normal distribution, $Z \sim \text{N}(0, 1)$, which has the following simplified probability density function, and cumulative distribution function;
+                        Note that when $\mu = 0$, and $\sigma = 1$, we have the standard normal distribution, $Z \sim N(0, 1)$, which has the following simplified probability density function, and cumulative distribution function;
                         \begin{align*}
                             f(z) & \equiv \phi(z) \\
                             & = \frac{1}{\sqrt{2 \pi}} e^{-\frac{z^2}{2}} \\
@@ -1093,12 +1093,12 @@
                             \Phi(z) & = 1 - \Phi(-z) \\
                             P(Z > z) & = 1 - \Phi(z)
                         \end{align*}
-                        Suppose $X \sim \text{N}(\mu, \sigma^2)$, then applying a linear transformation with constants $a, b \in \mathbb{R}$, $aX + b$ also has a normal distribution (follows from the general results for expectation and variance);
+                        Suppose $X \sim N(\mu, \sigma^2)$, then applying a linear transformation with constants $a, b \in \mathbb{R}$, $aX + b$ also has a normal distribution (follows from the general results for expectation and variance);
                         \begin{center}
-                            $X \sim \text{N}(\mu, \sigma^2) \Rightarrow aX + b \sim \text{N}(a\mu + b, a^2\sigma^2)$
+                            $X \sim N(\mu, \sigma^2) \Rightarrow aX + b \sim N(a\mu + b, a^2\sigma^2)$
                         \end{center}
                         This allows us to standardise any normal random variable;
-                        $$X \sim \text{N}(\mu, \sigma^2) \Rightarrow \frac{X - \mu}{\sigma} \sim \text{N}(0, 1)$$
+                        $$X \sim N(\mu, \sigma^2) \Rightarrow \frac{X - \mu}{\sigma} \sim N(0, 1)$$
                         This allows us to write the cdf of $X$ in terms of $\Phi$;
                         $$\text{let } Z = \frac{X - \mu}{\sigma} \text{ then } X \leq x \Leftrightarrow \frac{X - \mu}{\sigma} \leq \frac{x - \mu}{\sigma} \Leftrightarrow Z \leq \frac{x - \mu}{\sigma}$$
                         Therefore
@@ -1133,12 +1133,12 @@
                     \text{Var}\left(\frac{\summation{i = 1}{n} X_i - n\mu}{\sqrt{n}\sigma}\right) & = 1
                 \end{align*}
                 This gives the result
-                $$\limit{n}{\infty} \frac{\summation{i = 1}{n} X_i - n\mu}{\sqrt{n}\sigma} \sim \text{N}(0, 1)$$
+                $$\limit{n}{\infty} \frac{\summation{i = 1}{n} X_i - n\mu}{\sqrt{n}\sigma} \sim N(0, 1)$$
                 Which can also be written as
                 $$\limit{n}{\infty} \frac{\bar{X} - \mu}{\frac{\sigma}{\sqrt{n}}} \sim \Phi \text{ where } \bar{X} = \frac{\summation{i = 1}{n} X_i}{n}$$
                 The CLT implies for large $n$;
-                $$\bar{X} \sim \text{N}\left(\mu, \frac{\sigma^2}{n}\right) \text{ or } \summation{i = 1}{n}X_i \sim \text{N}(n\mu, n\sigma^2)$$
-                The results are exact when $X_i \sim \text{N}(\mu, \sigma^2)$, the results are exact, as the sum of independent normally distributed random variables is also randomly distributed.
+                $$\bar{X} \sim N\left(\mu, \frac{\sigma^2}{n}\right) \text{ or } \summation{i = 1}{n}X_i \sim N(n\mu, n\sigma^2)$$
+                The results are exact when $X_i \sim N(\mu, \sigma^2)$, the results are exact, as the sum of independent normally distributed random variables is also randomly distributed.
                 A sketch proof of this is as follows - given $n$ iid random variables $X_1, X_2, \dots, X_n$ let;
                 $$Z_n = \frac{\summation{i = 1}{n} X_i - n\mu}{\sqrt{n\sigma^2}} = \summation{i = 1}{n} \frac{Y_i}{\sqrt{n}} \text{ where } Y_i = \frac{X_i - \mu}{\sigma}$$
                 Note that we've normalised the random variable $X_i$, but we could've taken $X_i$ with mean 0 and variance 1 without loss of generality.
@@ -1157,20 +1157,20 @@
                 Hence as $n \to \infty$;
                 $$\Phi_{Z_n}(t) = \left(1 + \frac{i^2t^2}{2n} + M_3\frac{i^3t^3}{6n^\frac{3}{2}} + \cdots\right)^n \to e^{-\frac{t^2}{2}} \text{ (characteristic function of N($0, 1$))}$$
                 Note that as $n$ goes to infinity, the any term after $t^2$ go towards zero, much faster than the $t^2$ term.
-                Therefore, by Levy's continuity theorem; $Z_n \sim \text{N}(0, 1)$ as $n \to \infty$.
+                Therefore, by Levy's continuity theorem; $Z_n \sim N(0, 1)$ as $n \to \infty$.
                 \medskip
 
                 The simplest application of this would be a set of iid Bernoulli($p$) random variables $X_1, X_2, \dots$. with $\mu = p$ and $\sigma^2 = p(1 - p)$.
                 Then for any $n$ (has $\mu = np$ and $\sigma^2 = np(1 - p)$);
                 $$\summation{i = 1}{n} X_i \sim \text{Binomial}(n, p)$$
                 By CLT, for large $n$;
-                $$\summation{i = 1}{n} X_i \sim \text{N}(np, np(1 - p))$$
-                This then shows that, for a large $n$, $\text{Binomial}(n, p) \approx \text{N}(np, np(1 - p))$.
+                $$\summation{i = 1}{n} X_i \sim N(np, np(1 - p))$$
+                This then shows that, for a large $n$, $\text{Binomial}(n, p) \approx N(np, np(1 - p))$.
                 However, the LHS is a discrete distribution, whereas the RHS is a continuous distribution.
             \subsubsection*{Example Questions}
                 \begin{enumerate}[1.]
                     \itemsep0em
-                    \item An analogue signal received at a detector (measured in microvolts) may be modelled as a Gaussian random variable $X \sim \text{N}(200, 256)$.
+                    \item An analogue signal received at a detector (measured in microvolts) may be modelled as a Gaussian random variable $X \sim N(200, 256)$.
                         \begin{enumerate}[(a)]
                             \itemsep0em
                             \item What is the probability that the signal will exceed 240$\mu$V?
@@ -1469,7 +1469,7 @@
                         This may not always be feasible - we can collect a \textbf{sample} of 20 observations from the population, and calculate a sample mean $\bar{x}$, and sample variance $s^2$;
                         $$\bar{x} = \frac{1}{20} \summation{i = 1}{20} x_i \text{ and } s^2 = \frac{1}{20} \summation{i = 1}{20} (x_i - \bar{x})^2$$
                         If this is done with replacement (for iid model), then we know (by CLT) the sample mean $\bar{x}$ is a random variable whose distribution is approximated by;
-                        $$\bar{x} \sim \text{N}\left(\mu, \frac{\sigma^2}{20}\right)$$
+                        $$\bar{x} \sim N\left(\mu, \frac{\sigma^2}{20}\right)$$
                     \item
                         Suppose we have a random variable $X$ representing a random draw from our underlying population;
                         $$X \sim \text{Binomial}(10, p) \text{ with } P_X(x) = \binom{10}{x}p^x(1 - p)^{10 - x}$$
@@ -1516,7 +1516,7 @@
                 Provided $n$ is large, CLT gives an approximation for $P_{T|\theta}$, if
                 $$T = \bar{X} = \frac{1}{n} \summation{i = 1}{n} X_i \text{ is the sample mean}$$
                 Regardless of the form of $P_{X|\theta}$, we know that approximately;
-                $$\bar{X} \sim \text{N}\left(E(X), \frac{\text{Var}(X)}{n}\right)$$
+                $$\bar{X} \sim N\left(E(X), \frac{\text{Var}(X)}{n}\right)$$
                 Considering the initial example, where we have an exponential distribution, it can be shown (somehow) our statistic $T = \bar{X}$ is a continuous random variable with probability density function;
                 $$f_{T|\lambda}(t|\lambda) = \frac{(n \lambda)^nt^{n - 1}e^{-n \lambda t}}{(n - 1)!}$$
                 As an aside, the probability density function for $\text{Gamma}(\alpha, \beta)$ is
@@ -1625,7 +1625,7 @@
                 \medskip
 
                 Another example is to work out the MLE for $\mu$ for random variables following the normal distribution;
-                $$X \sim \text{N}(\mu, \sigma^2) \text{ and } f_X(x_i) = \frac{1}{\sigma\sqrt{2 \pi}}e^{-\frac{(x_i - \mu)^2}{2\sigma^2}}$$
+                $$X \sim N(\mu, \sigma^2) \text{ and } f_X(x_i) = \frac{1}{\sigma\sqrt{2 \pi}}e^{-\frac{(x_i - \mu)^2}{2\sigma^2}}$$
                 \begin{align*}
                     L(\mu|\ulsmash{x}) & = L(\mu) \\
                     & = \product{i = 1}{n} \frac{1}{\sigma\sqrt{2 \pi}}e^{-\frac{(x_i - \mu)^2}{2\sigma^2}} & \Rightarrow \\
@@ -1645,4 +1645,92 @@
                     \item always asymptotically efficient, and if there exists an efficient estimator, it's the MLE
                 \end{itemize}
                 We can quantify the degree of uncertainty with confidence intervals.
- \end{document}
+        \subsection*{27th February 2020}
+            \subsubsection*{Uncertainty of Estimates}
+                It is often insufficient to report an estimate $\hat{\theta}$ for an unknown $\theta$ - we usually want to quantify the uncertainty of this estimate.
+                If we had the true sampling distribution of our statistic, $P_{T|\theta}$, then the \textbf{variance of this distribution} would give this measure.
+                We can plug in our estimated value ($\hat{\theta}$), and hence use the approximated sampling distribution $P_{T|\theta}$.
+            \subsubsection*{Confidence Intervals}
+                By the central limit theorem, we have the following (for any $X_i$ with mean $\mu$, and variance $\sigma^2$);
+                $$\bar{X} = \frac{1}{n} \summation{i = 1}{n} X_i \sim N\left(\mu, \frac{\sigma^2}{n}\right)$$
+                Using the sample mean as the estimator for the population mean, we can further approximate this as;
+                $$\bar{X} \sim N\left(\bar{x}, \frac{\sigma^2}{n}\right)$$
+                If we knew the true population variance $\sigma^2$, then we'd be able to say if the true mean parameters $\mu$ was $\bar{x}$, then for a large $n$, with 95\% probability we would've observed $\bar{X}$ within the 95\% \textbf{confidence interval};
+                $$\left(\bar{x} - 1.96 \frac{\sigma}{\sqrt{n}}, \bar{x} + 1.96 \frac{\sigma}{\sqrt{n}}\right)$$
+                More generally, we can define the $100(1 - \alpha)\%$ confidence interval for $\mu$ as;
+                $$\left(\bar{x} - z_{1 - \frac{\alpha}{2}}\frac{\sigma}{\sqrt{n}}, \bar{x} + z_{1 - \frac{\alpha}{2}}\frac{\sigma}{\sqrt{n}}\right)$$
+                Note that $z_\alpha$ is the $\alpha$-quantile of the standard normal (same as using $\Phi^{-1}(\alpha)$).
+                \medskip
+
+                An example of this is as follows.
+                Suppose there was a survey to investigate the proportion of employees who thought the board was doing a good job has 1000 employees selected at random, with 732 saying they did.
+                Find a 99\% confidence interval for the proportion in the population who thought the board was doing a good job.
+                \medskip
+
+                We can model this as 1000 Bernoulli($p$) random variables, with probability $p$ saying good, and probability $1 - p$ saying bad.
+                Note that we also know $\mu = p$ for a Bernoulli distribution, hence our estimate for the population mean is $\hat{p} = \bar{x} = 0.732$.
+                Since we've assumed a Bernoulli($p$) distribution, we also have the variance as;
+                \begin{align*}
+                    \sigma^2 & = p(1 - p) \\
+                    & = \bar{x}(1 - \bar{x}) \\
+                    & \approx 0.196
+                \end{align*}
+                We can then construct a 99\% confidence interval, taking $\Phi^{-1}(0.995) \approx 2.576$, for $\hat{p} = \bar{x} = 0.732$; $$\left(\bar{x} - 2.576\frac{\sqrt{0.196}}{\sqrt{1000}}, \bar{x} + 2.576\frac{\sqrt{0.196}}{\sqrt{1000}}\right) \approx (0.696, 0.768)$$
+                However, it's important to note that this was only an approximate confidence interval, as we relied on CLT, as well as assumed the population variance.
+                \medskip
+
+                If $\ulsmash{X} = (X_1, \dots, X_n)$ is an iid sample from $N(\mu, \sigma^2)$, then we do not need the central limit theorem, and the following is exact;
+                $$\bar{X} \sim N\left(\mu, \frac{\sigma^2}{n}\right)$$
+                Then the confidence interval is exact, given we know $\sigma^2$.
+            \subsubsection*{Normal Distribution with Unknown Variance}
+                In practice, when we aim to fit a normal distribution to real data, both $\mu$ and $\sigma^2$ are unknown.
+                Similarly, if $\ulsmash{X}$ is an iid sample from $N(\mu, \sigma^2)$, we have exactly (without proof);
+                $$\underbrace{\frac{\bar{X} - \mu}{\frac{s_{n - 1}}{\sqrt{n}}} \sim t_{n - 1}}_\text{$\sigma^2$ unknown} \text{ versus } \underbrace{\frac{\bar{X} - \mu}{\frac{\sigma}{\sqrt{n}}} \sim N(0, 1)}_\text{$\sigma^2$ known}$$
+                Where $s_{n - 1}$ is the bias-correct sample standard deviation, and $t_\nu$ is the student's $t$ distribution with $\nu$ degrees of freedom.
+                Therefore an \textbf{exact} $100(1 - \alpha)\%$ confidence interval for $\mu$ is;
+                $$\left(\bar{x} - t_{n - 1, 1 - \frac{\alpha}{2}}\frac{s_{n - 1}}{\sqrt{x}}, \bar{x} + t_{n - 1, 1 - \frac{\alpha}{2}}\frac{s_{n - 1}}{\sqrt{x}}\right)$$
+                Where $t_{\nu, \alpha}$ is the $\alpha$-quantile of $t_\nu$ (tabulated).
+                We can make the following comments about $t_\nu$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item heavier tailed than the normal distribution
+                        \subitem this means that if we know $\sigma^2$, then we should use the normal distribution as it will give us tighter (less wide) confidence intervals
+                    \item $\limit{\nu}{\infty} t_\nu = N(0, 1)$ - it approaches the standard normal distribution, hence $t_{\infty, \alpha} = z_\alpha$
+                    \item for $\nu > 40$, $t_\nu \approx N(0, 1)$
+                \end{itemize}
+                For example, if we were to construct a 95\% confidence interval we'd do the following.
+                First note that it is a two-sided test, so the quantile we're interested in is 0.975.
+                Since $\nu = n - 1 = 9$, we will look at $t_{9, 0.975}$, hence we have 2.26.
+            \subsubsection*{Hypothesis Testing}
+                Suppose we want to know if exposure to asbestos is associated with lung disease.
+                We take a group of rats, and divide them into two groups - one which is exposed, and one which is kept unexposed.
+                We then compare the rates of lung disease.
+                Consider the following two hypotheses;
+                \begin{itemize}
+                    \itemsep0em
+                    \item null hypothesis \hfill disease rate is the same
+                    \item alternative hypothesis \hfill disease rate is different (not same)
+                \end{itemize}
+                If the exposed group has a much higher rate of lung disease, then we reject the null hypothesis and conclude that our evidence favours the alternative hypothesis.
+                \medskip
+
+                Suppose we have a random iid sample, $\ulsmash{X} = (X_1, \dots, X_n)$ of random variable from an unknown distribution $P_X$.
+                We then hypothesise probability models for $X$.
+                specifically, we fix upon a parametric family $P_{X|\theta}$, and test whether our hypothesised parameter values are plausible - that we can assume $\theta = \theta_0$ for some particular $\theta_0$.
+                \medskip
+
+                For example, let $X \sim N(\mu, \sigma^2)$, and we may wish to test whether $\mu = 0$ is plausible.
+                \medskip
+
+                Formally, we partition the parameter space $\Theta$ into $\Theta_0$ and $\Theta_1$ (disjoint) and test;
+                \begin{center}
+                    $\underbrace{H_0 : \theta \in \Theta_0}_\text{null hypothesis}$ versus $\underbrace{H_1 : \theta \in \Theta_1}_\text{alt. hypothesis}$
+                \end{center}
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{simple} hypothesis \hfill form $\theta = \theta_0$
+                        \subitem $H_0 : \theta = \theta_0$ versus $H_1 : \theta \neq \theta_0$ \hfill two-sided test (most often)
+                    \item \textbf{composite} hypothesis \hfill form $\theta > \theta_0$ or $\theta < \theta_0$
+                        \subitem $H_0 : \theta > \theta_0$ versus $H_1 : \theta < \theta_0$ \hfill one-sided test
+                \end{itemize}
+\end{document}
