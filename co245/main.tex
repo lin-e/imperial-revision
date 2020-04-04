@@ -15,7 +15,22 @@
 \usepackage{hyperref}
 \usepackage{multirow}
 \usepackage{tipa}
-\usetikzlibrary{decorations.pathreplacing, arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning, intersections}
+\usepackage{pgfplots}
+
+\usetikzlibrary{
+    decorations.pathreplacing,
+    arrows,
+    shapes.gates.logic.US,
+    circuits.logic.US,
+    calc,
+    automata,
+    positioning,
+    intersections
+}
+
+\pgfmathdeclarefunction{gauss}{2}{%
+  \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
+}
 
 \allowdisplaybreaks
 
@@ -1735,4 +1750,125 @@
                 \end{itemize}
         \subsection*{4th March 2020}
             Literally just a tutorial.
+        \subsection*{5th March 2019 (old Panopto)}
+            \subsubsection*{Rejection Region}
+                To test the validity of $H_0$, we choose a test statistic $T(\ulsmash{X})$, with the distribution $P_T$, under $H_0$.
+                Then, we wish to identify a region $R \subset \mathbb{R}$ containing low probability values of $T$, under the assumption $H_0$ is true.
+                Let the low probability be $\alpha$ (such as 5\%).
+                \begin{center}
+                    $P(T \in R|H_0) = \alpha$
+                \end{center}
+                We then calculate the observed test statistic $t(\ulsmash{x})$ for our observed data $\ulsmash{x}$.
+                \begin{itemize}
+                    \itemsep0em
+                    \item if $t \in R$ \hfill "\textbf{reject} the null hypothesis at the $100\alpha\%$ level"
+                    \item if $t \notin R$ \hfill "\textbf{retain} the null hypothesis at the $100\alpha\%$ level"
+                \end{itemize}
+                Changing the significance level, $\alpha \in (0, 1)$, will result in the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item as $\alpha \to 0$, we are less likely to reject our null hypothesis (rejection region becoming smaller)
+                    \item as $\alpha \to 1$, we are more likely to reject our null hypothesis (rejection region becoming larger)
+                \end{itemize}
+                we define the $p$-value of the data as the threshold between us rejecting and not rejecting the null hypothesis.
+                A smaller $p$-value suggests stronger evidence against $H_0$.
+                \medskip
+
+                Note the duality with confidence intervals.
+                If we have constructed a $100(1 - \alpha)\%$ confidence interval for some parameter $\theta$ - this is the set of values for for which there \textbf{wouldn't} be sufficient evidence to reject the null hypothesis $H_0 : \theta = \theta_0$ at the $100\alpha\%$ level.
+            \subsubsection*{Errors}
+                There are two types of errors in the outcome of a hypothesis test;
+                \begin{enumerate}[{type }I:]
+                    \itemsep0em
+                    \item Rejecting $H_0$ when $H_0$ is true, which has the probability;
+                        \begin{center}
+                            $\alpha = P(T \in R|H_0)$
+                        \end{center}
+                        Hence the significance level of a hypothesis test is also the type I error rate.
+                    \item Not rejecting $H_0$ when $H_1$ is true, which has the probability;
+                        \begin{center}
+                            $\beta = P(T \notin R|H_1)$
+                        \end{center}
+                \end{enumerate}
+                Some real scenarios of the following are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $H_0$ says a person is innocent
+                        \begin{enumerate}[{type }I:]
+                            \itemsep0em
+                            \item an innocent person is convicted
+                            \item a guilty person is free
+                        \end{enumerate}
+                    \item $H_0$ says a patient's symptoms after treatment $A$ are indistinguishable from a placebo
+                        \begin{enumerate}[{type }I:]
+                            \itemsep0em
+                            \item falsely indicates the treatment is more effective than a placebo
+                            \item fails to demonstrate the treatment is more effective than a placebo (even though it is)
+                        \end{enumerate}
+                \end{itemize}
+                The \textbf{power} of a hypothesis test is defined as
+                \begin{center}
+                    $1 - \beta = 1 - P(T \notin R|H_1) = P(T \in R|H_1)$
+                \end{center}
+                For a fixed significance level $\alpha = P(T \in R|H_0)$, a well chosen statistic $T$ and rejection region $R$ will have high power (thus maximising the probability of rejecting the null hypothesis when the alternative hypothesis is true).
+            \subsubsection*{Population Mean with Known Variance}
+                Suppose $\ulsmash{X}$ has $n$ samples, iid $N(\mu, \sigma^2)$ (whether exactly, or by CLT), with known $\sigma^2$, and unknown $\mu$.
+                We wish to test for $\mu = \mu_0$ (for some specific value).
+                Our hypotheses are as follows;
+                \begin{center}
+                    $H_0 : \mu = \mu_0$ versus $H_1 : \mu \neq \mu_0$
+                \end{center}
+                Under $H_0$ (assuming $H_0$ is true), we have know both the mean and variance.
+                We have a known distribution for the test statistic ($\bar{X}$);
+                $$Z = \frac{\bar{X} - \mu_0}{\frac{\sigma}{\sqrt{n}}} \sim N(0, 1)$$
+                We define our rejection region to be the $100\alpha\%$ \textbf{tails} of the standard normal distribution;
+                \begin{center}
+                    $R = (-\infty, -z_{1 - \frac{\alpha}{2}}) \cup (z_{1 - \frac{\alpha}{2}}, \infty)$
+                \end{center}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            no markers, domain=-4:4, samples=100,
+                            axis lines*=left, xlabel=$z$, ylabel=$\Phi(z)$,
+                            height=5cm, width=15cm,
+                            enlargelimits=false
+                        ]
+                        \addplot[fill=violet!20, draw=none, domain=-4:-1.96] {gauss(0, 1)} \closedcycle;
+                        \addplot[fill=violet!20, draw=none, domain=1.96:4] {gauss(0, 1)} \closedcycle;
+                        \addplot[thick] {gauss(0, 1)};
+                        \end{axis}
+                    \end{tikzpicture}
+
+                    The rejection region is shaded, for $\alpha = 5\%$.
+                \end{center}
+                Thus $P(Z \in R|H_0) = \alpha$, therefore, we reject our the null hypothesis (at the $100\alpha\%$ significance level) when our observed test statistic $\bar{x}$;
+                $$z = \frac{\bar{x} - \mu_0}{\frac{\sigma}{\sqrt{n}}} \in R$$
+                The $p$-value is given by;
+                $$2(1 - \Phi(| z |)) = 2\left(1 - \Phi\left| \frac{\bar{x} - \mu_0}{\frac{\sigma}{\sqrt{n}}} \right|\right)$$
+            \subsubsection*{Example of Hypothesis Testing}
+                A company makes packets of snack foods, with the weight on the bags being 454 grams.
+                Suppose we know the variance is 70.
+                We then have the mass, in grams) of 50 randomly sampled packets - not writing them out.
+                \begin{itemize}
+                    \itemsep0em
+                    \item $H_0 : \mu = 454$ \hfill null hypothesis
+                    \item $H_1 : \mu \neq 454$ \hfill alternative hypothesis
+                \end{itemize}
+                While the weight distribution of each packet is unknown, the test statistic (sample mean) is distributed as follows (by CLT);
+                $$Z = \frac{\bar{X} - \mu}{\frac{\sigma}{\sqrt{n}}} \sim N(0, 1)$$
+                The realised values are;
+                $$z = \frac{\bar{x} - \mu_0}{\frac{\sigma}{\sqrt{n}}} = \frac{451.22 - 454}{\frac{\sqrt{70}}{\sqrt{50}}} \approx -2.35$$
+                \begin{itemize}
+                    \itemsep0em
+                    \item Let us choose a significance level of $100\alpha\%$, with $\alpha = 0.05$, thus our rejection region is;
+                        \begin{center}
+                            $R = (-\infty, -z_{1 - \frac{\alpha}{2}}) \cup (z_{1 - \frac{\alpha}{2}}, \infty) \approx (-\infty, -1.96) \cup (1.96, \infty)$
+                        \end{center}
+                        We have $z \in R$, therefore we reject the null hypothesis at the 5\% level (hence we are 95\% sure that the mean weight is incorrect).
+                    \item Let us choose another significance level of $100\alpha\%$, with $\alpha = 0.01$, thus our rejection region is;
+                        \begin{center}
+                            $R = (-\infty, -z_{1 - \frac{\alpha}{2}}) \cup (z_{1 - \frac{\alpha}{2}}, \infty) \approx (-\infty, -2.576) \cup (2.576, \infty)$
+                        \end{center}
+                        We have $z \notin R$, therefore we retain the null hypothesis at the 1\% level (hence we are 95\% sure that the mean weight is incorrect).
+                \end{itemize}
 \end{document}
