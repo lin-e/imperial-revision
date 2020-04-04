@@ -2094,4 +2094,32 @@
                 Under independence, we can estimate it as;
                 $$\hat{p}_{i, j} = \hat{p}_{i, \times} \cdot \hat{p}_{\times, j} = \frac{n_{i, \times} \cdot n_{\times, j}}{n^2}$$
                 We then perform the standard test, comparing it to $\chi_\nu^2$, where $\nu = (k - 1)(l - 1)$ degrees of freedom.
+        \subsection*{12th March 2020}
+            \subsubsection*{Example of Independence Testing}
+                Is there any relationship between stress and fitness?
+                \begin{center}
+                    \begin{tabular}{l|ccc|c}
+                        & poor fitness & average fitness & good fitness & \\
+                        \hline
+                        stress & 206 & 184 & 85 & 475 \\
+                        no stress & 36 & 28 & 10 & 74 \\
+                        \hline
+                        & 242 & 212 & 95 & 549
+                    \end{tabular}
+                \end{center}
+                Let the null hypothesis $H_0$ be that stress and fitness are independent.
+                Our expected values, under $H_0$, are as follows;
+                \begin{center}
+                    \begin{tabular}{l|ccc|c}
+                        & poor fitness & average fitness & good fitness & \\
+                        \hline
+                        stress & 209.38 & 183.42 & 82.19 & 475 \\
+                        no stress & 32.62 & 28.58 & 12.81 & 74 \\
+                        \hline
+                        & 242 & 212 & 95 & 549
+                    \end{tabular}
+                \end{center}
+                Therefore, our $X^2 \approx 1.1323$.
+                Comparing this to our value for $\chi_{(k - 1)(l - 1), 1 - \alpha}^2 = \chi_{(2 - 1)(3 - 1), 0.95} = \chi_{2, 0.95}^2 = 5.99$, we see that it is lower, hence we retain $H_0$ at the 5\% level.
+                Thus stress and fitness are independent - hence no relation.
 \end{document}
