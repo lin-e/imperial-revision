@@ -824,4 +824,242 @@
                 \medskip
 
                 Not that this shouldn't be confused with the \textbf{deep web}, which is typically just not indexed on the surface web.
+        \subsection*{27th January 2020 \hfill Week 4, Lecture 1}
+            \subsubsection*{Transport Layer}
+                The transport layer provides both reliable connection-oriented services (TCP - transmission control protocol), as well as unreliable connection-less services (UDP - user datagram protocol).
+                This provides for logical communication between application processes, and only runs on end hosts (not routers / switches).
+                TCP data are called segments, whereas UDP data are called datagrams.
+                \medskip
+
+                We also assume that the underlying layer is working, with every host having a unique IP address, and that IP is a "best-effort" delivery service.
+                This means that it has no guarantees on the integrity of data (or packet) transmission, nor does it guarantee the order of delivery of packets or segments.
+            \subsubsection*{Data Encapsulation}
+                For each layer, we have the following terminology - we can't refer to everything as packets;
+                \begin{itemize}
+                    \itemsep0em
+                    \item application layer \hfill data
+                    \item transport layer \hfill TCP segments or UDP datagrams
+                        \subitem (TCP only) segmentation can be done when the segments are too large - if the UDP datagrams are too large, it cannot be sent
+                    \item network / internet layer \hfill IP datagrams (or packets)
+                        \subitem similarly, fragmentation can be done when the packets are too large
+                    \item data link layer \hfill frames
+                    \item physical layer \hfill bits
+                \end{itemize}
+            \subsubsection*{Ports}
+                Note that it's possible for a client (one IP) to communicate with the same host (one IP) via multiple applications, such as HTTP and SMTP.
+                Each application on ta host is identified with a unique port number - they can be thought of as cross-platform process identifiers.
+                A socket consists of two pairs of ~ip\_address~ + ~port\_number~ + ~TCP/UDP~;
+                such as
+                \begin{center}
+                    ~146.179.40.24:80 TCP~ $\Leftrightarrow$ ~192.168.1.1:7155 TCP~
+                \end{center}
+                The first 1024 ports (0 - 1023) are reserved, and cannot be used to form a connection as a client (unless it is done as a superuser).
+            \subsubsection*{Transmission Control Protocol}
+                TCP is the Internet's primary transport protocol.
+                It is a connection-oriented service, and endpoints initially perform a handshake to establish a connection.
+                This is a full-duplex service, thus both endpoints can send a receive at the same time.
+                Some definitions for TCP are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{TCP segment} \hfill "envelope" for TCP data
+                    \item \textbf{maximum segment size (MSS)}
+                        \subitem maximum amount of application data transmitted in a single segment (does not include headers) - typically related to MTU to avoid network-level fragmentation
+                    \item \textbf{maximum transmission unit (MTU)} \hfill largest link-layer frame available to the sender host
+                        \subitem path MTU discovery (PMTUD) is used to determine the largest link-layer frame that can be sent on all links from the sender to the receiver
+                \end{itemize}
+                The TCP header consists of the following fields;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \violet{source and destination ports} \hfill 16-bit each (identifies applications)
+                    \item \violet{sequence number} \hfill 32-bit (used to implement reliable data transfer)
+                        \medskip
+
+                        These numbers are not associated with the segments, but instead are associated with the bytes in the data stream.
+                        It indicates the sequence number (the place) of the first byte carried by the TCP segment.
+                        When the connection is initialised, a random ISN (initial sequence number) is decided upon to avoid accidentally receiving leftover segments.
+                    \item \violet{acknowledgement number} \hfill 32-bit (used to implement reliable data transfer)
+                        \medskip
+
+                        Represents the first number not yet seen by the receiver (one higher than the sequence number of the last bit received).
+                        These can be cumulative, and typically TCP implementations acknowledge every other packet;
+                        \begin{center}
+                            \begin{tikzpicture}[x=1.5cm, y=0.55cm]
+                                \node at (4, -6) {$\vdots$};
+                                \node at (0, 0.5) {~A~};
+                                \node at (8, 0.5) {~B~};
+                                \draw (0, 0) edge[->] (0, -7);
+                                \draw (8, 0) edge[->] (8, -7);
+                                \draw
+                                (0, -1) edge[->, above] node{~[seq\#=1200,...], size(data) = 1000~} (8, -1)
+                                (0, -3) edge[->, above] node{~[seq\#=2200,...], size(data) = 500~} (8, -3)
+                                (8, -5) edge[->, above] node{~[seq\#=...,ack\#=2700]~} (0, -5);
+                            \end{tikzpicture}
+                        \end{center}
+                        Note that because a TCP connection consists of a full-duplex link, there are two streams, hence two different sequence numbers (see the example below, of an "echo" application).
+                        Acknowledgements are "piggybacked" on data segments.
+                        \begin{center}
+                            \begin{tikzpicture}[x=1.5cm, y=0.55cm]
+                                \node at (4, -6) {$\vdots$};
+                                \node at (0, 0.5) {~A~};
+                                \node at (8, 0.5) {~B~};
+                                \draw (0, 0) edge[->] (0, -8);
+                                \draw (8, 0) edge[->] (8, -8);
+                                \draw
+                                (0, -1) edge[->, above] node{~[seq\#=100,data="C"]~} (8, -1)
+                                (8, -3) edge[->, above] node{~[ack\#=101,seq\#=200,data="C"]~} (0, -3)
+                                (0, -5) edge[->, above] node{~[seq\#=101,ack\#=201,data="i"]~} (8, -5)
+                                (8, -7) edge[->, above] node{~[ack\#=201,seq\#=102,data="i"]~} (0, -7);
+                            \end{tikzpicture}
+                        \end{center}
+                    \item receive window \hfill 16-bit (size of window on receiver end)
+                    \item header length / offset \hfill 4-bit (size of TCP header in 32-bit words)
+                    \item optional fields \hfill variable length (may be used to negotiate protocol parameters)
+                    \item ~URG~ flag \hfill 1-bit (informs receiver some data is marked as urgent)
+                    \item \violet{~ACK~ flag} \hfill 1-bit (value contained in the acknowledge number is a valid acknowledgement)
+                        \medskip
+
+                        See \textbf{acknowledgement number} above, and the \textbf{three-way handshake} section.
+                    \item ~PSH~ flag \hfill 1-bit (solicit receiver to pass data to application immediately)
+                    \item ~RST~ flag \hfill 1-bit (used during connection setup and shutdown)
+                    \item \violet{~SYN~ flag} \hfill 1-bit (used during connection setup and shutdown)
+                        \medskip
+
+                        See the \textbf{three-way handshake} section below.
+                    \item \violet{~FIN~ flag} \hfill 1-bit (used during connection shutdown)
+                        \medskip
+
+                        A client sends a TCP segment with ~FIN~ set, and the server responds with ~ACK~, and then the server sends a ~FIN~ TCP segment, client then responds with ~ACK~.
+                        Closing a connection is simpler than initialising one.
+                    \item \violet{checksum} \hfill 16-bit (used to detect transmission errors)
+                \end{itemize}
+            \subsubsection*{Three-Way Handshake}
+                The three steps are as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{client} sends a TCP segment with ~SYN~ set, and an initial sequence number
+                    \item \textbf{server} responds with another TCP segment with ~SYN~ set, as well as ~ACK~, the first unseen client sequence number, and the ISN for the server
+                    \item \textbf{client} reserved with a TCP segment with ~ACK~ set, the first unseen server sequence number, and the client's new sequence number
+                \end{enumerate}
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=0.55cm]
+                        \node at (4, -6) {$\vdots$};
+                        \node at (0, 0.5) {client};
+                        \node at (8, 0.5) {server};
+                        \draw (0, 0) edge[->] (0, -7);
+                        \draw (8, 0) edge[->] (8, -7);
+                        \draw
+                        (0, -1) edge[->, above] node{~[SYN,seq\#=cli\_init\_seq]~} (8, -1)
+                        (8, -3) edge[->, above] node{~[SYN,ACK,ack\#=cli\_init\_seq+1,seq\#=srv\_init\_seq]~} (0, -3)
+                        (0, -5) edge[->, above] node{~[ACK,seq\#=cli\_init\_seq+1,ack\#=srv\_init\_seq+1]~} (8, -5);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{User Datagram Protocol}
+                UDP only provides the two most basic functions of a transport protocol, which are application identification (multiplexing and demultiplexing), and an integrity check via a CRC-type checksum.
+                There is no flow control, no error control, nor any retransmissions.
+                The datagrams cannot be larger than 65K, there is no segmentation, and the router will just drop it.
+                The 65K consists of 20B IP header, 8B UDP header, 65507B of data, coming to a total of 65535 bytes.
+                In practice, only 500 to 1000 bytes are used (the smaller the datagram, the more likely it will arrive intact).
+                \medskip
+
+                Instead of just using IP, it adds port numbers on top of it, allowing us to differentiate between applications.
+                This is a connection-less protocol, therefore there is no need to connect (just send the data) but each datagram packet must carry the full address and port of the recipient.
+                The UDP header consists of the following fields;
+                \begin{itemize}
+                    \itemsep0em
+                    \item source and destination ports \hfill 16-bit each
+                    \item length of data \hfill 16-bit
+                    \item checksum \hfill 16-bit
+                \end{itemize}
+                Any application where we care more about speed, we can use UDP, since it is generally faster (due to the lack of connection establishment), and also has a smaller packet overhead.
+            \subsubsection*{Berkeley Socket Interface}
+                The \textbf{Berkeley} socket interface is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~SOCKET~ \hfill create a new communication endpoint
+                    \item ~BIND~ \hfill attach a local address to a socket
+                        \subitem the client and server each bind a transport-level address and a name to the locally created socket
+                    \item ~LISTEN~ \hfill announce willingness to accept ~N~ connections
+                        \subitem server starts listening on this socket, thus telling the kernel it will wait for connections from clients
+                    \item ~ACCEPT~ \hfill block until a remote client wishes to establish a connection
+                        \subitem this blocks the current thread, thus it is a synchronous operation
+                        \subitem from here the server can accept or select connections from clients
+                    \item ~CONNECT~ \hfill attempt to establish a connection
+                        \subitem a client connects to the socket, it needs to provide the full transport-level address to locate the socket
+                    \item ~SEND~ \hfill send data over a connection
+                    \item ~RECEIVE~ \hfill receive data over a connection
+                        \subitem now the client and server communicate through these operations on their respective sockets
+                    \item ~CLOSE~ \hfill release the connection
+                        \subitem end the communication, must be closed otherwise connections may be continued, and may run out of ports
+                \end{itemize}
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm, y=0.66cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (1.5, 0.5) {server};
+                            \node at (1.5, -0.5) {~SOCKET~};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(0, -1.5)}]
+                            \node at (1.5, -0.5) {~BIND~};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(0, -3)}]
+                            \node[violet] at (1.5, -0.5) {~LISTEN~};
+                            \draw[violet] (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(0, -4.5)}]
+                            \node[violet] at (1.5, -0.5) {~ACCEPT~};
+                            \draw[violet] (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(0, -6)}]
+                            \node at (1.5, -0.5) {~READ~};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(0, -7.5)}]
+                            \node at (1.5, -0.5) {~WRITE~};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(0, -9)}]
+                            \node at (1.5, -0.5) {~CLOSE~};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \draw
+                        (1.5, -1) -- (1.5, -1.5)
+                        (1.5, -2.5) -- (1.5, -3)
+                        (1.5, -4) -- (1.5, -4.5)
+                        (1.5, -5.5) -- (1.5, -6)
+                        (1.5, -7) -- (1.5, -7.5)
+                        (1.5, -8.5) -- (1.5, -9)
+                        (6.5, -1) -- (6.5, -4.5)
+                        (6.5, -5.5) -- (6.5, -6)
+                        (6.5, -7) -- (6.5, -7.5)
+                        (6.5, -8.5) -- (6.5, -9)
+                        (3, -5) edge[<->, dashed, violet] (5, -5)
+                        (5, -6.5) edge[->] (3, -6.5)
+                        (3, -8) edge[->] (5, -8)
+                        (0, -8) edge[->, bend left=45] (0, -6.5)
+                        (8, -8) edge[->, bend right=45] (8, -6.5);
+                        \begin{scope}[shift={(5, 0)}]
+                            \node at (1.5, 0.5) {client};
+                            \node at (1.5, -0.5) {~SOCKET~};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(5, -4.5)}]
+                            \node[violet] at (1.5, -0.5) {~CONNECT~};
+                            \draw[violet] (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(5, -6)}]
+                            \node at (1.5, -0.5) {~WRITE~};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(5, -7.5)}]
+                            \node at (1.5, -0.5) {~READ~};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(5, -9)}]
+                            \node at (1.5, -0.5) {~CLOSE~};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                Note that the part in \violet{violet} would not be present for UDP.
 \end{document}
