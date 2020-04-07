@@ -180,7 +180,7 @@
 % actual document
 \begin{document}
     \section*{CO212 - Networks and Communications}
-        \subsection*{14th January 2020}
+        \subsection*{14th January 2020 \hfill Week 1, Lecture 1}
             \subsubsection*{Evolution of the Internet}
                 Literally only writing this part so I have something for the first lecture.
                 \begin{itemize}
@@ -188,5 +188,70 @@
                     \item (1969 - October) first message sent on ARPANET; "login", crashed after "l" and "o" were sent
                     \item (1971) universities in West and East coast of USA connected
                     \item (1980) London connected
+                \end{itemize}
+        \subsection*{14th January 2020 \hfill Week 2, Lecture 1}
+            \subsubsection*{World Wide Web (WWW)}
+                This is an example of an \textbf{application} on the internet, based on HTTP (HyperText Transfer Protocol).
+                A web browser (the client) sends a \violet{request} to the web server over a pipe, which can be any form of connection between the two devices (can also be the same device), which in turn sends back a \teal{response}.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (6, 1) {\shortstack{~GET /pixel.gif HTTP/1.1~\\~Host: www.example.com~\\~...~}};
+                        \node at (6, -3) {\shortstack{~HTTP/1.1 200 OK~\\~...~\\~[binary data]~\\~...~}};
+                        \node at (1, -1) {\shortstack{web\\browser}};
+                        \node at (11, -1) {\shortstack{web\\server}};
+                        \draw (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle;
+                        \draw (10, 0) -- (12, 0) -- (12, -2) -- (10, -2) -- cycle;
+                        \draw[violet] (2, -0.5) edge[->, bend left=10] (10, -0.5);
+                        \draw[teal] (10, -1.5) edge[->, bend left=10] (2, -1.5);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Layers}
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{application layer}
+                        \medskip
+
+                        Any software written for the internet is on the application layer.
+                    \item \textbf{transport layer}
+                        \medskip
+
+                        In the \textbf{transport layer}, packets leave your (client) machine to the server, and the server sends back packets to your client.
+                        This layer divides a (big) message into smaller chunks, and sends them to the other side (re-ordered) to be presented to the recipient.
+                    \item \textbf{network layer}
+                        \medskip
+
+                        The \textbf{route / path} (sequences of switches a packet goes through) each packet takes can be different from the others, and is often the most optimal route available.
+                        This is done on the \textbf{network layer}, which routers are a part of.
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \node at (1, -1) {\shortstack{web\\browser}};
+                                \node at (11, -1) {\shortstack{web\\server}};
+                                \draw (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle;
+                                \draw (10, 0) -- (12, 0) -- (12, -2) -- (10, -2) -- cycle;
+                                \node[state, minimum size=1cm] (0) at (4, 1) {};
+                                \node[state, minimum size=1cm] (1) at (5, -1) {};
+                                \node[state, minimum size=1cm] (2) at (6, -3) {};
+                                \node[state, minimum size=1cm] (3) at (7, 0) {};
+                                \node[state, minimum size=1cm] (4) at (8, -2) {};
+                                \node[state, minimum size=1cm] (5) at (8, 1) {};
+                                \draw[violet] (2, -1) -- (0) -- (3) -- (2) -- (4) -- (10, -1);
+                                \draw
+                                (0) -- (1)
+                                (0) -- (5)
+                                (1) -- (3)
+                                (1) -- (4)
+                                (4) -- (5);
+                            \end{tikzpicture}
+                        \end{center}
+                    \item \textbf{data link layer}
+                        \medskip
+
+                        Our devices are linked to the network on the \textbf{data link layer}, via network interface controllers (NICs).
+                        Examples of this include Ethernet, fiber optic network cards, as well as wireless devices such as WiFi access points, and USB dongles for 4G.
+                        A communication link is any connection between packet switches and / or end systems.
+                    \item \textbf{physical layer}
+                        \medskip
+
+                        Finally, on the \textbf{physical layer}, there are various forms of communication media, including fiber-optic cables, twisted-pair copper wire, coaxial cables, and wireless local-area links (802.11, Bluetooth, etc).
                 \end{itemize}
 \end{document}
