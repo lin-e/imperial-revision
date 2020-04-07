@@ -1,7 +1,7 @@
 import os
 import shutil
 
-exclude = [ "co000_testing" ]
+exclude = [ "co000" ]
 
 output_path = os.path.realpath(".") + "/_output/"
 total_pages = { }

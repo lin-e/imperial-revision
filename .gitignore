@@ -8,4 +8,5 @@
 *.out
 programming/*
 .metals/*
-co000_testing/*
+co000/*
+materials/*

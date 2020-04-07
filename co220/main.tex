@@ -1,4 +1,5 @@
 \documentclass[a4paper, 12pt]{article}
+
 % packages
 \usepackage{amssymb}
 \usepackage[fleqn]{mathtools}
@@ -15,7 +16,28 @@
 \usepackage{hyperref}
 \usepackage{multirow}
 \usepackage{tipa}
-\usetikzlibrary{decorations.pathreplacing, arrows, shapes.gates.logic.US, circuits.logic.US, calc, automata, positioning, intersections}
+\usepackage{pgfplots}
+
+% tikz libraries
+\usetikzlibrary{
+    decorations.pathreplacing,
+    arrows,
+    shapes.gates.logic.US,
+    circuits.logic.US,
+    calc,
+    automata,
+    positioning,
+    intersections
+}
+
+\pgfplotsset{compat=1.16}
+
+\pgfmathdeclarefunction{gauss}{2}{%
+  \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
+}
+
+\allowdisplaybreaks % allow environments to break
+\setlength\parindent{0pt} % no indent
 
 % shorthand for verbatim
 % this clashes with logicproof, so maybe fix this at some point?
@@ -62,6 +84,16 @@
 \newcommand{\summation}[2]{\sum\limits_{#1}^{#2}}
 \newcommand{\product}[2]{\prod\limits_{#1}^{#2}}
 \newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
+\newcommand{\laplace}{\mathcal{L}}
+\newcommand{\fourier}{\mathcal{F}}
+\newcommand{\mat}[1]{\boldsymbol{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\rowt}[1]{\begin{bmatrix}
+    #1
+\end{bmatrix}^\top}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+
 \newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
 
 \newcommand{\powerset}[0]{\wp}
@@ -79,18 +111,8 @@
 \newcommand{\la}{\langle}
 \newcommand{\ra}{\rangle}
 \newcommand{\crnr}[1]{\text{\textopencorner} #1 \text{\textcorner}}
-\newcommand{\laplace}{\mathcal{L}}
-\newcommand{\fourier}{\mathcal{F}}
-
-\newcommand{\mat}[1]{\boldsymbol{#1}}
-\renewcommand{\vec}[1]{\boldsymbol{#1}}
-\newcommand{\rowt}[1]{\begin{bmatrix}
-    #1
-\end{bmatrix}^\top}
-
-\newcommand{\unaryproof}[2]{\AxiomC{#1} \UnaryInfC{#2} \DisplayProof}
-\newcommand{\binaryproof}[3]{\AxiomC{#1} \AxiomC{#2} \BinaryInfC{#3} \DisplayProof}
-\newcommand{\trinaryproof}[4]{\AxiomC{#1} \AxiomC{#2} \AxiomC{#3} \TrinaryInfC{#4} \DisplayProof}
+\newcommand{\bnfsep}[0]{\ |\ }
+\newcommand{\concsep}[0]{\ ||\ }
 
 \newcommand{\axiom}[1]{\AxiomC{#1}}
 \newcommand{\unary}[1]{\UnaryInfC{#1}}
@@ -100,17 +122,14 @@
 \newcommand{\quinary}[1]{\QuinaryInfC{#1}}
 \newcommand{\dproof}[0]{\DisplayProof}
 
-\newcommand{\bnfsep}[0]{\ |\ }
-\newcommand{\lrbt}[0]{\ \bullet\ }
-\newcommand{\concsep}[0]{\ ||\ }
 \newcommand{\ttbs}{\char`\\}
+\newcommand{\lrbt}[0]{\ \bullet\ }
 
+% colours
 \newcommand{\violet}[1]{\textcolor{violet}{#1}}
 \newcommand{\blue}[1]{\textcolor{blue}{#1}}
 \newcommand{\red}[1]{\textcolor{red}{#1}}
-
-% no indent
-\setlength\parindent{0pt}
+\newcommand{\teal}[1]{\textcolor{teal}{#1}}
 
 % reasoning proofs
 \usepackage{ltablex}
@@ -129,7 +148,7 @@
 \newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
 \newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
 
-% reasoning er diagrams
+% ER diagrams
 \newcommand{\nattribute}[4]{
     \node[draw, state, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
 }
