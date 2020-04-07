@@ -559,4 +559,106 @@
                     \frac{La}{R} & \to 1 & \text{large average queueing delay} \\
                     \frac{La}{R} & > 1 & \text{more working arriving than can be serviced, infinite delay}
                 \end{align*}
+        \subsection*{21st January 2020 \hfill Week 3, Lecture 1}
+            \subsubsection*{Clients and Servers}
+                We can distinguish between the two roles in a pair of communicating processes, in a connection-oriented model;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{client} \hfill initiates communication
+                    \item \textbf{server} \hfill waits to be contacted
+                \end{itemize}
+                On the other hand, some applications have processes that act as both the client and the server, which is referred to P2P (or peer-to-peer) architecture.
+            \subsubsection*{End System Applications}
+                Internet applications are processes on the end systems.
+                They must have a way of addressing each other, either via the internet (such as chat servers), or they can directly communicate (such as FTP) - but this depends on the protocol in use.
+                Note that a single end system (or host) can run multiple programs, which run multiple processes, all of which connect through a network API provided by the operating system.
+                Each process is addressed within its host by a \textbf{port number}.
+                When an application wants to communicate with another application, the OS opens a socket, which allows data to be transferred between the two machines.
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        client application
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item create a socket $C$ by connecting to server application (connecting to host $H$ on port $P$)
+                            \item read and write data to socket $C$
+                            \item disconnect and destroy $C$
+                        \end{enumerate}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        server application (on host $H$)
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item create a socket $S$ by accepting connection on part $P$ (port is often called a server socket)
+                            \item read and write data to socket $S$
+                            \item disconnect and destroy $S$
+                        \end{enumerate}
+                    \end{minipage}
+                \end{center}
+                The server application can open more sockets to server multiple clients at a time.
+                A DDoS (distributed denial of service) attack works by opening many sockets, preventing the server from serving legitimate requests.
+            \subsubsection*{The World Wide Web}
+                Invented in 1989 (formally defined in 1991) by Sir Tim Berners-Lee.
+                Based on the idea of hypertext and hyperlinks (based on a proposal by William Tunnicliffe in late 1960s).
+                Commonly used terminology is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{document} \hfill a webpage is called a document
+                    \item \textbf{object} \hfill any called within a document (images, stylesheets, etc.)
+                    \item \textbf{Uniform Resource Locator (URL)} \hfill specifies the address of an object
+                    \item \textbf{browser} \hfill also called user agent - client used to access documents
+                    \item \textbf{web server} \hfill application that makes documents and objects available through HTTP
+                \end{itemize}
+            \subsubsection*{Protocol}
+                In general, the request and reply would include the following;
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        request
+                        \begin{itemize}
+                            \itemsep0em
+                            \item protocol version
+                            \item URL specification
+                            \item connection attributes
+                            \item content / feature negotiation
+                        \end{itemize}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        reply
+                        \begin{itemize}
+                            \itemsep0em
+                            \item protocol version
+                            \item reply status / value
+                            \item connection attributes
+                            \item object attributes
+                            \item content specification
+                            \item content
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+                A protocol should always include a version number, as it allows the protocol design to change.
+                HTTP/2 will replace HTTP/1.x in the next few years (hopefully), as the former is able to fully multiplex a connection since all content is binary, and can use a single TCP connection for parallelism.
+                \medskip
+
+                The URL contains the host name, which determines where the requests goes, by mapping to a network address.
+                The request consists of a request line, such as ~GET /path/to/index.html HTTP/1.1~, zero or more header lines, an empty line, followed by the object body (which can be empty).
+                The request line contains a method, such as;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~GET~ \hfill retrieve the object identified by the URL
+                    \item ~POST~ \hfill allows for submission of data to the server
+                    \item ~HEAD~ \hfill similar to ~GET~ but only receives headers
+                    \item ~PUT~ \hfill requests the enclosed object to be stored under the given URL
+                    \item ~DELETE~ \hfill deletes the given object
+                    \item ~OPTIONS~ \hfill requests the available communication options for the given object
+                \end{itemize}
+                The status code in a server response is generally as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~1xx~ \hfill informational
+                    \item ~2xx~ \hfill successful
+                    \item ~3xx~ \hfill redirection (e.g. object has temporarily or permanently moved)
+                    \item ~4xx~ \hfill client error (e.g. malformed request, unauthorised, object not found, method not allowed)
+                    \item ~5xx~ \hfill server error (e.g. internal server error, service overloaded)
+                \end{itemize}
 \end{document}
