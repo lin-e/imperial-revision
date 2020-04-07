@@ -735,4 +735,93 @@
                 \textbf{Round Robin DNS} is a load balancing technique, as it responds to DNS requests with a list of IP addresses instead of a single IP address.
                 The IP at the top of list is returned a set number of times before it is moved to the bottom of the list (the IP that was previously second in the list is now at the top).
                 If load balancing is used, the TTL should be small, as we want this to constantly change depending on server load.
+        \subsection*{23rd January 2020 \hfill Week 3, Lecture 3}
+            \subsubsection*{Content Distribution Networks (CDNs)}
+                We have the following options when we want to provide a streaming service from millions of videos to many simultaneous users;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item single, large "mega-server"
+                        \begin{itemize}
+                            \itemsep0em
+                            \item single point of failure, and point of network congestion
+                            \item long path to distant clients (slow)
+                            \item multiple copies of video sent over outgoing link
+                        \end{itemize}
+                        This solution does not scale to a large amount of users.
+                    \item store multiple copies of videos at multiple geographically distributed sites
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{enter deep} \hfill push CDN servers into many access networks (close to users)
+                                \subitem used by Akamai (216000+ servers, 120+ countries, 1500+ networks)
+                            \item \textbf{bring home} \hfill smaller number of large clusters in PoPs near (not within) access networks
+                                \subitem used by Limelight (80+ PoPs - Points of Presence)
+                        \end{itemize}
+                \end{enumerate}
+                A CDN DNS can select a good CDN node by picking the CDN node closest to  the client, or a CDN node with the shortest delay to the client.
+                However, it's important to note that the CDN doesn't know the IP address of the client, only the address of the local DNS which may not be fully accurate.
+                An alternative is to let the client decide by giving a list of CDN servers.
+                The client can then select the "best" based on the lowest RTT.
+            \subsubsection*{Electronic Mail}
+                While email was able to achieve asynchronous communication, one-to-many communication, as well as multimedia content it had a number of limitations.
+                Privacy and security was an issue, as there was initially no authentication - hence messages could be modified or forged, and messages could be read by others.
+                Additionally, it was unreliable as there were no delivery guarantees, and had no reliable acknowledgement system.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (1, -1) {\shortstack{A's\\agent}};
+                        \node at (5, -1) {\shortstack{A's\\mail\\server}};
+                        \node at (9, -1) {\shortstack{B's\\mail\\server}};
+                        \node at (13, -1) {\shortstack{B's\\agent}};
+                        \draw (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle;
+                        \draw (4, 1) -- (6, 1) -- (6, -3) -- (4, -3) -- cycle;
+                        \draw (8, 1) -- (10, 1) -- (10, -3) -- (8, -3) -- cycle;
+                        \draw (12, 0) -- (14, 0) -- (14, -2) -- (12, -2) -- cycle;
+                        \draw
+                        (2, -1) edge[->, above] node{~SMTP~} (4, -1)
+                        (6, -1) edge[->, above] node{~SMTP~} (8, -1)
+                        (10, -1) edge[->, above] node{\shortstack{~POP3/~\\~IMAP/~\\~HTTP~}} (12, -1);
+                    \end{tikzpicture}
+                \end{center}
+                The user agent is the client the user uses to read, compose, reply, send and forward messages.
+                The mail server can do the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item accept messages for remote delivery (delivers message to remote destination server with transport protocol)
+                    \item accept messages for local delivery (saves messages in local persistent mailbox)
+                    \item allows user agents to access local mailboxes (to allow for retrieval and / or deletion of messages)
+                \end{itemize}
+            \subsubsection*{Simple Mail Transfer Protocol}
+                It's important to note that the 'S' in SMTP does not stand for secure (no authentication).
+                This is a connection-oriented protocol (TCP), on port 25.
+                As it is a very simple protocol, it can be left unsecured - this is often targeted by spammers and phishers who use unsecured mail servers to send mail without using their own resources.
+                \medskip
+
+                The general format of using SMTP is headers, followed by an empty line, and then content.
+                A single dot is used to end the email, and ~QUIT~ is used to exit.
+                SMTP is completely oblivious to the contents of a message, other than the \textbf{received} header, which is added by each receiving SMTP server.
+                This can be used to trace the origins of an email.
+                \medskip
+
+                The initial message format had many limitations - it only supported 7-bit text content, and was essentially only usable for the English language.
+                The MIME (multipurpose internet mail extensions) format defined useful extensions on top of SMTP, which includes the following types;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~text/plain~ \hfill normal ASCII message
+                    \item ~text/html~ \hfill HTML-formatted message
+                    \item ~image/jpeg~ \hfill contains only an image file
+                    \item ~multipart/mixed~ \hfill consists of multiple parts
+                \end{itemize}
+            \subsubsection*{Post Office Protocol (POP3) and IMAP}
+                The user's mailbox is often stored on a different machine than the user agent, but we need remote access to incoming (and outgoing) messages.
+                However, POP3 is insecure (at least on port 110), due to the transmission of credentials in plain text.
+                It also implicitly assumes the retrieved mail is deleted at the server, which isn't useful if people wanted to access mail from different clients.
+                \medskip
+
+                The internet message access protocol (IMAP) solves this, by storing messages on a server, and requiring the client to be online to read mail.
+            \subsubsection*{Dark Web}
+                TOR (The Onion Router) hides the user behind a series of machines (proxies), and also allows for access to ~.onion~ sites (as well as regular ones).
+                This can be used for privacy purposes, as well as for circumventing censorship.
+                The exit nodes of TOR can be owned by law enforcement agencies, allowing for a user to be compromised if they were to subpoena all intermediate proxies.
+                \medskip
+
+                Not that this shouldn't be confused with the \textbf{deep web}, which is typically just not indexed on the surface web.
 \end{document}
