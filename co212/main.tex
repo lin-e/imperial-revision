@@ -445,4 +445,118 @@
                 \medskip
 
                 The data from the layer above is known as the \violet{SDU (service data unit)}, and the SDU combined with a header, added by the current layer, is known as the \teal{PDU (protocol data unit)}.
+        \subsection*{16th January 2020 \hfill Week 2, Lecture 3}
+            \subsubsection*{Protocol Layers}
+                The types of protocols on each layer are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{application layer}
+                        \medskip
+
+                        Protocols on the application layer defines functionality and message formats.
+                        Some examples are as follows;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{traditional} \hfill name services (DNS), sending email (SMTP), file transfer (FTP), web (HTTP(S))
+                            \item \textbf{modern}
+                                \subitem includes middleware protocols to support distributed systems with special protocols to handle replication, fault tolerance, caching, etc.
+                            \item \textbf{high-level} \hfill special application-level protocols for e-commerce, banking etc.
+                            \item \textbf{peer-to-peer} \hfill BitTorrent, old-Skype (awful API)
+                        \end{itemize}
+                    \item \textbf{transport layer}
+                        \medskip
+
+                        These protocols generally offer connection-oriented (TCP) as well as connectionless (UDP) services, which have varying degrees of reliability.
+                        These often provide a network interface to application via sockets.
+                        It's also important to note there is a difference between reliability and security; the former guarantees that the data is sent, whereas the latter ensures that it is encrypted in some form.
+                        This layer also provides flow control; mechanisms to ensure fast senders don't overwhelm slow receivers.
+                    \item \textbf{network layer}
+                        \medskip
+
+                        In this layer, the protocols generally describe how routing is performed, such as determining which computers / routers are in the network, the best route between two points, how to handle faults (such as a device going down), as well as handling congestion (when a router is overloaded and packets are dropped).
+                    \item \textbf{data link layer}
+                        \medskip
+
+                        In this layer, we need to detect bit transmission errors.
+                        This can be done by adding redundancy bits in frames to detect errors - for example adding a parity bit to every 7 bits, where a 1 indicates an odd number of 1s, and a 0 indicates an even number of 1s, or adding a checksum (cyclic redundancy check) which should match the bits before it.
+                        \medskip
+
+                        It also specifies how many computers can share a common channel, with the medium access control sub-layer (MAC).
+                        A well known protocol is the Ethernet protocol.
+                    \item \textbf{physical layer}
+                        \medskip
+
+                        This describes the transmission of raw bits, in terms of the physical mechanical and electrical issues.
+                        For example, when two computers are connected with a wire, -3V may indicate to a binary 1, and +4V may correspond to a binary 0.
+                        It may also specify the number of times the voltage can be changed per second.
+                        \medskip
+
+                        For example if the voltage can be changed 20,000 times per second, it indicates that the maximum transfer rate is 20,000 bits per second, which is 20 Kbps (20 kilobits per second).
+                \end{itemize}
+            \subsubsection*{Units}
+                \begin{itemize}
+                    \itemsep0em
+                    \item 1 Byte = 8 bits \hfill note that a byte has an uppercase B, whereas a bit has lowercase b
+                    \item 1000 Bytes = 1 KB \hfill (Kilobyte)
+                    \item 1024 Bytes = 1 KiB \hfill (Kibibyte)
+                \end{itemize}
+                Typically we use powers of 10 for networks, but as long as we are consistent in what we use it is fine.
+            \subsubsection*{Quantifying Data Transfer}
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{bandwidth}
+                        \subitem the amount of information that \textbf{can} get into the connection in a time unit
+                    \item \textbf{throughput}
+                        \subitem the amount of information that \textbf{actually} get into the connection in a time unit - at steady-state, we assume zero accumulation of traffic therefore the input and output throughputs are equal
+                    \item \textbf{latency}
+                        \subitem the time it takes for one bit to go through the connection
+                \end{itemize}
+                Note that for the following formula, we use these values;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $t_0$ \hfill the time the first packet leaves the source
+                    \item $t_1$ \hfill the time the first packet reaches the destination
+                    \item $t_2$ \hfill the time all the packets reach the destination
+                    \item $L$ \hfill the size of the packet in bits
+                    \item latency (propagation delay) \hfill $d = t_1 - t_0$ (generally $\frac{\text{distance}}{\text{wave propagation speed}}$)
+                        \subitem note that this is half the RTT (round-trip time)
+                    \item throughput (link bandwidth) \hfill $R = \frac{L}{t_2 - t_1}$ (generally $\frac{\text{transferred bits}}{\text{duration}}$)
+                    \item packetization (transmission delay / store-and-forward delay) \hfill $\frac{L}{R}$
+                        \subitem time it takes for the entire packet to be received after the first bit is received
+                    \item transfer time (propagation delay + transmission delay) \hfill $\Delta = d + \frac{L}{R}$
+                \end{itemize}
+                However, it's important to note that the connections are (almost) never direct, and therefore will have additional delays at each router.
+                Note that our bandwidth is also bottlenecked by the lowest bandwidth.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (1, -1) {\shortstack{source\\host}};
+                        \node at (6, 0.5) {$d_x$};
+                        \node at (6, -1) {router};
+                        \node at (11, -1) {\shortstack{destination\\host}};
+                        \draw (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle;
+                        \draw (5, 0) -- (7, 0) -- (7, -2) -- (5, -2) -- cycle;
+                        \draw (10, 0) -- (12, 0) -- (12, -2) -- (10, -2) -- cycle;
+                        \draw
+                        (2, -1) edge[->, above] node{$d_1, R_1$} (5, -1)
+                        (7, -1) edge[->, above] node{$d_2, R_2$} (10, -1);
+                    \end{tikzpicture}
+                \end{center}
+                \begin{align*}
+                    d_\text{end-end} & = \begin{cases}
+                        d_1 + \frac{L}{R_1} + d_x + d_2 & R_1 < R_2 \\
+                        d_1 + d_x + \frac{L}{R_2} + d_2 & R_1 \geq R_2
+                    \end{cases} \\
+                    & = d_1 + d_x + d_2 + \frac{L}{\min (R_1, R_2)}
+                \end{align*}
+                The router delay, $d_x$ has two components; the processing delay $d_\text{proc}$ which is the processing time (checking for bit errors and determining the output link), as well as $d_q$, which is the queueing delay - the time waiting at the output link for transmission, which depends on how congested the router is.
+                We can quantify the \textbf{traffic intensity} as follows;
+                \begin{align*}
+                    R & = \text{link bandwidth} \\
+                    L & = \text{packet length (bits)} \\
+                    a & = \text{average packet arrival rate} \\
+                    \frac{La}{R} & = \text{traffic intensity} \\
+                    \frac{La}{R} & \approx 0 & \text{small average queueing delay} \\
+                    \frac{La}{R} & \to 1 & \text{large average queueing delay} \\
+                    \frac{La}{R} & > 1 & \text{more working arriving than can be serviced, infinite delay}
+                \end{align*}
 \end{document}
