@@ -661,4 +661,78 @@
                     \item ~4xx~ \hfill client error (e.g. malformed request, unauthorised, object not found, method not allowed)
                     \item ~5xx~ \hfill server error (e.g. internal server error, service overloaded)
                 \end{itemize}
+        \subsection*{23rd January 2020 \hfill Week 3, Lecture 2}
+            \subsubsection*{How HTTP uses TCP}
+                HTTP uses TCP as it is essentially a file transfer protocol, which needs to be connection-oriented.
+                The first version of HTTP uses a TCP connection for each object, which was an inefficient use of both the network and the operating system.
+                HTTP/1.1 introduced persistent connection, which allows for an existing connection to be used to issue multiple requests (either sending a request, waiting for a response, sending the next request and so on, or through pipelining) - which will eventually close with a timeout.
+                Pipelining allows the client to send all its requests without waiting for a response, and the server delivers them in response.
+            \subsubsection*{Web Caching}
+                A proxy is a server which acts as an intermediate between the client and the destination server.
+                This can be used for caching by storing a copy of the content, which reduces load on the origin server, and also allows for lower latency.
+                Data isn't cached for an extended period of time as it can lead to stale data (where old content is served to a user, even after the content is changed on the origin server).
+                Proxies can also protect the clients by providing anonymity, as well blocking malicious content through the use of a single firewall on the proxy.
+                However, this also acts as a single point of failure - if the proxy fails then the clients may not be able to connect.
+                \medskip
+
+                A ~HEAD~ request could be used to see if an object has been updated, which is less expensive than retrieving the entire object with a ~GET~ request.
+                The request can also include ~Cache-Control: no-cache~, which indicates it does not want cached objects, thus requiring proxies to go to the origin server, or ~Cache-Control: max-age=20~, which only gets a cached object if the cache is less than 20 seconds old.
+                \medskip
+
+                On the other hand, the reply can also include ~Cache-Control: no-cache~, which informs the proxy not to cache the object, or ~Cache-Control: maxage=100; must-revalidate~, which specifies to the proxy that it must revalidate the object after 100 seconds.
+            \subsubsection*{Sessions}
+                Note that HTTP is a \textbf{stateless} protocol, which means that responses have no memory of past requests.
+                However, HTTP allows higher-level applications to maintain \textbf{stateful} sessions, via the use of cookies.
+                The ~Set-Cookie~ header is sent from a server, informing the client to store the cookie as a session identifier for that site.
+                On the other hand, the client sends a ~Cookie~ header, which tells the server which session the request belongs to.
+                This can be useful for storing identifying a user on a page (allowing for personalised pages).
+                However, this can be also be used to track users for profiling and targeted advertising - leading to privacy issues.
+            \subsubsection*{Dynamic Web Pages}
+                Servers often generate pages on-the-fly, instead of only serving statically stored pages.
+                CGI (common gateway interface) allows you to identify a program and its parameters in a URL, which then starts a process to execute the program and return any results as a regular web page.
+                On the other hand, servelets in Java maintain state (whereas CGI is stateless), and the webserver contains an instance of the JVM.
+                \medskip
+
+                Another approach is for the web page to incorporate interpretable code, which is executed when the page is being processed on the client-side (via JavaScript).
+                It's important to distinguish this from server-side processing in something such as PHP, which the user should not see.
+            \subsubsection*{IP and Hosts}
+                Each end system is identified and addressed by its IP address, which is 32 bits in IPv4, or 128 bits in IPv6.
+                This is easy to process by a computer, as it can easily work in powers of two, but not practical for people to use.
+                \medskip
+
+                Host names are used to create human-readable "aliases" for IP addresses.
+                Originally, before 1983, all mappings were in the ~hosts~ file, since there weren't many different hosts.
+                However, as more hosts became present, DNS (Domain Name System) was developed, which provides a distributed lookup facility.
+                \medskip
+
+                There are 13 root DNS servers, which know where the top-level servers are located.
+                The top-level domain servers are each associated with a top-level domain.
+                However, knowing where to connect to requires a large amount of communication between servers.
+                This can therefore be a bottleneck for applications, and also be a critical point of failure.
+                To circumvent this, we can also cache DNS lookups.
+                This improves performance as we do not have to do as much communication, and it also reduces the overall load on the DNS infrastructure.
+                \medskip
+
+                However, this can be an issue if enough DNS servers advertise an incorrect lookup, causing subsequent requests to point to an incorrect IP (DNS cache poisoning).
+                \medskip
+
+                DNS query types are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~A~ \hfill maps a host name to its address, \textbf{name} is a host name, and \textbf{value} is its IP address
+                    \item ~NS~
+                        \subitem a query for a name server, \textbf{name} is a domain name, and \textbf{value} is the authoritative name server for that domain
+                    \item ~CNAME~
+                        \subitem a query for a canonical name, \textbf{name} is a host name alias, \textbf{value} is the primary host name
+                    \item ~MX~
+                        \subitem a query for the mail exchange server \textbf{name} is a host or domain name, and \textbf{value} is the name of the mail server handling incoming mail
+                \end{itemize}
+                The DNS protocol is connectionless, and runs on UDP port 53.
+                UDP (best effort) is used since it only involves two network packets (request and response), setting up and closing a TCP (reliable) connection every time would be wasteful.
+                If it fails, it can just try again.
+                \medskip
+
+                \textbf{Round Robin DNS} is a load balancing technique, as it responds to DNS requests with a list of IP addresses instead of a single IP address.
+                The IP at the top of list is returned a set number of times before it is moved to the bottom of the list (the IP that was previously second in the list is now at the top).
+                If load balancing is used, the TTL should be small, as we want this to constantly change depending on server load.
 \end{document}
