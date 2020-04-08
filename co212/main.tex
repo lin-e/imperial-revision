@@ -1755,4 +1755,41 @@
                 When a message is hashed, the original message cannot be retrieved - it one way.
                 A hash is a fixed size alphanumeric string, calculated based on a specific input - the hash function should always produce the same hash value with the same input.
                 Since it should not be possible to derive the input from the hash value, this can be used for safely storing passwords.
+        \subsection*{11th February 2020 \hfill Week 6, Lecture 1}
+            The scenario is as follows; an IoT research and design institute will receive government funds for a new device used by the police.
+            \begin{itemize}
+                \itemsep0em
+                \item web servers running Apache 2.4.27 with OpenSSL 1.0.1 on Red Hat Enterprise Linux 7.3
+                \item many desktop computers available, running Windows Vista
+                    \subitem they are slow, so many staff members bring their own MacBooks to work
+                \item reception desk on ground floor, with server room at back of floor secured by RFID card reader
+                \item research team on first floor
+                \item design team on second floor
+                \item HR team shares third floor with CEO and CTO
+                \item lower ground level used as storage for technical equipment and parking space
+                \item all desktops have wired Ethernet
+                    \subitem CEO and CTO have company laptops, wireless AP added on top floor for LAN and Internet connection
+                \item employees are planned to be provided with iPads, so they can use iCloud to work from anywhere
+                \item installing more access points throughout building
+            \end{itemize}
+            Some identified security vulnerabilities are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item server room easily accessible (move to basement)
+                \item use biometric scanner instead of RFID
+                \item LAN and Internet connected means local network could be exposed
+                \item wireless network can be accessed without being in the building (packet sniffing)
+                \item sensitive data should not be stored on an external service (iCloud)
+                \item OpenSSL 1.0.1 is vulnerable to Heartbleed
+                \item Apache 2.4.27 (Optionsbleed) and RHEL 7.3 (Local Privilege Escalation Bug) are all broken (CVE can be easily searched)
+                \item Windows Vista
+                \item no building security overnight?
+                \item employees should not be using personal devices
+                \item third-party repairs for MacBooks may expose data
+                \item visitor parking area also has technology
+                \item insecure connections if working from home (VPN should be used)
+                \item employees could be blackmailed or phished (social engineering)
+                \item "evil twin" for wireless AP
+                \item flood risk for ground floor server room
+            \end{itemize}
 \end{document}
