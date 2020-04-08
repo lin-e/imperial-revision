@@ -1792,4 +1792,18 @@
                 \item "evil twin" for wireless AP
                 \item flood risk for ground floor server room
             \end{itemize}
+        \subsubsection*{13th February 2020 \hfill Week 6, Lecture 2}
+            This lecture is the Wireshark practical (enable Promiscuous Mode and Monitor Mode).
+            Promiscuous mode works for both wired and wireless connections, and tells the NIC to not drop any packets (for a wireless network; it only focuses on the connected network).
+            Monitor mode only works on wireless networks, which tells the NIC to start listening in on all networks - any WiFi network with a password will have encrypted data.
+            Most NICs do not support this, or will need different drivers.
+            \medskip
+
+            With Wireshark, we can add display filters to the captured packets to select the ones we are interested in, such as;
+            \begin{itemize}
+                \itemsep0em
+                \item ~http.request.method == GET~
+                \item ~http contains "password"~
+                \item ~ip.src == 192.168.9.220~
+            \end{itemize}
 \end{document}
