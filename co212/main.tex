@@ -1505,5 +1505,106 @@
                     \item ISO (International Organisation for Standardisation)
                 \end{itemize}
         \subsection*{6th February 2020 \hfill Week 5, Lecture 2}
-            \subsubsection*{}
+            \subsubsection*{Examples}
+                Some examples include Heartbleed, KRACK, and some other legal / ethical grey areas.
+                GDPR forces companies to inform their users of hacks within 72 hours.
+            \subsubsection*{Network Security Issues}
+                We want control access over a channel between a user and a resource.
+                We need a way to ensure only specific users can access a resource (access control), as well as a way to authenticate the user (and resource).
+                Additionally, confidentiality also has to be ensured to limit access to information owned by users, as well as integrity (actions of a user should not be able to affect the overall integrity of a resource).
+                Users also cannot deny communication took place (non-repudiation) - blockchain is an example.
+                To achieve this we need;
+                \begin{itemize}
+                    \itemsep0em
+                    \item access control
+                    \item security policy
+                    \item secure channel (users and data are authenticated, information exchanged is confidential)
+                    \item monitoring / logging / auditing
+                \end{itemize}
+            \subsubsection*{Access Control}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle
+                        (4, 0) -- (8, 0) -- (8, -1) -- (4, -1) -- cycle
+                        (6, 0) -- (6, -1)
+                        (2, -0.5) edge[->, above] node {request} (4, -0.5);
+                        \node at (1, -0.5) {principal};
+                        \node at (5, -0.5) {guard};
+                        \node at (7, -0.5) {resource};
+                    \end{tikzpicture}
+                \end{center}
+                Assuming a secure channel, the guard controls which principals can access the resource, where principals are allowed to be located (access within networks), and what requests (actions) principals are allowed to make.
+                \medskip
+
+                This is done via the use of a \textbf{firewall}, which controls access to the network by providing a security gateway between the internal and external networks.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{application-level gateway} \hfill runs on the host, and only protects that host (such as iptables)
+                        \medskip
+
+                        This is in a logical connection, allowing it to monitor traffic.
+                        This means that it can block / filter / report based on application level message content (as well as scan for data leaks, viruses, etc).
+                        Data can also be rewritten, therefore we do not want this to be compromised.
+                        If the data is encrypted, it may ask for the ability to read it, thus decrypting it, and then re-encrypting it for the client.
+                    \item \textbf{proxy server} \hfill runs on network, and can protect entire LAN
+                        \medskip
+
+                        Proxies can filter incoming / outgoing traffic in different modes;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{normal} \hfill client is aware (and needs to be set up)
+                            \item \textbf{transparent} \hfill client is unaware (local router takes care of everything)
+                            \item \textbf{reverse} \hfill runs on receiving side, impersonates servers (CDN load balancing)
+                        \end{itemize}
+                    \item \textbf{circuit-level gateway} \hfill takes over host's communication as a non-caching proxy (such as Tor)
+                    \item \textbf{stateless packet filtering} \hfill checks source / destination IP addresses and ports
+                    \item \textbf{stateful packet filtering} \hfill checks contents of current and previous packets
+                        \medskip
+
+                        It can also perform user authentication.
+                        Connections can be dropped based on destination, incorrect packets, time, or volume.
+                        This is done with inspection to the layer 4 ports, layer 3 IP addresses, and the layer 2 MAC addresses.
+                \end{itemize}
+                The \textbf{Bastion} host is the host that all public connections arrive to.
+                It should expect to be attacked, and perform auditing / logging on a secure OS.
+                \medskip
+
+                The is set by using \textbf{access control lists}, which contain packet filtering rules.
+                The firewall scans through the list of rules, until it finds one that matches, and performs the actions.
+                The rules contain a number to uniquely identify them, a direction (incoming or outgoing), an action (block or allow), as well as two IP and port pairs for the inside and outside.
+                Usually, the last rule is to block everything else.
+            \subsubsection*{Other Systems}
+                \begin{itemize}
+                    \itemsep0em
+                    \item IDS (Intrusion Detection Systems) \hfill detects intrusions (such as identifying a DDoS attack)
+                        \subitem doesn't stop the intrusion, only informs the system
+                    \item IPS (Intrusion Prevention System) \hfill actively prevents intrusions (such as blocking ~SYN~ floods)
+                        \subitem either includes an IDS, or works with an IDS
+                    \item NGFW (Next Generation Firewall) \hfill a (stateful) firewall with an IPS/IDS system
+                    \item UTM (Unified Thread Management) \hfill similar to NGFW but more capabilities (e.g. antivirus)
+                \end{itemize}
+            \subsubsection*{DMZ (Demilitarised Zone)}
+                This is the part of the network accessible to external hosts.
+                All sensitive servers should lie behind the DMZ.
+                The router uses NAT (Network Address Translation) to get external messages to the correct internal host - if we want to expose an internal host without putting it in the DMZ, port forwarding can be used.
+                \medskip
+
+                Port forwarding lets the router know that packets for certain ports should be directly forwarded to an internal host's port.
+                For example, if we tell the router to forward any packet at port 12345, it should be forwarded to the NAT-based LAN IP of an internal host at port 80, accessing ~http://publicip:12345/~ is actually accessing ~http://internalhost:80/~ indirectly, since the internal host does not have a public IP.
+            \subsubsection*{Getting Around Firewalls}
+                Methods of getting around a firewall include ssh tunnelling, which uses another server to act as a proxy between services; VNC can also be used in a similar way.
+                Another method is to spoof the software MAC address - if a firewall was to allow a certain address through.
+                Similarly spoofing an IP could be attempted, but a stateful firewall will most likely catch this.
+            \subsubsection*{Security Policy and Logging}
+                Each company or organisation needs to define its Network Security Policy, which includes (but is not limited to);
+                \begin{itemize}
+                    \itemsep0em
+                    \item intranet / internet access rights
+                    \item allowed use of software (whether the user should be allowed to install software) / hardware (whether the user should be allowed to use their own hardware)
+                    \item risk assessments
+                    \item training
+                \end{itemize}
+                Systems are likely already keeping logs, and these can be used to identify system or network issues, as well as being used evidence of criminal activities (if the log files haven't been deleted).
+                Anything useful identified by an audit should be permanently stored.
 \end{document}
