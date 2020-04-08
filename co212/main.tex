@@ -1258,4 +1258,168 @@
                 \medskip
 
                 There's also a small section after this on the alternating bit protocol, which isn't used in practice.
+        \subsection*{30th January 2020 \hfill Week 4, Lecture 3}
+            \subsubsection*{Congestion Detection}
+                If the queue of one or more routers between the sender and receiver overflow, we call it \textbf{congestion} - this has the visible effect of segments being dropped.
+                The server can assume the network experiences congestion when it detects a segment loss; either on a timeout, hence no ~ACK~, or multiple acknowledgements, which is equivalent to ~NACK~.
+                \medskip
+
+                TCP we've described so far is referred to as TCP Reno.
+                Another popular implementation is TCP Vegas, which aims to detect congestion before losses occur.
+                It does this by predicting imminent packet loss via observing the RTT - the longer it is, the greater the congestion in the routers.
+                However, flows with small RTTs are advantaged, compared to the ones with large RTTs, as their window can grow faster.
+                TCP CUBIC circumvents this by making the window increase as a function of time rather than RTT.
+            \subsubsection*{Congestion Window and Congestion Control}
+                The congestion window, $W$, is maintained by the sender, and limits the amount of bytes that the sender pushes into the network before it blocks to wait for acknowledgements.
+                \begin{center}
+                    $\text{LastByteSent} - \text{LastByteAcked} \leq W = \min(\text{CongestionWindow}, \text{ReceiverWindow})$
+                \end{center}
+                This gives a resulting maximum output of roughly
+                $$\lambda = \frac{W}{\text{RTT}}$$
+                The phases are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{slow start}
+                        \medskip
+
+                        The initial value of $W$ is the maximum segment size (MSS), which is quite low for modern (high-speed) networks.
+                        To result in a good throughput, TCP increases the sending rate exponentially for its first phase.
+                        It increases $W$ by 1 MSS on every (positive) segment acknowledgement (doubles each time - the first ~ACK~ increases it by 1 MSS, the second ~ACK~ will be after sending 2 segments, hence it increases by a further s2 MSS, and so on), until it reaches some slow start threshold (ssthresh), or until congestion occurs.
+                        If $W$ is greater than (ssthresh), then use congestion avoidance (if they are equal, either could be used).
+                    \item \textbf{congestion avoidance}
+                        \medskip
+
+                        TCP then increases $W$ linearly in this phase.
+                        $$W = W + \underbrace{\text{MSS} \cdot \frac{\text{MSS}}{W}}_\text{increment}$$
+                        This happens until congestion is detected.
+                    \item \textbf{Additive-Increase / Multiplicative-Decrease (AIMD)}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item at every good acknowledgement, increase $W$ in accordance with congestion avoidance ($\frac{\text{MSS}^2}{W}$)
+                            \item at every packet loss event, TCP halves the congestion window
+                                \medskip
+
+                                There are two possibilities for packet loss.
+                                TCP provides reliable data transfer by using a timer to detect lost segments.
+                                If there is a timeout, without an ~ACK~, it means that there is likely a lost packet, hence a retransmission is required.
+                                This timeout interval, $T$, must be larger than the RTT to avoid unnecessary retransmissions, however it shouldn't be too far from RTT, as we want to detect and retransmit lost segments as quickly as possible.
+                                TCP sets its timeouts as follows, where (1) is the estimated RTT, and (2) is the variability estimate;
+                                $$T = \underbrace{\overline{\text{RTT}}}_{(1)} + 4 \cdot \underbrace{\overline{\text{DevRTT}}}_{(2)}$$
+                                The timeout is controlled by continuously estimating the current RTT.
+                                \medskip
+
+                                The agreement is that 3 duplicate ~ACK~s (hence 4 identical ~ACK~s overall), are interpreted as a ~NACK~ in \textbf{fast retransmit}.
+                                While both timeouts and ~NACK~s signal a loss, they say different things about the status of the network, hence TCP should react differently.
+                                A timeout indicates congestion, whereas the duplicate ~ACK~s suggests the network is able to still able to deliver segments along that path.
+                                \medskip
+
+                                In the formulae below, assume the current window size is $W = \overline{W}$;
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item timeout
+                                        \medskip
+
+                                        In the event of a timeout, set $W = \text{MSS}$, and run slow start until $W$ reaches $\frac{\overline{W}}{2}$ (which is the new ssthresh), and then proceed with congestion avoidance.
+                                    \item ~NACK~
+                                        \medskip
+
+                                        Similarly set ssthresh to $\frac{\overline{W}}{2}$, but set $W = \frac{\overline{W}}{2}$.
+                                        We then continue to run congestion avoidance, which increases $W$ linearly - \textbf{fast recovery}.
+                                \end{itemize}
+                        \end{itemize}
+                \end{itemize}
+            \subsubsection*{Selective Repeat}
+                The sender only transmits packets it suspects were lost or corrupted.
+                However, if we were to use a TCP flavour that uses this, we'd need powerful routers in the path, as it requires storage and processing.
+                \begin{itemize}
+                    \itemsep0em
+                    \item sender maintains a vector of acknowledgement flags
+                    \item receiver maintains a vector of acknowledged flags
+                        \subitem maintains a buffer of out-of-order packets
+                    \item sender maintains a timer for each pending packet
+                    \item sender resends a packet when its timer experiences
+                    \item sender slides the window when the lowest pending sequence number is acknowledged
+                \end{itemize}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (0, 0) -- (8, 0)
+                        (0, -1) -- (8, -1);
+                        \foreach \x in {0,...,16} {
+                            \draw (0 + 0.5*\x, -1) -- (0 + 0.5*\x, 0);
+                        }
+                        \draw
+                        (0, 0.5) edge[-|] (1.4, 0.5)
+                        (1.6, 0.5) edge[|-|] (4.9, 0.5)
+                        (5.1, 0.5) edge[|-|] (6.9, 0.5)
+                        (7.1, 0.5) edge[|-] (8, 0.5)
+                        (1.6, -1.5) edge[|-|] (6.9, -1.5);
+
+                        \node at (-0.5, -0.5) {$\cdots$};
+                        \node at (8.5, -0.5) {$\cdots$};
+                        \node at (0, 1) {\tiny{acknowledged}};
+                        \node at (3.25, 1) {\tiny{pending}};
+                        \node at (6, 1) {\tiny{available}};
+                        \node at (8, 1) {\tiny{unavailable}};
+                        \node at (4.25, -2) {window size ($W$)};
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Flow Control vs Congestion Control}
+                The former aims to not overflow the receiver, whereas the latter aims not to overflow the network.
+                An example of flow control is as follows;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (0, 1.5) {sender};
+                        \node at (8, 1.5) {receiver};
+                        \foreach \y in {0,...,6} {
+                            \draw (9, 0.25 - \y) -- (11, 0.25 - \y) -- (11, -0.25 - \y) -- (9, -0.25 - \y) -- cycle;
+                        }
+                        \node at (9, 0.5) {\tiny{0K}};
+                        \node at (11, 0.5) {\tiny{4K}};
+                        \node at (10, 0) {\tiny{empty}};
+                        \node at (9.5, -1) {\tiny{2K}};
+                        \node at (9.5, -2) {\tiny{2K}};
+                        \node at (10, -3) {\tiny{full}};
+                        \node at (10, -4) {\tiny{full}};
+                        \node at (10.5, -5) {\tiny{2K}};
+                        \node at (9.25, -6) {\tiny{1K}};
+                        \node at (10.5, -6) {\tiny{2K}};
+                        \draw
+                        (10, -0.75) -- (10, -1.25)
+                        (10, -1.75) -- (10, -2.25)
+                        (10, -4.75) -- (10, -5.25)
+                        (9.5, -5.75) -- (9.5, -6.25)
+                        (10, -5.75) -- (10, -6.25);
+                        \draw
+                        (0, 1) edge[->] (0, -7)
+                        (8, 1) edge[->] (8, -7);
+                        \draw
+                        (0, -1) edge[->, above] node{~[2K] SEQ=0~} (8, -1)
+                        (8, -2) edge[->, above] node{~ACK=2048,WIN=2048~} (0, -2)
+                        (0, -3) edge[->, above] node{~[2K] SEQ=2048~} (8, -3)
+                        (8, -4) edge[->, above] node{~ACK=4096,WIN=0~} (0, -4)
+                        (8, -5) edge[->, above] node{~ACK=4096,WIN=2048~} (0, -5)
+                        (0, -6) edge[->, above] node{~[1K] SEQ=4096~} (8, -6);
+                        \node[rotate=90] at (-1, -4) {sender blocked};
+                        \draw (-0.5, -3) edge[|-|] (-0.5, -5);
+                    \end{tikzpicture}
+                \end{center}
+                The receiver sends the maximum number of bytes that may be sent (ReceiverWindow) along with the acknowledgement - a size of 0 is legal, and it means no more messages can be sent, except a 1-byte segment to ping receivers.
+            \subsubsection*{Wireless TCP}
+                TCP assumes that IP is running across wires.
+                Therefore, when packets are lost, it assumes that this is due to congestion and slows down, whereas in wireless environments, packets are usually lost to channel reliability issues (where TCP should actually try harder).
+                \medskip
+
+                One solution it to split TCP connections to distinguish between wired and wireless IP.
+                Another solution would be to allow the base station to do some retransmission, without informing the source (if it still fails, the source is then informed).
+            \subsubsection*{Network Usage}
+                We can quantify network usage with the utilisation factor;
+                $$\frac{\text{how much we actually used the network}}{\text{how much we could have used it}}$$
+                For example, if we were to rent a 24Mbps line, and download at 2MBps, we are at around 67\% utilisation (note the conversion from bits to bytes).
+                This may be due to congestion control and / or flow control, as it may not be possible for all nodes in the route to support the amount of traffic you wish to send.
+                \medskip
+
+                If we have all the data, we can use the following formula for utilisation;
+                $$U = \frac{\frac{L}{R}}{\text{RTT} + \frac{L}{R}}$$
+                For example, if we have a RTT of 30ms, a channel with transmission rate $R = 1\text{Gbps}$, and a packet size $L = 1000 \text{bits}$, we have a utilisation of $U \approx 0.027\%$.
 \end{document}
