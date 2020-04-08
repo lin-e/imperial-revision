@@ -2104,4 +2104,218 @@
                 The main issue with this is scalability - as we need to maintain a spanning tree per source.
                 Another approach is to use core-based trees, and have a single spanning tree per group, with the root (core) near the middle of the group.
                 For a multicast message to be sent, the host sends it to the core which then performs multicast along the tree.
+        \subsection*{20th February 2020}
+            \subsubsection*{Internetworking}
+                Internetworking is the process of linking different types of networks together.
+                All of these different networks have different protocol stacks, and need to somehow communicate with each other.
+                Instead of forcing all networks to run the same stack, we can construct gateways (routers) that interconnect different types of networks.
+                Different types of networks include, but are not limited to;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{PAN} (Personal Area Network) \hfill such as phone connected to PC via Bluetooth (1 user)
+                    \item \textbf{LAN} (Local Area Network) \hfill such as laptop connected to desktop via WiFi AP
+                    \item \textbf{MAN} (Metropolitan Area Network) \hfill such as displaying bus times without internet (city)
+                    \item \textbf{WAN} (Wide Area Network) \hfill such as the Internet
+                \end{itemize}
+                Additionally, we have the following terminology for devices;
+                \begin{itemize}
+                    \itemsep0em
+                    \item repeaters / hubs \hfill physical layer
+                        \subitem boosts signals by repeating everything received at one port to every other port
+                    \item switches and bridges \hfill data link layer
+                        \subitem creates interconnections by storing a table, and deciding where to forward based on MAC addresses
+                    \item multi-protocol routers / gateways \hfill network layer
+                        \subitem forwards (and possibly splits up) packets - makes decisions based on IP addresses (note that Transport Layer Gateways and Application Layer Gateways also exist)
+                \end{itemize}
+            \subsubsection*{The Internet}
+                The internet is a collection of autonomous systems (ASes) connected by backbones.
+                \medskip
+
+                An application offers a data stream to the transport layer, using either connection-oriented or connection-less services.
+                The data stream on the transport layer is converted into an IP datagram for the network layer.
+                These are routed through the internet, and routers pass datagrams to the underlying data link layer (LANs and WANs).
+                After this, data is in the physical layer, transmitted through cables.
+                \medskip
+
+                At the Internet Network Layer, the following needs to be provided;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{IP} (Internet Protocol)
+                        \subitem this includes datagram format, fragmentation, addressing, and packet handling
+                    \item \textbf{ICMP} (Internet Control Message Protocol)
+                        \subitem this provides error handling, and signalling (such as ~ping~)
+                    \item \textbf{DHCP} (Dynamic Host Configuration Protocol)
+                        \subitem this provides address configuration
+                \end{itemize}
+            \subsubsection*{Fragmentation}
+                Similar to how TCP includes the sequence number in the header, the layer 3 (IP) header includes the fragment offset from the start of the IP datagram.
+                Fragmentation occurs when the router encounters the case where the size of the input datagram exceeds the MTU (maximum transmission unit) of the output link.
+                \medskip
+
+                Only the destination reassembles fragmented datagrams, as this pushes complexity out of network.
+                Along the path, the datagram may have to be fragmented further.
+                The fragmentation scheme must ensure the destination host can figure out if and when all fragments were received, as well as recognising two fragments of the same datagram.
+                \medskip
+
+                Assume an initial (non-fragmented) datagram of size $X$.
+                The sender assigns a 16-bit identifier to the datagram, and sets the fragment offset (offset in units of 8 bytes) to 0, which indicates this packet contains data starting at position 0 of the original datagram.
+                Note that the fragment offset field is 13 bits, hence there can be $2^{13} = 8192$ (0 to 8191) units of 8B in one fragment.
+                Note that all fragments should be multiples of 8B, except the last one.
+                \medskip
+
+                However, the total length field is 16 bits, therefore it can only support a maximum size of 65535B.
+                The IP header itself is 20B, meaning that there are 65515B available, which means that there are 8189 possible units of 8B, and an additional unit of 3B.
+                If the more fragments flag is set to 1, more fragments are expected to follow.
+                \medskip
+
+                An example of this is as follows - assuming an MTU of 512B, and a total packet size of 1020B;
+                \begin{center}
+                    \begin{tabular}{cccccc}
+                        identifier & fragment offset & more fragments & length & header length & total length \\
+                        \hline
+                        789 & 0 & 1 & 488 & 20 & 508 \\
+                        789 & 61 & 1 & 488 & 20 & 508 \\
+                        789 & 122 & 0 & 24 & 20 & 44 \\
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{IPv4 Addressing}
+                In IPv4, the addresses are in the format ~XXX.XXX.XXX.XXX~, where ~XXX~ is from 0 to 255 - they are 32-bit, and thus there are 4 billion possible IP addresses.
+                Each address is associated with an interface, not host, and therefore a host with multiple interfaces may have more than one IP.
+                \medskip
+
+                The key idea is to assign addresses with the same prefix to interfaces belonging to the same organisation.
+                Originally, this was done with classful addressing, however this is no longer used as it became apparent that it would quickly run out, due to companies buying more addresses than needed.
+                Note in the table below, the leftmost bit is bit 0.
+                \begin{center}
+                    \begin{tabular}{cccccccc}
+                        class & prefix & network bits & max networks & host bits & max hosts & range of host addresses \\
+                        \hline
+                        \multirow{2}{*}{A} & \multirow{2}{*}{~0~} & \multirow{2}{*}{~1-7~} & \multirow{2}{*}{126} & \multirow{2}{*}{~8-31~} & \multirow{2}{*}{16,777,214} & ~1.0.0.0~ to \\
+                        & & & & & & ~127.255.255.255.255~ \\
+                        \hline
+                        \multirow{2}{*}{B} & \multirow{2}{*}{~10~} & \multirow{2}{*}{~2-15~} & \multirow{2}{*}{16,382} & \multirow{2}{*}{~16-31~} & \multirow{2}{*}{65,536} & ~128.0.0.0~ to \\
+                        & & & & & & ~191.255.255.255.255~ \\
+                        \hline
+                        \multirow{2}{*}{C} & \multirow{2}{*}{~110~} & \multirow{2}{*}{~3-23~} & \multirow{2}{*}{2,097,150} & \multirow{2}{*}{~24-31~} & \multirow{2}{*}{254} & ~192.0.0.0~ to \\
+                        & & & & & & ~233.255.255.255.255~ \\
+                        \hline
+                        \multirow{2}{*}{D} & \multirow{2}{*}{~1110~} & \multicolumn{4}{c}{\multirow{2}{*}{multicast address}} & ~224.0.0.0~ to \\
+                        & & & & & & ~239.255.255.255.255~ \\
+                        \hline
+                        \multirow{2}{*}{E} & \multirow{2}{*}{~1111~} & \multicolumn{4}{c}{\multirow{2}{*}{reserved for future use}} & ~240.0.0.0~ to \\
+                        & & & & & & ~255.255.255.255.255~ \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                Nowadays, IP addresses are managed by ICANN to avoid conflicts.
+                It delegates parts of address space to regional authorities, which give out IP addresses to ISPs and companies.
+            \subsubsection*{Subnet Masking}
+                Hosts on the same network must share the same network address.
+                The solution to this was to use a single network address for the entire organisation, and divide internally into subnet addresses and host IDs.
+                This divides the address into the class, network, subnet, and host, thus introducing a three-level routing hierarchy;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item external routers only consider the network address, and forward the packet to one of the routers of the organisation
+                    \item subnet routers apply the subnet mask, and check if the destination is on their subnet, or if they should forward it to another subnet router
+                    \item after host is found, router knows which interface to use to forward packet
+                \end{enumerate}
+                All interfaces in the same subnet share the same address prefix.
+                If we were to get rid of the classes entirely; we will have a notation called classless inter-domain routing (CIDR), which has the format ~address/prefix-length~.
+                For example, ~123.1.1.0/24~ means that all addresses share the same leftmost 24 bits with ~123.1.1.0~.
+                This scheme is not limited to entire bytes.
+                \medskip
+
+                For example; if we were to be asked for the range of addresses in ~128.138.207.160/27~;
+                \begin{center}
+                    $\overbrace{~10000000 10001010 11001111 101~}^\text{subnet}~00000~$
+                    \medskip
+
+                    ~10000000 10001010 11001111 10100000~
+
+                    ~10000000 10001010 11001111 10100001~
+
+                    ~10000000 10001010 11001111 10100010~
+
+                    ~10000000 10001010 11001111 10100011~
+
+                    $\vdots$
+
+                    ~10000000 10001010 11001111 10111110~
+
+                    ~10000000 10001010 11001111 10111111~
+                \end{center}
+                We would have a range of ~128.138.207.160 - 128.138.207.191~.
+                \medskip
+
+                The mask notation is ~address/mask~, and a prefix of length $p$ corresponds to the following mask;
+                $$M = \overbrace{~11~ \cdots ~1~}^{p \text{ times}}\underbrace{~00~ \cdots ~0~}_{32 - p \text{ times}}$$
+                Therefore we have the following conversions (example);
+                \begin{align*}
+                    ~128.207.160/27~ & = ~128.207.160/255.255.255.224~ \\
+                    ~127.0.0.1/8~ & = ~127.0.0.1/255.0.0.0~ \\
+                    ~92.168.0.3/24~ & = ~92.168.0.3/255.255.255.0~ \\
+                    ~195.176.181.11/32~ & = ~195.176.181.11/255.255.255.255~
+                \end{align*}
+                When we (bitwise) ~AND~ the address with the mask, we obtain the network address.
+            \subsubsection*{Longest-Prefix Matching}
+                Routers attempt to match the maximum possible prefix in order to select the correct network.
+                They (bitwise) ~AND~ the IP address with its subnet mask to obtain the network address.
+                If they know where this is (based on the router's forwarding table), it will forward it out of the correct port.
+                Otherwise, it depends on the algorithm (or a default port where packets for unknown networks go to).
+            \subsubsection*{ICMP and NAT}
+                ICMP encapsulates control messages in IP packets, and each type is further specified by a code.
+                This may be blocked on some routers, as it can be abused, thus a UDP implementation of ~ping~ can be used instead.
+                \medskip
+
+                Network Address Translation (NAT) partially solves address shortage by assigning each company a single IP.
+                This also allows for home connection to be shared among multiple devices.
+                Within a company each device gets a unique local IP used for routing internal traffic, when a packet exits the local network, address translation takes place.
+                The following ranges are declared as private to be used in local networks;
+                \begin{center}
+                    \begin{tabular}{rl}
+                        ~10.0.0.0-10.255.255.255/8~ & 16,777,216 addresses \\
+                        ~172.16.0.0-172.31.255.255/12~ & 1,048,576 addresses \\
+                        ~192.168.0.0-192.168.255.255/16~ & 65,536 addresses
+                    \end{tabular}
+                \end{center}
+                NAT hides the local addresses in the intranet from the public addresses in the internet.
+                Other special addresses include the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~0.0.0.0/0~ \hfill default route, used for packet forwarding when no other applicable IP matches
+                    \item ~0.0.0.0/8~ \hfill this host on the network (not sent)
+                    \item ~127.0.0.0/8~ \hfill loopback (this host, again) but can be sent (~localhost = 127.0.0.1~)
+                    \item ~169.254.0.0/16~ \hfill link local (something went wrong trying to acquire an IP address)
+                \end{itemize}
+                The use of NAT allows one IP to be rented, and then many internal IPs can then be allocated.
+                \medskip
+
+                For example, if a connection is set up from ~10.0.0.1~ (local address), on port ~X~, the router uses its public source address ~138.76.29.7~ on port ~Y~, and also registers a mapping $~X~ \leftrightarrow ~Y~$.
+                A reply sent to the router on port ~Y~ is then sent to ~10.0.0.1~ on port ~X~.
+                \medskip
+
+                Similarly, to allow for incoming connections, port forwarding can be done.
+                This is a static mapping on the router, such as telling it to redirect all traffic on port 80 to ~10.0.0.2~ on port 8080.
+                \medskip
+
+                While NAT has widespread use, it has a number of problems, and criticism;
+                \begin{itemize}
+                    \itemsep0em
+                    \item violates architectural IP modal, which states an IP address should \textbf{uniquely} identify a single machine worldwide
+                    \item changes Internet from connectionless to connection-oriented network (NAT gateway maintains mapping for each connection)
+                    \item violates rule of protocol layering by making assumptions about higher layers
+                    \item cannot easily support new transport protocols
+                    \item P2P protocols may require full connectivity - users behind NAT cannot be contacted directly by peers
+                \end{itemize}
+                IPv6 deals with all of this, by having many more addresses.
+            \subsubsection*{Dynamic Host Configuration Protocol}
+                A host needs to determine its own IP address, and this can be done via DHCP (RFC 2131 and 2132);
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item each newly-booted machine broadcasts a ~DHCPDISCOVER~ packet when it connects
+                    \item DHCP server (may be the router) replies with the assigned IP address
+                        \subitem may maintain static mappings, or assign different addresses each time the host connects
+                \end{enumerate}
+                To prevent a host from keeping an address for ever, periodic refreshing is required (leasing).
+                This is used for a router to receive an IP from the ISP.
 \end{document}
