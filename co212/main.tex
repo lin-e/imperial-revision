@@ -1557,6 +1557,7 @@
                             \item \textbf{transparent} \hfill client is unaware (local router takes care of everything)
                             \item \textbf{reverse} \hfill runs on receiving side, impersonates servers (CDN load balancing)
                         \end{itemize}
+                        SOCKS proxies can be used for any protocol, whereas HTTP is for web.
                     \item \textbf{circuit-level gateway} \hfill takes over host's communication as a non-caching proxy (such as Tor)
                     \item \textbf{stateless packet filtering} \hfill checks source / destination IP addresses and ports
                     \item \textbf{stateful packet filtering} \hfill checks contents of current and previous packets
@@ -1607,4 +1608,151 @@
                 \end{itemize}
                 Systems are likely already keeping logs, and these can be used to identify system or network issues, as well as being used evidence of criminal activities (if the log files haven't been deleted).
                 Anything useful identified by an audit should be permanently stored.
+        \subsection*{6th February 2020 \hfill Week 5, Lecture 3}
+            \subsubsection*{Cryptography}
+                Cryptography is the process of writing something in code (encode or encrypt), with a specific algorithm, whilst retaining the ability to retrieve it afterwards (decode or decrypt).
+                The latter is only possible in the case of encryption (see \textbf{hashing} later on).
+                We assume that the physical channel is open to attack from the enemy, who can read and alter any bit pattern.
+            \subsubsection*{Encryption}
+                \begin{center}
+                    \begin{tikzpicture}[y=0.75cm, x=0.9cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (1, 0.5) {plaintext $M$};
+                            \node at (1, -1) {\shortstack{~hello~\\~world~}};
+                            \draw (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(3.5, 0)}]
+                            \node at (1.5, 0.5) {encrypt};
+                            \node at (1.5, -2) {transmitter};
+                            \node at (1.5, -1) {$E(K, M)$};
+                            \draw (0, -0.5) -- (3, -0.5) -- (3, -1.5) -- (0, -1.5) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(8, 0)}]
+                            \node at (1, 0.5) {ciphertext $M_c$};
+                            \node at (1, -1) {\shortstack{~???~\\~????~}};
+                            \draw (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(11.5, 0)}]
+                            \node at (1.5, 0.5) {decrypt};
+                            \node at (1.5, -2) {receiver};
+                            \node at (1.5, -1) {$D(K^{-1}, M_c)$};
+                            \draw (0, -0.5) -- (3, -0.5) -- (3, -1.5) -- (0, -1.5) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(16, 0)}]
+                            \node at (1, 0.5) {plaintext $M$};
+                            \node at (1, -1) {\shortstack{~hello~\\~world~}};
+                            \draw (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle;
+                        \end{scope}
+                        \draw
+                        (2, -1) edge[->] (3.5, -1)
+                        (6.5, -1) edge[->] (8, -1)
+                        (10, -1) edge[->] (11.5, -1)
+                        (14.5, -1) edge[->] (16, -1);
+                    \end{tikzpicture}
+                \end{center}
+                Only certain users should have $K$ (the encryption key), and $K^{-1}$ (the decryption key).
+                If someone were to intercept $M_c$, without $K^{-1}$, the attacker can only find $M$ by enumerating all possible $K^{-1}$ via a brute-force attack.
+                Another property is that it should be difficult to obtain the values of $K$ and $K^{-1}$ with just $M$ and $M_c$.
+                \begin{itemize}
+                    \itemsep0em
+                    \item secret key (symmetric) encryption has $K = K^{-1}$, hence the same key is used to encrypt and decrypt the file, thus the key must be very carefully distributed otherwise all files can be decrypted
+                    \item public key (asymmetric / public-private key pair) encryption has $K \neq K^{-1}$
+                        \medskip
+
+                        $K_t$ is the private-key of host $H_t$, and is only stored / used by that host.
+                        On the other hand, $K_t^{-1}$ is the public-key of the same host, and is freely distributed.
+                        Therefore anything encrypted with $K_t^{-1}$ can only be decrypted by the host $H_t$.
+                        This also means anyone can decrypt something encrypted by $H_t$ with $K_t$ - if it is successful, it authenticates the message as coming from $H_t$.
+                        \medskip
+
+                        In this example, let $H_t$ have its own private key $K_t$, as well as $H_r$'s public key $K_r^{-1}$ (and vice versa for $H_r$).
+                        $H_t$ first signs the message with its own private key, $E(K_t, M)$.
+                        It then encrypts the message with the destination's public key, $E(K_r^{-1}, E(K_t, M))$ - ensuring only $H_r$ can read the message.
+                        Now, \textbf{only} $H_r$ can obtain the signed message as follows;
+                        \begin{center}
+                            $D(K_r, E(K_r^{-1}, E(K_t, M))) = E(K_t, M)$
+                        \end{center}
+                        Additionally, we can validate that the sender was actually $H_t$ with $H_t$'s public key $K_t^{-1}$;
+                        \begin{center}
+                            $D(K_t^{-1}, E(K_t, M)) = M$
+                        \end{center}
+                \end{itemize}
+                We can compare the two approaches as follows;
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        public key (asymmetric)
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item owner of private-key does not need to disclose its value to communicate
+                            \item more secure
+                            \item slow encryption / decryption
+                            \item example: RSA
+                        \end{enumerate}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        secret key (symmetric)
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item owner of private-key needs to disclose its value in order to communicate
+                            \item less secure
+                            \item faster encryption / decryption
+                            \item example: AES
+                        \end{enumerate}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Diffie-Hellman Key Exchange}
+                An approach for this, to establish a new key on the spot, is the \textit{Diffie-Hellman key exchange}, which can then be used for encryption by symmetric algorithms.
+                This can potentially be defeated by powerful systems, but is still used by TLS (formally SSL).
+                The (simplified) algorithm is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item Bob and Alice agree on a public value $g$ (generator), and a large prime number $p$
+                    \item Bob chooses a secret value $b$, and Alice chooses a secret value $a$ (these are not shared) - both values must be lower than $p$
+                    \item The secret values are used to calculate their public values (which are then exchanged);
+                        \begin{itemize}
+                            \itemsep0em
+                            \item bob: $x = g^b ~ mod ~ p$
+                            \item alice: $y = g^a ~ mod ~ p$
+                        \end{itemize}
+                    \item They use each other's public value to calculate the \violet{shared secret key} - which can be used to communicate securely;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item bob: $y^b ~ mod ~ p = (g^a ~ mod ~ p)^b ~ mod ~ p \equiv \violet{g^{ab} ~ mod ~ p}$
+                            \item alice: $x^a ~ mod ~ p = (g^b ~ mod ~ p)^a ~ mod ~ p \equiv \violet{g^{ab} ~ mod ~ p}$
+                        \end{itemize}
+                    \item Eve, the eavesdropper, cannot guess / derive the shared secret key, even if they have access to $g, p, x, y$ - since they don't know either of the secret values.
+                \end{enumerate}
+                An example of this is as follows;
+                \begin{align*}
+                    a & = 4 \\
+                    b & = 5 \\
+                    g & = 6 \\
+                    p & = p \\
+                    \text{(Bob) } x & = (g^b ~ mod ~ p) \\
+                    & = 6^5 ~ mod ~ 97 \\
+                    & = 7776 ~ mod ~ 97 \\
+                    & = 16 \\
+                    \text{(Alice) } y & = (g^a ~ mod ~ p) \\
+                    & = 6^4 ~ mod ~ 97 \\
+                    & = 1296 ~ mod ~ 97 \\
+                    & = 35 \\
+                    \text{(Bob) } y^b ~ mod ~ p & = 35^5 ~ mod ~ 97 \\
+                    & = 52521875 ~ mod ~ 97 \\
+                    & = 61 \\
+                    \text{(Alice) } x^a ~ mod ~ p & = 16^4 ~ mod ~ 97 \\
+                    & = 65536 ~ mod ~ 97 \\
+                    & = 61
+                \end{align*}
+            \subsubsection*{Key Server (Kerberos)}
+                Another approach is to have a trusted key server, which the host already knows how to communicate with safely.
+                \medskip
+
+                Kerberos (Needham and Schroeder) is a user authentication system which knows your password.
+                It also knows the password of the user / resource you want to communicate with.
+                It has a KDC (key distribution centre) that can provide tickets, allowing you to communicate with the desired user / resource, which expire after a predefined amount of time.
+            \subsubsection*{Hashing}
+                When a message is hashed, the original message cannot be retrieved - it one way.
+                A hash is a fixed size alphanumeric string, calculated based on a specific input - the hash function should always produce the same hash value with the same input.
+                Since it should not be possible to derive the input from the hash value, this can be used for safely storing passwords.
 \end{document}
