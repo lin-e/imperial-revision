@@ -1812,4 +1812,296 @@
             \begin{center}
                 \textit{"skrrrrr"} - ~root~
             \end{center}
+        \subsection*{18th February 2020 \hfill Week 7, Lecture 1}
+            \subsubsection*{Introduction to the Network Layer}
+                This is also referred to as the Internet Layer, and contains the Internet Protocol (IP).
+                At this layer, data travel in IP datagrams (or packets), and data are fragmented into packets, with a layer 3 header added in front of each.
+                \medskip
+
+                A router (layer 3) typically has a line in port, which is connected to the ISP via Ethernet, a phone cable, or co-axial.
+                There may also additional Ethernet ports to connect devices multiple devices to the local network, via the use of a switch (layer 2) within the router.
+                A router is a fundamental component of the network layer (they are the nodes in the graph), and have a finite set of input / output connections.
+                It has interfaces (or physical ports - not the same as layer 4 ports), which are individual network interface controllers, and therefore a router can have multiple IP addresses.
+            \subsubsection*{Routing}
+                The network layer provides facilities to get data from a source to a destination, and may require making many \textbf{hops} at at intermediate routers along the way (frames in the data link layer are moved only within the same network) - this is routing.
+                To do this, it must know the topology of the network to choose appropriate paths.
+                Load balancing may be used to prevent congestion.
+                This layer also has to deal with network heterogeneity, as there may be very old routers still in the network.
+            \subsubsection*{Datagram Networks and Forwarding}
+                IP is connectionless (each message is routed through the system independent of others, there is also no connection setup or tear-down phase) and packet-switched (each datagram is forwarded from one router to the next based on forwarding decisions).
+                This is a best-effort service, with no guarantees on delivery, maximum latency, bandwidth, in-order delivery nor congestion indication.
+                \medskip
+
+                There are potentially multiple (possibly asymmetric paths) for the same source / destination.
+                In forwarding, we have the destination of the datagram as the input, and an output port as the output.
+                A simple design for this is a forwarding table.
+                \medskip
+
+                Routers must cooperate to find the best routes between all pairs of nodes, and build a sink tree (or approximation) for each node.
+                The sink tree of each node does not contain loops, and only contains the optimal routes towards that specific host.
+                \medskip
+
+                Some strategies for routing are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{shortest path routing}
+                        \medskip
+
+                        Shortest Path Routing (SPR) uses Dijkstra's Algorithm (see \textbf{CO150}), where the labels on arcs represent cost.
+                        At each step, we select newly reachable node with the lowest cost, and then add that edge to the tree built so far.
+                    \item \textbf{flood routing}
+                        \medskip
+
+                        In flood routing, an incoming packet is forwarded across every outgoing link (except the original source).
+                        We have to avoid too many packets in the network;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item hop counter \hfill discard a packet after it was forwarded across $N$ routers
+                            \item forward only once \hfill avoid cycles, requires storing sequence numbers per source address
+                            \item flood selectively \hfill only forward in a direction that makes sense
+                        \end{itemize}
+                        Flooding always chooses the shortest path because all paths are explored in parallel.
+                        This only makes sense to do when \textbf{robustness} is needed, such as in the discovery of unknown destinations.
+                    \item \textbf{distance vector routing}
+                        \medskip
+
+                        The previous protocols are static, meaning they do not take the current network load into account.
+                        DVR, or \textit{Bellman-Ford} is a dynamic protocol that does the following;
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item consider costs that direct neighbours are advertising to get packet to destination
+                            \item select neighbour who's advertised cost, added with own cost to get to that neighbour, is lowest
+                            \item advertise the new cost to neighbours
+                        \end{enumerate}
+                        The main idea is expressed by the Bellman-Ford equation;
+                        \begin{center}
+                            $D_u^\prime[v] = \min\limits_{x \in \text{neighbours}(u)} (c(u, x) + D_x[v])$
+                        \end{center}
+                        We want to find the cost of the least cost path from $u$ to $v$.
+                        This is the minimum sum of the cost between $u$ and $x$, and the least cost path between $x$ and $v$, where $x$ is each direct neighbour of $u$.
+                        At the start, if we don't know anything, we can start with flood routing to discover neighbours.
+                        \begin{center}
+                            \begin{tikzpicture}[x=2.5cm, y=1.2cm]
+                                \node[state, minimum size=1cm] (u) at (-1, 0) {$u$};
+                                \node[state, minimum size=1cm] (x1) at (1, -0) {$x_1$};
+                                \node[state, minimum size=1cm] (x2) at (2, -1) {$x_2$};
+                                \node[state, minimum size=1cm] (x3) at (0, 2) {$x_3$};
+                                \node[state, minimum size=1cm] (x4) at (0.5, 1) {$x_4$};
+                                \node[state, minimum size=1cm] (v) at (4, 1) {$v$};
+                                \draw
+                                (u) edge[above] node{3} (x1)
+                                (u) edge[below] node{2} (x2)
+                                (u) edge[left] node{6} (x3)
+                                (u) edge[above] node{2} (x4)
+                                (x1) edge[dashed, above] node{20} (v)
+                                (x2) edge[dashed, above] node{$\infty$} (v)
+                                (x3) edge[dashed, above] node{18} (v)
+                                (x4) edge[dashed, above] node{25} (v);
+                            \end{tikzpicture}
+                        \end{center}
+                        An example of this is as follows;
+                        \begin{center}
+                            \begin{tikzpicture}[x=5cm, y=2cm]
+                                \node[state, minimum size=1cm] (a) at (0, 0) {$a$};
+                                \node[state, minimum size=1cm] (b) at (0, 1) {$b$};
+                                \node[state, minimum size=1cm] (c) at (1, 1) {$c$};
+                                \node[state, minimum size=1cm] (d) at (1, 0) {$d$};
+                                \draw
+                                (a) edge[below] node{4} (d)
+                                (a) edge[left] node{2} (b)
+                                (b) edge[above] node{1} (c)
+                                (c) edge[right] node{9} (d);
+                            \end{tikzpicture}
+                        \end{center}
+                        \begin{center}
+                            \begin{tabular}{|c|cccc|}
+                                \hline
+                                ($a$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_a$ & 0 & 2 & $\infty$ & 4 \\
+                                $D_b$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+                                $D_d$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+                                \hline
+                                ($b$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_b$ & 2 & 0 & 1 & $\infty$ \\
+                                $D_a$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+                                $D_c$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+                                \hline
+                                ($c$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_c$ & $\infty$ & 1 & 0 & 9 \\
+                                $D_b$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+                                $D_d$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+                                \hline
+                                ($d$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_d$ & 4 & $\infty$ & 9 & 0 \\
+                                $D_a$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+                                $D_c$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+                                \hline
+                            \end{tabular}
+                            \hfill
+                            \begin{tabular}{|c|cccc|}
+                                \hline
+                                ($a$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_a$ & 0 & 2 & \violet{3} & 4 \\
+                                $D_b$ & 2 & 0 & 1 & $\infty$ \\
+                                $D_d$ & 4 & $\infty$ & 9 & 0 \\
+                                \hline
+                                ($b$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_b$ & 2 & 0 & 1 & \violet{6} \\
+                                $D_a$ & 0 & 2 & $\infty$ & 4 \\
+                                $D_c$ & $\infty$ & 1 & 0 & 9 \\
+                                \hline
+                                ($c$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_c$ & \violet{3} & 1 & 0 & 9 \\
+                                $D_b$ & 2 & 0 & 1 & $\infty$ \\
+                                $D_d$ & 4 & $\infty$ & 9 & 0 \\
+                                \hline
+                                ($d$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_d$ & 4 & \violet{6} & 9 & 0 \\
+                                $D_a$ & 0 & 2 & $\infty$ & 4 \\
+                                $D_c$ & $\infty$ & 1 & 0 & 9 \\
+                                \hline
+                            \end{tabular}
+                            \hfill
+                            \begin{tabular}{|c|cccc|}
+                                \hline
+                                ($a$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_a$ & 0 & 2 & 3 & 4 \\
+                                $D_b$ & 2 & 0 & 1 & 6 \\
+                                $D_d$ & 4 & 9 & 9 & 0 \\
+                                \hline
+                                ($b$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_b$ & 2 & 0 & 1 & 6 \\
+                                $D_a$ & 0 & 2 & 3 & 4 \\
+                                $D_c$ & 3 & 1 & 0 & 9 \\
+                                \hline
+                                ($c$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_c$ & 3 & 1 & 0 & \violet{7} \\
+                                $D_b$ & 2 & 0 & 1 & 6 \\
+                                $D_d$ & 4 & 6 & 9 & 0 \\
+                                \hline
+                                ($d$) & $a$ & $b$ & $c$ & $d$ \\
+                                \hline
+                                $D_d$ & 4 & 6 & \violet{7} & 0 \\
+                                $D_a$ & 0 & 2 & 3 & 4 \\
+                                $D_c$ & 3 & 1 & 0 & 9 \\
+                                \hline
+                            \end{tabular}
+                        \end{center}
+                        However, there is a problem with DVR - good news propagates quickly, but bad news propagates slowly.
+                        Consider the following graph, and assume all costs are 1 (hence we can just look at the number of hops);
+                        \begin{center}
+                            \begin{tikzpicture}[x=1.5cm]
+                                \node[state, minimum size=1cm] (a) at (0, 0) {$a$};
+                                \node[state, minimum size=1cm] (b) at (2, 0) {$b$};
+                                \node[state, minimum size=1cm] (c) at (4, 0) {$c$};
+                                \node[state, minimum size=1cm] (d) at (6, 0) {$d$};
+                                \node[state, minimum size=1cm] (e) at (8, 0) {$e$};
+                                \draw (a) -- (b) -- (c) -- (d) -- (e);
+                            \end{tikzpicture}
+                        \end{center}
+                        Consider the table below, where we have the distance from $a$;
+                        \begin{center}
+                            \begin{tabular}{|cccc|l|}
+                                \hline
+                                $b$ & $c$ & $d$ & $e$ & comment \\
+                                \hline
+                                \hline
+                                $\infty$ & $\infty$ & $\infty$ & $\infty$ & initial state \\
+                                \hline
+                                \multicolumn{5}{|c|}{$a$ comes online after being down} \\
+                                \hline
+                                1 & $\infty$ & $\infty$ & $\infty$ & after 1 exchange \\
+                                1 & 2 & $\infty$ & $\infty$ & after 2 exchanges \\
+                                1 & 2 & 3 & $\infty$ & after 3 exchanges \\
+                                1 & 2 & 3 & 4 & after 4 exchanges \\
+                                \hline
+                                \multicolumn{5}{|c|}{$a$ suddenly goes down} \\
+                                \hline
+                                3 & 2 & 3 & 4 & after 5 exchanges \\
+                                3 & 4 & 3 & 4 & after 6 exchanges \\
+                                5 & 4 & 5 & 4 & after 7 exchanges \\
+                                5 & 6 & 5 & 6 & after 8 exchanges \\
+                                7 & 6 & 7 & 6 & after 9 exchanges \\
+                                7 & 8 & 7 & 8 & after 10 exchanges \\
+                                \hline
+                                \multicolumn{5}{|c|}{$\vdots$} \\
+                                \hline
+                                $\infty$ & $\infty$ & $\infty$ & $\infty$ & \\
+                                \hline
+                            \end{tabular}
+                        \end{center}
+                        When $a$ suddenly goes down, they keep increasing their route up to infinity (count-to-infinity problem)
+                        We can set infinity to be one more than the longest acceptable path.
+                    \item \textbf{link state routing}
+                        \medskip
+
+                        This was published in 1979, aiming to replace DVR.
+                        The goal is to broadcast information about the network topology to all routers, and each router calculates the sink tree to other routers.
+                        Each router does the following;
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item discover direct neighbours and gets their network addresses
+                                \subitem routers know their local network interfaces, and therefore sends a ~HELLO~ packet through each interface - the routers on the other end responds with its address
+                            \item calculates cost for sending packet to each neighbour
+                                \subitem an ~ECHO~ packet is sent through each interface and the RTT is measured (this gives a reasonable estimate of actual delay)
+                            \item constructs LSA (link state advertisement) packet with all information
+                                \subitem done with flooding to send LSA to all other routers, once a router has LSAs from every router, it has complete knowledge of the network
+                            \item sends that packet to all routers (as well as collecting that packet from all routers) - not limited to just neighbours
+                            \item runs Dijkstra's algorithm locally to find shortest paths
+                        \end{enumerate}
+                        This means that each router stores information about its neighbours, the entire network, and the generated routing table.
+                \end{itemize}
+                Both DVR and LSR are used, in order to support routers both old (DVR) and new (LSR) routers.
+                \begin{center}
+                    \begin{tabular}{|l|c|c|}
+                        \hline
+                        & distance vector routing & link state routing \\
+                        \hline
+                        network knowledge & local & global \\
+                        \hline
+                        computation & global & local \\
+                        \hline
+                        synchronisation & gradual & "instant" (after SPR calculation) \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                These protocols are used internally, and therefore a specific one can be chosen for a local network.
+            \subsubsection*{Hierarchical Routing}
+                All of the previously discussed routing algorithms require each router to know about the others - this cannot scale, as it becomes too demanding in terms of memory and processing power.
+                A solution to this is to introduce regions, and have separate algorithms for intra-region (within the region) and inter-region (between regions) routing.
+                Two or three levels is generally sufficient.
+                We no longer take an optimal route - we just know where to forward packets.
+            \subsubsection*{Broadcast Routing}
+                If we want to send a message to (almost) every host on a network, we can take the following approaches;
+                \begin{itemize}
+                    \itemsep0em
+                    \item message each host individually \hfill inefficient
+                    \item flood routing \hfill accepted, if we can limit the flood
+                    \item multi-destination routing via a list sent with the packet
+                        \subitem router checks destination and splits list when forwarding to different interfaces - the message must contain all destinations.
+                    \item build sink tree at source and use that for multicast route
+                        \subitem must be spanning tree, and routers need to agree on trees
+                \end{itemize}
+                We can construct this spanning tree with reverse-path forwarding (RPF) broadcast.
+                Every router forwards / broadcasts a packet to every adjacent router, except where it came from.
+                A router only accepts a broadcast packet $p$ originating at $A$ if $p$ arrives on a link that is on a direct (unicast) path between themselves and $A$.
+            \subsubsection*{Multicast Routing}
+                We want to send a message to only a subset of nodes, and we need to know when a host enters or leaves a multicast group.
+                The solution to this is to construct a spanning tree at each router,  and use a group ID to prune paths that do not contain members of group.
+                \medskip
+
+                The main issue with this is scalability - as we need to maintain a spanning tree per source.
+                Another approach is to use core-based trees, and have a single spanning tree per group, with the root (core) near the middle of the group.
+                For a multicast message to be sent, the host sends it to the core which then performs multicast along the tree.
 \end{document}
