@@ -1062,4 +1062,200 @@
                     \end{tikzpicture}
                 \end{center}
                 Note that the part in \violet{violet} would not be present for UDP.
+        \subsection*{30th January 2020 \hfill Week 4, Lecture 2}
+            \subsubsection*{TCP vs UDP}
+                The scenario is as follows; movie player app is being built that allows (paying) users to stream public domain movies.
+                Since the users are paying, we should be using TCP, as it guarantees quality of service, whereas UDP does not.
+                The difference in performance (TCP being slower than UDP) can be circumvented by pre-buffering (sending some data in advance for the client to store locally).
+                This however doesn't work for live events - we can either switch to UDP, or introduce a delay between the feed and the live event.
+            \subsubsection*{QUIC}
+                QUIC (Quick UDP Internet Connections) is a new layer 4 protocol, implemented by a Google engineer in 2012.
+                Originally, it was designed for general purpose, but now it is being used for HTTP (layer 5).
+                This is still a draft, but is actively being used by some web servers.
+            \subsubsection*{Finite-State Machines}
+                A finite-state machine (FSM) is a mathematical abstraction, where states are represented as nodes, and transitions are directed edges between states, labelled with events.
+                They are also known as finite-state automaton (FSA), deterministic finite-state automaton (DFA), and non-deterministic finite-state automaton (NFA) - multiple edges with the same label from one node.
+                This can be used to specify protocols, where the states represent the state of a protocol, and transitions are characterised by an event / action label (event typically consists of an input message or timeout, whereas an action typically consists of an output message).
+                $$\frac{\text{input / timeout (event)}}{\text{output (action)}}$$
+                Examples of this are in the slides, for the TCP state machines for both the client and server.
+            \subsubsection*{Reliable Data Transfer}
+                TCP adds a reliable channel on top of an unreliable channel (IP) which is "best effort" delivery.
+                The service provided by the transport layer sits on top of the service provided by the network layer.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.1cm, y=0.5cm]
+                        \node at (1.5, -1) {\shortstack{web\\browser}};
+                        \node at (7.5, -1) {\shortstack{web\\server}};
+                        \begin{scope}[shift={(0, 0)}]
+                            \begin{scope}[shift={(0, 0)}]
+                                \draw (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle;
+                            \end{scope}
+                            \begin{scope}[shift={(0, -4)}]
+                                \node at (1.5, -1) {\shortstack{reliable-transfer\\protocol}};
+                                \draw (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle;
+                            \end{scope}
+                            \draw
+                            (1, -2) edge[->, left] node{~r\_send()~} (1, -4)
+                            (1, -6) edge[left] node{~u\_send()~} (1, -8)
+                            (2, -4) edge[->, right] node{~r\_recv()~} (2, -2)
+                            (2, -8) edge[->, right] node{~u\_recv()~} (2, -6);
+                        \end{scope}
+                        \node at (4.5, -9) {best effort (unreliable) network};
+                        \draw[dashed]
+                        (2, -8) -- (7, -8)
+                        (1, -8) -- (1, -10) -- (8, -10) -- (8, -8);
+                        \draw
+                        (-1, 0) edge[|-|, left] node{application} (-1, -2.9)
+                        (-1, -3.1) edge[|-|, left] node{transport} (-1, -6.9)
+                        (-1, -7.1) edge[|-|, left] node{network} (-1, -10);
+                        \begin{scope}[shift={(6, 0)}]
+                            \begin{scope}[shift={(0, 0)}]
+                                \draw (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle;
+                            \end{scope}
+                            \begin{scope}[shift={(0, -4)}]
+                                \node at (1.5, -1) {\shortstack{reliable-transfer\\protocol}};
+                                \draw (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle;
+                            \end{scope}
+                            \draw
+                            (1, -2) edge[->, left] node{~r\_send()~} (1, -4)
+                            (1, -6) edge[left] node{~u\_send()~} (1, -8)
+                            (2, -4) edge[->, right] node{~r\_recv()~} (2, -2)
+                            (2, -8) edge[->, right] node{~u\_recv()~} (2, -6);
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                Another issue is transmitting data through a noisy channel.
+                There is a chance no packets will be lost, but a a bit may be modified during the transmission (flipped).
+                The stages of dealing with this are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{error detection} \hfill receiver must know when a received packet is corrupted
+                        \medskip
+
+                        Some strategies for detecting errors are as follows;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item sending redundant information
+                                \subitem sending information twice, report an error if two different messages received - inefficient
+                            \item error-detection codes
+                                \subitem parity bit, adding a single bit at the end that is the XOR of all other bits in the message, if the recomputed XOR (by receiver) is different, then an error occurred
+                        \end{itemize}
+                    \item \textbf{receiver feedback} \hfill receiver must be able to alert sender that a corrupted packet was received
+                        \medskip
+
+                        ~ACK~s and ~NACK~s are also protected with an error-detection code, with corrupted ~ACK~s being treated as ~NACK~s.
+                        This may possibly generate duplicate segments, however sequence numbers allow the receiver to ignore these data segments.
+                    \item \textbf{retransmission} \hfill the sender must retransmit corrupted packets
+                \end{itemize}
+                Note that in the diagram below, ~[data]*~ indicates a packet containing ~data~ and an error-detection code, and $A$ represents the acknowledgement state.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm, accepting] (s) at (0, 0) {$S$};
+                        \node[state, minimum size=1cm] (a) at (6, 0) {$A$};
+                        \draw
+                        (s) edge[->, bend left=20, above] node{$\dfrac{~r\_send(data)~}{~u\_send([data]*)~}$} (a)
+                        (a) edge[->, bend left=20, below] node{$\dfrac{~u\_recv(pkt)~ \land ~pkt is ACK~}{}$} (s)
+                        (a) edge[->, loop, out=45, in=-45, distance=2cm, right] node{$\dfrac{~u\_recv(pkt)~ \land ~pkt is NACK~}{~u\_send([data]*)~}$} (a);
+                        \node[state, minimum size=1cm, accepting] (r) at (6, -3) {$R$};
+                        \draw
+                        (r) edge[->, loop, out=45, in=-45, distance=2cm, right] node{$\dfrac{~u\_recv(pkt)~ \land ~pkt is corrupted~}{~u\_send(NACK)~}$} (r)
+                        (r) edge[->, loop, out=225, in=135, distance=2cm, left] node{$\dfrac{~u\_recv(pkt)~ \land ~pkt is good~}{~u\_send(ACK); r\_recv(pkt)~}$} (r);
+                    \end{tikzpicture}
+                \end{center}
+                This is a synchronous (or stop-and-wait) for each segment, as the sender must receive a positive acknowledgement before it can take more data from the application layer.
+                However, this can have issues when the ~ACK/NACK~ packets have issues.
+                A way around this is for the sender to add a sequence number to each packet, thus allowing the receiver to determine whether a packet is a retransmission.
+                If the sender does not hear an acknowledgement, due to some failure, it assumes a ~NACK~, and retransmits.
+                However, if the receiver did actually send an acknowledgement, it would ignore the packet, since it knows it is a retransmission.
+                It then resends the ~ACK~, and doesn't process the retransmitted.
+                \medskip
+
+                Since this is a stop-and-wait protocol for each segment, only one bit is needed for the sequence number - as all we need to do is distinguish between the next segment and the retransmission of the current segment.
+                \medskip
+
+                However, now that we have sequence numbers, we don't need both ~ACK~ and ~NACK~, since we can convey the same semantics by sending an ~ACK~ for the last good packet it received.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm, accepting] (s0) at (0, 0) {$S_0$};
+                        \node[state, minimum size=1cm] (a0) at (6, 0) {$A_0$};
+                        \node[state, minimum size=1cm] (s1) at (6, -6) {$S_1$};
+                        \node[state, minimum size=1cm] (a1) at (0, -6) {$A_1$};
+                        \draw
+                        (s0) edge[->, above] node{$\dfrac{~r\_send(data)~}{~u\_send([0, data]*~)}$} (a0)
+                        (a0) edge[->, right] node{$\dfrac{\begin{matrix}
+                            ~u\_recv(pkt) ~ \land \\
+                            ~pkt is good ~ \land \\
+                            ~pkt is (ACK, 0)~
+                        \end{matrix}}{}$} (s1)
+                        (s1) edge[->, below] node{$\dfrac{~r\_send(data)~}{~u\_send([1, data]*~)}$} (a1)
+                        (a1) edge[->, left] node{$\dfrac{\begin{matrix}
+                            ~u\_recv(pkt) ~ \land \\
+                            ~pkt is good ~ \land \\
+                            ~pkt is (ACK, 1)~
+                        \end{matrix}}{}$} (s0)
+                        (a0) edge[->, loop, in=-45, out=45, distance=2cm, right] node{$\dfrac{\begin{matrix}
+                            ~u\_recv(pkt) ~ \land \\
+                            (~pkt is (ACK, 1) ~ \lor \\
+                            ~pkt is corrupted~)
+                        \end{matrix}}{~u\_send([0, data]*~}$} (a0)
+                        (a1) edge[->, loop, in=135, out=225, distance=2cm, left] node{$\dfrac{\begin{matrix}
+                            ~u\_recv(pkt) ~ \land \\
+                            (~pkt is (ACK, 0) ~ \lor \\
+                            ~pkt is corrupted~)
+                        \end{matrix}}{~u\_send([1, data]*~}$} (a1);
+                    \end{tikzpicture}
+                \end{center}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm, accepting] (r0) at (0, 0) {$R_0$};
+                        \node[state, minimum size=1cm] (r1) at (0, -5) {$R_1$};
+
+                        \draw
+                        (r0) edge[->, bend left=20, right] node{$\dfrac{\begin{matrix}
+                            ~u\_recv(pkt) ~ \land \\
+                            ~pkt is good ~ \land \\
+                            ~seq\_num(pkt) is 0~
+                        \end{matrix}}{~u\_send([ACK, 0]*); r\_recv(pkt)~}$} (r1)
+                        (r1) edge[->, bend left=20, left] node{$\dfrac{\begin{matrix}
+                            ~u\_recv(pkt) ~ \land \\
+                            ~pkt is good ~ \land \\
+                            ~seq\_num(pkt) is 1~
+                        \end{matrix}}{~u\_send([ACK, 1]*); r\_recv(pkt)~}$} (r0)
+                        (r0) edge[->, loop, out=45, in=-45, distance=2cm, right] node{$\dfrac{\begin{matrix}
+                            ~u\_recv(pkt) ~ \land \\
+                            ~pkt is corrupted~
+                        \end{matrix}}{~u\_send([ACK, 1]*)~}$} (r0)
+                        (r1) edge[->, loop, out=45, in=-45, distance=2cm, right] node{$\dfrac{\begin{matrix}
+                            ~u\_recv(pkt) ~ \land \\
+                            ~pkt is corrupted~
+                        \end{matrix}}{~u\_send([ACK, 0]*)~}$} (r1)
+                        (r0) edge[->, loop, out=135, in=225, distance=2cm, left] node{$\dfrac{\begin{matrix}
+                            ~u\_recv(pkt) ~ \land \\
+                            ~pkt is good ~ \land \\
+                            ~snd seq\_num(pkt) is 1~
+                        \end{matrix}}{~u\_send([ACK, 1]*)~}$} (r0)
+                        (r1) edge[->, loop, out=135, in=225, distance=2cm, left] node{$\dfrac{\begin{matrix}
+                            ~u\_recv(pkt) ~ \land \\
+                            ~pkt is good ~ \land \\
+                            ~snd seq\_num(pkt) is 0~
+                        \end{matrix}}{~u\_send([ACK, 0]*)~}$} (r1);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Acknowledgement Generation}
+                The following are cases of segment arrival, and how the protocol handles them;
+                \begin{itemize}
+                    \itemsep0em
+                    \item arrival of in-order segment with expected sequence number (all data up to expected sequence number already acknowledged)
+                        \subitem delayed ~ACK~, wait up to 500ms for another in-order segment, if it doesn't arrive, send ~ACK~ for just this segment
+                    \item arrival of in-order segment with expected sequence number (one other in-order segment awaiting ~ACK~, from above case)
+                        \subitem immediately send cumulative ~ACK~ for both segments
+                    \item arrival of out of order segment with higher-than-expected sequence number (gap detected)
+                        \subitem immediately send duplicate ~ACK~ - the sender will know to fill in the gap, as it would've already seen this acknowledgement
+                    \item arrival of segment that fills a gap in the received data
+                        \subitem immediately send ~ACK~ if segment starts at lower end of gap
+                \end{itemize}
+                Additionally, it's important to note that lost packets can easily be treated as corrupted packets.
+                Since I don't really want to draw the FSM again, add a ~start\_timer()~ after every ~u\_send(...)~, and an additional transition loop to $A_0$ and $A_1$, which sends the same data, but the input is ~timeout~.
+                \medskip
+
+                There's also a small section after this on the alternating bit protocol, which isn't used in practice.
 \end{document}
