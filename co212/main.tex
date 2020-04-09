@@ -2501,7 +2501,7 @@
                         \end{itemize}
                 \end{itemize}
             \subsubsection*{IPv6}
-                The current version if IP cannot support enough addresses, and therefore isn't flexible enough to support many users.
+                The current version of IP cannot support enough addresses, and therefore isn't flexible enough to support many users.
                 IPv6 addresses this by supporting billions of hosts, improved security, reducing the size of routing tables, scoped multicasting, and many more improvements.
                 It has some backwards compatibility, but adoption is an issue.
                 The IPv6 header consists of the following;
@@ -2516,4 +2516,172 @@
                     \item source and destination addresses (128-bit each, also supports anycast address where a single address represents multiple interfaces)
                 \end{itemize}
                 Fragmentation is pushed onto the end-systems, and the header checksum is no longer used (since TCP and UDP still have checksums).
+        \subsection*{25th February 2020 \hfill Week 8, Lecture 1}
+            \subsubsection*{Introduction to the Data Link Layer}
+                This layer addresses data is transmitted successfully via the use of frames and their synchronisation (\textbf{framing}), as well as how a shared communication channel can be accessed by combining signals without data loss (\textbf{multiplexing}).
+            \subsubsection*{Ethernet}
+                Ethernet is a protocol meant for LAN/MAN/WAN (mainly LAN).
+                Originally, it started with a coaxial cable, achieving speeds of approximately 2.94Mbps, and currently it can achieve speeds of 100Gbps, through fiber optics.
+                Common types of Ethernet cables include, with different levels of protection against electromagnetic interference (EMI);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{UTP} (unshielded twisted pair)
+                        \subitem consists of pairs of twisted wires, Cat5e is the most common (at the moment), but versions Cat6a (wires are separated with plastic, preventing accidental damage), and Cat7a (not yet in production) also exist, and Cat8 is in development
+                    \item \textbf{STP} (shielded / screened twisted pair)
+                        \subitem similar to UTP, but there is a foil around all the cables to prevent shield from interference
+                    \item \textbf{FTP} (foiled twisted pair) \hfill each individual wire is wrapped in foil
+                    \item \textbf{SFTP} (shielded and foiled twisted pair) \hfill combination of the previous two
+                \end{itemize}
+                Ethernet cables come in three variations;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{straight-through} \hfill both sides have same order to cables
+                        \medskip
+
+                        Used to communicate between devices of different OSI layers.
+                        An example of this is a connection between a switch (layer 2) to a router (layer 3).
+                        \begin{center}
+                            \begin{tikzpicture}[x=1.5cm, y=0.25cm]
+                                \foreach \i in {1,...,8} {
+                                    \node at (-0.5, 1 - \i) {\tiny{\i}};
+                                    \node at (4.5, 1 - \i) {\tiny{\i}};
+                                }
+                                \draw[orange, dashed] (0, 0) -- (1, 0) -- (3, 0) -- (4, 0);
+                                \draw[orange] (0, -1) -- (1, -1) -- (3, -1) -- (4, -1);
+                                \draw[green, dashed] (0, -2) -- (1, -2) -- (3, -2) -- (4, -2);
+                                \draw[blue] (0, -3) -- (1, -3) -- (3, -3) -- (4, -3);
+                                \draw[blue, dashed] (0, -4) -- (1, -4) -- (3, -4) -- (4, -4);
+                                \draw[green] (0, -5) -- (1, -5) -- (3, -5) -- (4, -5);
+                                \draw[brown, dashed] (0, -6) -- (1, -6) -- (3, -6) -- (4, -6);
+                                \draw[brown] (0, -7) -- (1, -7) -- (3, -7) -- (4, -7);
+                            \end{tikzpicture}
+                        \end{center}
+                        Also known as MDI (media dependent interface).
+                    \item \textbf{crossover} \hfill some are flipped
+                        \medskip
+
+                        Used to communicate between devices of the same OSI layer, such as from a switch to another switch (both layer 2).
+                        \begin{center}
+                            \begin{tikzpicture}[x=1.5cm, y=0.25cm]
+                                \foreach \i in {1,...,8} {
+                                    \node at (-0.5, 1 - \i) {\tiny{\i}};
+                                    \node at (4.5, 1 - \i) {\tiny{\i}};
+                                }
+                                \draw[orange, dashed] (0, 0) -- (1, 0) -- (3, -2) -- (4, -2);
+                                \draw[orange] (0, -1) -- (1, -1) -- (3, -5) -- (4, -5);
+                                \draw[green, dashed] (0, -2) -- (1, -2) -- (3, 0) -- (4, 0);
+                                \draw[blue] (0, -3) -- (1, -3) -- (3, -6) -- (4, -6);
+                                \draw[blue, dashed] (0, -4) -- (1, -4) -- (3, -7) -- (4, -7);
+                                \draw[green] (0, -5) -- (1, -5) -- (3, -1) -- (4, -1);
+                                \draw[brown, dashed] (0, -6) -- (1, -6) -- (3, -3) -- (4, -3);
+                                \draw[brown] (0, -7) -- (1, -7) -- (3, -4) -- (4, -4);
+                            \end{tikzpicture}
+                        \end{center}
+                        Also known as MDIX (media dependent interface with crossover).
+                    \item \textbf{rollover / console}
+                        \medskip
+
+                        Used to directly connect to a networking device (such as to troubleshoot a router).
+                        \begin{center}
+                            \begin{tikzpicture}[x=1.5cm, y=0.25cm]
+                                \foreach \i in {1,...,8} {
+                                    \node at (-0.5, 1 - \i) {\tiny{\i}};
+                                    \node at (4.5, 1 - \i) {\tiny{\i}};
+                                }
+                                \draw[orange, dashed] (0, 0) -- (1, 0) -- (3, -7) -- (4, -7);
+                                \draw[orange] (0, -1) -- (1, -1) -- (3, -6) -- (4, -6);
+                                \draw[green, dashed] (0, -2) -- (1, -2) -- (3, -5) -- (4, -5);
+                                \draw[blue] (0, -3) -- (1, -3) -- (3, -4) -- (4, -4);
+                                \draw[blue, dashed] (0, -4) -- (1, -4) -- (3, -3) -- (4, -3);
+                                \draw[green] (0, -5) -- (1, -5) -- (3, -2) -- (4, -2);
+                                \draw[brown, dashed] (0, -6) -- (1, -6) -- (3, -1) -- (4, -1);
+                                \draw[brown] (0, -7) -- (1, -7) -- (3, 0) -- (4, 0);
+                            \end{tikzpicture}
+                        \end{center}
+                \end{itemize}
+                Note that to connect a computer (layer 3) to a router (layer 3), a straight-through cable is used, as we are actually connecting to the switch (layer 2) inside the router.
+                Additionally, some modern devices can "fake-swap" between a straight-through and crossover, by using internal, software-based remapping (Auto-MDI/MDIX).
+            \subsubsection*{Frame}
+                A frame consists of data from the layer above, with a header and footer (containing a CRC (cyclic redundancy check) checksum).
+                The Ethernet II header consists of the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item preamble \hfill 64-bit
+                    \item destination and source MAC addresses \hfill 48-bit each
+                    \item Ethernet type \hfill 16-bit
+                \end{itemize}
+                This is followed by 46 to 1500 bytes of data.
+                The checksum is the footer.
+            \subsubsection*{MAC Addressing}
+                Each NIC conforming to IEEE 802 has a MAC address.
+                A manufacturer of network devices is given a range of addresses - once they reach the end of this range, they return back to the start of the range.
+                Two devices can have the same MAC address, as long as they are not on the same LAN, since after this point, a device is represented with an IP address.
+                The address 48 bits, formatted as six colon-separated bytes in hexadecimal.
+                \medskip
+
+                The first half of the address (24 bits) is the manufacturer specific OUID (organisationally unique identifier), and the remaining 24 bits is specific to the NIC.
+                Bit 6 (starting with the leftmost bit being 0), is the U/L bit, which decides if the address is universally or locally administered, and bit 6 (I/G bit) decides if it is an individual or group address.
+                An I/G bit of 0 indicates unicast, whereas 1 indicates multicast.
+                A U/G bit of 0 indicates it is globally unique (OUI enforced), whereas 1 indicates it is locally administered.
+                \medskip
+
+                The software MAC address can be changed (spoofed), which may confuse a basic layer 2 switch.
+                A more advanced device may notice the issue, and notify an administrator.
+            \subsubsection*{Switch}
+                A switch is smarter than a hub as it stores a table (FIB - forwarding information base) of where each MAC address resides, and thus forwards messages out of the right port (if it knows where).
+                It remembers which port your MAC is connected to.
+                \medskip
+
+                Sniffing a switched network can be difficult, as it knows which port frames should be sent out of.
+                The only time someone else's frame would be seen is from a broadcast, or flood.
+                \medskip
+
+                Two switching methods are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{store-and-forward switching}
+                        \subitem whole frame must be received first, and then it can be forwarded (hence larger frames will take longer to forward) - this allows the switch to check the frame for errors
+                    \item \textbf{cut-through switching}
+                        \subitem it begins forwarding as soon as it has enough information (when the switch knows where to forward it) - the switch cannot check the frame for errors (as the CRC is at the end of the frame), thus the recipient needs to check
+                \end{itemize}
+            \subsubsection*{Wireless Access Point}
+                Essentially acts as a wireless switch.
+                It goes by the name 802.11, which uses 2.4GHz or 5GHz of the radio spectrum (which can be used without a license).
+                This can also act as a bridge.
+                Sniffing a wireless network is easier, as data is sent everywhere (hence encryption is very strongly recommended).
+            \subsubsection*{Issue with Hubs}
+                \begin{center}
+                    \begin{tikzpicture}[y=1.5cm]
+                        \node (p0) at (6, 1) {PC0};
+                        \node (p1) at (7.333, 1) {PC1};
+                        \node (p2) at (8.666, 1) {PC2};
+                        \node (p3) at (10, 1) {PC3};
+                        \node (p4) at (10, -1) {PC4};
+                        \node (p5) at (8, -1) {PC5};
+                        \node (p6) at (6, -1) {PC6};
+                        \node (s0) at (8, 0) {switch0};
+                        \node (p7) at (-2, 1) {PC7};
+                        \node (p8) at (-0.666, 1) {PC8};
+                        \node (p9) at (0.666, 1) {PC9};
+                        \node (p10) at (2, 1) {PC10};
+                        \node (p11) at (-2, -1) {PC11};
+                        \node (p12) at (0, -1) {PC12};
+                        \node (p13) at (2, -1) {PC13};
+                        \node (s1) at (0, 0) {switch1};
+                        \node (h) at (-4, 0) {hub};
+                        \node (p14) at (-6, 1) {PC14};
+                        \node (p15) at (-6, -1) {PC15};
+                        \node[rotate=-90, red] (m) at (-4, 1) {:(};
+
+                        \draw[dashed] (h) -- (s1) -- (s0);
+                        \draw
+                        (s0) -- (p0) (s0) -- (p1) (s0) -- (p2) (s0) -- (p3) (s0) -- (p4) (s0) -- (p5) (s0) -- (p6)
+                        (s1) -- (p7) (s1) -- (p8) (s1) -- (p9) (s1) -- (p10) (s1) -- (p11) (s1) -- (p12) (s1) -- (p13)
+                        (h) -- (p14) (h) -- (p15)
+                        (h) -- (m);
+                    \end{tikzpicture}
+                \end{center}
+                In the scenario above, the attacker, \red{:(}, can see all traffic sent to and from PC14, and PC15.
+                They can also see all the broadcasts from switch 1, since it is sent to the hub.
+                This is due to how hubs broadcast everything they receive - it also generates a large amount of redundant traffic.
 \end{document}
