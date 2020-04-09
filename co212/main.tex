@@ -2104,7 +2104,7 @@
                 The main issue with this is scalability - as we need to maintain a spanning tree per source.
                 Another approach is to use core-based trees, and have a single spanning tree per group, with the root (core) near the middle of the group.
                 For a multicast message to be sent, the host sends it to the core which then performs multicast along the tree.
-        \subsection*{20th February 2020}
+        \subsection*{20th February 2020 \hfill Week 7, Lecture 2}
             \subsubsection*{Internetworking}
                 Internetworking is the process of linking different types of networks together.
                 All of these different networks have different protocol stacks, and need to somehow communicate with each other.
@@ -2318,4 +2318,202 @@
                 \end{enumerate}
                 To prevent a host from keeping an address for ever, periodic refreshing is required (leasing).
                 This is used for a router to receive an IP from the ISP.
+        \subsection*{20th February 2020 \hfill Week 7, Lecture 3}
+            \subsubsection*{Subnetting Calculations}
+                Note that the first address in the subnet (the network address) cannot be assigned to a host.
+                Additionally, the last IP address of the subnet is the broadcast address, and also cannot be used for a host.
+                The first host address is typically assigned to the router (gateway), but some routers may take the last host address instead.
+                \medskip
+
+                For example, with a IP address of ~192.168.1.100~, and a subnet mask of ~255.255.255.0~ (CIDR ~/24~), we have the following addresses;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~192.168.1.0~ \hfill network address
+                    \item ~192.168.1.1~ \hfill first host address (typically the router / gateway)
+                    \item ~192.168.1.254~ \hfill last host address (hence 254 host address, out of a total 256 addresses)
+                    \item ~192.168.1.255~ \hfill broadcast address
+                \end{itemize}
+            \subsubsection*{Longest Prefix Matching}
+                We have the following routing table;
+                \begin{center}
+                    \begin{tabular}{c|cc}
+                        rule & network & port \\
+                        \hline
+                        1 & \violet{~123.4~}~.0.0/16~ & 1 \\
+                        2 & \violet{~98.7~}~.1.0/16~ & 2 \\
+                        3 & \violet{~123.4.20~}~.0/24~ & 2 \\
+                        4 & ~(~\violet{~1~}~00...) 128.0.0.0/1~ & 3 \\
+                        5 & \violet{~66.249~}~.0.0/16~ & 3 \\
+                        6 & ~0.0.0.0/0~ & 4 \\
+                        7 & \violet{~128.138~}~.0.0/16~ & 4
+                    \end{tabular}
+                \end{center}
+                Based on the routing table, the following addresses have these output ports;
+                \begin{center}
+                    \begin{tabular}{cc|l}
+                        address & port & comment \\
+                        \hline
+                        ~123.4.1.69~ & 1 & rule 1 (cannot match the ~20~ on rule 3) \\
+                        ~98.7.2.71~ & 2 & rule 2 \\
+                        ~200.100.2.1~ & 3 & rule 4 (first bit is a ~1~) \\
+                        ~123.4.20.11~ & 2 & rule 3 (can match rule 1, but rule 3 is longer) \\
+                        ~123.4.21.10~ & 1 & rule 1 (cannot match the ~20~ on rule 3) \\
+                        ~128.138.207.167~ & 4 & rule 7 \\
+                        ~68.142.226.44~ & 4 & rule 6 (default route - does not match anything else)
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Hierarchical Routing}
+                A flat network model is too simplistic.
+                It doesn't allow for scaling, as transmitting routing information (as well as forwarding) is too expensive.
+                Additionally, it has no administrative autonomy, as one organisation may want to run DVR protocol, whereas another may want to run LSR protocol (organisations want different routing protocols), and they also may not want to expose their internal network structures.
+                \medskip
+
+                The Internet is organised in Autonomous Systems, which are independent administrative domains, with gateway routers interconnecting autonomous systems.
+                There needs to be a distinction between routing within an autonomous system and between autonomous systems;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{intra-AS routing protocol} \hfill runs within autonomous system
+                        \medskip
+
+                        This determines internal routes between any combination of internal routers and gateway routers (in the same AS).
+                        This should provide optimal routes, via the use of one of the following;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{RIP} (distance vector) \hfill used in old ISPs and small organisations
+                            \item \textbf{OSPF - Open Shortest Path First} (link state) \hfill used by larger organisations
+                                \medskip
+
+                                This is an abstraction of the network, by collecting the entire network into a directed graph - with the edges representing costs.
+                                This then computes the shortest path from every router to every other router.
+                                \medskip
+
+                                This allows for ASes on the Internet to be divided into areas.
+                                The routers connecting an area to the backbone are referred to as area border routers - responsible for routing packets outside an area.
+                                The backbone area routes traffic between other areas in AS.
+                        \end{itemize}
+                    \item \textbf{inter-AS routing protocol} \hfill determines routing at autonomous-system level
+                        \medskip
+
+                        This has to deal with politics, such as some ASes should not be traversed, or are more expensive.
+                        \textbf{BGP} (border gateway protocol) is the Internet standard.
+                        This is used when traffic is leaving an AS, though the backbone, into another AS.
+                        This doesn't care about the best path - just any path.
+                        This routing is based on reachability information, as well as policies.
+                        It is a path-vector protocol, similar to how DVR announces distances, but instead paths are announced.
+                        \medskip
+
+                        Routers advertise routes to networks, with destinations denoted by address prefixes.
+                        It may or may not forward an advertisement for a foreign network (as doing so means it is willing to carry traffic for that network).
+                        Additionally, prefixes may be aggregated (supernetting) - combining as follows;
+                        \begin{align*}
+                            \begin{rcases*}
+                                ~128.138.242.0/24~ \\
+                                ~128.138.243.0/24~
+                            \end{rcases*} & \to ~128.138.242.0/23~ \\
+                            \\
+                            \begin{rcases*}
+                                ~192.224.128.0/22~ \\
+                                ~192.224.136.0/21~ \\
+                                ~192.224.132.0/22~
+                            \end{rcases*} & \to ~192.224.128.0/20~
+                        \end{align*}
+                        The message structure consists of the following;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item ASN (Autonomous System Number) \hfill unique identifier for each AS
+                            \item BGP attributes
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item ~AS-PATH~ \hfill sequence of ASNs through which this advertisement was sent
+                                    \item ~NEXT-HOP~
+                                        \subitem specifies next interface (IP address) for forwarding packets towards advertised destination (this resolves the cases where the AS is reachable through multiple interfaces)
+                                \end{itemize}
+                            \item BGP import policy \hfill decides whether to accept or reject route advertisement
+                                \subitem router may not want to send traffic through a specific AS listed in ~AS-PATH~
+                        \end{itemize}
+                        The count-to-infinity problem in DVR is solved with path inspection, where failed routes are spotted and the chosen route can be changed.
+                        For example, $F$ receives the following information about the path they take to $D$ from its neighbours;
+                        \begin{center}
+                            \begin{minipage}[h]{0.3\textwidth}
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item $B : BCD$
+                                    \item $G : GCD$
+                                    \item $I : IFGCD$
+                                    \item $E : EFGCD$
+                                \end{itemize}
+                            \end{minipage}
+                            \hfill
+                            \begin{minipage}[h]{0.55\textwidth}
+                                \begin{center}
+                                    \begin{tikzpicture}[x=2cm]
+                                        \node (a) at (0, 0) {$A$};
+                                        \node (b) at (1, 0) {$B$};
+                                        \node (c) at (2, 0) {$C$};
+                                        \node (d) at (3, 0) {$D$};
+                                        \node (e) at (0, -1) {$E$};
+                                        \node (f) at (1, -1) {$F$};
+                                        \node (g) at (2, -1) {$G$};
+                                        \node (h) at (3, -1) {$H$};
+                                        \node (i) at (1, -2) {$I$};
+                                        \node (j) at (2, -2) {$J$};
+
+                                        \draw
+                                        (a) -- (b) (a) -- (e)
+                                        (b) -- (c) (b) -- (f)
+                                        (c) -- (d) (c) -- (g)
+                                        (d) -- (h)
+                                        (e) -- (f) (e) -- (i)
+                                        (f) -- (i) (f) -- (g)
+                                        (g) -- (j)
+                                        (h) -- (j)
+                                        (i) -- (j);
+                                    \end{tikzpicture}
+                                \end{center}
+                            \end{minipage}
+                        \end{center}
+                        If $G$ crashes, $F$ will see that the routes advertised by $I$ and $E$ fail because they pass through $G$.
+                        Therefore $F$ will choose $FBCD$ as its new route.
+                        \medskip
+
+                        The routes are ranked according to;
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item \textbf{preference} value (depends on policy, and can be $\infty$)
+                            \item \textbf{shortest} ~AS-PATH~
+                            \item \textbf{closest} ~NEXT-HOP~ router
+                        \end{enumerate}
+                \end{itemize}
+                Routers within an AS exchange their intra-AS routing information as expected.
+                Gateway routers also discover inter-AS routing information, which is then propagated within AS.
+                Both inter-AS and intra-AS routing information is used to populate forwarding tables.
+                Destinations within the same AS are reached as usual.
+                Destinations outside the AS are reached as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item inter-AS information is used to decide is the destination $x$ is reachable through the gateway $G_x$
+                    \item intra-AS information is used to decide how to reach $G_x$
+                    \item if $x$ is reachable through multiple gateway routers $G_x, G_x^\prime, \dots$, the following strategies can be taken;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item use intra-AS information to determine the costs of paths to $G_x, G_x^\prime, \dots$
+                            \item \textbf{hot-potato} routing sends it through the closest gateway
+                        \end{itemize}
+                \end{itemize}
+            \subsubsection*{IPv6}
+                The current version if IP cannot support enough addresses, and therefore isn't flexible enough to support many users.
+                IPv6 addresses this by supporting billions of hosts, improved security, reducing the size of routing tables, scoped multicasting, and many more improvements.
+                It has some backwards compatibility, but adoption is an issue.
+                The IPv6 header consists of the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item version \hfill same as before
+                    \item traffic class
+                    \item flow label \hfill sets up pseudo-connection between source and destination
+                    \item payload length
+                    \item next header
+                    \item hop limit
+                    \item source and destination addresses (128-bit each, also supports anycast address where a single address represents multiple interfaces)
+                \end{itemize}
+                Fragmentation is pushed onto the end-systems, and the header checksum is no longer used (since TCP and UDP still have checksums).
 \end{document}
