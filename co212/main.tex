@@ -2810,4 +2810,184 @@
                     \item each host then checks if it has the requested address - if it does, it sends a reply with its MAC address
                     \item router receives the ARP message, and usually caches the IP address along with the MAC address - the IP datagram is then forwarded to the correct host, encapsulated in data link frames
                 \end{enumerate}
+        \subsection*{27th February 2020 \hfill Week 8, Lecture 3}
+            \subsubsection*{Medium Access Control Sublayer}
+                The data link layer can be divided further;
+                \begin{itemize}
+                    \itemsep0em
+                    \item LLC (Logical Link Control) sub-layer
+                    \item MAC (Media Access Control) sub-layer
+                \end{itemize}
+                In topologies like token ring, hosts are not expected to transmit at the same time, however with Ethernet and star networks, this is not the case - we may be on a broadcast channel.
+                Examples of broadcast channels are shared connections, such as a shared wire (Ethernet), shared wireless (WiFi), or satellite links.
+                \medskip
+
+                When we have overlapping frames at the recipient, we assume they are lost and must be transmitted.
+                This is always true in wired LANs, however this may not be true in a wireless network, as one transmitter may be stronger than another (and prevails).
+                Some strategies are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{no control}
+                        \medskip
+
+                        A simple approach is to let stations retransmit after a collision.
+                        This is fine if the channel utilisation is low, but will be very inefficient if many devices are trying to get frames into the network simultaneously.
+                    \item \textbf{round-robin}
+                        \medskip
+
+                        Similar to the token ring topology where stations take turns using the channel.
+                        Only the station with the token can transmit - this slows down the network by a significant amount.
+                    \item \textbf{reservations}
+                        \medskip
+
+                        A station will need to reserve the channel before transmitting (slotted system).
+                        Consider $N$ stations sharing a channel;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{TDM} (time division multiplexing)
+                                \medskip
+
+                                A station must wait for its turn / slot to transmit, and the transmission rate is limited to $\frac{R}{N}$, where $R$ is the maximum channel rate.
+                            \item \textbf{FDM} (frequency division multiplexing)
+                                \medskip
+
+                                A station must only use a limited frequency band, but allows multiple stations (on different bands) to talk simultaneously.
+                                The bandwidth is not fully utilised; $\frac{B}{N}$, where $B$ is the total channel bandwidth.
+                                If the bands are too close together, interference is likely.
+                        \end{itemize}
+                        As both these methods have drawbacks, we want to use dynamic channel allocation.
+                \end{itemize}
+            \subsubsection*{Dynamic Channel Allocation}
+                Some schemes for dynamic MAC are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{basic ALOHA}
+                        \medskip
+
+                        The ALOHA protocol was developed at the University of Hawaii in 1971.
+                        The (simple) idea is as follows;
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item when a station has a frame to transmit, just send it
+                            \item when a collision occurs, stations wait a \textbf{random} amount of time before retrying
+                        \end{enumerate}
+                        This grants fair channel access, as any station has the same probability of transmission.
+                        \begin{center}
+                            \begin{tikzpicture}[x=2cm, y=0.5cm]
+                                \node at (5.25, -0.5) {$H_1$};
+                                \node at (5.25, -3.5) {$H_2$};
+                                \draw
+                                (0.5, 0.5) edge[|-|, above] node{$t_1 + t_2$ (vulnerable start)} (3.5, 0.5)
+                                (2.5, -1.5) edge[|-|, below] node{$t_1$} (4, -1.5)
+                                (2, -4.5) edge[|-|, below] node{$t_2$} (3.5, -4.5);
+                                \path[fill=violet] (2.5, 0) -- (4, 0) -- (4, -1) -- (2.5, -1) -- cycle;
+                                \path[fill=teal] (2, -3) -- (3.5, -3) -- (3.5, -4) -- (2, -4) -- cycle;
+                                \draw
+                                (0, 0) -- (5, 0)
+                                (0, -1) -- (5, -1)
+                                (0, -3) -- (5, -3)
+                                (0, -4) -- (5, -4);
+                            \end{tikzpicture}
+                        \end{center}
+                        However, this suffers from low channel efficiency, if there is much channel contention.
+                        This is due to the large vulnerability period for $H_1$ to start transmitting.
+                    \item \textbf{slotted ALOHA}
+                        \medskip
+
+                        In order to reduce the vulnerable period, slotted transmission is used (thus stations may only transmit at specific times).
+                        Stations are only permitted to send frame at the start of a fixed size slot - it assumes time synchronisation between stations.
+                        \begin{center}
+                            \begin{tikzpicture}[x=2cm, y=0.5cm]
+                                \node at (5.25, -0.5) {$H_1$};
+                                \node at (5.25, -3.5) {$H_2$};
+                                \draw
+                                (2, 1) edge[|-|, above] node{vulnerable $H_1$ start} (3, 1)
+                                (1, -5) edge[|-|, below] node{vulnerable $H_2$ start} (2, -5)
+                                (0, -2) edge[|-|, below] node{$t$} (1, -2);
+                                \path[fill=violet] (3, 0) -- (4, 0) -- (4, -1) -- (3, -1) -- cycle;
+                                \path[fill=teal] (2, -3) -- (3, -3) -- (3, -4) -- (2, -4) -- cycle;
+                                \draw
+                                (0, 0) -- (5, 0)
+                                (0, -1) -- (5, -1)
+                                (0, -3) -- (5, -3)
+                                (0, -4) -- (5, -4);
+                                \draw[dashed]
+                                (0, 1) -- (0, -5)
+                                (1, 1) -- (1, -5)
+                                (2, 1) -- (2, -5)
+                                (3, 1) -- (3, -5)
+                                (4, 1) -- (4, -5)
+                                (5, 1) -- (5, -5);
+                            \end{tikzpicture}
+                        \end{center}
+                        The fixed slots for transmission reduce the vulnerable period, as collision only happens with an exact overlap.
+                    \item \textbf{carrier sensing}
+                        \medskip
+
+                        This listens for other transmission before sending, and only allowing transmission when channel is idle;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item CSMA/CD (Carrier Sense Multiple Access / Collision Detection) \hfill Ethernet (IEEE 802.3)
+                                \medskip
+
+                                The station senses the channel while transmitting to know that its frame is OK.
+                                It stops transmission as soon as collision occurs (collision detection), and adds a jamming signal to create an agreement about the collision.
+                                The host must transmit for long enough to know that the frame is OK, thus the minimum frame length is $2\eta$, where $\eta$ is the end-to-end transmission delay.
+                                \medskip
+
+                                Note that if we back-off for the same amount of time, we will collide again (this is addressed in the \textbf{Back-off} section below).
+                                \medskip
+
+                                CSMA/CD has no notion of authority to transmit, and collisions are inevitable hence this is a best-effort service.
+                                In the worst case, a particular station may be delayed indefinitely; this is acceptable for many applications such as office LANs, however this is not acceptable for real-time systems.
+                                \medskip
+
+                                This is continued in a later section, \textbf{Carrier Extension and Frame Bursting}.
+                            \item CSMA/CA (Carrier Sense Multiple Access / Collision Avoidance) \hfill WiFi (IEEE 802.11)
+                        \end{itemize}
+                        However, collisions may still occur due to transmission delay.
+                    \item \textbf{token passing} \hfill similar to token ring
+                \end{itemize}
+            \subsubsection*{Back-off}
+                Some strategies for addressing back-off are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{1-persistent}
+                        \medskip
+
+                        The station keeps checking if the channel is free, and transmits immediately when it is (Ethernet does this).
+                        This is fine in a switched architecture.
+                    \item \textbf{non-persistent}
+                        \medskip
+
+                        If the channel is busy, wait a \textbf{random} amount of time before checking again, and then transmit when free.
+                    \item \textbf{$p$-persistent}
+                        \medskip
+
+                        The station keeps checking if the channel is free, and then transmits with a probability of $p$.
+                        Even if the channel is free, we may end up not transmitting.
+                    \item \textbf{binary exponential}
+                        \medskip
+
+                        When the channel is idle, the station attempts to transmit.
+                        If a collision occurs, it waits either 0 or 1 slots before attempting to transmit again.
+                        If another collision occurs, it waits 0, 1, 2, or 3 slots before attempting again.
+                        After $c$ collisions, it chooses a slot in the range $[0, 2^c - 1]$ for the next attempt.
+                        After 10 collisions, we give up (upper limit of 1023 slots).
+                        The minimum frame length is treated as the slot length.
+                \end{itemize}
+            \subsubsection*{Carrier Extension and Frame Bursting}
+                Any Ethernet frame less than 512 bytes is extended by the host sending carrier, which keeps the line busy, as if it was originally 512 bytes long.
+                This allows the network length to be 200m end-to-end, but is very inefficient.
+                \medskip
+
+                To use this idle time, we can send multiple frames, via frame bursting.
+                After an Ethernet frame is sent, if it isn't long enough, it pauses for a bit and sends another, once again, if it still isn't long enough it sends another, and so on.
+                Note that we can extend beyond 512 bytes, and if no more frames are available to send, then we still have the padding.
+                \medskip
+
+                This allows us to increase the network speed with minor algorithmic changes (software).
+            \subsubsection*{Switched Topology}
+                In a fully switched topology, it is possible to ensure collisions never occur with switches, by buffering frames and transmitting when a channel is available.
+                Each channel has at most two stations.
 \end{document}
