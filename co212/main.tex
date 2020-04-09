@@ -2684,4 +2684,130 @@
                 In the scenario above, the attacker, \red{:(}, can see all traffic sent to and from PC14, and PC15.
                 They can also see all the broadcasts from switch 1, since it is sent to the hub.
                 This is due to how hubs broadcast everything they receive - it also generates a large amount of redundant traffic.
+        \subsection*{27th February 2020 \hfill Week 8, Lecture 2}
+            \subsubsection*{Switched Ethernet}
+                A typical switched Ethernet topology has a single machine connected to each switch port.
+                This avoids collisions on networks by separating collision domains.
+            \subsubsection*{Network Topologies}
+                In the past, devices were connected directly to the cable (switches and Ethernet weren't available), and some computers had multiple NICs, allowing them to connect between hosts.
+                Some topologies are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{bus topology}
+                        \medskip
+
+                        This had a main coaxial cable (called the bus) connecting all hosts, where all the data travelled.
+                        A BNC coaxial T connector would be needed to add a new host.
+                        At the end of each side of the cable, a BNC terminator was added to signify the end of the network.
+                    \item \textbf{ring topology}
+                        \medskip
+
+                        Each host needed two NICs to achieve this, as all host were connected in a physical ring, which data flowed around.
+                        If a link was cut, the network died.
+                        To circumvent this, dual-ring was attempted, which means each device needed four NICs, which became too expensive for large networks.
+                    \item \textbf{token ring topology}
+                        \medskip
+
+                        This was similar to the ring topology, but instead passed around a token (forming a logical ring).
+                        An intermediate device, the MSAU (multistation access unit), was needed to achieve this (a predecessor to the switch).
+                        When data returned back to the original sender, it was removed from the network, and if a host died, it stopped passing the token to the dead host.
+                        Each host operates in the following modes;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{listen} mode
+                                \medskip
+
+                                Host $H_n$ uses a single bit buffer to copy input bit stream from $H_{n - 1}$ to $H_{n + 1}$, even if the frame is addressed to it.
+                                If it is the independent recipient of the frame, it keeps a copy of it.
+                            \item \textbf{transmit} mode
+                                \medskip
+
+                                Host $H_n$ reads bit stream from $H_{n - 1}$ into memory, and transmits frame from its memory to $H_{n + 1}$.
+                                The whole frame does not need to fit on the ring, as the holder of the token can keep transmitting (only one device can speak, as it must hold the token).
+                        \end{itemize}
+                        Only one host will be in transmit mode (the sender), and once it drains off the frame $F$ it sent (it has gone around the logical ring), it places the token $T$ on the ring.
+                        Early release mode means that the token is placed on the ring before $F$ arrives back (trusting that it has been sent around the ring).
+                        Until the token is placed back on the ring, all other hosts must be in listen mode - thus no collisions can occur.
+                        \medskip
+
+                        After the token is sent, the host switches back to listen mode.
+                        If the next host doesn't need to transmit, it can just pass on the token, and once a host wants to transmit it can drain off the token $T$ and send off its data frame $F$.
+                        \medskip
+
+                        A token ring frame consists of the following fields (the token consists of the fields in \violet{violet});
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \violet{start delimiter} \hfill 1 byte
+                            \item \violet{access control} \hfill 1 byte
+                                \medskip
+
+                                This has a single bit to denote the presence of token, and priority bits to denote the priority level of the frame.
+                            \item frame control \hfill 1 byte
+                                \medskip
+
+                                Used to generate different control frames.
+                                A special \textbf{active monitor} station must take responsibility for generating token and draining orphaned frames - any host must be able to take this function as a monitor can fail at any given time.
+                            \item destination address \hfill 6 bytes
+                            \item source address \hfill 6 bytes
+                            \item data \hfill $\geq 0$ bytes
+                            \item FCS (checksum) \hfill 4 bytes
+                            \item \violet{end delimiter} \hfill 1 byte
+                            \item frame status \hfill 1 byte
+                                \medskip
+
+                                Defines whether the address was found and the frame was copied (is set to 1 after data is copied).
+                        \end{itemize}
+                        This is followed by an interframe gap (IFG) between frames to separate them.
+                        \medskip
+
+                        A host with a lower priority frame cannot take the token until all hosts with higher priority frames have taken it.
+                        It also supports a reservation scheme where a host in listen mode can increase reservation priority.
+                        The priority scheme can cause low priority data to be delayed indefinitely, but guarantees high priority data will be sent quickly.
+                    \item \textbf{star topology}
+                        \medskip
+
+                        Most networks started using switches, which hosts directly connect to (WiFi networks are based on the star topology).
+                        This allows for any host to communicate with any other host without waiting for the token (as long as there is an agreed way to avoid interference).
+                        However, the central device is a single point of failure.
+                    \item \textbf{line topology} \hfill similar to a ring, but does not meet at end
+                    \item \textbf{tree topology} \hfill hybrid of star and bus
+                    \item \textbf{mesh topology} \hfill some hosts are connected to some hosts (many NICs needed)
+                    \item \textbf{fully connected} \hfill every host is connected to every other host (very expensive)
+                \end{itemize}
+            \subsubsection*{Leaving LAN}
+                The MAC address allows a device to be unique within its network, but the Internet requires an IP address on top of the MAC address.
+                However, switches are layer 2 devices, thus they must work with routers for an IP to be assigned (either statically or dynamically).
+                This is linked to your MAC address, which is how the router informs the switch which host each packet is for.
+                With the help of layer 4 port numbers, it can differentiate between devices.
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \textbf{IP addresses (network layer)}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item specify addresses of hosts involved in end-to-end communication
+                            \item do not have to change as packets pass through a router
+                            \item can use IP address of any host on the Internet
+                        \end{itemize}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \textbf{MAC addresses (data link layer)}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item specify addresses of host involved in communication on the same (sub)network
+                            \item usually change as frames pass through routers (as packets) - it takes the MAC address of the interface on the gateway when it leaves the LAN (this MAC address represents the entire LAN)
+                            \item can only use MAC addresses of hosts within the same subnet
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Address Resolution Protocol (ARP)}
+                Addressing hosts through IP addresses is not understood by NICs.
+                A host on an Ethernet LAN only reads messages in frames that contain the host's hardware MAC address.
+                ARP is used to find out the MAC address of a host given its IP address;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item router asks each host on LAN if they have the requested IP address (encapsulated as ARP message in data link frame, and broadcasts)
+                    \item each host then checks if it has the requested address - if it does, it sends a reply with its MAC address
+                    \item router receives the ARP message, and usually caches the IP address along with the MAC address - the IP datagram is then forwarded to the correct host, encapsulated in data link frames
+                \end{enumerate}
 \end{document}
