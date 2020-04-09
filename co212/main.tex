@@ -2990,4 +2990,223 @@
             \subsubsection*{Switched Topology}
                 In a fully switched topology, it is possible to ensure collisions never occur with switches, by buffering frames and transmitting when a channel is available.
                 Each channel has at most two stations.
+        \subsection*{3rd March 2020 \hfill Week 9, Lecture 1}
+            \subsubsection*{Wires}
+                Examples of communication media include wired (such as UTP), and wireless (such as radio).
+                A low cost medium is produced by twisting a pair of wires together (unshielded twisted pair).
+                Twisting wires reduces interference and cross-talk.
+            \subsubsection*{Patch Panels}
+                \begin{center}
+                    \begin{minipage}[h]{0.325\textwidth}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{socket panel}
+                                \subitem where cables end up (rarely changed)
+                            \item \textbf{network switch (layer 2)}
+                                \subitem used to create LANs (sometimes changed)
+                            \item \textbf{private branch exchange (PBX)}
+                                \subitem used to interlink phone systems
+                        \end{itemize}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[h]{0.625\textwidth}
+                        \begin{center}
+                            \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                \draw (-3, 2) -- (20, 2) -- (20, -12) -- (-3, -12) -- cycle;
+                                \foreach \y in {0,-4,-8} {
+                                    \begin{scope}[shift={(0, \y)}]
+                                        \draw (0, 0) -- (19, 0) -- (19, -3) -- (0, -3) -- cycle;
+                                        \foreach \x in {0,...,7} {
+                                            \draw (3 + 2*\x, -1) -- (4 + 2*\x, -1) -- (4 + 2*\x, -2) -- (3 + 2*\x, -2) -- cycle;
+                                        }
+                                    \end{scope}
+                                }
+                                \node at (9.5, 1) {patch panel};
+                                \node[rotate=90] at (-1.5, -1.5) {PBX};
+                                \node[rotate=90] at (-1.5, -5.5) {\shortstack{network\\switch}};
+                                \node[rotate=90] at (-1.5, -9.5) {\shortstack{socket\\panel}};
+                                \draw[very thick]
+                                (3.5, -1.5) edge[bend right=30] (3.5, -9.5)
+                                (5.5, -5.5) edge[bend left=15] (7.5, -9.5)
+                                (9.5, -5.5) -- (9.5, -9.5)
+                                (3.5, -11) -- (3.5, -14)
+                                (7.5, -11) -- (7.5, -14)
+                                (9.5, -11) -- (9.5, -14);
+                                \node at (0, -14.5) {floor sockets};
+                                \node at (3.5, -14.5) {$r_1$};
+                                \node at (7.5, -14.5) {$r_2$};
+                                \node at (9.5, -14.5) {$r_3$};
+                                \draw[dashed]
+                                (3, -14) -- (4, -14) -- (4, -15) -- (3, -15) -- cycle
+                                (7, -14) -- (8, -14) -- (8, -15) -- (7, -15) -- cycle
+                                (9, -14) -- (10, -14) -- (10, -15) -- (9, -15) -- cycle;
+                            \end{tikzpicture}
+                        \end{center}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Coaxial Cables and Optical Fiber}
+                The conductors are placed concentrically in a coaxial cable, thus avoiding the problems associated with twisted pairs.
+                This supports a wider range of frequencies, and therefore has a higher bandwidth - but it has a higher cost compared to UTP.
+                \medskip
+
+                Optical fibers do not suffer from, nor generate, electromagnetic radiation.
+                It transmits data by exploiting the refraction of light, as light rays are refracted at the boundary when passing from one medium to another.
+                Signal loss (attenuation) is low, and it has high bandwidth.
+                \begin{center}
+                    \begin{tabular}{c|cccc}
+                        & frequency range & typical attenuation & typical delay & repeater spacing \\
+                        \hline
+                        twisted pair & 0 - 1 MHz & 0.7 dB/km at 1 kHz & 5$\mu$s/km & 2 km \\
+                        coaxial cable & 0 - 500 MHz & 7 dB/km at 10 MHz & 4$\mu$s/km & 1 - 9 km \\
+                        optical fiber & 186 - 370 THz & 0.2 - 0.5 dB/km & 5$\mu$s/km & 40 km
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Wireless Transmission}
+                The signal is carried in electromagnetic spectrum, and communication is bidirectional by default.
+                This is mostly a broadcast medium.
+                Radio is an example of a wireless medium, and different frequencies have different propagation properties.
+            \subsubsection*{Signal Representation}
+                Signals can be represented in one of following ways;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{analogue} (continuous signal)
+                        \medskip
+
+                        Changes in the information are represented in a natural manner analogous to a physical property of the channel.
+                    \item \textbf{digital} (discrete signal)
+                        \medskip
+
+                        Information is represented in a discrete set of states, using some coding scheme.
+                        A binary digital channel is a digital channel using only two symbols or states (0 and 1).
+                \end{itemize}
+                We can quantify the symbol rate per second with Baud rate (Bd) - similar to the bit rate, which is for binary digital signals, a symbol can express more than 1 bit.
+                \medskip
+
+                A digital channel can be implemented by an analogue channel via a modem (modulator-demodulator).
+                \begin{center}
+                    \begin{tikzpicture}[x=0.95cm, y=0.666cm]
+                        \node at (1, -1) {host};
+                        \node at (5, -1) {modem};
+                        \node at (9.5, -1) {\shortstack{analogue\\channel}};
+                        \node at (14, -1) {modem};
+                        \node at (18, -1) {host};
+                        \node at (9.5, 0.5) {digital channel};
+                        \draw[dashed] (3, 1) -- (16, 1) -- (16, -3) -- (3, -3) -- cycle;
+                        \draw (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle;
+                        \draw (4, 0) -- (6, 0) -- (6, -2) -- (4, -2) -- cycle;
+                        \draw (8, 0) -- (11, 0) -- (11, -2) -- (8, -2) -- cycle;
+                        \draw (13, 0) -- (15, 0) -- (15, -2) -- (13, -2) -- cycle;
+                        \draw (17, 0) -- (19, 0) -- (19, -2) -- (17, -2) -- cycle;
+                        \draw
+                        (2, -1) edge[<->, above] node{digital} (4, -1)
+                        (6, -1) edge[<->, above] node{analogue} (8, -1)
+                        (11, -1) edge[<->, above] node{analogue} (13, -1)
+                        (15, -1) edge[<->, above] node{digital} (17, -1);
+                    \end{tikzpicture}
+                \end{center}
+                Similarly, in inverse, an analogue channel can be implemented by a digital channel with a codec (coder-decoder).
+                A DAC is Digital to Analogue Converter, whereas an ADC is Analogue to Digital Converter.
+                \medskip
+
+                Signals have the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{waveform} \hfill shape of the signal
+                    \item \textbf{amplitude} \hfill range of values signal varies over
+                        \subitem maximum value or string of signal (voltage, brightness, etc.)
+                    \item \textbf{wavelength} ($\lambda$) \hfill distance signal travels before repetition
+                        \subitem the length of single cycle of signal (typically measured as distance)
+                    \item \textbf{frequency} \hfill number of repetitions per unit time
+                        \subitem number of cycles per second; typically measured in Hertz (Hz)
+                \end{itemize}
+                A formula we can use is the following (where $c = 3 \times 10^8 ms^{-1}$ - the speed of light);
+                \begin{center}
+                    $c = f \lambda$
+                \end{center}
+            \subsubsection*{Modulation}
+                We need a modulation scheme to encode a (digital) information signal to be transmitted effectively using the range of frequencies (bandwidth) supported by a channel.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{baseband modulation} \hfill transmit the information signal unmodified (used for dedicated lines)
+                    \item \textbf{broadband modulation}
+                        \medskip
+
+                        Modifies physical carrier signal to encode information signal.
+                        The amplitude is changed, where a high amplitude indicates 1, and a low amplitude indicates 0.
+                        Different frequencies can also be used to represented different bits, and the phase of the waveform can also be changed.
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{amplitude modulation} (AM)
+                                \medskip
+
+                                The standard amplitude represents a 0, and a higher amplitude represents a 1.
+                                This is also referred to as ASK (amplitude shift keying).
+                                The following example is for the byte \violet{~000~}\teal{~11~}\violet{~0~}\teal{~1~}\violet{~0~};
+                                \begin{center}
+                                    \begin{tikzpicture}
+                                        \begin{axis}[
+                                            no markers, domain=0:8, samples=500,
+                                            axis lines*=left, xlabel=bit, ylabel=amplitude,
+                                            height=3cm, width=15cm,
+                                            enlargelimits=false,
+                                            yticklabels={,,}
+                                        ]
+                                            \addplot[thick, violet, domain=0:3] {sin(deg(\x) * 2 * pi)};
+                                            \addplot[thick, teal, domain=3:5] {2 * sin(deg(\x) * 2 * pi)};
+                                            \addplot[thick, violet, domain=5:6] {sin(deg(\x) * 2 * pi)};
+                                            \addplot[thick, teal, domain=6:7] {2 * sin(deg(\x) * 2 * pi)};
+                                            \addplot[thick, violet, domain=7:8] {sin(deg(\x) * 2 * pi)};
+                                        \end{axis}
+                                    \end{tikzpicture}
+                                \end{center}
+                            \item \textbf{frequency modulation} (FM)
+                                \medskip
+
+                                The standard frequency represents a 0, and a higher frequency represents a 1 (such as two cycles in a time unit).
+                                This is also referred to as FSK (frequency shift keying).
+                                The following example is for the byte \violet{~000~}\teal{~11~}\violet{~0~}\teal{~1~}\violet{~0~};
+                                \begin{center}
+                                    \begin{tikzpicture}
+                                        \begin{axis}[
+                                            no markers, domain=0:8, samples=500,
+                                            axis lines*=left, xlabel=bit, ylabel=amplitude,
+                                            height=3cm, width=15cm,
+                                            enlargelimits=false,
+                                            yticklabels={,,}
+                                        ]
+                                            \addplot[thick, violet, domain=0:3] {sin(deg(\x) * 2 * pi)};
+                                            \addplot[thick, teal, domain=3:5] {sin(deg(\x) * 4 * pi)};
+                                            \addplot[thick, violet, domain=5:6] {sin(deg(\x) * 2 * pi)};
+                                            \addplot[thick, teal, domain=6:7] {sin(deg(\x) * 4 * pi)};
+                                            \addplot[thick, violet, domain=7:8] {sin(deg(\x) * 2 * pi)};
+                                        \end{axis}
+                                    \end{tikzpicture}
+                                \end{center}
+                            \item \textbf{phase modulation} (PM)
+                                \medskip
+
+                                A shift in phase indicates a bit (not an accurate example).
+                                This is also referred to as PSK (phase shift keying).
+                                The following example is for the byte \violet{~000~}\teal{~11~}\violet{~0~}\teal{~1~}\violet{~0~} (not accurate, but just shows the idea);
+                                \begin{center}
+                                    \begin{tikzpicture}
+                                        \begin{axis}[
+                                            no markers, domain=0:8, samples=500,
+                                            axis lines*=left, xlabel=bit, ylabel=amplitude,
+                                            height=3cm, width=15cm,
+                                            enlargelimits=false,
+                                            yticklabels={,,}
+                                        ]
+                                            \addplot[thick, violet, domain=0:3] {-sin(deg(\x) * 2 * pi)};
+                                            \addplot[thick, teal, domain=3:5] {sin(deg(\x) * 2 * pi)};
+                                            \addplot[thick, violet, domain=5:6] {-sin(deg(\x) * 2 * pi)};
+                                            \addplot[thick, teal, domain=6:7] {sin(deg(\x) * 2 * pi)};
+                                            \addplot[thick, violet, domain=7:8] {-sin(deg(\x) * 2 * pi)};
+                                        \end{axis}
+                                    \end{tikzpicture}
+                                \end{center}
+                        \end{itemize}
+                        We can transmit at a higher data rate by transmitting multiple bits per symbol in our modulation scheme - by using a combination of modulation schemes.
+                        Examples of this include Quadrature Phase Shift Keying (QPSK), N-Quadrature Amplitude Modulation (N-QAM), and many others.
+                \end{itemize}
 \end{document}

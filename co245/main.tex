@@ -30,7 +30,7 @@
     intersections
 }
 
-\pgfplotsset{CompGt=1.16}
+\pgfplotsset{compat=1.16}
 
 \pgfmathdeclarefunction{gauss}{2}{%
   \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
@@ -1833,9 +1833,9 @@
                             height=5cm, width=15cm,
                             enlargelimits=false
                         ]
-                        \addplot[fill=violet!20, draw=none, domain=-4:-1.96] {gauss(0, 1)} \closedcycle;
-                        \addplot[fill=violet!20, draw=none, domain=1.96:4] {gauss(0, 1)} \closedcycle;
-                        \addplot[thick] {gauss(0, 1)};
+                            \addplot[fill=violet!20, draw=none, domain=-4:-1.96] {gauss(0, 1)} \closedcycle;
+                            \addplot[fill=violet!20, draw=none, domain=1.96:4] {gauss(0, 1)} \closedcycle;
+                            \addplot[thick] {gauss(0, 1)};
                         \end{axis}
                     \end{tikzpicture}
 
