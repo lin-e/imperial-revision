@@ -3149,7 +3149,8 @@
                                             axis lines*=left, xlabel=bit, ylabel=amplitude,
                                             height=3cm, width=15cm,
                                             enlargelimits=false,
-                                            yticklabels={,,}
+                                            yticklabels={,,},
+                                            clip=false
                                         ]
                                             \addplot[thick, violet, domain=0:3] {sin(deg(\x) * 2 * pi)};
                                             \addplot[thick, teal, domain=3:5] {2 * sin(deg(\x) * 2 * pi)};
@@ -3172,7 +3173,8 @@
                                             axis lines*=left, xlabel=bit, ylabel=amplitude,
                                             height=3cm, width=15cm,
                                             enlargelimits=false,
-                                            yticklabels={,,}
+                                            yticklabels={,,},
+                                            clip=false
                                         ]
                                             \addplot[thick, violet, domain=0:3] {sin(deg(\x) * 2 * pi)};
                                             \addplot[thick, teal, domain=3:5] {sin(deg(\x) * 4 * pi)};
@@ -3195,7 +3197,8 @@
                                             axis lines*=left, xlabel=bit, ylabel=amplitude,
                                             height=3cm, width=15cm,
                                             enlargelimits=false,
-                                            yticklabels={,,}
+                                            yticklabels={,,},
+                                            clip=false
                                         ]
                                             \addplot[thick, violet, domain=0:3] {-sin(deg(\x) * 2 * pi)};
                                             \addplot[thick, teal, domain=3:5] {sin(deg(\x) * 2 * pi)};
@@ -3209,4 +3212,12 @@
                         We can transmit at a higher data rate by transmitting multiple bits per symbol in our modulation scheme - by using a combination of modulation schemes.
                         Examples of this include Quadrature Phase Shift Keying (QPSK), N-Quadrature Amplitude Modulation (N-QAM), and many others.
                 \end{itemize}
+            \subsubsection*{Digital Subscriber Line (DSL)}
+                On conventional phone lines, we managed to reach 56000 bps (56 Kbps) downstream, and 33000 bps (33 Kbps) upstream with the V.90 modem standard.
+                Phone lines are artificially limited to 3000 Hz bandwidth, as normal voice goes from 400 Hz to 3400 Hz.
+                This bandwidth filter is removed with DSL.
+                \medskip
+
+                In ADSL (Asymmetric DSL), the connection is divided into 256 channels of 4000 Hz each.
+                Channels 1 - 5, which are 4 - 25 kHz are not used to avoid interference, and more channels are allocated for download than upload, as downloading is more common for Internet users.
 \end{document}
