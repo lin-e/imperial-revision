@@ -905,4 +905,115 @@
                             \item $2^{\log n} \in O(n)$ \hfill (use laws of logarithms) true
                         \end{enumerate}
                 \end{enumerate}
+        \subsection*{22nd October 2020}
+            \subsubsection*{Double-Ended Queues (Deque)}
+                These are sometimes called symmetric lists.
+                A normal list has the following complexities;
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item ~cons x xs~ \hfill $O(1)$
+                            \item ~head xs~ \hfill $O(1)$
+                            \item ~tail xs~ \hfill $O(1)$
+                        \end{itemize}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item ~snoc x xs~ \hfill $O(n)$
+                            \item ~last xs~ \hfill $O(n)$
+                            \item ~init xs~ \hfill $O(n)$
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+                We define a Deque as two lists, where the first list is in normal order, and the second list, containing the remainder of the whole list, is in reverse order (see the ~toList~ function)
+                \begin{lstlisting}
+                    data Deque a = Deque [a] [a]
+
+                    toList :: Deque a -> [a]
+                    toList (Deque xs ys) = xs ++ reverse ys
+                \end{lstlisting}
+                To add to the end of the list, we add to the front of the second list, hence we have constant time ~snoc~, as well as constant time ~cons~.
+                \medskip
+
+                To get desirable asymptotic complexities, there are two invariants that we require;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $~null xs~ \Rightarrow ~null ys~ \lor ~single ys~$
+                    \item $~null ys~ \Rightarrow ~null xs~ \lor ~single xs~$
+                \end{itemize}
+                To make a deque from a list, some symmetry is preferable.
+                \begin{lstlisting}
+                    fromList :: [a] -> Deque [a]
+                    fromList xs = Deque us (reverse vs)
+                      where
+                        (us, vs) = splitAt (div n 2) xs
+                        n = length xs
+                \end{lstlisting}
+                Some operations are easy to analyse and define;
+                \begin{lstlisting}
+                    snoc :: a -> Deque a -> Deque a
+                    snoc y (Deque [] ys) = Deque ys [y]
+                    snoc y (Deque xs ys) = Deque xs y:ys
+                \end{lstlisting}
+                This has $O(1)$ complexity.
+                It's important to note that we can do line 2 due to our invariant - if we know ~xs~ is empty, then ~ys~ must also be empty, or be a singleton list - and therefore it can be placed as the first list without a reversal.
+                \begin{lstlisting}
+                    last :: Deque a -> a
+                    last (Deque xs []) = head xs -- or last xs
+                    last (Deque xs y:ys) = y
+                \end{lstlisting}
+                This is also $O(1)$ complexity.
+                Similarly, we know that ~xs~ is either empty (which would cause an error anyways), or it is singleton - thus the last item is the only item in the deque.
+                \begin{lstlisting}
+                    empty :: Deque a
+                    empty = Deque [] []
+
+                    tail :: Deque a -> Deque a
+                    tail (Deque [] ys) = empty
+                    tail (Deque [x] ys) = Deque (reverse vs) us
+                      where
+                        (us, vs) = splitAt (div n 2) ys
+                        n = length ys
+                    tail (Deque xs ys) = Deque (tail xs) ys
+                \end{lstlisting}
+                Here we define the empty deque, which is used in the first case (and doesn't cause an error).
+                In the third case, we know that there is more than one element in ~xs~ (since it didn't match the second case), and therefore we simply take the tail (since we won't have an empty list, unlike the second case).
+                In the second case, we discard the single ~x~.
+                Symmetry is maintained by using the same split as ~fromList~.
+                Note that ~ys~ is reversed, hence we can write $~ys = [y~_~n~~, y~_~n-1~~, ..., y~_~0~~]~$, and therefore $~(us, vs) = ([y~_~n~~, y~_~n-1~~, ..., y~_~j~~], [y~_~j-1~~, y~_~j-2~~, ..., y~_~0~~])~$, therefore ~vs~ needs to be reversed and put first.
+                Both the first, and third cases are $O(1)$, but the worst case complexity is the second case, which has the reversal, and is $O(n)$.
+            \subsubsection*{Amortised Analysis}
+                In the worst case, the cost is $O(n)$, where $n = ~length ys~$.
+                However, we rarely encounter this case.
+                \medskip
+
+                The idea of amortised analysis is that while it may have a high complexity in a single instance of the worst case, but it may not cost that amount in a sequence of operations.
+                The cost of some functions is better expressed in terms of how it performs in a wider context.
+                \medskip
+
+                Consider repeated applications of ~tail~, in a chain (such that we apply ~tail~ to the result of the previous application) - each successive call to ~tail~ will cost less;
+                \begin{center}
+                    $~xs~_~0~ \overset{~tail~}{\leadsto} ~xs~_~1~ \overset{~tail~}{\leadsto} ~xs~_~2~ \overset{~tail~}{\leadsto} \dots \overset{~tail~}{\leadsto} ~xs~_~n~$
+                \end{center}
+                We can use amortised analysis to work out the true cost.
+                \begin{center}
+                    $~xs~_~0~ \overset{~op~_~0~}{\leadsto} ~xs~_~1~ \overset{~op~_~1~}{\leadsto} ~xs~_~2~ \overset{~op~_~2~}{\leadsto} \dots \overset{~op~_~n~}{\leadsto} ~xs~_~n+1~$
+                \end{center}
+                To perform amortised analysis, we need to define the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{cost} \hfill assign a real cost $C_{~op~_~i~}(~xs~_~i~)$ for each operation $~op~_~i~$ on data $~xs~_~i~$
+                    \item \textbf{amortised cost} \hfill assign an amortised cost $A_{~op~_~i~}(~xs~_~i~)$ for each operation $~op~_~i~$ on data $~xs~_~i~$
+                    \item \textbf{size} \hfill define $S(~xs~)$ that calculates the size of the data ~xs~
+                \end{itemize}
+                We use these to establish the following;
+                $$\underbrace{\summation{i = 0}{n - 1} C_{~op~_~i~}(~xs~_~i~)}_\text{total actual cost} \leq \underbrace{\summation{i = 0}{n - 1} A_{~op~_~i~}(~xs~_~i~)}_\text{total amortised cost}$$
+                For example, if we choose $A_{~op~_~i~}(~xs~_~i~) = 1$, then the total cost is $O(n)$.
+                To prove this inequality, we use the size function (physicist's approach);
+                $$C_{~op~_~i~}(~xs~_~i~) \leq A_{~op~_~i~}(~xs~_~i~) + \overbrace{\underbrace{S(~xs~_~i~)}_\text{input size} - \underbrace{S(~xs~_~i+1~)}_\text{output size}}^\text{dif between data structure}$$
+                We can sum over this as follows;
+                $$\summation{i = 0}{n - 1} C_{~op~_~i~}(~xs~_~i~) \leq \summation{i = 0}{n - 1} A_{~op~_~i~}(~xs~_~i~) + S(~xs~_~0~) - S(~xs~_~n~)$$
 \end{document}
