@@ -3380,4 +3380,55 @@
                     \item policed internet \hfill Net Neutrality
                     \item more stable network \hfill \textit{Meraki} - wireless mesh topology (self-healing network)
                 \end{itemize}
+        \subsection*{March 12th 2020 \hfill Week 10, Lecture 3}
+            This is just a revision lecture (not exhaustive - everything discussed can be examined).
+            Pretty much all of this \textbf{should} be covered above - anything additional will be added here.
+            \subsubsection*{What is Computer Networking?}
+                Process of interconnecting computer systems via telecommunication methods  to exchange data and share resources.
+                Computer networks are almost everywhere.
+                Most mainstream software systems are distributed systems - performance often depends on network usage.
+            \subsubsection*{Packet Switching}
+                The Internet is a packet-switched network.
+                Switches / routers transfers (receiving and forwarding) packets, which are formatted units of data, over the network until it reaches the end systems.
+                \medskip
+
+                Circuit switching has an expensive setup phase, but very little processing is required after establishing a connection.
+                On the other hand, packet switching has no setup cost, but has processing cost (forwarding) and space overhead (every packet must be self-contained) per packet.
+            \subsubsection*{Data Encapsulation}
+                Data in the application layer (layer 5) is encapsulated into TCP segments or UDP datagrams, the former can be segmented if too large, whereas the latter is dropped.
+                They are then referred to IP datagrams (or packets), which can be fragmented, in the network / Internet layer (layer 3), and then frames in the data link layer (layer 2).
+            \subsubsection*{Maximum Transmission Unit}
+                Note that after the MTU is discovered with PMTUD (path MTU discovery), if the data takes a different path with a lower MTU, it will fail.
+                However, TCP can handle this and simply resend the broken segment.
+            \subsubsection*{NAT}
+                While IPv6 can remove the need for NAT, it could also essentially expose all the devices to the internet, which may not be desirable.
+            \subsubsection*{Token Ring Acknowledgement}
+                The frame status is changed by the receiver, ~A = 1~ means the destination host is working, and ~C = 1~ means the destination host correctly read the frame.
+            \subsubsection*{Fiber Distributed Data Interface (FDDI)}
+                Token passing, ring-based network which was popular in the 1990s.
+                The class A hosts were attached to both rings, whereas the class B hosts were only attached to one.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1.5cm] (a0) at (0, 0) {$A$};
+                        \node[state, minimum size=1.5cm] (a1) at (4, 0) {$A$};
+                        \node[state, minimum size=1.5cm] (a2) at (4, -4) {$A$};
+                        \node[state, minimum size=1.5cm] (a3) at (0, -4) {$A$};
+                        \node[state, minimum size=1cm] (b0) at (2, 0.5) {$B$};
+                        \node[state, minimum size=1cm] (b1) at (4.5, -2) {$B$};
+                        \node[state, minimum size=1cm] (b2) at (0.5, -2) {$B$};
+                        \draw
+                        (a0) edge[->] (b2)
+                        (b2) edge[->] (a3)
+                        (a3) edge[->, bend left=15] (a2)
+                        (a2) edge[->, bend left=15] (a1)
+                        (a1) edge[->, bend left=15] (a0);
+                        \draw
+                        (a0) edge[->] (b0)
+                        (b0) edge[->] (a1)
+                        (a1) edge[->] (b1)
+                        (b1) edge[->] (a2)
+                        (a2) edge[->, bend left=15] (a3)
+                        (a3) edge[->, bend left=15] (a0);
+                    \end{tikzpicture}
+                \end{center}
 \end{document}
