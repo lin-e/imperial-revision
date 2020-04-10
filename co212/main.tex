@@ -1703,7 +1703,7 @@
                 \end{center}
             \subsubsection*{Diffie-Hellman Key Exchange}
                 An approach for this, to establish a new key on the spot, is the \textit{Diffie-Hellman key exchange}, which can then be used for encryption by symmetric algorithms.
-                This can potentially be defeated by powerful systems, but is still used by TLS (formally SSL).
+                This can potentially be defeated by powerful systems, but is still used by TLS (formerly SSL).
                 The (simplified) algorithm is as follows;
                 \begin{enumerate}[1.]
                     \itemsep0em
@@ -3274,5 +3274,95 @@
 
                         Using a similar structure with a router between each subnetwork, we connect the router to the wireless access point, which connects to WiFi enabled devices.
                 \end{itemize}
+        \subsection*{March 5th 2020}
+            \subsubsection*{Coding for the Network}
+                To create a simple "echo" program, we outline the behaviour as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item server waits for connections on a user-defined port
+                    \item client connects to that port
+                    \item server listens for input from the client
+                    \item client types something
+                    \item server echoes text back to the client
+                    \item client disconnects
+                    \item server closes
+                \end{enumerate}
+                The \textbf{client} is as follows;
+                \begin{lstlisting}
+                    try (
+                      Socket echoSocket = new Socket(hostName, portNumber);
+                      PrintWriter out = new PrintWriter(echoSocket.getOutputStream(), true);
+                      BufferedReader in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
+                      BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
+                    ) {
+                      String userInput;
+                      while ((userInput = stdIn.readLine()) != null) {
+                        out.println(userInput);
+                        System.out.println("echo: " + in.readLine());
+                      }
+                    } catch (UnknownHostException e) {
+                      System.err.println("Don't know about host " + hostName);
+                      System.exit(1);
+                    } catch (IOException e) {
+                      System.err.println("Couldn't get I/O for the connection to " + hostName);
+                      System.exit(1);
+                    }
+                \end{lstlisting}
+                Since the socket is essentially a file, we set it up in the same way, on lines 3 and 4.
+                It will only terminate once ~CTRL-C~ is input (hence the ~null~).
+                \medskip
 
+                The \textbf{server} is as follows;
+                \begin{lstlisting}
+                    try (
+                      ServerSocket serverSocket = new ServerSocket(portNumber);
+                      Socket clientSocket = serverSocket.accept();
+                      PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                      BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
+                    ) {
+                      System.out.println("Client connected on port " + portNumber + ". Servicing requests.");
+                      String inputLine;
+                      while ((inputLine = in.readLine()) != null) {
+                        System.out.println("Received message: " + inputLine + " from " + clientSocket.toString());
+                        out.println(inputLine);
+                      }
+                    } catch (IOException e) {
+                      System.out.println("Exception caught when trying to listen on port " + portNumber + " or listening for a connection");
+                    }
+                \end{lstlisting}
+                Note that in line 2, we only need a port number.
+                This is in a ~try~, as the port number could be in use (and it should fail if it is) - or if the port number is reserved and the user isn't ~root~.
+                Line 3 is blocking, as it blocks until a client connects.
+                Similarly, the process for reading is similar.
+                \medskip
+
+                However, the server code has two major issues - only one user can connect at a time, and when that user leaves, the server closes.
+                This can be fixed with ~Executors~ in Java.
+                \begin{lstlisting}
+                    try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
+                      executor = Executors.newFixedThreadPool(5); // 5 users at a time
+                      System.out.println("Waiting for clients");
+                      while (true) {
+                        Socket clientSocket = serverSocket.accept();
+                        Runnable worker = new RequestHandler(clientSocket);
+                        executor.execute(worker);
+                      }
+                    }
+                \end{lstlisting}
+                The request handler has the following code;
+                \begin{lstlisting}
+                    try (
+                      BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                      BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()))
+                    ) {
+                      System.out.println("Thread started with name: " + Thread.currentThread().getName());
+                      String userInput;
+                      while ((userInput = in.readLine()) != null) {
+                        System.out.println("Received message from " + Thread.currentThread().getName() + " : " + userInput);
+                        writer.write("You entered : " + userInput);
+                        writer.newLine();
+                        writer.flush();
+                      }
+                    }
+                \end{lstlisting}
 \end{document}
