@@ -344,6 +344,7 @@
                 Here we are concerned at counting the steps mechanically in strict evaluation.
                 This is done for a simplified language, containing constants, variables, functions, conditionals, and pattern matching.
                 We will write $e^T$ to denote the number of steps it takes to reduce $e$.
+                Additionally, if $f$ is a primitive function, then $f^T\ e_1\ \dots\ e_n = 0$, otherwise $f\ e_1\ \dots\ e_n = e$, and $f^T\ e_1\ \dots\ e_n = 1 + e^T$.
                 \begin{align*}
                     k^T & = 0 & \text{constants} \\
                     x^T & = 0 & \text{evaluated variables} \\
@@ -474,11 +475,11 @@
                     \Theta(g(n)) & = \left\{f\ \left|\ \begin{matrix}
                         (\violet{\exists \delta > 0.\ \exists n_0 > 0.\ \forall n > n_0.\ |f(n)| \leq \delta g(n)}) \\
                         \land \\
-                        (\teal{\exists \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ |f(n)| \geq \delta g(n)})
+                        (\teal{\exists \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ f(n) \geq \delta g(n)})
                     \end{matrix}\right.\right\} \\
                     & = O(g(n)) \cap \Omega(g(n)) \\
-                    \Omega(g(n)) & = \{f \bnfsep \teal{\exists \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ |f(n)| \geq \delta g(n)}\} \\
-                    \omega(g(n)) & = \{ f \bnfsep \forall \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ |f(n)| > \delta g(n) \}
+                    \Omega(g(n)) & = \{f \bnfsep \teal{\exists \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ f(n) \geq \delta g(n)}\} \\
+                    \omega(g(n)) & = \{ f \bnfsep \forall \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ f(n) > \delta g(n) \}
                 \end{align*}
         \subsection*{15th October 2019}
             \subsubsection*{Basic Lists}
@@ -717,7 +718,191 @@
                 \end{lstlisting}
                 While ~lconcat = rconcat~, this only represents extensional (what values are produced) equality.
                 They are not intensionally (how those values are produced) equal.
+        \subsection*{18th October 2019}
+            \subsubsection*{Concatenation and Associativity}
+                The complexity of ~xs ++ ys~ is; $T_~(++)~(m, n) \in O(m)$, where $m = ~length xs~$, and $n = ~length ys~$ - note that it doesn't consider $n$ as expected.
+                We want to consider the complexity of;
+                $$\overbrace{~(~\underbrace{~(~\overbrace{~(~\underbrace{~(xs~_~1~~++ xs~_~2~~)~}_{n}~ ++ xs~_~3~~)~}^{2n}~ ++ ...)~}_{3n}~ ++ xs~_~m+1~~)~}^{mn}$$
+                In lieu of having individual variables, we can approximate all the lists ~xs1~ to $~xs~_~m+1~$ as having the same length $n$.
+                This means that if $m = ~length xss~$, then ~concat xss~ has complexity;
                 \begin{center}
-                    ~(((xs1 ++ xs2) ++ xs3) ++ ... ++ xsn)~
+                    $n + 2n + 3n + \dots + mn = n(1 + 2 + 3 + \dots + m) \in O(nm^2)$
                 \end{center}
+                If we now look at the right associative version;
+                \begin{center}
+                    $~xs~_~1~~ ++ (xs~_~2~~ ++ (xs~_~3~~ ++ (... ++ (xs~_~m~~ ++ xs~_~{m+1}~~))))~$
+                \end{center}
+                Note that each of the ~++~ operations cost $n$, and we have $m$ of them, under the same assumption.
+                Therefore, we have $O(mn)$.
+                \medskip
+
+                Note that adding to the right of a list is similar to doing the first version, which is left associative, and also more expensive.
+                Preferably, we'd add to the left of the list, however this isn't always possible, as we'd also like to be able to add to the right of the list.
+            \subsubsection*{Function Composition}
+                We do not want to suffer the consequences of poor associativity.
+                To solve this, we notice that function composition pays no associativity penalty.
+                First note that function composition is as follows;
+                \begin{center}
+                    ~(f . g) x = f (g x)~
+                \end{center}
+                We can also show that function composition is both extensionally and intensionally equal, by unrolling the definition;
+                \begin{center}
+                    ~((f . g) . h) x = f (g (h x))~
+
+                    vs
+
+                    ~(f . (g . h)) x = f (g (h x))~
+                \end{center}
+                For our lists, we will replace with;
+                \begin{center}
+                    $~((xs~_~1~~ ++) . (xs~_~2~~ ++) . ... . (xs~_~m+1~~ ++)) []~$
+                \end{center}
+                Note that each of $~(xs~_~i~~ ++)~$ is a partially applied function that takes a list, and adds $~xs~_~i~$ to the start.
+                This is equivalent to the right associative version we had before, which has a better time complexity.
+            \subsubsection*{Difference List (DList)}
+                The idea is to replace lists with functions that take in a list and give a list back.
+                Previously, we'd consider $~xs~_~1~$ a list, but we now use $~(xs~_~1~~ ++)~$, which needs to be applied to the empty list.
+                A value of type ~a~ in the list is now a function of type ~[a] -> [a]~.
+                We can create a new datatype;
+                \begin{lstlisting}
+                    data DList a = DList ([a] -> [a])
+                \end{lstlisting}
+                We need ways of making lists from DLists, and vice versa;
+                \begin{lstlisting}
+                    -- technically called the abstraction function
+                    toList :: DList a -> [a]
+                    toList (DList fxs) = fxs []
+
+                    fromList :: [a] -> DList a
+                    fromList xs = DList (xs ++)
+                    -- or         DList (\ys -> xs ++ ys)
+                \end{lstlisting}
+                We also need a way of adding DLists together (note the notes use $\diamond$, but I can't really get that with the listing environment, so I will use ~<>~);
+                \begin{lstlisting}
+                    (<>) :: DList a -> DList a -> DList a
+                    DList fxs <> DList fys = DList (fxs . fys)
+                    -- or                    DList (\zs -> fxs (fys zs))
+                \end{lstlisting}
+                Note that taking the head or tail of this list now requires constructing the entire list, which will take linear time.
+            \subsubsection*{List Anatomy}
+                \begin{center}
+                    \begin{tikzpicture}[x=0.1cm]
+                        \node[anchor=west] at (0, 0) {$~xs = [x~_~1~~, x~_~2~~, x~_~3~~, ..., x~_~n-1~~, x~_~n~~]~$};
+                        \node (h) at (0, 1.25) {~head xs~};
+                        \node (c) at (-10, -1) {\shortstack{(~x:~)\\~"cons"~}};
+                        \node (l) at (79, -1.25) {~last xs~};
+                        \node (s) at (89, 1) {\shortstack{(~++[y]~)\\~"snoc"~}};
+                        \draw
+                        (h) edge[bend left=20] (16, 0.5)
+                        (c) edge[->, bend right=10] (10, -0.2)
+                        (l) edge[bend left=20] (63, -0.5)
+                        (s) edge[->, bend right=10] (69, 0.2);
+                        \draw
+                        (14, 0.5) edge[|-|] (18, 0.5)
+                        (22, 0.5) edge[|-|, above] node{~tail xs~} (65, 0.5)
+                        (65, -0.5) edge[|-|] (61, -0.5)
+                        (57, -0.5) edge[|-|, below] node{~init xs~} (14, -0.5);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{List Interface}
+                Rather than dealing with lists directly, we want to work with a specification instead.
+                For this, we are creating a type class - an abstraction mechanism that has a class of objects, which have certain operations - and depending on what is given the operations can operate slightly differently.
+                \begin{lstlisting}
+                    class List list where
+                    empty :: list a
+                    cons :: a -> list a -> list a
+                    snoc :: a -> list a -> list a
+                    head :: list a -> a
+                    tail :: list a -> list a
+                    init :: list a -> list a
+                    last :: list a -> a
+                    length :: list a -> Int
+                    (++) :: list a -> list a -> list a
+                    null :: list a -> Bool
+                    single :: list a -> Bool
+
+                    toList :: list a -> [a]
+                    fromList :: [a] -> list a
+                \end{lstlisting}
+                Note that ~toList~ and ~fromList~ must behave nicely when composed;
+                \begin{center}
+                    ~id = toList . fromList~
+                \end{center}
+                However, composing the functions in reverse does not necessarily yield the same result.
+                Consider the case with our DList - it would be perfectly valid to have ~(DList reverse)~; however, since the space of functions is much greater than the space of lists, we cannot reasonably convert ~revert~ into a list, and then hope to get ~reverse~ back out.
+                \medskip
+
+                However, we can say that if we had something representing a list, converting it to a list and then back to our implementation of a list, should yield something similar.
+                \begin{center}
+                    ~normalise = fromList . toList~
+                \end{center}
+            \subsubsection*{Exercises}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item Prove formally that $(n + 1)^2 \in \Theta(n^2)$ by exhibiting the necessary constants.
+                        \medskip
+
+                        We set $f(n) = (n + 1)^2$, and $g(n) = n^2$.
+                        By our definition of $\Theta$, we need to satisfy both the following;
+                        \begin{center}
+                            $O(g(n)) = \{ f \bnfsep \violet{\exists \delta > 0.\ \exists n_0 > 0.\ \forall n > n_0.\ |f(n)| \leq \delta g(n)} \}$
+
+                            $\Omega(g(n)) = \{f \bnfsep \teal{\exists \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ f(n) \geq \delta g(n)}\}$
+                        \end{center}
+                        The first case, we want to find $\delta$ such that;
+                        \begin{align*}
+                            (n + 1)^2 & \leq \delta n^2 & \Leftrightarrow \\
+                            n^2 + 2n + 1 & \leq \delta n^2 & \Leftrightarrow \\
+                            0 & \leq (\delta - 1) n^2 - 2n - 1 & \text{assuming } \delta - 1 = 3,\ \Rightarrow \\
+                            0 & \leq (3n + 1)(n - 1)
+                        \end{align*}
+                        Hence we have $\delta = 4$.
+                        The second case, $\Omega$, is trivial to prove with $\delta = 1$.
+                    \item Give examples of expressions that are;
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item in head normal form, but not in normal form \hfill ~5:take 2 [1,2,3]~
+                            \item in weak head normal form, but not in head normal form \hfill ~\ttbs x -> take 2 [1,2,3]~
+                            \item in no normal form of any kind \hfill ~take 2 [1,2,3]~
+                                \subitem it's not a constructor, and there isn't a $\lambda$-abstraction
+                            \item in normal form, but not in weak head normal form \hfill not possible
+                        \end{enumerate}
+                    \item Using the definition of $f \in O(g(n))$ as a set, derive the definition of $f \in \omega(g(n))$ as a set.
+                        \medskip
+
+                        Recall that $f \in \omega(g(n)) \Leftrightarrow f \notin O(g(n))$, and the following definition;
+                        \begin{center}
+                            $O(g(n)) = \{ f \bnfsep \exists \delta > 0.\ \exists n_0 > 0.\ \forall n > n_0.\ |f(n)| \leq \delta g(n) \}$
+                        \end{center}
+                        Using equivalences for first-order logic;
+                        \begin{align*}
+                            & \neg \exists \delta > 0.\ \exists n_0 > 0.\ \forall n > n_0.\ |f(n)| \leq \delta g(n) \\
+                            \equiv\ & \forall \delta > 0.\ \neg \exists n_0 > 0.\ \forall n > n_0.\ |f(n)| \leq \delta g(n) \\
+                            \equiv\ & \forall \delta > 0.\ \forall n_0 > 0.\ \neg \forall n > n_0.\ |f(n)| \leq \delta g(n) \\
+                            \equiv\ & \forall \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ \neg(|f(n)| \leq \delta g(n)) \\
+                            \equiv\ & \forall \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ f(n) > \delta g(n)
+                        \end{align*}
+                        Hence we can write $\omega$ as the following;
+                        \begin{center}
+                            $\omega(g(n)) = \{ f \bnfsep \forall \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ f(n) > \delta g(n) \}$
+                        \end{center}
+                    \item
+                        The composition rule gives the time complexity of two functions $f$ and $g$ when they are composed.
+                        By using the definition of $e^T$, derive the accurate cost of $f\ (g\ x)$ using strict evaluation.
+                        \begin{align*}
+                            ((f \circ g)\ x)^T & = 1 + (f(g(x)))^T \\
+                            & = 1 + f^T(g(x)) + (g(x))^T \\
+                            & = 1 + f^T(g(x)) + g^Tx + x^T \\
+                            & = 1 + f^T(g(x)) + g^Tx
+                        \end{align*}
+                    \item Justify whether each of the following is true or false;
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item $2n^2 + 3n \in \Theta(n^2)$ \hfill true
+                            \item $2n^2 + 3n \in O(n^3)$ \hfill true
+                            \item $n\log n \in O(n\sqrt{n})$ \hfill ($\log n$ grows slower than $\sqrt{n}$) true
+                            \item $n + \sqrt{n} \in O(n\log n)$ \hfill false
+                            \item $2^{\log n} \in O(n)$ \hfill (use laws of logarithms) true
+                        \end{enumerate}
+                \end{enumerate}
 \end{document}
