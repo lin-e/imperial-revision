@@ -480,4 +480,244 @@
                     \Omega(g(n)) & = \{f \bnfsep \teal{\exists \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ |f(n)| \geq \delta g(n)}\} \\
                     \omega(g(n)) & = \{ f \bnfsep \forall \delta > 0.\ \forall n_0 > 0.\ \exists n > n_0.\ |f(n)| > \delta g(n) \}
                 \end{align*}
+        \subsection*{15th October 2019}
+            \subsubsection*{Basic Lists}
+                In Haskell, lists are given by \textbf{two} constructors;
+                \begin{lstlisting}
+                    data [a] = [] | (:) a [a]
+                \end{lstlisting}
+                This creates two values, called constructors (RHS of data declaration, hence we can pattern match on these unlike other functions);
+                \begin{lstlisting}
+                    [] :: [a]
+                    (:) :: a -> [a] -> [a]
+                \end{lstlisting}
+                In Haskell, data structures are persistent by default.
+                \begin{center}
+                    ~[x1,x2,x3] = x1:x2:x3:[]~
+                \end{center}
+                Visually, we can look at this as "cells" with their constructors and arguments;
+                \begin{center}
+                    \begin{tikzpicture}[x=0.666cm, y=0.666cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (0.5, -0.5) {~:~};
+                            \node at (1.5, -0.5) {~x1~};
+                            \draw
+                            (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) --cycle
+                            (1, 0) -- (1, -1)
+                            (2, 0) -- (2, -1)
+                            (2.5, -0.5) edge[->] (4, -0.5);
+                        \end{scope}
+                        \begin{scope}[shift={(4, 0)}]
+                            \node at (0.5, -0.5) {~:~};
+                            \node at (1.5, -0.5) {~x2~};
+                            \draw
+                            (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) --cycle
+                            (1, 0) -- (1, -1)
+                            (2, 0) -- (2, -1)
+                            (2.5, -0.5) edge[->] (4, -0.5);
+                        \end{scope}
+                        \begin{scope}[shift={(8, 0)}]
+                            \node at (0.5, -0.5) {~:~};
+                            \node at (1.5, -0.5) {~x3~};
+                            \draw
+                            (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) --cycle
+                            (1, 0) -- (1, -1)
+                            (2, 0) -- (2, -1)
+                            (2.5, -0.5) edge[->] (4, -0.5);
+                        \end{scope}
+                        \node at (12.5, -0.5) {~[]~};
+                        \draw (12, 0) -- (13, 0) -- (13, -1) -- (12, -1) --cycle;
+                    \end{tikzpicture}
+                \end{center}
+                Appending lists together is achieved with ~(++)~;
+                \begin{lstlisting}
+                    (++) :: [a] -> [a] -> [a]
+                    [] ++ ys = ys
+                    (x:xs) ++ ys = x:(xs ++ ys)
+                \end{lstlisting}
+                When we do ~xs ++ ys~, the final structure points to ~ys~.
+                The trade-off here is that we didn't have to modify ~ys~, but we had to create a new ~x1~, and ~x2~;
+                \begin{center}
+                    \begin{tikzpicture}[x=0.666cm, y=0.666cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \node[anchor=east] at (-0.5, -0.5) {~xs~};
+                            \begin{scope}[shift={(0, 0)}]
+                                \node at (0.5, -0.5) {~:~};
+                                \node at (1.5, -0.5) {~x1~};
+                                \draw
+                                (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) --cycle
+                                (1, 0) -- (1, -1)
+                                (2, 0) -- (2, -1)
+                                (2.5, -0.5) edge[->] (4, -0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(4, 0)}]
+                                \node at (0.5, -0.5) {~:~};
+                                \node at (1.5, -0.5) {~x2~};
+                                \draw
+                                (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) --cycle
+                                (1, 0) -- (1, -1)
+                                (2, 0) -- (2, -1)
+                                (2.5, -0.5) edge[->] (4, -0.5);
+                            \end{scope}
+                            \node at (8.5, -0.5) {~[]~};
+                            \draw (8, 0) -- (9, 0) -- (9, -1) -- (8, -1) --cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(12, 0)}]
+                            \node[anchor=east] at (-0.5, -0.5) {~ys~};
+                            \begin{scope}[shift={(0, 0)}]
+                                \node at (0.5, -0.5) {~:~};
+                                \node at (1.5, -0.5) {~y1~};
+                                \draw
+                                (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) --cycle
+                                (1, 0) -- (1, -1)
+                                (2, 0) -- (2, -1)
+                                (2.5, -0.5) edge[->] (4, -0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(4, 0)}]
+                                \node at (0.5, -0.5) {~:~};
+                                \node at (1.5, -0.5) {~y2~};
+                                \draw
+                                (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) --cycle
+                                (1, 0) -- (1, -1)
+                                (2, 0) -- (2, -1)
+                                (2.5, -0.5) edge[->] (4, -0.5);
+                            \end{scope}
+                            \node at (8.5, -0.5) {~[]~};
+                            \draw (8, 0) -- (9, 0) -- (9, -1) -- (8, -1) --cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(0, -2)}]
+                            \node[anchor=east] at (-0.5, -0.5) {~xs ++ ys~};
+                            \begin{scope}[shift={(0, 0)}]
+                                \node at (0.5, -0.5) {~:~};
+                                \node at (1.5, -0.5) {~x1~};
+                                \draw
+                                (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) --cycle
+                                (1, 0) -- (1, -1)
+                                (2, 0) -- (2, -1)
+                                (2.5, -0.5) edge[->] (4, -0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(4, 0)}]
+                                \node at (0.5, -0.5) {~:~};
+                                \node at (1.5, -0.5) {~x2~};
+                                \draw
+                                (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) --cycle
+                                (1, 0) -- (1, -1)
+                                (2, 0) -- (2, -1);
+                            \end{scope}
+                            \draw
+                            (6.5, -0.5) -- (12.5, -0.5)
+                            (12.5, -0.5) edge[->] (12.5, 1);
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                Therefore, the complexity is linear, but only depends on ~xs~, and not ~ys~, hence we can say;
+                \begin{center}
+                    $T_~(++)~ \in O(n)$, where $n = ~length xs~$ in ~xs ++ ys~
+                \end{center}
+            \subsubsection*{Folding}
+                The structure of lists is completed reduced by the ~foldr~ function;
+                \begin{lstlisting}
+                    foldr :: (a -> b -> b) -> b -> [a] -> b
+                    foldr f k [] = k
+                    foldr f k (x:xs) = f x (foldr f k xs)
+                \end{lstlisting}
+                This replaces ~(:)~ with ~f~, and ~[]~ with ~k~;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}[shift={(0, 0)}]
+                            \node (o) at (0, 0) {~(:)~};
+                            \node (ol) at (-1, -1) {~x1~};
+                            \node (or) at (1, -1) {~(:)~};
+                            \node (orl) at (0, -2) {~x2~};
+                            \node (orr) at (2, -2) {~(:)~};
+                            \node (orrl) at (1, -3) {~xn~};
+                            \node (orrr) at (3, -3) {~[]~};
+                            \draw
+                            (o) -- (ol)
+                            (o) -- (or)
+                            (or) -- (orl)
+                            (or) edge[thick, dotted] (orr)
+                            (orr) -- (orrl)
+                            (orr) -- (orrr);
+                        \end{scope}
+                        \node at (5, -1.5) {$\overset{~foldr f k~}{\leadsto}$};
+                        \begin{scope}[shift={(8, 0)}]
+                            \node (o) at (0, 0) {~f~};
+                            \node (ol) at (-1, -1) {~x1~};
+                            \node (or) at (1, -1) {~f~};
+                            \node (orl) at (0, -2) {~x2~};
+                            \node (orr) at (2, -2) {~f~};
+                            \node (orrl) at (1, -3) {~xn~};
+                            \node (orrr) at (3, -3) {~k~};
+                            \draw
+                            (o) -- (ol)
+                            (o) -- (or)
+                            (or) -- (orl)
+                            (or) edge[thick, dotted] (orr)
+                            (orr) -- (orrl)
+                            (orr) -- (orrr);
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                Note that doing ~foldr (:) []~ is the same as ~id~, but with more work, and also ~xs ++ ys~ is equivalent to ~foldr (:) ys xs~.
+                Similarly, we have ~foldl~;
+                \begin{center}
+                    \begin{minipage}[b]{0.55\textwidth}
+                        \begin{lstlisting}
+                            foldl :: (b -> a -> b) -> b -> [a] -> b
+                            foldl f k [] = k
+                            foldl f k (x:xs) = foldl f (f k s) xs
+                        \end{lstlisting}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[h]{0.4\textwidth}
+                        \begin{center}
+                            \begin{tikzpicture}[x=-1cm]
+                                \node (o) at (0, 0) {~f~};
+                                \node (ol) at (-1, -1) {~xn~};
+                                \node (or) at (1, -1) {~f~};
+                                \node (orl) at (0, -2) {~x2~};
+                                \node (orr) at (2, -2) {~f~};
+                                \node (orrl) at (1, -3) {~x1~};
+                                \node (orrr) at (3, -3) {~k~};
+                                \draw
+                                (o) -- (ol)
+                                (o) edge[thick, dotted] (or)
+                                (or) -- (orl)
+                                (or) -- (orr)
+                                (orr) -- (orrl)
+                                (orr) -- (orrr);
+                            \end{tikzpicture}
+                        \end{center}
+                    \end{minipage}
+                \end{center}
+                Consider a binary operator $(\diamond)$;
+                \begin{align*}
+                    x \diamond (y \diamond z) & = (x \diamond y) \diamond z & \diamond-\text{associative} \\
+                    \epsilon \diamond y & = y & \epsilon-\text{left-unit} \\
+                    x \diamond \epsilon & = x & \epsilon-\text{right-unit}
+                \end{align*}
+                When folding with $\diamond$ and $\epsilon$, ~foldr~ and ~foldl~ coincide.
+            \subsubsection*{List Concatenation}
+                An application of this is list concatenation, consider ~concat~;
+                \begin{lstlisting}
+                    concat :: [[a]] -> [a]
+                    concat [] = []
+                    concat (xs:xss) = xs ++ concat xss
+                \end{lstlisting}
+                This can be written as a ~foldr~;
+                \begin{lstlisting}
+                    rconcat :: [[a]] -> [a]
+                    rconcat = foldr (++) []
+                \end{lstlisting}
+                Since ~(++)~ is associate with a neutral element ~[]~, we can write a ~foldl~ version;
+                \begin{lstlisting}
+                    lconcat :: [[a]] -> [a]
+                    lconcat = foldl (++) []
+                \end{lstlisting}
+                While ~lconcat = rconcat~, this only represents extensional (what values are produced) equality.
+                They are not intensionally (how those values are produced) equal.
+                \begin{center}
+                    ~(((xs1 ++ xs2) ++ xs3) ++ ... ++ xsn)~
+                \end{center}
 \end{document}
