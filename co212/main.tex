@@ -2379,7 +2379,8 @@
                         This should provide optimal routes, via the use of one of the following;
                         \begin{itemize}
                             \itemsep0em
-                            \item \textbf{RIP} (distance vector) \hfill used in old ISPs and small organisations
+                            \item \textbf{RIP - Routing Information Protocol} (distance vector)
+                                \subitem used in old ISPs and small organisations
                             \item \textbf{OSPF - Open Shortest Path First} (link state) \hfill used by larger organisations
                                 \medskip
 
@@ -3145,7 +3146,7 @@
                                 \begin{center}
                                     \begin{tikzpicture}
                                         \begin{axis}[
-                                            no markers, domain=0:8, samples=500,
+                                            no markers, domain=0:8, samples=200,
                                             axis lines*=left, xlabel=bit, ylabel=amplitude,
                                             height=3cm, width=15cm,
                                             enlargelimits=false,
@@ -3169,7 +3170,7 @@
                                 \begin{center}
                                     \begin{tikzpicture}
                                         \begin{axis}[
-                                            no markers, domain=0:8, samples=500,
+                                            no markers, domain=0:8, samples=200,
                                             axis lines*=left, xlabel=bit, ylabel=amplitude,
                                             height=3cm, width=15cm,
                                             enlargelimits=false,
@@ -3187,13 +3188,13 @@
                             \item \textbf{phase modulation} (PM)
                                 \medskip
 
-                                A shift in phase indicates a bit (not an accurate example).
+                                A shift in phase indicates a change in bit (not an accurate example).
                                 This is also referred to as PSK (phase shift keying).
                                 The following example is for the byte \violet{~000~}\teal{~11~}\violet{~0~}\teal{~1~}\violet{~0~} (not accurate, but just shows the idea);
                                 \begin{center}
                                     \begin{tikzpicture}
                                         \begin{axis}[
-                                            no markers, domain=0:8, samples=500,
+                                            no markers, domain=0:8, samples=200,
                                             axis lines*=left, xlabel=bit, ylabel=amplitude,
                                             height=3cm, width=15cm,
                                             enlargelimits=false,
@@ -3216,8 +3217,62 @@
                 On conventional phone lines, we managed to reach 56000 bps (56 Kbps) downstream, and 33000 bps (33 Kbps) upstream with the V.90 modem standard.
                 Phone lines are artificially limited to 3000 Hz bandwidth, as normal voice goes from 400 Hz to 3400 Hz.
                 This bandwidth filter is removed with DSL.
+        \subsection*{5th March 2020 \hfill Week 9, Lecture 2}
+            \subsubsection*{Asymmetric DSL (ADSL)}
+                In ADSL, the connection is divided into 256 channels of 4000 Hz each.
+                Channels 1 - 5, which are 4 - 25 kHz are not used to avoid interference, and more channels are allocated for download than upload, as downloading is more common for Internet users.
+                With V.34 modulation, it can achieve speeds of 13.44 Mbps (224 downstream channels), by typically supports 8 Mbps more reliably.\medskip
+
+                An ADSL splitter separates the voice band (0 - 4 kHz) from the rest.
+                A DSL access multiplexer (DSLAM) on the ISP's side recovers the bit signal.
                 \medskip
 
-                In ADSL (Asymmetric DSL), the connection is divided into 256 channels of 4000 Hz each.
-                Channels 1 - 5, which are 4 - 25 kHz are not used to avoid interference, and more channels are allocated for download than upload, as downloading is more common for Internet users.
+                Advancements from ADSL are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{ADSL2} up to 12 Mbps download \hfill bandwidth expanded to 2.2 MHz
+                    \item \textbf{ADSL2+} up to 24 Mbps download \hfill uses more bits per symbol
+                    \item \textbf{VDSL} (very-high-bit-rate DSL) up to 52 Mbps download \hfill bandwidth expanded to 12 MHz
+                    \item \textbf{VDSL2} up to 200 Mbps download \hfill bandwidth expanded to 30 MHz
+                \end{itemize}
+                Proximity to the DSLAM also has a factor on speeds, due to the cable length.
+            \subsubsection*{Calculations}
+                Because $c$ is a constant in $c = f \lambda$, we can find $\lambda$ from $f$ and vice versa.
+                If $\lambda$ is in meters, and $f$ is in MHz, $\lambda f \approx 300$.
+                For example - 100 MHz waves are about 3 meters long, and 0.1 meter waves have a frequency of 3000 MHz.
+                It's also important to note that in copper or fiber, the speed slows to about $\frac{2}{3}$ of $c$.
+            \subsubsection*{Network Simulation}
+                This uses \textit{Cisco Packet Tracer}.
+                The scenario involves the following devices;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \violet{2 laptops}
+                    \item \violet{1 desktop}
+                    \item \teal{1 smartphone}
+                    \item \teal{1 wireless printer}
+                    \item \blue{1 server}
+                \end{itemize}
+                All devices to communicate with each other, in order to \textbf{share} access to the \textbf{printer} as well as the web server running on the \textbf{server}.
+                \textbf{WiFi} should also be available for visitors.
+
+                We can partition this into three networks;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \violet{\textbf{wired}} \hfill ~192.168.1.0/24~
+                        \medskip
+
+                        All devices should be connected with a straight-through Ethernet cable to a \textbf{switch}.
+                        This then needs to leave the network at some point, hence a \textbf{router} is added, also connected to the switch wit a straight-through.
+                        A \textbf{server} running DHCP is also connected to the switch, in order for IP addresses to be dynamically assigned.
+                    \item \blue{\textbf{server}} \hfill ~192.168.2.0/24~
+                        \medskip
+
+                        Two routers are connected to a switch.
+                        If the routers are old, the networks must be manually added (~192.168.1.0~ and ~192.168.2.0~) for the first router, similarly for the second router; ~192.168.2.0~ and ~192.168.3.0~.
+                    \item \teal{\textbf{wireless}} \hfill ~192.168.3.0/24~
+                        \medskip
+
+                        Using a similar structure with a router between each subnetwork, we connect the router to the wireless access point, which connects to WiFi enabled devices.
+                \end{itemize}
+
 \end{document}
