@@ -823,7 +823,7 @@
                 The exit nodes of TOR can be owned by law enforcement agencies, allowing for a user to be compromised if they were to subpoena all intermediate proxies.
                 \medskip
 
-                Not that this shouldn't be confused with the \textbf{deep web}, which is typically just not indexed on the surface web.
+                Note that this shouldn't be confused with the \textbf{deep web}, which is typically just not indexed on the surface web.
         \subsection*{27th January 2020 \hfill Week 4, Lecture 1}
             \subsubsection*{Transport Layer}
                 The transport layer provides both reliable connection-oriented services (TCP - transmission control protocol), as well as unreliable connection-less services (UDP - user datagram protocol).
@@ -1180,13 +1180,13 @@
                         \node[state, minimum size=1cm] (s1) at (6, -6) {$S_1$};
                         \node[state, minimum size=1cm] (a1) at (0, -6) {$A_1$};
                         \draw
-                        (s0) edge[->, above] node{$\dfrac{~r\_send(data)~}{~u\_send([0, data]*~)}$} (a0)
+                        (s0) edge[->, above] node{$\dfrac{~r\_send(data)~}{~u\_send([0, data]*)~}$} (a0)
                         (a0) edge[->, right] node{$\dfrac{\begin{matrix}
                             ~u\_recv(pkt) ~ \land \\
                             ~pkt is good ~ \land \\
                             ~pkt is (ACK, 0)~
                         \end{matrix}}{}$} (s1)
-                        (s1) edge[->, below] node{$\dfrac{~r\_send(data)~}{~u\_send([1, data]*~)}$} (a1)
+                        (s1) edge[->, below] node{$\dfrac{~r\_send(data)~}{~u\_send([1, data]*)~}$} (a1)
                         (a1) edge[->, left] node{$\dfrac{\begin{matrix}
                             ~u\_recv(pkt) ~ \land \\
                             ~pkt is good ~ \land \\
@@ -1196,12 +1196,12 @@
                             ~u\_recv(pkt) ~ \land \\
                             (~pkt is (ACK, 1) ~ \lor \\
                             ~pkt is corrupted~)
-                        \end{matrix}}{~u\_send([0, data]*~}$} (a0)
+                        \end{matrix}}{~u\_send([0, data]*)~}$} (a0)
                         (a1) edge[->, loop, in=135, out=225, distance=2cm, left] node{$\dfrac{\begin{matrix}
                             ~u\_recv(pkt) ~ \land \\
                             (~pkt is (ACK, 0) ~ \lor \\
                             ~pkt is corrupted~)
-                        \end{matrix}}{~u\_send([1, data]*~}$} (a1);
+                        \end{matrix}}{~u\_send([1, data]*)~}$} (a1);
                     \end{tikzpicture}
                 \end{center}
                 \begin{center}
