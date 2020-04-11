@@ -180,6 +180,12 @@
     ($(#1-c) + (-1, 0)$) -- ($(#1-c) + (0, 1)$) -- ($(#1-c) + (1, 0)$) -- ($(#1-c) + (0, -1)$) -- cycle;
 }
 
+\newcommand{\avltri}[4]{
+    \draw ($(#1)$) -- ($(#1) + #4*(0.5, -1)$) -- ($(#1) + #4*(-0.5, -1)$) -- cycle;
+    \node at ($(#1) + #4*(0, -1) + (0, 0.5)$) {#3};
+    \node at ($(#1) + #4*(0, -1) + (0, -0.5)$) {#2};
+}
+
 % actual document
 \begin{document}
     \section*{CO202 - Algorithms II}
@@ -767,7 +773,7 @@
                 \begin{lstlisting}
                     data DList a = DList ([a] -> [a])
                 \end{lstlisting}
-                We need ways of making lists from DLists, and vice versa;
+                We need ways of making lists from ~DList~s, and vice versa;
                 \begin{lstlisting}
                     -- technically called the abstraction function
                     toList :: DList a -> [a]
@@ -777,7 +783,7 @@
                     fromList xs = DList (xs ++)
                     -- or         DList (\ys -> xs ++ ys)
                 \end{lstlisting}
-                We also need a way of adding DLists together (note the notes use $\diamond$, but I can't really get that with the listing environment, so I will use ~<>~);
+                We also need a way of adding ~DList~s together (note the notes use $\diamond$, but I can't really get that with the listing environment, so I will use ~<>~);
                 \begin{lstlisting}
                     (<>) :: DList a -> DList a -> DList a
                     DList fxs <> DList fys = DList (fxs . fys)
@@ -830,7 +836,7 @@
                     ~id = toList . fromList~
                 \end{center}
                 However, composing the functions in reverse does not necessarily yield the same result.
-                Consider the case with our DList - it would be perfectly valid to have ~(DList reverse)~; however, since the space of functions is much greater than the space of lists, we cannot reasonably convert ~revert~ into a list, and then hope to get ~reverse~ back out.
+                Consider the case with our ~~DList - it would be perfectly valid to have ~(DList reverse)~; however, since the space of functions is much greater than the space of lists, we cannot reasonably convert ~revert~ into a list, and then hope to get ~reverse~ back out.
                 \medskip
 
                 However, we can say that if we had something representing a list, converting it to a list and then back to our implementation of a list, should yield something similar.
@@ -929,7 +935,7 @@
                         \end{itemize}
                     \end{minipage}
                 \end{center}
-                We define a Deque as two lists, where the first list is in normal order, and the second list, containing the remainder of the whole list, is in reverse order (see the ~toList~ function)
+                We define a ~Deque~ as two lists, where the first list is in normal order, and the second list, containing the remainder of the whole list, is in reverse order (see the ~toList~ function)
                 \begin{lstlisting}
                     data Deque a = Deque [a] [a]
 
@@ -945,7 +951,7 @@
                     \item $~null xs~ \Rightarrow ~null ys~ \lor ~single ys~$
                     \item $~null ys~ \Rightarrow ~null xs~ \lor ~single xs~$
                 \end{itemize}
-                To make a deque from a list, some symmetry is preferable.
+                To make a ~Deque~ from a list, some symmetry is preferable.
                 \begin{lstlisting}
                     fromList :: [a] -> Deque [a]
                     fromList xs = Deque us (reverse vs)
@@ -967,7 +973,7 @@
                     last (Deque xs y:ys) = y
                 \end{lstlisting}
                 This is also $O(1)$ complexity.
-                Similarly, we know that ~xs~ is either empty (which would cause an error anyways), or it is singleton - thus the last item is the only item in the deque.
+                Similarly, we know that ~xs~ is either empty (which would cause an error anyways), or it is singleton - thus the last item is the only item in the ~Deque~.
                 \begin{lstlisting}
                     empty :: Deque a
                     empty = Deque [] []
@@ -980,7 +986,7 @@
                         n = length ys
                     tail (Deque xs ys) = Deque (tail xs) ys
                 \end{lstlisting}
-                Here we define the empty deque, which is used in the first case (and doesn't cause an error).
+                Here we define the empty ~Deque~, which is used in the first case (and doesn't cause an error).
                 In the third case, we know that there is more than one element in ~xs~ (since it didn't match the second case), and therefore we simply take the tail (since we won't have an empty list, unlike the second case).
                 In the second case, we discard the single ~x~.
                 Symmetry is maintained by using the same split as ~fromList~.
@@ -1384,8 +1390,254 @@
                     insert :: Int -> BTree Int -> BTree Int
                     insert x BNil = bnode BNil x BNil
                     insert x (BNode h l y r)
-                      | x < y  = balance ((insert x l) y r)
+                      | x < y  = balance (insert x l) y r
                       | x == y = BNode h l y r -- discarding if equal
-                      | x > y  = balance (x y (insert x r))
+                      | x > y  = balance x y (insert x r)
                 \end{lstlisting}
+                Note that ~balance~ is another smart constructor.
+        \subsection*{1st November 2019}
+            \subsubsection*{BTrees (Continued)}
+                The intuition is that the tree given to ~insert~ is roughly balanced, such that the difference in heights of the left and right subtrees are at most 1.
+                We define a tree to be \textbf{biased} if its subtrees differ in height;
+                \begin{lstlisting}
+                    bias :: BTree a -> Int
+                    bias BNil = 0
+                    bias (BNode h l x r) = height l - height r
+                \end{lstlisting}
+                Therefore, we are \violet{off by at most 2} after performing the insertion.
+                The ~balance~ smart construction ensures the trees are balanced when they are originally \violet{off by at most 2};
+                \begin{lstlisting}
+                    balance :: BTree Int -> Int -> BTree Int -> BTree Int
+                \end{lstlisting}
+                Given ~balance l x r~, we have the following cases;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item trees differ by at most 1;
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item the tree is balanced
+                                \begin{center}
+                                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                        \node (x) at (0, 0) {$x$};
+                                        \avltri{-1.5, -1}{$l$}{$h$}{2}
+                                        \avltri{1.5, -1}{$r$}{$h$}{2}
+                                        \draw (x) -- (-1.5, -1) (x) -- (1.5, -1);
+                                        \draw(-3, -3) edge[|-|, left] node{$h + 1$} (-3, 0);
+                                    \end{tikzpicture}
+                                \end{center}
+                            \item the tree is off by 1 (showing only left tree being larger, without loss of generality)
+                                \begin{center}
+                                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                        \node (x) at (0, 0) {$x$};
+                                        \avltri{-1.5, -1}{$l$}{$h + 1$}{3}
+                                        \avltri{1.5, -1}{$r$}{$h$}{2}
+                                        \draw (x) -- (-1.5, -1) (x) -- (1.5, -1);
+                                        \draw (-3.5, -4) edge[|-|, left] node{$h + 2$} (-3.5, 0);
+                                    \end{tikzpicture}
+                                \end{center}
+                        \end{enumerate}
+                        Regardless, this is fine, hence ~balance l x r = bnode l x r~
+                    \item the trees are biased by 2;
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item assume that $~height l~ > ~height r~$, and also $~height height ll~ \geq ~height rl~$ (where ~rl~ is the right subtree of the left subtree)
+                                \begin{center}
+                                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                        \node at (5, -1) {$\xrightarrow{~rotr~}$};
+                                        \begin{scope}[shift={(0, 0)}]
+                                            \node (x) at (0, 0) {$x$};
+                                            \node (y) at (-2, -1) {$y$};
+                                            \coordinate (ll) at (-3.5, -2);
+                                            \coordinate (rl) at (-0.5, -2);
+                                            \coordinate (r) at (2, -1);
+                                            \avltri{r}{$r$}{$h$}{2}
+                                            \avltri{ll}{$ll$}{$h + 1$}{3}
+                                            \avltri{rl}{$rl$}{$h$}{2}
+                                            \draw
+                                            (x) -- (y) (x) -- (2, -1)
+                                            (y) -- (ll) (y) -- (rl);
+                                            \draw (-5.5, -5) edge[|-|, left] node{$h + 2$} (-5.5, -1);
+                                        \end{scope}
+                                        \begin{scope}[shift={(10.5, 0)}]
+                                            \node (y) at (0, 0) {$y$};
+                                            \node (x) at (2, -1) {$x$};
+                                            \coordinate (ll) at (-2, -1);
+                                            \coordinate (rl) at (1, -2);
+                                            \coordinate (r) at (3, -2);
+                                            \avltri{ll}{$ll$}{$h + 1$}{3}
+                                            \avltri{rl}{$rl$}{$h$}{2}
+                                            \avltri{r}{$r$}{$h$}{2}
+                                            \draw
+                                            (y) -- (ll) (y) -- (x)
+                                            (x) -- (rl) (x) -- (r);
+                                        \end{scope}
+                                    \end{tikzpicture}
+                                \end{center}
+                                \begin{lstlisting}
+                                    balance l x r = rotr (node l x r)
+
+                                    rotr :: BTree a -> BTree a
+                                    rotr (BNode _ (BNode _ ll y rl) x r)
+                                      = bnode ll y (bnode rl x r)
+                                \end{lstlisting}
+                            \item assume that $~height l~ > ~height r~$, and also $~height height ll~ < ~height rl~$;
+                                \begin{center}
+                                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                        \node at (5, -1) {$\xrightarrow{~rotl l~}$};
+                                        \node at (17.5, -1) {$\xrightarrow{~rotr~}$};
+                                        \begin{scope}[shift={(0, 0)}]
+                                            \node (x) at (0, 0) {$x$};
+                                            \node (y) at (-2, -1) {$y$};
+                                            \node (z) at (-0.5, -2) {$z$};
+                                            \coordinate (ll) at (-3.5, -2);
+                                            \coordinate (lrl) at (-1.5, -3);
+                                            \coordinate (rrl) at (0.5, -3);
+                                            \coordinate (r) at (2, -1);
+                                            \avltri{r}{$r$}{$h$}{2}
+                                            \avltri{ll}{$ll$}{$h$}{2}
+                                            \avltri{lrl}{$lrl$}{$h$}{2}
+                                            \avltri{rrl}{$rrl$}{$h$}{2}
+                                            \draw
+                                            (x) -- (y) (x) -- (r)
+                                            (y) -- (ll) (y) -- (z)
+                                            (z) -- (lrl) (z) -- (rrl);
+                                        \end{scope}
+                                        \begin{scope}[shift={(12.5, 0)}]
+                                            \node (x) at (0, 0) {$x$};
+                                            \node (z) at (-2, -1) {$z$};
+                                            \node (y) at (-3.5, -2) {$y$};
+                                            \coordinate (ll) at (-4.5, -3);
+                                            \coordinate (lrl) at (-2.5, -3);
+                                            \coordinate (rrl) at (-0.5, -2);
+                                            \coordinate (r) at (2, -1);
+                                            \avltri{r}{$r$}{$h$}{2}
+                                            \avltri{ll}{$ll$}{$h$}{2}
+                                            \avltri{lrl}{$lrl$}{$h$}{2}
+                                            \avltri{rrl}{$rrl$}{$h$}{2}
+                                            \draw
+                                            (x) -- (z) (x) -- (r)
+                                            (z) -- (y) (z) -- (rrl)
+                                            (y) -- (ll) (y) -- (lrl);
+                                        \end{scope}
+                                        \begin{scope}[shift={(23.5, 0)}]
+                                            \node (z) at (0, 0) {$z$};
+                                            \node (y) at (-2, -1) {$y$};
+                                            \node (x) at (2, -1) {$x$};
+                                            \coordinate (ll) at (-3, -2);
+                                            \coordinate (lrl) at (-1, -2);
+                                            \coordinate (rrl) at (1, -2);
+                                            \coordinate (r) at (3, -2);
+                                            \avltri{r}{$r$}{$h$}{2}
+                                            \avltri{ll}{$ll$}{$h$}{2}
+                                            \avltri{lrl}{$lrl$}{$h$}{2}
+                                            \avltri{rrl}{$rrl$}{$h$}{2}
+                                            \draw
+                                            (z) -- (y) (z) -- (x)
+                                            (y) -- (ll) (y) -- (lrl)
+                                            (x) -- (rrl) (x) -- (r);
+                                        \end{scope}
+                                    \end{tikzpicture}
+                                \end{center}
+                                \begin{lstlisting}
+                                    balance l x r = rotr (node (rotl l) x r)
+
+                                    rotl :: BTree a -> BTree a
+                                    rotl (BNode _ ll y (BNode _ lrl z rrl))
+                                      = bnode (bnode ll y lrl) z rrl
+                                \end{lstlisting}
+                        \end{enumerate}
+                \end{enumerate}
+                Putting all of this together;
+                \begin{lstlisting}
+                    balance :: BTree a -> a -> BTree a -> BTree a
+                    balance l x r
+                      | abs b <= 1 = bnode l x r                       -- (case 1a, 1b)
+                      | b == 2     =
+                          if 0 <= bias l then rotr (node l x r)        -- (case 2a)
+                                         else rotr (node (rotl l) x r) -- (case 2b)
+                      | b == -2    =
+                          if bias r <= 0 then rotl (node l x r)        -- (symmetry of 2a)
+                                         else rotl (node l x (rotr r)) -- (symmetry of 2b)
+                \end{lstlisting}
+                Since ~balance~, ~rotr~, and ~rotl~ have no recursion, and are straight pattern matches, the process of balancing a tree is constant time.
+                \medskip
+
+                However, we have recursion in ~insert~.
+                Since we have balanced the tree, we can therefore say that the size of the left and right subtrees are roughly equal, hence the height of the tree is approximately $\log_2 n$; and since we are doing a constant time operation at each level;
+                \begin{center}
+                    $T_~insert~(n) \in O(\log n)$
+                \end{center}
+                Similarly, since it is a balanced tree, looking up values is also $O(\log n)$.
+                \medskip
+
+                By our definition of ~fromList~, we are folding over a list of size $n$, and performing a $\log n$ operation for each, hence we have $O(n \log n)$.
+            \subsubsection*{Sorting with BTrees}
+                Since the tree is ordered, we a natural sorting algorithm;
+                \begin{center}
+                    ~sort = toList . fromList~
+                \end{center}
+                Since we already know ~fromList~ is $O(n \log n)$, ~toList~ is the limiting factor - if we can get it to $O(n \log n)$ or better, the overall cost of the sort is $O(n \log n)$.
+                \begin{lstlisting}
+                    toList :: BTree a -> [a]
+                    toList BNil = []
+                    toList (Node _ l x r) = toList l ++ [x] ++ toList r
+                \end{lstlisting}
+                Assuming we made ~toList~ use $O(n)$ time (the implementation above takes $O(n^2)$, but we could've used a ~DList~), we cannot get a better ~fromList~, since it would lower the overall cost of ~sort~ to $O(n)$, which isn't possible due to a lower bound on sorting algorithms.
+                \medskip
+
+                Recall that ~DList~ uses function composition, which gives preferable associativity.
+                Therefore, we want the following;
+                \begin{center}
+                    ~toList l ++ [x] ++ toList r~
+
+                    $\downarrow$
+
+                    ~(toList' l . (x:) . toList' r) []~
+                \end{center}
+                Note that the function ~toList'~ takes a ~BTree a~, and gives a \textbf{function} that takes a ~[a]~ and gives back ~[a]~;
+                \begin{lstlisting}
+                    toList' :: BTree a -> ([a] -> [a])
+                    toList' BNil xs = xs
+                    toList' (BNode _ l x r) xs = (toList' l . (x:) . toList' r) xs
+                \end{lstlisting}
+                Therefore, we can write the following;
+                \begin{lstlisting}
+                    toList t = toList' t []
+                \end{lstlisting}
+                Hence our ~toList~ is $O(n)$.
+            \subsubsection*{Dynamic Programming}
+                The idea behind dynamic programming is that we start with a recursive function, and repeated calls do not get executed again.
+                We are trading space for speed.
+                An example is calculating Fibonacci numbers (note that ~Int~ is bounded by the CPU, and ~Integer~ is larger and bounded by RAM);
+                \begin{lstlisting}
+                    fib :: Int -> Integer
+                    fib 0 = 0
+                    fib 1 = 1
+                    fib n = fib (n - 1) + fib (n - 2)
+                \end{lstlisting}
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (o) at (0, 0) {~fib 10~};
+                        \node (ol) at (-2, -1) {~fib 8~};
+                        \node (or) at (2, -1) {~fib 9~};
+                        \node (oll) at (-3, -2) {~fib 6~};
+                        \node (olr) at (-1, -2) {~fib 7~};
+                        \node[red] (orl) at (1, -2) {~fib 7~};
+                        \node[red] (orr) at (3, -2) {~fib 8~};
+                        \node (olld) at (-3, -3) {$\vdots$};
+                        \node (olrd) at (-1, -3) {$\vdots$};
+                        \node (orld) at (1, -3) {$\vdots$};
+                        \node (orrd) at (3, -3) {$\vdots$};
+                        \draw
+                        (o) -- (ol) (o) -- (or)
+                        (ol) -- (oll) (ol) -- (olr)
+                        (or) -- (orl) (or) -- (orr)
+                        (oll) -- (olld)
+                        (olr) -- (olrd)
+                        (orl) -- (orld)
+                        (orr) -- (orrd);
+                    \end{tikzpicture}
+                \end{center}
+                However, notice that some values are recomputed, which wastes time.
+                Ideally, we'd want to store the values we compute in a table, giving us constant time lookup.
 \end{document}
