@@ -1239,4 +1239,153 @@
                         consT t (Nothing:ts) = (Just t):ts
                         consT t ((Just t'):ts) = Nothing:consT (node t t') ts
                 \end{lstlisting}
+        \subsection*{29th October 2019}
+            \subsubsection*{Divide and Conquer, Merge Sort}
+                This strategy has the following three parts;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item divide a problem into subproblems
+                    \item apply the strategy to subproblems to make subsolutions
+                    \item combine subsolutions to make a solution
+                \end{enumerate}
+                A classic example is merge sort;
+                \begin{lstlisting}
+                    msort :: [Int] -> [Int]
+                    msort [] = []
+                    msort [x] = [x]
+                    msort xs = merge (msort us) (msort vs)
+                      where
+                        (us, vs) = splitAt (div n 2) xs
+                        n = length xs
+
+                    merge :: [Int] -> [Int] -> [Int]
+                    merge [] ys = ys
+                    merge xs [] = xs
+                    merge (x:xs) (y:ys)
+                      | x <= y    = x:merge xs (y:ys)
+                      | otherwise = y:merge (x:xs) ys
+                \end{lstlisting}
+                We can perform the following recurrence relation to obtain the complexity;
+                \begin{align*}
+                    T_~msort~(0) & = 1 \\
+                    T_~msort~(1) & = 1 \\
+                    T_~msort~(n) & = \underbrace{T_~length~(n)}_{O(n)} + \underbrace{T_~splitAt~\left(\frac{n}{2}\right)}_{O(n)} + \underbrace{T_~merge~\left(\frac{n}{2}\right)}_{O(n)} + 2 \cdot T_~msort~\left(\frac{n}{2}\right)
+                \end{align*}
+                For this, we can draw a recursion tree to represent the structure (note the initial $c \cdot n$ represents the three $O(n)$ costs combined, and so on);
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (o) at (0, 0) {$c \cdot n$};
+                        \node (ol) at (-1, -1) {$c \cdot \frac{n}{2}$};
+                        \node (or) at (1, -1) {$c \cdot \frac{n}{2}$};
+                        \node (oll) at (-1.5, -2) {$c \cdot \frac{n}{4}$};
+                        \node (olr) at (-0.5, -2) {$c \cdot \frac{n}{4}$};
+                        \node (orl) at (0.5, -2) {$c \cdot \frac{n}{4}$};
+                        \node (orr) at (1.5, -2) {$c \cdot \frac{n}{4}$};
+                        \node (olld) at (-1.5, -3) {$c$};
+                        \node (olrd) at (-0.5, -3) {$c$};
+                        \node (orld) at (0.5, -3) {$c$};
+                        \node (orrd) at (1.5, -3) {$c$};
+                        \node at (-1, -3) {$\cdots$};
+                        \node at (0, -3) {$\cdots$};
+                        \node at (1, -3) {$\cdots$};
+                        \draw
+                        (o) -- (ol) (o) -- (or)
+                        (ol) -- (oll) (ol) -- (olr)
+                        (or) -- (orl) (or) -- (orr)
+                        (oll) edge[thick, dotted] (olld)
+                        (olr) edge[thick, dotted] (olrd)
+                        (orl) edge[thick, dotted] (orld)
+                        (orr) edge[thick, dotted] (orrd);
+                        \draw
+                        (-1.75, -3.5) edge[|-|, below] node{$n$} (1.75, -3.5)
+                        (2, 0) edge[|-, right] node{$\log_2 n$} (2, -2)
+                        (2, -2) edge[dashed, -|] (2, -3);
+                    \end{tikzpicture}
+                \end{center}
+                Therefore, we can conclude the following; \hfill $T_~msort~(n) \in \Theta(n\log n)$
+            \subsubsection*{Quicksort}
+                For this implementation, we will use the head of the list as the pivot - using an arbitrary element is better.
+                \begin{lstlisting}
+                    qsort :: [Int] -> [Int]
+                    qsort [] = []
+                    qsort [x] = [x]
+                    qsort (x:xs) = qsort us ++ [x] ++ qsort vs
+                      where
+                        (us, vs) = partition (< x) xs
+
+                    partition :: (a -> Bool) -> [a] -> ([a], [a])
+                    partition p xs = (filter p xs, filter (not . p) xs)
+                \end{lstlisting}
+                In the best case, the cost is the same as ~msort~, since we are splitting the list in the middle.
+                However, in the worst case we have the following;
+                \begin{align*}
+                    T_~qsort~(n) & = \underbrace{T_~partition~(n)}_{O(n)} + \underbrace{T_~(++)~(n - 1)}_{O(n)} + T_~qsort~(1) + T_~qsort~(n - 1) \\
+                    & = c \cdot n + T_~qsort~(n - 1) \\
+                    & = \underbrace{c \cdot n + c \cdot n + \dots + c \cdot n}_n + 1 \\
+                    & = c \cdot n^2 + 1
+                \end{align*}
+                Hence $T_~qsort~ \in O(n^2)$.
+            \subsubsection*{Binary Search Trees / AVL Trees}
+                \begin{center}
+                    \begin{minipage}[h]{0.6\textwidth}
+                        We start with a tree which mirrors ~qsort~;
+                        \begin{lstlisting}
+                            data QTree a = QNil | Node (QTree a) a (QTree a)
+                        \end{lstlisting}
+                        The idea is that, for the diagram on the right, elements in $l$ are less than $x$ and elements in $r$ are greater than $x$;
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[h]{0.3\textwidth}
+                        \begin{center}
+                            \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                \node (x) at (0, 0) {$x$};
+                                \node at (-1.5, -3.5) {$l$};
+                                \node at (1.5, -3.5) {$r$};
+                                \draw (x) -- (-1.5, -1) (x) -- (1.5, -1);
+                                \draw (-1.5, -1) -- (-0.5, -3) -- (-2.5, -3) -- cycle;
+                                \draw (1.5, -1) -- (2.5, -3) -- (0.5, -3) -- cycle;
+                            \end{tikzpicture}
+                        \end{center}
+                    \end{minipage}
+                \end{center}
+                \begin{lstlisting}
+                    fromList :: [Int] -> QTree Int
+                    fromList [] = QNil
+                    fromList (x:xs) = QNode (fromList us) x (fromList vs)
+                      where
+                        (us, vs) = partition (< x) xs
+                \end{lstlisting}
+                Notice that this essentially encapsulates the call structure of ~qsort~ in memory.
+                Flattening this tree will give us a sorted list, equivalent to ~qsort~.
+                The ~fromList~ function has the same complexity as ~qsort~, which is $O(n \log n)$ in the best case, and $O(n^2)$ in the worst case.
+                \medskip
+
+                The goal is to change the data structure so that it takes $O(n \log n)$ on average.
+                To achieve this performance, we want to keep the tree balanced - hence we want to store the height of the tree (in lieu of traversing it, since we will use this operation frequently).
+                A binary search tree has this representation (with the ~Int~ representing height, and a smart constructor ~bnode~ to maintain this property);
+                \begin{lstlisting}
+                    data BTree a = BNil | BNode Int (BTree a) a (BTree a)
+
+                    height :: BTree a -> Int
+                    height BNil = 0
+                    height (BNode h l x r) = h
+
+                    bnode :: BTree a -> a -> BTree a -> BTree a
+                    bnode l x r = BNode h l x r
+                      where
+                        h = 1 + max (height l) (height r)
+                \end{lstlisting}
+                The algorithm will consist of repeated inserts into the tree - the ~fromList~ function will take a list of elements and ~foldr~ over it.
+                The ~insert~ function must maintain the balance of the tree.
+                \begin{lstlisting}
+                    fromList :: [Int] -> BTree Int
+                    fromList xs = foldr insert BNil
+
+                    insert :: Int -> BTree Int -> BTree Int
+                    insert x BNil = bnode BNil x BNil
+                    insert x (BNode h l y r)
+                      | x < y  = balance ((insert x l) y r)
+                      | x == y = BNode h l y r -- discarding if equal
+                      | x > y  = balance (x y (insert x r))
+                \end{lstlisting}
 \end{document}
