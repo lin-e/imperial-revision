@@ -807,6 +807,7 @@
             \subsubsection*{List Interface}
                 Rather than dealing with lists directly, we want to work with a specification instead.
                 For this, we are creating a type class - an abstraction mechanism that has a class of objects, which have certain operations - and depending on what is given the operations can operate slightly differently.
+                Note that ~List~ is the name of the type class, and ~list~ is the variable of abstraction.
                 \begin{lstlisting}
                     class List list where
                     empty :: list a
@@ -958,7 +959,7 @@
                     snoc y (Deque [] ys) = Deque ys [y]
                     snoc y (Deque xs ys) = Deque xs y:ys
                 \end{lstlisting}
-                This has $O(1)$ complexity.
+                This has $\Theta(1)$ complexity.
                 It's important to note that we can do line 2 due to our invariant - if we know ~xs~ is empty, then ~ys~ must also be empty, or be a singleton list - and therefore it can be placed as the first list without a reversal.
                 \begin{lstlisting}
                     last :: Deque a -> a
@@ -1032,7 +1033,7 @@
                     C_~last~(~xs~) & = 1 \\
                     C_~tail~(~Deque xs ys~) & = k & \text{where } k = ~length ys~
                 \end{align*}
-                Now, we can assign asymptotic costs.
+                Now, we can assign amortised costs.
                 Regardless of the operation, we can say the charge is 2, hence we are overcharging by 1 for each of the constant time operations, in the hope that when we get to ~tail~, we have enough "saved up";
                 \begin{center}
                     $A_~op~(~Deque xs ys~) = 2$
@@ -1044,4 +1045,198 @@
                     $S(~Deque xs ys~) = | ~length xs~ - ~length ys~ |$
                 \end{center}
                 We can now attempt to prove equation 2.
+                Given ~Deque xs' ys' = tail (Deque xs ys)~, we have the following sizes (in the worst case, where ~xs~ is a singleton list, and ~ys~ is of length $k$, and after the operation the difference is at most 1, since the list is (approximately) symmetric);
+                \begin{align*}
+                    S(~Deque xs ys~) & = k - 1 \\
+                    S(~Deque xs' ys'~) & = 1
+                \end{align*}
+                Substituting gives the following;
+                \begin{center}
+                    $\underbrace{C_~tail~(~Deque xs ys~)}_{= k} \leq \underbrace{A_~tail~(~Deque xs ys~)}_{= 2} + \underbrace{S(~Deque xs ys~)}_{= k - 1} - \underbrace{S(~Deque xs' ys'~)}_{= 1}$
+
+                    $\Leftrightarrow$
+
+                    $k \leq 2 + (k - 1) - 1 = k$ (which is true)
+                \end{center}
+                Note that if we overcharged (had a number higher than 2), we'd still have a constant cost.
+            \subsubsection*{Counting}
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        Once again, we encounter Peano numbers (see \textbf{CO142} from last year);
+                        \begin{lstlisting}
+                            data Peano = Zero | Succ Peano
+
+                            inc :: Peano -> Peano
+                            inc n = Succ n
+
+                            -- notice this errors for Zero
+                            dec :: Peano -> Peano
+                            dec (Succ n) = n
+
+                            add :: Peano -> Peano -> Peano
+                            add Zero n = n
+                            add (Succ m) n = Succ (add m n)
+                        \end{lstlisting}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        This has a duality with lists;
+                        \begin{lstlisting}
+                            data [a] = [] | (:) a [a]
+
+                            -- mirrors inc
+                            cons :: a -> [a] -> [a]
+                            cons x xs = x:xs
+
+                            -- mirrors dec (notice the error case)
+                            tail :: [a] -> [a]
+                            tail (x:xs) = xs
+
+                            -- mirrors add
+                            (++) :: [a] -> [a] -> [a]
+                            [] ++ ys = ys
+                            (x:xs) ++ ys = x:(xs ++ ys)
+                        \end{lstlisting}
+                    \end{minipage}
+                \end{center}
+                Counting in binary is as follows (our representation has the least significant bit first);
+                \begin{lstlisting}
+                    type Binary = [Bit] -- [] is decimal 0
+                    data Bit = 0 | 1
+
+                    inc :: Binary -> Binary
+                    inc [] = [1]
+                    inc (0:bs) = 1:bs
+                    inc (1:bs) = 0:inc bs
+                \end{lstlisting}
+                Notice that, in the worst case, ~inc~ has complexity $n$, where $n$ is the number of bits.
+                Once again, doing amortised analysis, we define the following;
+                \begin{align*}
+                    C_~inc~(~bs~) & = t + 1 & \text{where } t = ~length (takeWhile (== 1) bs)~ \\
+                    A_~inc~(~bs~) & = 2 & \text{overcharge for amortised cost} \\
+                    S(~bs~) & = ~length (filter (== 1) bs)~
+                \end{align*}
+                Size function is some kind of measure of how much "money" we have in the "bank".
+                We're "paying" when we have a lot of ~1~s, therefore for any ~1~ we put down, we have to pay for it later - hence we define the size function as the number of ~1~s in the bit string.
+                Additionally, recall that having $S(~xs~_~0~) = 0$ allows us to show equation 1, by showing equation 2 (which can be done with the inequality, without the summation).
+                \medskip
+
+                Given ~bs' = inc bs~, we want to verify the following;
+                $$\underbrace{C_~inc~(~bs~)}_{= t + 1} \leq \underbrace{A_~inc~(~bs~)}_{= 2} + \underbrace{S(~bs~)}_{= b} - \underbrace{S(~bs'~)}_{= b^\prime}$$
+                Note that we can relate $b$ and $b^\prime$ as $b^\prime = b - t + 1$, since we flip all the leading ~1~s to ~0~s (hence the $- t$), and then flip a ~0~ to a ~1~ (hence the $+ 1$).
+                By doing those substitutions, we can conclude the following;
+                \begin{center}
+                    $t + 1 \leq 2 + b - (b - t + 1) = t + 1$ (which is true)
+                \end{center}
+                Note that we want $A$ to be as tight of a bound as possible - while the inequality would still hold true if we set $A$ to be the number of bits, we'd end up with a poor estimate.
+            \subsubsection*{Relation with Lists}
+                Comparing binary numbers to Peano numbers, we are going up in powers of two, and therefore we can communicate larger numbers with less space.
+                Relating this back to lists, searching for an item by traversing the entire list mirrors Peano numbers.
+                \medskip
+
+                Binary numbers are in the form;
+                \begin{center}
+                    $b_0 b_1 b_2 \dots b_n$ meaning $2^0b_0 + 2^1b_1 + 2^2b_2 + \dots 2^nb_n$
+                \end{center}
+                We will work with a list representation that has $1, 2, 4, \dots, 2^n$ elements.
+                Therefore, for a list;
+                \begin{center}
+                    $~[t~_~0~~, t~_~1~~, ..., t~_~n~~]~$
+                \end{center}
+                We will store 1 element in the $~t~_~0~$ position, 2 elements in the $~t~_~1~$ position, and $2^n$ elements in the $~t~_~n~$ position.
+                Depending on how many elements we want, we will either store or not store in these positions - consider having 6 elements; nothing will be stored in the $~t~_~0~$ position, but we will store 2 elements in $~t~_~1~$, and 4 elements in $~t~_~2~$.
+                To do this, we will be using trees, which also gives us logarithmic access.
+                \medskip
+
+                Looking up in a list is expensive (takes $\Theta(k)$ instructions);
+                \begin{lstlisting}
+                    (!!) :: [a] -> Int -> a
+                    (x:xs) !! 0 = x
+                    (x:xs) !! k = xs !! (k - 1)
+                \end{lstlisting}
+                To improve upon this, we seek $O(\log n)$ instead.
+            \subsubsection*{Trees}
+                This can be done with trees (note that the ~Int~ in the ~Node~ constructor is the size of the tree);
+                \begin{lstlisting}
+                    data Tree a = Leaf a | Node Int (Tree a) (Tree a)
+                \end{lstlisting}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node (o) at (0, 0) {~4~};
+                        \node (ol) at (-2, -1) {~2~};
+                        \node (or) at (2, -1) {~2~};
+                        \node (oll) at (-3, -2) {~'a'~};
+                        \node (olr) at (-1, -2) {~'b'~};
+                        \node (orl) at (1, -2) {~'c'~};
+                        \node (orr) at (3, -2) {~'d'~};
+                        \draw
+                        (o) -- (ol) (o) -- (or)
+                        (ol) -- (oll) (ol) -- (olr)
+                        (or) -- (orl) (or) -- (orr);
+                    \end{tikzpicture}
+                \end{center}
+                \begin{lstlisting}
+                    size :: Tree a -> Int
+                    size (Leaf x) = 1
+                    size (Node n l r) = n
+                \end{lstlisting}
+                In lieu of taking the sum of the subtrees, we can simply maintain an invariant that has ~n~ be the size of the tree.
+                This can be done with a \textbf{smart constructor};
+                \begin{lstlisting}
+                    node :: Tree a -> Tree a -> Tree a
+                    node l r = Node (size l + size r) l r
+                \end{lstlisting}
+                We can imagine that this has an instance of the ~List~ class;
+                \begin{lstlisting}
+                    instance List Tree where
+                      toList :: Tree a -> [a]
+                      toList (Leaf x) = [x]
+                      toList (Node n l r) = toList l ++ toList r -- we can do better here
+                      ...
+                      (!!) :: Tree a -> Int -> a
+                      Leaf x !! 0 = x
+                      Node n l r !! k
+                        | k < m     = l !! k
+                        | otherwise = r !! k - m
+                        where
+                          m = size l
+                \end{lstlisting}
+            \subsubsection*{Random Access Lists (RALists)}
+                Lists can be represented using binary numbers as follows;
+                \begin{lstlisting}
+                    type RAList a = [Maybe (Tree a)]
+
+                    instance List RAList where -- can't actually do this on type synonyms
+                      toList :: RAList a -> [a]
+                      toList = concat . map to
+                        where
+                          to :: Maybe (Tree a) -> [a]
+                          to Nothing = []
+                          to (Just t) = toList t -- note this is toList :: Tree a -> [a]
+                      (!!) :: RAList a -> Int -> a
+                      (Nothing : ts) !! k = ts !! k
+                      (Just t : ts) !! k
+                        | k < m     = t !! k -- (!!) for Tree (overloading)
+                        | otherwise = ts !! k - m
+                        where
+                          m = size t
+                \end{lstlisting}
+                We have the following extensional equality;
+                \begin{center}
+                    ~toList txs !! k = txs !! k~ where ~tks :: RAList a~
+                \end{center}
+                However, the RHS performs better, as the LHS constructs the list, and then performs a walk down it.
+                The complexity of ~(!!)~ (on ~RAList~) is $O(\log k)$.
+                \medskip
+
+                To implement ~cons~, we need to mirror ~inc~ on binary numbers;
+                \begin{lstlisting}
+                    cons :: a -> RAList a -> RAList a
+                    cons x xs = consT (Leaf x) xs
+                      where
+                        consT :: Tree a -> RAList a -> RAList a
+                        consT t [] = [Just t]
+                        consT t (Nothing:ts) = (Just t):ts
+                        consT t ((Just t'):ts) = Nothing:consT (node t t') ts
+                \end{lstlisting}
 \end{document}
