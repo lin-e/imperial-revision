@@ -1012,8 +1012,36 @@
                 We use these to establish the following;
                 $$\underbrace{\summation{i = 0}{n - 1} C_{~op~_~i~}(~xs~_~i~)}_\text{total actual cost} \leq \underbrace{\summation{i = 0}{n - 1} A_{~op~_~i~}(~xs~_~i~)}_\text{total amortised cost}$$
                 For example, if we choose $A_{~op~_~i~}(~xs~_~i~) = 1$, then the total cost is $O(n)$.
-                To prove this inequality, we use the size function (physicist's approach);
+                To prove this inequality (let it be equation (1)), we use the size function (physicist's approach);
                 $$C_{~op~_~i~}(~xs~_~i~) \leq A_{~op~_~i~}(~xs~_~i~) + \overbrace{\underbrace{S(~xs~_~i~)}_\text{input size} - \underbrace{S(~xs~_~i+1~)}_\text{output size}}^\text{dif between data structure}$$
                 We can sum over this as follows;
                 $$\summation{i = 0}{n - 1} C_{~op~_~i~}(~xs~_~i~) \leq \summation{i = 0}{n - 1} A_{~op~_~i~}(~xs~_~i~) + S(~xs~_~0~) - S(~xs~_~n~)$$
+                Let this be equation 2.
+        \subsection*{25th October 2019}
+            \subsubsection*{Size Function}
+                One way of thinking about the size function is that it is similar to a bank; when a cheap operation is performed, we can put money in, and when an expensive operation is performed, we take money out.
+                \medskip
+
+                If we show equation 2, we have shown equation 1 - given that $S(~xs~_~0~) = 0$.
+            \subsubsection*{Example on Deques}
+                First, we can assign costs as follows;
+                \begin{align*}
+                    C_~cons~(~xs~) & = 1 \\
+                    C_~snoc~(~xs~) & = 1 \\
+                    C_~head~(~xs~) & = 1 \\
+                    C_~last~(~xs~) & = 1 \\
+                    C_~tail~(~Deque xs ys~) & = k & \text{where } k = ~length ys~
+                \end{align*}
+                Now, we can assign asymptotic costs.
+                Regardless of the operation, we can say the charge is 2, hence we are overcharging by 1 for each of the constant time operations, in the hope that when we get to ~tail~, we have enough "saved up";
+                \begin{center}
+                    $A_~op~(~Deque xs ys~) = 2$
+                \end{center}
+                Finally, we can define the size function to be the difference in size of ~xs~ and ~ys~.
+                The expensive operation of doing ~tail~ happens when one of the two lists is empty, and reversal has to be done.
+                Once this "distance" increases to a certain amount, we have to charge the expensive operation.
+                \begin{center}
+                    $S(~Deque xs ys~) = | ~length xs~ - ~length ys~ |$
+                \end{center}
+                We can now attempt to prove equation 2.
 \end{document}
