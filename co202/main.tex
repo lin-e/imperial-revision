@@ -1605,6 +1605,7 @@
                     toList t = toList' t []
                 \end{lstlisting}
                 Hence our ~toList~ is $O(n)$.
+        \subsection*{November 5th 2019}
             \subsubsection*{Dynamic Programming}
                 The idea behind dynamic programming is that we start with a recursive function, and repeated calls do not get executed again.
                 We are trading space for speed.
@@ -1640,4 +1641,121 @@
                 \end{center}
                 However, notice that some values are recomputed, which wastes time.
                 Ideally, we'd want to store the values we compute in a table, giving us constant time lookup.
+                \begin{lstlisting}
+                    fib' :: Int -> Integer
+                    fib' n = table ! n
+                      where
+                        table :: Array Int Integer
+                        table = tabulate (0, n) mfib
+
+                        mfib 0 = 0
+                        mfib 1 = 1
+                        mfib n = table ! (n - 2) + table ! (n - 1)
+                \end{lstlisting}
+                Note that ~(!)~ is $O(1)$, and has the following type;
+                \begin{center}
+                    ~(!) :: Ix i => Array i e -> i -> e~
+                \end{center}
+                Memoisation is idea that if an argument has been computed the result can be retrieved immediately, but if it isn't, it needs to be computed and stored.
+                Tabulation is a way to implement memoisation.
+                \medskip
+
+                To construct an array we use the ~array~ function, which is used by ~tabulate~ (which also requires the ~range~ function);
+                \begin{lstlisting}
+                    range :: Ix i => (i, i) -> [i]
+                    array :: Ix i => (i, i) -> [(i, e)] -> Array i e
+
+                    tabulate :: Ix i => (i, i) -> (i -> e) -> Array i e
+                    tabulate (a, b) f = array (a, b) [(i, f i) | i <- range (a, b)]
+                \end{lstlisting}
+            \subsubsection*{Edit-Distance Problem}
+                This works out how many times we need to update, delete, or insert a character to get from one string to another (the \textit{Levenshtein} distance between two strings).
+                We can better formalise this as a decision tree, where each node has 3 possible options.
+                We can remove the first character from the first string, which costs 1, "remove" the first characters of both strings, which costs 0 if they are equal, and 1 otherwise, or remove the first character from the second string, which costs 1.
+                At the end, we will have an empty string compared with something else - which has a cost of however long the other string is.
+                The edit-distance is the \textbf{minimum} cost of all the paths to the root.
+                \begin{center}
+                    \begin{tikzpicture}[x=0.75cm, y=1.5cm]
+                        \node (o) at (0, 0) {\shortstack[l]{~toil~\\~trouble~}};
+                        \node (ol) at (-6, -1) {\shortstack[l]{~oil~\\~trouble~}};
+                        \node[violet] (oc) at (0, -1) {\shortstack[l]{~oil~\\~rouble~}};
+                        \node (or) at (6, -1) {\shortstack[l]{~toil~\\~rouble~}};
+                        \node (oll) at (-9, -2) {\shortstack[l]{~il~\\~trouble~}};
+                        \node (olc) at (-6, -2) {\shortstack[l]{~il~\\~rouble~}};
+                        \node[violet] (olr) at (-3, -2) {\shortstack[l]{~oil~\\~rouble~}};
+                        \node[violet] (orl) at (3, -2) {\shortstack[l]{~oil~\\~rouble~}};
+                        \node (orc) at (6, -2) {\shortstack[l]{~oil~\\~ouble~}};
+                        \node (orr) at (9, -2) {\shortstack[l]{~toil~\\~ouble~}};
+                        \foreach \x in {-3,...,3} {
+                            \node (ds\x) at (\x*3, -3) {$\vdots$};
+                        }
+                        \draw
+                        (o) edge[->, above] node{$+1$} (ol)
+                        (o) edge[->, right] node{$+0$} (oc)
+                        (o) edge[->, above] node{$+1$} (or)
+                        (ol) edge[->, above] node{$+1$} (oll)
+                        (ol) edge[->, right] node{$+1$} (olc)
+                        (ol) edge[->, above] node{$+1$} (olr)
+                        (or) edge[->, above] node{$+1$} (orl)
+                        (or) edge[->, right] node{$+1$} (orc)
+                        (or) edge[->, above] node{$+1$} (orr)
+                        (oll) edge[->] (ds-3)
+                        (olc) edge[->] (ds-2)
+                        (olr) edge[->] (ds-1)
+                        (oc) edge[->, bend right=45] (ds0)
+                        (oc) edge[->] (ds0)
+                        (oc) edge[->, bend left=45] (ds0)
+                        (orl) edge[->] (ds1)
+                        (orc) edge[->] (ds2)
+                        (orr) edge[->] (ds3);
+                    \end{tikzpicture}
+                \end{center}
+                However, notice that the comparison between \violet{~oil~} and \violet{~rouble~} is done multiple times.
+                Formally, we can write it as a recursive function;
+                \begin{lstlisting}
+                    dist :: String -> String -> Int
+                    dist xs [] = length xs
+                    dist [] ys = length ys
+                    dist (x:xs) (y:ys) = minimum
+                      [dist xs (y:ys) + 1
+                      ,dist xs ys + if x == y then 0 else 1
+                      ,dist (x:xs) ys + 1]
+                \end{lstlisting}
+                However, notice that our current function uses two strings - and in order to construct a table indexing on a pair of strings, we'd need to enumerate an extremely large number of values.
+                Since we are decomposing the values systematically, we can instead consider an integer.
+                \begin{lstlisting}
+                    dist' :: String -> String -> Int -> Int -> Int
+                    dist' xs ys 0 j = j
+                    dist' xs ys i 0 = i
+                    dist' xs ys i j = minimum
+                      [dist' xs ys (i - 1) j + 1
+                      ,dist' xs ys (i - 1) (j - 1) + if x == y then 0 else 1
+                      ,dist' xs ys i (j - 1) + 1]
+                      where
+                        x = xs !! i
+                        y = ys !! j
+                \end{lstlisting}
+                Note that we are now checking the strings in reverse.
+                This can be tabulated with a pair ~(Int, Int)~;
+                \begin{lstlisting}
+                    dist'' :: String -> String -> Int
+                    dist'' xs ys = table ! (m, n)
+                      where
+                        m = length xs
+                        n = length ys
+
+                        table = tabulate ((0, 0), (m, n)) mdist
+
+                        mdist 0 j = j
+                        mdist i 0 = i
+                        mdist i j = minimum
+                          [table ! ((i - 1), j) + 1
+                          ,table ! ((i - 1), (j - 1)) + if  x == y then 0 else 1
+                          ,table ! (i, (j - 1)) + 1]
+                          where
+                            x = xs !! i
+                            y = ys !! j
+                \end{lstlisting}
+                While ~x = xs !! i~ and ~y = ys !! j~ isn't constant time, we assume we can simply tabulate it to obtain constant time access, and ignore it.
+                The original version was $O(3^{m + n})$, and this has been reduced to $O(mn)$.
 \end{document}
