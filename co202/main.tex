@@ -1758,4 +1758,76 @@
                 \end{lstlisting}
                 While ~x = xs !! i~ and ~y = ys !! j~ isn't constant time, we assume we can simply tabulate it to obtain constant time access, and ignore it.
                 The original version was $O(3^{m + n})$, and this has been reduced to $O(mn)$.
+        \subsection*{November 8th 2019}
+            Note that this lecture is 3 hours long, with the first hour being in \textbf{CO220}.
+            It starts with a remark that the examples of dynamic programming we've looked at so far only gives us the answer, and not how the answer was reached.
+            \subsubsection*{The Travelling Salesman Problem}
+                The travelling salesman problem is notoriously difficult to solve efficiently.
+                Given $p_0, \dots, p_n$, the goal is to find the shortest path in a graph that visits all these nodes and returns to the start.
+                \begin{center}
+                    \begin{tikzpicture}[x=3cm, y=1.5cm]
+                        \node (p0) at (0, 0) {$p_0$};
+                        \node (p1) at (1, 0.5) {$p_1$};
+                        \node (p2) at (1.5, -0.5) {$p_2$};
+                        \node (p3) at (2, 0) {$p_3$};
+                        \node (p4) at (3.5, 0.5) {$p_4$};
+                        \node (p5) at (3, -0.5) {$p_5$};
+                        \draw
+                        (p0) -- (p1) (p0) -- (p2)
+                        (p1) -- (p2) (p1) -- (p3)
+                        (p2) -- (p3) (p2) -- (p5)
+                        (p3) -- (p4) (p3) -- (p5)
+                        (p4) -- (p5);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Bitonic Travelling Salesman}
+                The bitonic version, abbreviated to BTSP, has nodes on a plane instead.
+                We then make the following assumptions;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item every node is connected to every other node, and the distance (cost) is simply the Euclidean distance
+                    \item no two points exist on top of each other (such that no two points have the same $x$ co-ordinate, if we looked at the $xy$ plane)
+                    \item we have a bitonic path - this means that it starts from the left-most node and goes to the right-most node, and then back again (see the examples below)
+                        \begin{center}
+                            \begin{tikzpicture}[x=0.75cm]
+                                \begin{scope}[shift={(0, 0)}]
+                                    \node at (2.5, -1.5) {valid};
+                                    \node (p0) at (0, 0) {$p_0$};
+                                    \node (p1) at (2, 1) {$p_1$};
+                                    \node (p2) at (3, -1) {$p_2$};
+                                    \node (p3) at (5, 0) {$p_3$};
+                                    \draw
+                                    (p0) edge[->] (p1)
+                                    (p1) edge[->] (p3)
+                                    (p3) edge[->] (p2)
+                                    (p2) edge[->] (p0);
+                                \end{scope}
+                                \begin{scope}[shift={(7, 0)}]
+                                    \node at (2.5, -1.5) {valid};
+                                    \node (p0) at (0, 0) {$p_0$};
+                                    \node (p1) at (2, 1) {$p_1$};
+                                    \node (p2) at (3, -1) {$p_2$};
+                                    \node (p3) at (5, 0) {$p_3$};
+                                    \draw
+                                    (p0) edge[->] (p1)
+                                    (p1) edge[->] (p2)
+                                    (p2) edge[->] (p3)
+                                    (p3) edge[->] (p0);
+                                \end{scope}
+                                \begin{scope}[shift={(14, 0)}]
+                                    \node[red] at (2.5, -1.5) {invalid};
+                                    \node (p0) at (0, 0) {$p_0$};
+                                    \node (p1) at (2, 1) {$p_1$};
+                                    \node (p2) at (3, -1) {$p_2$};
+                                    \node (p3) at (5, 0) {$p_3$};
+                                    \draw
+                                    (p0) edge[->] (p2)
+                                    (p2) edge[red, ->] (p1)
+                                    (p1) edge[->] (p3)
+                                    (p3) edge[->] (p0);
+                                \end{scope}
+                            \end{tikzpicture}
+                        \end{center}
+                        Note that the left-most node must be connected to the second left-most node, and the right-most node must be connected to the second right-most node.
+                \end{enumerate}
 \end{document}
