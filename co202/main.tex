@@ -1830,4 +1830,99 @@
                         \end{center}
                         Note that the left-most node must be connected to the second left-most node, and the right-most node must be connected to the second right-most node.
                 \end{enumerate}
+                This can be solved using dynamic programming in $O(m^2)$ time, for $m$ nodes.
+                Note that for the cases below, ~bitonic i~ means the shortest path up to ~i+1~, and we write $\overline{p_ip_j}$ to denote the (Euclidean) distance between $p_i$ and $p_j$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{base case} \hfill $~bitonic 0~ = 2 \cdot \overline{p_0p_1}$
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \node (p0) at (0, 0) {$p_0$};
+                                \node (p1) at (2, 0) {$p_1$};
+                                \draw
+                                (p0) edge[->, bend left=15] (p1)
+                                (p1) edge[->, bend left=15] (p0);
+                            \end{tikzpicture}
+                        \end{center}
+                    \item \textbf{recursive case}
+                        \medskip
+
+                        Let ~bitonic i~ be the shortest bitonic path for some value $i$.
+                        We can also assume that we've calculated ~bitonic i~ for all $i \leq n$ (strong induction).
+                        \begin{center}
+                            \begin{tikzpicture}[x=2cm];
+                                \node (p0) at (0, 0) {$p_0$};
+                                \node (p1) at (1, 1) {$p_1$};
+                                \node (pk1) at (3, 1) {$p_{k+1}$};
+                                \node (pk) at (2, 0) {$p_k$};
+                                \node (pn1) at (5, 1) {$p_{n+1}$};
+                                \node (pn2) at (6, 0) {$p_{n+2}$};
+                                \node (cds) at (4, 1) {$\cdots$};
+                                \draw
+                                (0, 1.5) edge[|-|, above] node{~bitonic k~} (3, 1.5)
+                                (0, -0.5) edge[|-|, below] node{~bitonic (n+1)~} (6, -0.5);
+                                \draw
+                                (p0) edge[->] (p1)
+                                (p1) edge[->, dashed] (pk1)
+                                (pk1) edge[red, ->] (pk)
+                                (pk) edge[->, dashed] (p0)
+                                (pk1) edge[violet, ->] (cds)
+                                (cds) edge[violet, ->] (pn1)
+                                (pn1) edge[violet, ->] (pn2)
+                                (pn2) edge[teal, ->] (pk);
+                            \end{tikzpicture}
+                        \end{center}
+                        $p_{n + 2}$ must connect to $p_{n + 1}$, and also some $p_k$.
+                        Bitonicity means that $p_{k + 1} \to \cdots \to p_{n + 1}$ must be connected.
+                        Therefore, we can conclude;
+                        \begin{center}
+                            $~bitonic (n+1)~ = ~bitonic k~ + \violet{\overline{p_{k+1} \dots p_{n+2}}} - \red{\overline{p_{k+1}p_k}} + \teal{\overline{p_{n+2}p_k}}$
+                        \end{center}
+                        As a side note, if there was a better path that uses some point after $p_{k + 1}$, that would be picked up by taking the minimum value for all ~k~s.
+                        We must now find this $k$, but it must be minimal (assume ~d :: Int -> Int -> Double~ gives us the distance between two points, such that $~d i j~ = \overline{p_ip_j}$);
+                        \begin{lstlisting}
+                            import Data.Array
+                            import Data.List
+
+                            type Point = (Double, Double)
+
+                            ps :: Array Int Point
+                            ps = array (0, 3) (zip [0 .. ] [(0,0), (1,2), (2,3), (3,3)])
+
+                            dist :: Array Int Point -> Int -> Int -> Double
+                            dist ps i j = sqrt (x*x + y*y)
+                              where
+                                (xi, yi) = ps ! i
+                                (xj, yj) = ps ! j
+                                x = xi - xj
+                                y = yi - yj
+
+                            bitonic :: (Int -> Int -> Double) -> Int -> Double
+                            bitonic d 0 = 2 * d 0 1
+                            bitonic d n =
+                              minimum [ bitonic d k - d k (k + 1) + d k (n + 1)
+                                      + sum [ d (i) (i + 1) | i <- [k + 1 .. n]]]
+                                      | k <- [0 .. n - 1]]
+
+                            -- returns edges as pairs of points
+                            bitonic' :: (Int -> Int -> Double) -> Int -> (Double, [(Int, Int)]
+                            bitonic' d 0 = (2 * d 0 1, [(0, 1)])
+                            bitonic' d n =
+                              minimum [ bitonic' d k ~- (k, k + 1) ~+ (k, n + 1)
+                                      ~+~ ssum [(d i (i + 1), [(i, (i + 1)])) | i <- [k + 1 .. n]]
+                                      | k <- [0 .. n - 1]]
+                              where
+                               (~-) :: (Double, [(Int, Int)]) -> (Int, Int) -> (Double [(Int, Int)])
+                               (x, ps) ~- (i, j) = (x - d i j, ps \\ [(i, j), (j, i)])
+
+                               (~+) :: (Double, [(Int, Int)]) -> (Int, Int) -> (Double [(Int, Int)])
+                               (x, ps) ~+ (i, j) = (x + d i j, (i, j):ps)
+
+                               (~+~) :: (Double, [(Int, Int)]) -> (Double, [(Int, Int)]) -> (Double, [(Int, Int)])
+                               (x, ps) ~+~ (y, qs) = (x + y, ps ++ qs)
+
+                               ssum :: [(Double, [(Int, Int)])] -> (Double, [(Int, Int)])
+                               ssum = foldr1 (~+~)
+                        \end{lstlisting}
+                \end{itemize}
 \end{document}
