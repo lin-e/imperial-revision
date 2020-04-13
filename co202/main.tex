@@ -180,11 +180,16 @@
     ($(#1-c) + (-1, 0)$) -- ($(#1-c) + (0, 1)$) -- ($(#1-c) + (1, 0)$) -- ($(#1-c) + (0, -1)$) -- cycle;
 }
 
+% AVL Trees
 \newcommand{\avltri}[4]{
     \draw ($(#1)$) -- ($(#1) + #4*(0.5, -1)$) -- ($(#1) + #4*(-0.5, -1)$) -- cycle;
     \node at ($(#1) + #4*(0, -1) + (0, 0.5)$) {#3};
     \node at ($(#1) + #4*(0, -1) + (0, -0.5)$) {#2};
 }
+
+% RB Trees
+\tikzset{rbtr/.style={inner sep=2pt, circle, draw=black, fill=red}}
+\tikzset{rbtb/.style={inner sep=2pt, circle, draw=black, fill=black}}
 
 % actual document
 \begin{document}
@@ -1879,50 +1884,388 @@
                             $~bitonic (n+1)~ = ~bitonic k~ + \violet{\overline{p_{k+1} \dots p_{n+2}}} - \red{\overline{p_{k+1}p_k}} + \teal{\overline{p_{n+2}p_k}}$
                         \end{center}
                         As a side note, if there was a better path that uses some point after $p_{k + 1}$, that would be picked up by taking the minimum value for all ~k~s.
-                        We must now find this $k$, but it must be minimal (assume ~d :: Int -> Int -> Double~ gives us the distance between two points, such that $~d i j~ = \overline{p_ip_j}$);
-                        \begin{lstlisting}
-                            import Data.Array
-                            import Data.List
+                \end{itemize}We must now find this $k$, but it must be minimal (assume ~d :: Int -> Int -> Double~ gives us the distance between two points, such that $~d i j~ = \overline{p_ip_j}$);
+                \begin{lstlisting}
+                    import Data.Array
+                    import Data.List
 
-                            type Point = (Double, Double)
+                    type Point = (Double, Double)
 
-                            ps :: Array Int Point
-                            ps = array (0, 3) (zip [0 .. ] [(0,0), (1,2), (2,3), (3,3)])
+                    ps :: Array Int Point
+                    ps = array (0, 3) (zip [0 .. ] [(0,0), (1,2), (2,3), (3,3)])
 
-                            dist :: Array Int Point -> Int -> Int -> Double
-                            dist ps i j = sqrt (x*x + y*y)
-                              where
-                                (xi, yi) = ps ! i
-                                (xj, yj) = ps ! j
-                                x = xi - xj
-                                y = yi - yj
+                    dist :: Array Int Point -> Int -> Int -> Double
+                    dist ps i j = sqrt (x*x + y*y)
+                      where
+                        (xi, yi) = ps ! i
+                        (xj, yj) = ps ! j
+                        x = xi - xj
+                        y = yi - yj
 
-                            bitonic :: (Int -> Int -> Double) -> Int -> Double
-                            bitonic d 0 = 2 * d 0 1
-                            bitonic d n =
-                              minimum [ bitonic d k - d k (k + 1) + d k (n + 1)
-                                      + sum [ d (i) (i + 1) | i <- [k + 1 .. n]]]
-                                      | k <- [0 .. n - 1]]
+                    bitonic :: (Int -> Int -> Double) -> Int -> Double
+                    bitonic d 0 = 2 * d 0 1
+                    bitonic d n =
+                      minimum [ bitonic d k - d k (k + 1) + d k (n + 1)
+                              + sum [ d (i) (i + 1) | i <- [k + 1 .. n]]]
+                              | k <- [0 .. n - 1]]
 
-                            -- returns edges as pairs of points
-                            bitonic' :: (Int -> Int -> Double) -> Int -> (Double, [(Int, Int)]
-                            bitonic' d 0 = (2 * d 0 1, [(0, 1)])
-                            bitonic' d n =
-                              minimum [ bitonic' d k ~- (k, k + 1) ~+ (k, n + 1)
-                                      ~+~ ssum [(d i (i + 1), [(i, (i + 1)])) | i <- [k + 1 .. n]]
-                                      | k <- [0 .. n - 1]]
-                              where
-                               (~-) :: (Double, [(Int, Int)]) -> (Int, Int) -> (Double [(Int, Int)])
-                               (x, ps) ~- (i, j) = (x - d i j, ps \\ [(i, j), (j, i)])
+                    -- returns edges as pairs of points
+                    bitonic' :: (Int -> Int -> Double) -> Int -> (Double, [(Int, Int)]
+                    bitonic' d 0 = (2 * d 0 1, [(0, 1)])
+                    bitonic' d n =
+                      minimum [ bitonic' d k ~- (k, k + 1) ~+ (k, n + 1)
+                              ~+~ ssum [(d i (i + 1), [(i, (i + 1)])) | i <- [k + 1 .. n]]
+                              | k <- [0 .. n - 1]]
+                      where
+                       (~-) :: (Double, [(Int, Int)]) -> (Int, Int) -> (Double [(Int, Int)])
+                       (x, ps) ~- (i, j) = (x - d i j, ps \\ [(i, j), (j, i)])
 
-                               (~+) :: (Double, [(Int, Int)]) -> (Int, Int) -> (Double [(Int, Int)])
-                               (x, ps) ~+ (i, j) = (x + d i j, (i, j):ps)
+                       (~+) :: (Double, [(Int, Int)]) -> (Int, Int) -> (Double [(Int, Int)])
+                       (x, ps) ~+ (i, j) = (x + d i j, (i, j):ps)
 
-                               (~+~) :: (Double, [(Int, Int)]) -> (Double, [(Int, Int)]) -> (Double, [(Int, Int)])
-                               (x, ps) ~+~ (y, qs) = (x + y, ps ++ qs)
+                       (~+~) :: (Double, [(Int, Int)]) -> (Double, [(Int, Int)]) -> (Double, [(Int, Int)])
+                       (x, ps) ~+~ (y, qs) = (x + y, ps ++ qs)
 
-                               ssum :: [(Double, [(Int, Int)])] -> (Double, [(Int, Int)])
-                               ssum = foldr1 (~+~)
-                        \end{lstlisting}
+                       ssum :: [(Double, [(Int, Int)])] -> (Double, [(Int, Int)])
+                       ssum = foldr1 (~+~)
+                \end{lstlisting}
+                Note that the "strange" operators are used to perform operations on the pairs.
+        \subsection*{12th November 2019}
+            \subsubsection*{Introduction to Red-Black Trees}
+                These trees have the same asymptotic complexity as binary search (AVL) trees, which is $O(\log n)$ for access, and insertion.
+                In terms of pragmatics, binary trees had balancing operations after every insertion, which was constant, but still a large overhead.
+                Red-Black trees have a cheaper rebalancing, but the trees become more lopsided (but has more expensive access).
+                In addition, we had to keep the height of the tree with binary trees (an integer), but Red-Black trees have a single bit.
+                \medskip
+
+                Assuming an empty node is a black node, RB trees have the following invariants;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item every red node has a black parent
+                    \item every path from the root to a leaf must have the same number of black nodes
+                \end{enumerate}
+                For invariant 2, if we had no red nodes, we will have a perfectly balanced tree.
+                Due to invariant 1, the most lopsided a tree can become is if we alternated black, red, black, red, and so on, as it must still have the same number of black nodes.
+                \medskip
+
+                Some examples are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                        \item \textbf{valid RB tree} \hfill perfectly balanced tree, with no red nodes
+                            \begin{center}
+                                \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                    \node[rbtb] (o) at (0, 0) {};
+                                    \node[rbtb] (ol) at (-2, -1) {};
+                                    \node[rbtb] (or) at (2, -1) {};
+                                    \node[rbtb] (oll) at (-3, -2) {};
+                                    \node[rbtb] (olr) at (-1, -2) {};
+                                    \node[rbtb] (orl) at (1, -2) {};
+                                    \node[rbtb] (orr) at (3, -2) {};
+                                    \draw
+                                    (o) -- (ol) (o) -- (or)
+                                    (ol) -- (oll) (ol) -- (olr)
+                                    (or) -- (orl) (or) -- (orr);
+                                \end{tikzpicture}
+                            \end{center}
+                        \item \textbf{valid RB tree} \hfill same number of black nodes in each path
+                            \begin{center}
+                                \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                    \node[rbtb] (o) at (0, 0) {};
+                                    \node[rbtb] (ol) at (-2, -1) {};
+                                    \node[rbtb] (or) at (2, -1) {};
+                                    \node[rbtb] (oll) at (-3, -2) {};
+                                    \node[rbtb] (olr) at (-1, -2) {};
+                                    \node[rbtb] (orl) at (1, -2) {};
+                                    \node[rbtb] (orr) at (3, -2) {};
+                                    \node[rbtr] (olll) at (-3.5, -3) {};
+                                    \draw
+                                    (o) -- (ol) (o) -- (or)
+                                    (ol) -- (oll) (ol) -- (olr)
+                                    (or) -- (orl) (or) -- (orr)
+                                    (oll) -- (olll);
+                                \end{tikzpicture}
+                            \end{center}
+                        \item \textbf{invalid RB tree} \hfill invariant 2 does not hold
+                            \begin{center}
+                                \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                    \node[rbtb] (o) at (0, 0) {};
+                                    \node[rbtb] (ol) at (-2, -1) {};
+                                    \node[rbtb] (or) at (2, -1) {};
+                                    \node[rbtb] (oll) at (-3, -2) {};
+                                    \draw
+                                    (o) -- (ol) (o) -- (or)
+                                    (ol) -- (oll);
+                                \end{tikzpicture}
+                            \end{center}
+                        \item \textbf{invalid RB tree} \hfill invariant 1 does not hold
+                            \begin{center}
+                                \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                    \node[rbtr] (o) at (0, 0) {};
+                                    \node[rbtb] (ol) at (-2, -1) {};
+                                    \node[rbtb] (or) at (2, -1) {};
+                                    \draw (o) -- (ol) (o) -- (or);
+                                \end{tikzpicture}
+                            \end{center}
+                        \item \textbf{invalid RB tree} \hfill neither invariants hold
+                            \begin{center}
+                                \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                                    \node[rbtb] (o) at (0, 0) {};
+                                    \node[rbtr] (ol) at (-2, -1) {};
+                                    \node[rbtb] (or) at (2, -1) {};
+                                    \node[rbtr] (oll) at (-3, -2) {};
+                                    \node[rbtb] (olr) at (-1, -2) {};
+                                    \node[rbtb] (orl) at (1, -2) {};
+                                    \node[rbtb] (orr) at (3, -2) {};
+                                    \draw
+                                    (o) -- (ol) (o) -- (or)
+                                    (ol) -- (oll) (ol) -- (olr)
+                                    (or) -- (orl) (or) -- (orr);
+                                \end{tikzpicture}
+                            \end{center}
                 \end{itemize}
+                Similarly, we are also ensuring that elements in the left subtree are smaller, and elements in the right subtree are larger.
+                The implementation is as follows;
+                \begin{lstlisting}
+                    data Colour = R | B                                  -- (R)ed | (B)lack
+                    data RBTree a = E | N Colour (RBTree a) a (RBTree a) -- (E)mpty | N(ode)
+
+                    member :: Ord a => a -> RBTree a -> Bool
+                    member x E = False
+                    member x (N _ l y r)
+                      | x < y  = member x l
+                      | x == y = True
+                      | x > y  = member x r
+
+                    insert :: Ord a => a -> RBTree a -> RBTree a
+                    insert x t = blacken (insx t)
+                      where
+                        insx E = N R E x E
+                        insx (N c l y r)
+                          | x < y  = balance c (insx l) y r
+                          | x == y = N c l y r
+                          | x > y  = balance c l y (insx r)
+
+                    -- ensures invariant 1 holds
+                    blacken :: RBTree a -> RBTree a
+                    blacken E = E
+                    blacken (N _ l y r) = N B l y r
+                \end{lstlisting}
+                For ~balance~, there are 4 possible cases (we can assume that the subtrees, $a, b, c, d$, have already been fixed due to recursion);
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \node[rbtb, label={$z$}] (z) at (0, 0) {};
+                            \node[rbtr, label={$y$}] (y) at (-2, -1) {};
+                            \node (d) at (2, -1) {$d$};
+                            \node[rbtr, label={$x$}] (x) at (-3, -2) {};
+                            \node (c) at (-1, -2) {$c$};
+                            \node (a) at (-3.5, -3) {$a$};
+                            \node (b) at (-2.5, -3) {$b$};
+                            \draw
+                            (z) -- (y) (z) -- (d)
+                            (y) -- (x) (y) -- (c)
+                            (x) -- (a) (x) -- (b);
+                        \end{scope}
+                        \begin{scope}[shift={(8, 0)}]
+                            \node[rbtb, label={$z$}] (z) at (0, 0) {};
+                            \node[rbtr, label={$x$}] (x) at (-2, -1) {};
+                            \node (d) at (2, -1) {$d$};
+                            \node[rbtr, label={$y$}] (y) at (-1, -2) {};
+                            \node (a) at (-3, -2) {$a$};
+                            \node (b) at (-1.5, -3) {$b$};
+                            \node (c) at (-0.5, -3) {$c$};
+                            \draw
+                            (z) -- (x) (z) -- (d)
+                            (x) -- (a) (x) -- (y)
+                            (y) -- (b) (y) -- (c);
+                        \end{scope}
+                        \begin{scope}[shift={(15, 0)}]
+                            \node[rbtb, label={$x$}] (x) at (0, 0) {};
+                            \node (a) at (-2, -1) {$a$};
+                            \node[rbtr, label={$z$}] (z) at (2, -1) {};
+                            \node[rbtr, label={$y$}] (y) at (1, -2) {};
+                            \node (d) at (3, -2) {$d$};
+                            \node (b) at (0.5, -3) {$b$};
+                            \node (c) at (1.5, -3) {$c$};
+                            \draw
+                            (x) -- (a) (x) -- (z)
+                            (z) -- (y) (z) -- (d)
+                            (y) -- (b) (y) -- (c);
+                        \end{scope}
+                        \begin{scope}[shift={(23, 0)}]
+                            \node[rbtb, label={$x$}] (x) at (0, 0) {};
+                            \node (a) at (-2, -1) {$a$};
+                            \node[rbtr, label={$y$}] (y) at (2, -1) {};
+                            \node (b) at (1, -2) {$b$};
+                            \node[rbtr, label={$z$}] (z) at (3, -2) {};
+                            \node (c) at (2.5, -3) {$c$};
+                            \node (d) at (3.5, -3) {$d$};
+                            \draw
+                            (x) -- (a) (x) -- (y)
+                            (y) -- (b) (y) -- (z)
+                            (z) -- (c) (z) -- (d);
+                        \end{scope}
+                        \node at (11.5, -4.5) {~balance~};
+                        \draw
+                        (0, -3) edge[->, bend right=30] (8.5, -6)
+                        (8, -4) edge[->, bend right=10] (9.5, -5)
+                        (15, -4) edge[->, bend left=10] (13.5, -5)
+                        (23, -3) edge[->, bend left=30] (14.5, -6);
+                        \begin{scope}[shift={(11.5, -6)}]
+                            \node[rbtr, label={$y$}] (y) at (0, 0) {};
+                            \node[rbtb, label={$x$}] (x) at (-2, -1) {};
+                            \node[rbtb, label={$z$}] (z) at (2, -1) {};
+                            \node (a) at (-3, -2) {$a$};
+                            \node (b) at (-1, -2) {$b$};
+                            \node (c) at (1, -2) {$c$};
+                            \node (d) at (3, -2) {$d$};
+                            \draw
+                            (y) -- (x) (y) -- (z)
+                            (x) -- (a) (x) -- (b)
+                            (z) -- (c) (z) -- (d);
+                        \end{scope}
+                        \draw (11.5, -9) edge[->, right] node{~blacken~} (11.5, -10);
+                        \begin{scope}[shift={(11.5, -11)}]
+                            \node[rbtb, label={$y$}] (y) at (0, 0) {};
+                            \node[rbtb, label={$x$}] (x) at (-2, -1) {};
+                            \node[rbtb, label={$z$}] (z) at (2, -1) {};
+                            \node (a) at (-3, -2) {$a$};
+                            \node (b) at (-1, -2) {$b$};
+                            \node (c) at (1, -2) {$c$};
+                            \node (d) at (3, -2) {$d$};
+                            \draw
+                            (y) -- (x) (y) -- (z)
+                            (x) -- (a) (x) -- (b)
+                            (z) -- (c) (z) -- (d);
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                As shown above, ~balance~ is a simple pattern match (each ~B~ case corresponds to a case above);
+                \begin{lstlisting}
+                    balance :: Colour -> RBTree a -> a -> RBTree a -> RBTree a
+                    balance B (N R (N R a x b) y c) z d = t
+                    balance B (N R a x (N R b y c)) z d = t
+                    balance B a x (N R (N R b y c) z d) = t
+                    balance B a x (N R b y (N R c z d)) = t
+                    -- case without a black root
+                    balance c l x r = N c l x r
+                      where -- not valid Haskell, can't span across multiple patterns
+                        t = N R (N B a x b) y (N B c z d)
+                \end{lstlisting}
+            \subsubsection*{Persistent vs Mutable Data Structures}
+                Note that with a persistent data structure, the code above will take in a "pointer" to the root of the tree, and return a \textbf{new} pointer, which is desired.
+                This is useful in the case where we have multiple threads running, as we don't want the data structure to change unexpectedly.
+                On the other hand, a mutable data structure modifies the tree, but has  more efficient transformations (and is more complex in terms of cases).
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{colour flip}
+                        \begin{center}
+                            \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                                \begin{scope}[shift={(0, 0)}]
+                                    \node[rbtb, label={$y$}] (y) at (0, 0) {};
+                                    \node[rbtr, label={$x$}] (x) at (-2, -1) {};
+                                    \node[rbtr, label={$z$}] (z) at (2, -1) {};
+                                    \node (a) at (-3, -2) {$a$};
+                                    \node (b) at (-1, -2) {$b$};
+                                    \node (c) at (1, -2) {$c$};
+                                    \node (d) at (3, -2) {$d$};
+                                    \draw
+                                    (y) -- (x) (y) -- (z)
+                                    (x) -- (a) (x) -- (b)
+                                    (z) -- (c) (z) -- (d);
+                                    \draw (-3, -3) edge[|-|, below] node{one is red} (3, -3);
+                                \end{scope}
+                                \draw (4, -1) edge[->, above] node{colour flip} (10, -1);
+                                \begin{scope}[shift={(14, 0)}]
+                                    \node[rbtr, label={$y$}] (y) at (0, 0) {};
+                                    \node[rbtb, label={$x$}] (x) at (-2, -1) {};
+                                    \node[rbtb, label={$z$}] (z) at (2, -1) {};
+                                    \node (a) at (-3, -2) {$a$};
+                                    \node (b) at (-1, -2) {$b$};
+                                    \node (c) at (1, -2) {$c$};
+                                    \node (d) at (3, -2) {$d$};
+                                    \draw
+                                    (y) -- (x) (y) -- (z)
+                                    (x) -- (a) (x) -- (b)
+                                    (z) -- (c) (z) -- (d);
+                                \end{scope}
+                            \end{tikzpicture}
+                        \end{center}
+                    \item \textbf{rotation}
+                        \begin{center}
+                            \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                                \begin{scope}[shift={(0, 0)}]
+                                    \node[rbtb, label={$y$}] (y) at (0, 0) {};
+                                    \node[rbtr, label={$x$}] (x) at (-2, -1) {};
+                                    \node (a) at (-3, -2) {$a$};
+                                    \node (b) at (-1, -2) {$b$};
+                                    \node (c) at (2, -1) {$c$};
+                                    \draw
+                                    (y) -- (x) (y) -- (c)
+                                    (x) -- (a) (x) -- (b);
+                                \end{scope}
+                                \draw
+                                (4, -0.5) edge[->, above] node{only $a$ red} (10, -0.5)
+                                (10, -1.5) edge[->, below] node{only $c$ red} (4, -1.5);
+                                \begin{scope}[shift={(14, 0)}]
+                                    \node[rbtb, label={$x$}] (x) at (0, 0) {};
+                                    \node[rbtr, label={$y$}] (y) at (2, -1) {};
+                                    \node (a) at (-2, -1) {$a$};
+                                    \node (b) at (1, -2) {$b$};
+                                    \node (c) at (3, -2) {$c$};
+                                    \draw
+                                    (x) -- (a) (x) -- (y)
+                                    (y) -- (b) (y) -- (c);
+                                \end{scope}
+                            \end{tikzpicture}
+                        \end{center}
+                    \item \textbf{double rotation}
+                        \begin{center}
+                            \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                                \begin{scope}[shift={(-12, 0)}]
+                                    \node[rbtb, label={$z$}] (z) at (0, 0) {};
+                                    \node[rbtr, label={$x$}] (x) at (-2, -1) {};
+                                    \node (d) at (2, -1) {$d$};
+                                    \node[rbtr, label={$y$}] (y) at (-1, -2) {};
+                                    \node (a) at (-3, -2) {$a$};
+                                    \node (b) at (-1.5, -3) {$b$};
+                                    \node (c) at (-0.5, -3) {$c$};
+                                    \draw
+                                    (z) -- (x) (z) -- (d)
+                                    (x) -- (a) (x) -- (y)
+                                    (y) -- (b) (y) -- (c);
+                                \end{scope}
+                                \draw (-8.5, -0.5) edge[->] (-4.5, -0.5);
+                                \begin{scope}[shift={(0, 0)}]
+                                    \node[rbtb, label={$y$}] (y) at (0, 0) {};
+                                    \node[rbtr, label={$x$}] (x) at (-2, -1) {};
+                                    \node[rbtr, label={$z$}] (z) at (2, -1) {};
+                                    \node (a) at (-3, -2) {$a$};
+                                    \node (b) at (-1, -2) {$b$};
+                                    \node (c) at (1, -2) {$c$};
+                                    \node (d) at (3, -2) {$d$};
+                                    \draw
+                                    (y) -- (x) (y) -- (z)
+                                    (x) -- (a) (x) -- (b)
+                                    (z) -- (c) (z) -- (d);
+                                \end{scope}
+                                \draw (8.5, -0.5) edge[->] (4.5, -0.5);
+                                \begin{scope}[shift={(12, 0)}]
+                                    \node[rbtb, label={$x$}] (x) at (0, 0) {};
+                                    \node (a) at (-2, -1) {$a$};
+                                    \node[rbtr, label={$z$}] (z) at (2, -1) {};
+                                    \node[rbtr, label={$y$}] (y) at (1, -2) {};
+                                    \node (d) at (3, -2) {$d$};
+                                    \node (b) at (0.5, -3) {$b$};
+                                    \node (c) at (1.5, -3) {$c$};
+                                    \draw
+                                    (x) -- (a) (x) -- (z)
+                                    (z) -- (y) (z) -- (d)
+                                    (y) -- (b) (y) -- (c);
+                                \end{scope}
+                            \end{tikzpicture}
+                        \end{center}
+                \end{itemize}
+                In an imperative setting, for the colour flip, only three values need to be changed ($a, b, c, d$ no longer cause a red-red conflict, as the parents are now black).
+                Note that the transformations can be aborted early, unlike in the persistent setting, since only parts of the tree need to be modified.
 \end{document}
