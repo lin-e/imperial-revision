@@ -2912,13 +2912,51 @@
                       where
                         (p, seed') = randomR (0, n) seed
                 \end{lstlisting}
-        \subsubsection*{Pennant Trees (Recap?)}
-            It actually cuts out at the end when he starts to go over it, but there is a useful paper on it;
-            \begin{center}
-                ~https://pdfs.semanticscholar.org/b7eb/ce70900c26125240537ba722aeec2cf44a2e.pdf~
-            \end{center}
-            Referring back to the "left-spine" view of the trees from the previous lecture - there is a pattern.
-            If $r$ is the rank of the right-most pennant, the black condition implies a pennant of rank $i$ appears either once or twice, for all $0 \leq i \leq r$.
-            Since the size of rank $i $pennant is $2^i$, it corresponds to the 1-2 system.
-            It abandons 0, therefore each natural number has a unique representation.
+            \subsubsection*{Pennant Trees (Recap?)}
+                It actually cuts out at the end when he starts to go over it, but there is a useful paper on it;
+                \begin{center}
+                    ~https://pdfs.semanticscholar.org/b7eb/ce70900c26125240537ba722aeec2cf44a2e.pdf~
+                \end{center}
+                Referring back to the "left-spine" view of the trees from the previous lecture - there is a pattern.
+                If $r$ is the rank of the right-most pennant, the black condition implies a pennant of rank $i$ appears either once or twice, for all $0 \leq i \leq r$.
+                Since the size of rank $i $pennant is $2^i$, it corresponds to the 1-2 system.
+                It abandons 0, therefore each natural number has a unique representation.
+        \subsection*{November 26th 2019}
+            \subsubsection*{Simple PageRank}
+                A simple implementation of PageRank is the sum of the SimplePageRanks of the pages pointing to a particular node divided by the number of nodes it's pointing to.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm]
+                        \node[state, minimum size=1cm] (p0) at (0, 0) {$p_0$};
+                        \node[state, minimum size=1cm] (p1) at (-1.5, -2) {$p_1$};
+                        \node[state, minimum size=1cm] (p2) at (0, -2.5) {$p_2$};
+                        \node[state, minimum size=1cm] (p3) at (1.5, -2) {$p_3$};
+                        \draw
+                        (p0) edge[->, bend left=15] (p1)
+                        (p0) edge[->, bend left=15] (p2)
+                        (p0) edge[->, bend left=15] (p3)
+                        (p1) edge[->, bend left=15] (p0)
+                        (p2) edge[->, bend left=15] (p0)
+                        (p2) edge[->, bend left=15] (p3)
+                        (p3) edge[->, bend left=15] (p0);
+                    \end{tikzpicture}
+                \end{center}
+                \begin{align*}
+                    SPR(p_0) & = \frac{SPR(p_1)}{1} + \frac{SPR(p_2)}{2} + \frac{SPR(p_3)}{1} \\
+                    SPR(p_1) & = \frac{SPR(p_0)}{3} \\
+                    SPR(p_2) & = \frac{SPR(p_0)}{3} \\
+                    SPR(p_3) & = \frac{SPR(p_0)}{3} + \frac{SPR(p_1)}{2}
+                \end{align*}
+                Let $S(p_i)$ be the sources of $p_i$ (what links to it), and $T(p_i)$ be the targets of $p_i$ (where it links to);
+                $$SPR(p_i) = \summation{p_j \in S(p_i)}{} \frac{SPR(p_j)}{| T(p_j) |}$$
+            \subsubsection*{PageRank}
+                In reality, there needs to be some damping factor, as a user may stop clicking at some point.
+                Additionally, a user may reach a page from elsewhere, and not just from clicking links.
+                $$PR(p_i) = \frac{1 - d}{n} + d \summation{p_j \in S(p_i)}{} \frac{PR(p_j)}{| T(p_j) |}$$
+                Note that $n$ is the total number of pages in consideration, and we assume that all pages have outgoing links.
+                Since PageRank is a probability distribution, all pages start with $PR(p_i) = \frac{1}{n}$, and this probability gets moved around.
+                To avoid making the assumption, we can say that the page rank is distributed if it has no outgoing links;
+                $$PR(p_i) = \frac{1 - d}{n} + d \summation{p_j \in S(p_i)}{} \frac{PR(p_j)}{L(p_j)}\text{ where } L(p_j) = \begin{cases}
+                    | T(p_j) | & \text{if } | T(p_j) | > 0 \\
+                    \frac{1}{n} & \text{otherwise}
+                \end{cases}$$
 \end{document}
