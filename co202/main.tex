@@ -821,20 +821,20 @@
                 Note that ~List~ is the name of the type class, and ~list~ is the variable of abstraction.
                 \begin{lstlisting}
                     class List list where
-                    empty :: list a
-                    cons :: a -> list a -> list a
-                    snoc :: a -> list a -> list a
-                    head :: list a -> a
-                    tail :: list a -> list a
-                    init :: list a -> list a
-                    last :: list a -> a
-                    length :: list a -> Int
-                    (++) :: list a -> list a -> list a
-                    null :: list a -> Bool
-                    single :: list a -> Bool
+                      empty :: list a
+                      cons :: a -> list a -> list a
+                      snoc :: a -> list a -> list a
+                      head :: list a -> a
+                      tail :: list a -> list a
+                      init :: list a -> list a
+                      last :: list a -> a
+                      length :: list a -> Int
+                      (++) :: list a -> list a -> list a
+                      null :: list a -> Bool
+                      single :: list a -> Bool
 
-                    toList :: list a -> [a]
-                    fromList :: [a] -> list a
+                      toList :: list a -> [a]
+                      fromList :: [a] -> list a
                 \end{lstlisting}
                 Note that ~toList~ and ~fromList~ must behave nicely when composed;
                 \begin{center}
@@ -1147,7 +1147,7 @@
 
                 Binary numbers are in the form;
                 \begin{center}
-                    $b_0 b_1 b_2 \dots b_n$ meaning $2^0b_0 + 2^1b_1 + 2^2b_2 + \dots 2^nb_n$
+                    $b_0 b_1 b_2 \dots b_n$ meaning $2^0b_0 + 2^1b_1 + 2^2b_2 + \dots + 2^nb_n$
                 \end{center}
                 We will work with a list representation that has $1, 2, 4, \dots, 2^n$ elements.
                 Therefore, for a list;
@@ -2268,4 +2268,342 @@
                 \end{itemize}
                 In an imperative setting, for the colour flip, only three values need to be changed ($a, b, c, d$ no longer cause a red-red conflict, as the parents are now black).
                 Note that the transformations can be aborted early, unlike in the persistent setting, since only parts of the tree need to be modified.
+        \subsection*{November 15th 2019}
+            Note that this lecture has no sound.
+            \subsubsection*{Construction of Red-Black Trees}
+                Constructing this tree can be done with repeated addition, similar to before;
+                \begin{lstlisting}
+                    fromList :: Ord a => [a] -> RBTree a
+                    fromList = foldr insert E
+                \end{lstlisting}
+                Applying it to the list ~[1..8]~, we get the following;
+
+                \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                    \node at (0, 0) {$\xrightarrow{~ins~}$};
+                    \begin{scope}[shift={(1.5, 0)}]
+                        \node[rbtb, label={$8$}] (8) at (0, 0) {};
+                    \end{scope}
+                \end{tikzpicture}
+                \medskip
+
+                \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                    \node at (0, 0) {$\xrightarrow{~ins~}$};
+                    \begin{scope}[shift={(3.5, 0)}]
+                        \node[rbtb, label={$8$}] (8) at (0, 0) {};
+                        \node[rbtr, label={$7$}] (7) at (-2, -1) {};
+                        \draw
+                        (8) edge[dashed] (7);
+                    \end{scope}
+                \end{tikzpicture}
+                \medskip
+
+                \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                    \node at (0, 0) {$\xrightarrow{~ins~}$};
+                    \begin{scope}[shift={(4.5, 0)}]
+                        \node[rbtb, label={$8$}] (8) at (0, 0) {};
+                        \node[rbtr, label={$7$}] (7) at (-2, -1) {};
+                        \node[rbtr, label={$6$}] (6) at (-3, -2) {};
+                        \draw
+                        (8) -- (7)
+                        (7) edge[dashed] (6);
+                    \end{scope}
+                    \node at (6, 0) {$\xrightarrow{~bal~}$};
+                    \begin{scope}[shift={(9.5, 0)}]
+                        \node[rbtr, label={$7$}] (7) at (0, 0) {};
+                        \node[rbtb, label={$6$}] (6) at (-2, -1) {};
+                        \node[rbtb, label={$8$}] (8) at (2, -1) {};
+                        \draw
+                        (7) -- (6)
+                        (7) -- (8);
+                    \end{scope}
+                    \node at (13, 0) {$\xrightarrow{~blk~}$};
+                    \begin{scope}[shift={(16.5, 0)}]
+                        \node[rbtb, label={$7$}] (7) at (0, 0) {};
+                        \node[rbtb, label={$6$}] (6) at (-2, -1) {};
+                        \node[rbtb, label={$8$}] (8) at (2, -1) {};
+                        \draw
+                        (7) -- (6)
+                        (7) -- (8);
+                    \end{scope}
+                \end{tikzpicture}
+                \medskip
+
+                \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                    \node at (0, 0) {$\xrightarrow{~ins~}$};
+                    \begin{scope}[shift={(4.5, 0)}]
+                        \node[rbtb, label={$7$}] (7) at (0, 0) {};
+                        \node[rbtb, label={$6$}] (6) at (-2, -1) {};
+                        \node[rbtb, label={$8$}] (8) at (2, -1) {};
+                        \node[rbtr, label={$5$}] (5) at (-3, -2) {};
+                        \draw
+                        (7) -- (6)
+                        (7) -- (8)
+                        (6) edge[dashed] (5);
+                    \end{scope}
+                \end{tikzpicture}
+                \medskip
+
+                \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                    \node at (0, 0) {$\xrightarrow{~ins~}$};
+                    \begin{scope}[shift={(5, 0)}]
+                        \node[rbtb, label={$7$}] (7) at (0, 0) {};
+                        \node[rbtb, label={$6$}] (6) at (-2, -1) {};
+                        \node[rbtb, label={$8$}] (8) at (2, -1) {};
+                        \node[rbtr, label={$5$}] (5) at (-3, -2) {};
+                        \node[rbtr, label={$4$}] (4) at (-3.5, -3) {};
+                        \draw
+                        (7) -- (6)
+                        (7) -- (8)
+                        (6) -- (5)
+                        (5) edge[dashed] (4);
+                    \end{scope}
+                    \node at (8.5, 0) {$\xrightarrow{~bal~}$};
+                    \begin{scope}[shift={(13, 0)}]
+                        \node[rbtb, label={$7$}] (7) at (0, 0) {};
+                        \node[rbtr, label={$5$}] (5) at (-2, -1) {};
+                        \node[rbtb, label={$8$}] (8) at (2, -1) {};
+                        \node[rbtb, label={$4$}] (4) at (-3, -2) {};
+                        \node[rbtb, label={$6$}] (6) at (-1, -2) {};
+                        \draw
+                        (7) -- (5)
+                        (7) -- (8)
+                        (5) -- (4)
+                        (5) -- (6);
+                    \end{scope}
+                \end{tikzpicture}
+                \medskip
+
+                \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                    \node at (0, 0) {$\xrightarrow{~ins~}$};
+                    \begin{scope}[shift={(5, 0)}]
+                        \node[rbtb, label={$7$}] (7) at (0, 0) {};
+                        \node[rbtr, label={$5$}] (5) at (-2, -1) {};
+                        \node[rbtb, label={$8$}] (8) at (2, -1) {};
+                        \node[rbtb, label={$4$}] (4) at (-3, -2) {};
+                        \node[rbtb, label={$6$}] (6) at (-1, -2) {};
+                        \node[rbtr, label={$3$}] (3) at (-3.5, -3) {};
+                        \draw
+                        (7) -- (5)
+                        (7) -- (8)
+                        (5) -- (4)
+                        (5) -- (6)
+                        (4) edge[dashed] (3);
+                    \end{scope}
+                \end{tikzpicture}
+                \medskip
+
+                \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                    \node at (0, 0) {$\xrightarrow{~ins~}$};
+                    \begin{scope}[shift={(5.5, 0)}]
+                        \node[rbtb, label={$7$}] (7) at (0, 0) {};
+                        \node[rbtr, label={$5$}] (5) at (-2, -1) {};
+                        \node[rbtb, label={$8$}] (8) at (2, -1) {};
+                        \node[rbtb, label={$4$}] (4) at (-3, -2) {};
+                        \node[rbtb, label={$6$}] (6) at (-1, -2) {};
+                        \node[rbtr, label={$3$}] (3) at (-3.5, -3) {};
+                        \node[rbtr, label={$2$}] (2) at (-4, -4) {};
+                        \draw
+                        (7) -- (5)
+                        (7) -- (8)
+                        (5) -- (4)
+                        (5) -- (6)
+                        (4) -- (3)
+                        (3) edge[dashed] (2);
+                    \end{scope}
+                    \node at (9, 0) {$\xrightarrow{~bal~}$};
+                    \begin{scope}[shift={(14, 0)}]
+                        \node[rbtb, label={$7$}] (7) at (0, 0) {};
+                        \node[rbtr, label={$5$}] (5) at (-2, -1) {};
+                        \node[rbtb, label={$8$}] (8) at (2, -1) {};
+                        \node[rbtr, label={$3$}] (3) at (-3, -2) {};
+                        \node[rbtb, label={$6$}] (6) at (-1, -2) {};
+                        \node[rbtb, label={$2$}] (2) at (-3.5, -3) {};
+                        \node[rbtb, label={$4$}] (4) at (-2.5, -3) {};
+                        \draw
+                        (7) -- (5)
+                        (7) -- (8)
+                        (5) -- (3)
+                        (5) -- (6)
+                        (3) -- (2)
+                        (3) -- (4);
+                    \end{scope}
+                    \node at (17.5, 0) {$\xrightarrow{~bal~}$};
+                    \begin{scope}[shift={(22, 0)}]
+                        \node[rbtr, label={$5$}] (5) at (0, 0) {};
+                        \node[rbtb, label={$3$}] (3) at (-2, -1) {};
+                        \node[rbtb, label={$7$}] (7) at (2, -1) {};
+                        \node[rbtb, label={$2$}] (2) at (-3, -2) {};
+                        \node[rbtb, label={$4$}] (4) at (-1, -2) {};
+                        \node[rbtb, label={$6$}] (6) at (1, -2) {};
+                        \node[rbtb, label={$8$}] (8) at (3, -2) {};
+                        \draw
+                        (5) -- (3)
+                        (5) -- (7)
+                        (3) -- (2)
+                        (3) -- (4)
+                        (7) -- (6)
+                        (7) -- (8);
+                    \end{scope}
+                    \node at (26.5, 0) {$\xrightarrow{~blk~}$};
+                    \begin{scope}[shift={(31, 0)}]
+                        \node[rbtb, label={$5$}] (5) at (0, 0) {};
+                        \node[rbtb, label={$3$}] (3) at (-2, -1) {};
+                        \node[rbtb, label={$7$}] (7) at (2, -1) {};
+                        \node[rbtb, label={$2$}] (2) at (-3, -2) {};
+                        \node[rbtb, label={$4$}] (4) at (-1, -2) {};
+                        \node[rbtb, label={$6$}] (6) at (1, -2) {};
+                        \node[rbtb, label={$8$}] (8) at (3, -2) {};
+                        \draw
+                        (5) -- (3)
+                        (5) -- (7)
+                        (3) -- (2)
+                        (3) -- (4)
+                        (7) -- (6)
+                        (7) -- (8);
+                    \end{scope}
+                \end{tikzpicture}
+                \medskip
+
+                \begin{tikzpicture}[x=0.5cm, y=0.75cm]
+                    \node at (0, 0) {$\xrightarrow{~ins~}$};
+                    \begin{scope}[shift={(5, 0)}]
+                        \node[rbtb, label={$5$}] (5) at (0, 0) {};
+                        \node[rbtb, label={$3$}] (3) at (-2, -1) {};
+                        \node[rbtb, label={$7$}] (7) at (2, -1) {};
+                        \node[rbtb, label={$2$}] (2) at (-3, -2) {};
+                        \node[rbtb, label={$4$}] (4) at (-1, -2) {};
+                        \node[rbtb, label={$6$}] (6) at (1, -2) {};
+                        \node[rbtb, label={$8$}] (8) at (3, -2) {};
+                        \node[rbtr, label={$1$}] (1) at (-3.5, -3) {};
+                        \draw
+                        (5) -- (3)
+                        (5) -- (7)
+                        (3) -- (2)
+                        (3) -- (4)
+                        (7) -- (6)
+                        (7) -- (8)
+                        (2) edge[dashed] (1);
+                    \end{scope}
+                \end{tikzpicture}
+            \subsubsection*{Pennant Trees}
+                A Pennant tree of rank $r$ is a complete binary tree of height $r$, with an extra node above the complete binary tree's root, which is used as the Pennant tree's root (hence it has $2^r$ nodes, instead of the $2^r - 1$ of the complete binary tree).
+                \medskip
+
+                The sequence of trees can be drawn as;
+                \begin{center}
+                    \begin{tikzpicture}[x=0.75cm, y=0.75cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (0, 1) {$_2(1)$};
+                            \node[rbtb] (o) at (0, 0) {};
+                        \end{scope}
+                        \begin{scope}[shift={(2, 0)}]
+                            \node at (-0.5, 1) {$_2(2)$};
+                            \node[rbtb] (o) at (0, 0) {};
+                            \node[rbtr] (ol) at (-1, 0) {};
+                            \draw (o) -- (ol);
+                        \end{scope}
+                        \begin{scope}[shift={(4, 0)}]
+                            \node at (-0.5, 1) {$_2(11)$};
+                            \node[rbtb] (o) at (0, 0) {};
+                            \node[rbtb] (ol) at (-1, 0) {};
+                            \node[rbtb] (od) at (0, -1) {};
+                            \draw
+                            (o) -- (ol)
+                            (o) -- (od);
+                        \end{scope}
+                        \begin{scope}[shift={(7, 0)}]
+                            \node at (-1, 1) {$_2(21)$};
+                            \node[rbtb] (o) at (0, 0) {};
+                            \node[rbtb] (ol) at (-1, 0) {};
+                            \node[rbtb] (od) at (0, -1) {};
+                            \node[rbtr] (oll) at (-2, 0) {};
+                            \draw
+                            (o) -- (ol)
+                            (o) -- (od)
+                            (ol) -- (oll);
+                        \end{scope}
+                        \begin{scope}[shift={(10, 0)}]
+                            \node at (-1, 1) {$_2(12)$};
+                            \node[rbtb] (o) at (0, 0) {};
+                            \node[rbtr] (ol) at (-1, 0) {};
+                            \node[rbtb] (od) at (0, -1) {};
+                            \node[rbtb] (oll) at (-2, 0) {};
+                            \node[rbtb] (old) at (-1, -1) {};
+                            \draw
+                            (o) -- (ol)
+                            (o) -- (od)
+                            (ol) -- (oll)
+                            (ol) -- (old);
+                        \end{scope}
+                        \begin{scope}[shift={(14, 0)}]
+                            \node at (-1.5, 1) {$_2(22)$};
+                            \node[rbtb] (o) at (0, 0) {};
+                            \node[rbtr] (ol) at (-1, 0) {};
+                            \node[rbtb] (od) at (0, -1) {};
+                            \node[rbtb] (oll) at (-2, 0) {};
+                            \node[rbtb] (old) at (-1, -1) {};
+                            \node[rbtr] (olll) at (-3, 0) {};
+                            \draw
+                            (o) -- (ol)
+                            (o) -- (od)
+                            (ol) -- (oll)
+                            (ol) -- (old)
+                            (oll) -- (olll);
+                        \end{scope}
+                        \begin{scope}[shift={(17, 0)}]
+                            \node at (-1, 1) {$_2(22)$};
+                            \node[rbtb] (o) at (0, 0) {};
+                            \node[rbtb] (ol) at (-1, 0) {};
+                            \node[rbtb] (od) at (0, -1) {};
+                            \node[rbtb] (oll) at (-2, 0) {};
+                            \node[rbtb] (old) at (-1, -1) {};
+                            \node[rbtb] (odl) at (-1, -2) {};
+                            \node[rbtb] (odr) at (1, -2) {};
+                            \draw
+                            (o) -- (ol)
+                            (o) -- (od)
+                            (ol) -- (oll)
+                            (ol) -- (old)
+                            (od) -- (odl)
+                            (od) -- (odr);
+                        \end{scope}
+                        \begin{scope}[shift={(22, 0)}]
+                            \node at (-1.5, 1) {$_2(211)$};
+                            \node[rbtb] (o) at (0, 0) {};
+                            \node[rbtb] (ol) at (-1, 0) {};
+                            \node[rbtb] (od) at (0, -1) {};
+                            \node[rbtb] (oll) at (-2, 0) {};
+                            \node[rbtb] (old) at (-1, -1) {};
+                            \node[rbtb] (odl) at (-1, -2) {};
+                            \node[rbtb] (odr) at (1, -2) {};
+                            \node[rbtr] (olll) at (-3, 0) {};
+                            \draw
+                            (o) -- (ol)
+                            (o) -- (od)
+                            (ol) -- (oll)
+                            (ol) -- (old)
+                            (od) -- (odl)
+                            (od) -- (odr)
+                            (oll) -- (olll);
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                This uses radix 2 base;
+                $$(b_{n - 1} \dots b_0)_2 = _2(b_0 \dots b_{n - 1}) = \summation{i = 0}{n - 1} b_i2^i$$
+                \begin{lstlisting}
+                    data Digit a = One a (RBTree a) | Two a (RBTree a) a (RBTree a)
+
+                    incr :: a -> RBTree a -> [Digit a] -> [Digit a]
+                    incr x t [] = [One x t]
+                    incr x t ((One y u):ps) = (Two x t y u):ps
+                    incr x t ((Two y u z v):ps) = (One x t):incr y (N B u z v) ps
+
+                    fromList' :: [a] -> RBTree a
+                    fromList' = links  . foldr add []
+
+                    links = foldl link E
+
+                    link l (One x t) = N B l x t
+                    link l (Two x t y u) = N B (N R l x t) y u
+                \end{lstlisting}
 \end{document}
