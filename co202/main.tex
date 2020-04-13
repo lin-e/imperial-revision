@@ -2606,4 +2606,126 @@
                     link l (One x t) = N B l x t
                     link l (Two x t y u) = N B (N R l x t) y u
                 \end{lstlisting}
+                The idea is to link the data structure to something simpler that we can do with low complexity, such as counting.
+        \subsection*{19th November 2019}
+            \subsubsection*{Random Algorithms}
+                Generally there are two approaches to random algorithms;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Monte Carlo} \hfill gives answer very quickly, but low probability of being incorrect
+                    \item \textbf{Las Vegas} \hfill gives answer in varied amounts of time, but correct
+                \end{itemize}
+            \subsubsection*{Treaps}
+                A treap is a combination of a tree and a heap.
+                The tree is a binary search tree in symmetric order, such that elements to the left of a node are smaller, and elements to the right are larger.
+                The heap is imposed to balance.
+                Note that we pair the example below as ~(value, ~\violet{~priority~}~)~, and the priority is in rank order (hence lower values have high priority) - the priorities should be unique.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[violet] (o) at (0, 0) {~2~};
+                        \node[violet] (ol) at (-2, -1) {~3~};
+                        \node[violet] (or) at (2, -1) {~5~};
+                        \node[violet] (oll) at (-3, -2) {~9~};
+                        \node[violet] (olr) at (-1, -2) {~7~};
+                        \node[violet] (orl) at (1, -2) {~6~};
+                        \node[violet] (orr) at (3, -2) {~8~};
+                        \foreach \x in {1,...,7}{
+                            \node (\x) at (-4 + \x, -3.5) {~\x~};
+                        }
+                        \node at (-3.5, -3.5) {~[~};
+                        \foreach \i in {0,...,5}{
+                            \node at (-2.5 + \i, -3.5) {~,~};
+                        }
+                        \node at (3.5, -3.5) {~]~};
+                        \draw
+                        (o) -- (ol) (o) -- (or)
+                        (ol) -- (oll) (ol) -- (olr)
+                        (or) -- (orl) (or) -- (orr)
+                        (oll) edge[dashed] (1)
+                        (ol) edge[dashed] (2)
+                        (olr) edge[dashed] (3)
+                        (o) edge[dashed] (4)
+                        (orl) edge[dashed] (5)
+                        (or) edge[dashed] (6)
+                        (orr) edge[dashed] (7);
+                    \end{tikzpicture}
+                \end{center}
+                This is a heap on the priorities, but a binary search tree on the values;
+                \begin{lstlisting}
+                    data Treap a = Empty | Node (Treap a) a Int (Treap a)
+
+                    member :: Ord a => a -> Treap a -> Bool
+                    member x Empty = False
+                    member x (Node a y p b)
+                      | x < y  = member x a
+                      | x == y = True
+                      | x > y  = member x b
+
+                    -- insertion takes in a value and a priority
+                    insert :: Ord a => a -> Int -> Treap a -> Treap a
+                    insert x p Empty = Node Empty x p Empty
+                    insert x p (Node a y q b)
+                      -- smart constructors used to maintain invariant
+                      | x < y  = lnode (insert x p a) y q b
+                      | x == y = Node a y q b
+                      | x > y  = rnode a y q (insert x p b)
+
+                    lnode :: Treap a -> a -> Int -> Treap a -> Treap a
+                    lnode Empty y q c = Node Empty y q c
+                    lnode l@(Node a x p b) y q c
+                      | q <= p    = Node l y q c
+                      | otherwise = Node a x p (Node b y q c)
+
+                    rnode :: Treap a -> a -> Int -> Treap a -> Treap a
+                    rnode a x p Empty = Node a x p Empty
+                    rnode a x p r@(Node b y q c)
+                      | p >= q    = Node a x p r
+                      | otherwise = Node (Node a x p b) y q c
+                \end{lstlisting}
+                The smart constructors, ~lnode~ and ~rnode~, ensure that the node with the highest priority (lowest value) is the parent node.
+                \medskip
+
+                Note that in general, when writing these algorithms, base it off the data structure (instead of considering the conditions).
+                Deletion is a combination of searching and merging (we do not need a priority);
+                \begin{lstlisting}
+                    delete :: Ord a => a -> Treap a -> Treap a
+                    delete x Empty = Empty
+                    delete x (Node a y p b)
+                      | x < y  = Node (delete x a) y p b
+                      | x == y = merge a b
+                      | x > y  = Node a y p (delete x b)
+
+                    merge :: Treap a -> Treap a -> Treap a
+                    merge Empty r = r
+                    merge l Empty = l
+                    merge l@(Node a x p b) r@(Node c y q d)
+                      | p < q     = Node a x p (merge b r)
+                      | otherwise = Node (merge l c) y q d
+                \end{lstlisting}
+                Turing a Treap into a list is as follows (since we can use it as a sorting algorithm);
+                \begin{lstlisting}
+                    toList :: Treap a -> [a]
+                    toList Empty = []
+                    toList (Node a x p b) = toList a ++ [x] ++ toList b
+                \end{lstlisting}
+                Making a Treap requires values and priorities;
+                \begin{lstlisting}
+                    fromList :: Ord a => [(a, Int)] -> Treap a
+                    fromList xs = foldr (uncurry insert) Empty xs
+
+                    -- recall uncurry :: (a -> b -> c) -> ((a, b) -> c)
+                \end{lstlisting}
+            \subsubsection*{Randomised Quicksort}
+                Leibniz Law says the following;
+                \begin{center}
+                    $~x = y~ \Rightarrow ~f x = f y~$
+                \end{center}
+                Random algorithms violate this, therefore we aim to have a deterministic algorithm that depends on something non-deterministic (by "feeding in" randomness).
+                Passing in ~StdGen~ means that we do not violate Leibniz Law, as we are passing in the randomness as a parameter.
+                \begin{lstlisting}
+                    rquicksort :: Ord a => StdGen -> [a] -> [a]
+                    rquicksort g xs = toList (fromList (zip xs ps))
+                      where
+                        ps = randoms g
+                \end{lstlisting}
 \end{document}
