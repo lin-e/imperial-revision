@@ -81,6 +81,7 @@
 \newcommand{\pdif}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
 \newcommand{\limit}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\lim_{#1 \to #2}}$}}}
+\newcommand{\limitsup}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\limsup_{#1 \to #2}}$}}}
 \newcommand{\summation}[2]{\sum\limits_{#1}^{#2}}
 \newcommand{\product}[2]{\prod\limits_{#1}^{#2}}
 \newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
@@ -93,6 +94,8 @@
 \end{bmatrix}^\top}
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
+
+\newcommand{\lto}[0]{\leadsto\ }
 
 \newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
 
@@ -176,6 +179,17 @@
     \draw
     ($(#1-c) + (-1, 0)$) -- ($(#1-c) + (0, 1)$) -- ($(#1-c) + (1, 0)$) -- ($(#1-c) + (0, -1)$) -- cycle;
 }
+
+% AVL Trees
+\newcommand{\avltri}[4]{
+    \draw ($(#1)$) -- ($(#1) + #4*(0.5, -1)$) -- ($(#1) + #4*(-0.5, -1)$) -- cycle;
+    \node at ($(#1) + #4*(0, -1) + (0, 0.5)$) {#3};
+    \node at ($(#1) + #4*(0, -1) + (0, -0.5)$) {#2};
+}
+
+% RB Trees
+\tikzset{rbtr/.style={inner sep=2pt, circle, draw=black, fill=red}}
+\tikzset{rbtb/.style={inner sep=2pt, circle, draw=black, fill=black}}
 
 % actual document
 \begin{document}
