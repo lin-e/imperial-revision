@@ -462,7 +462,7 @@
                 \end{center}
                 If $f$ and $g$ are L-functions, then either;
                 \begin{center}
-                    $f \in o(g)$, $f \in \Theta(g)$, or $f \in \Omega(g)$
+                    $f \in o(g)$, $f \in \Theta(g)$, or $f \in \omega(g)$
                 \end{center}
                 Another method of visualising this is as a Venn diagram, with the upper circle being $O(g(n))$, and the lower circle being $\Omega(g(n))$;
                 \begin{center}
@@ -2959,4 +2959,49 @@
                     | T(p_j) | & \text{if } | T(p_j) | > 0 \\
                     \frac{1}{n} & \text{otherwise}
                 \end{cases}$$
+        \subsection*{29th November 2019}
+            \subsubsection*{Ford-Fulkerson Max-Flow Method}
+                In the graph below, we have the maximum capacity on each edge.
+                There is a source node $s$, and a target node $t$.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm] (s) at (0, 0) {$s$};
+                        \node[state, minimum size=1cm] (v1) at (2, 1) {$v_1$};
+                        \node[state, minimum size=1cm] (v2) at (2, -1) {$v_2$};
+                        \node[state, minimum size=1cm] (v3) at (4, 1) {$v_3$};
+                        \node[state, minimum size=1cm] (v4) at (4, -1) {$v_4$};
+                        \node[state, minimum size=1cm] (t) at (6, 0) {$t$};
+                        \draw
+                        (s) edge[->, above] node{16} (v1)
+                        (s) edge[->, below] node{13} (v2)
+                        (v1) edge[->, above] node{12} (v3)
+                        (v2) edge[->, right] node{4} (v1)
+                        (v2) edge[->, below] node{14} (v4)
+                        (v3) edge[->, below] node{9} (v2)
+                        (v3) edge[->, above] node{20} (t)
+                        (v4) edge[->, right] node{7} (v3)
+                        (v4) edge[->, below] node{4} (t);
+                    \end{tikzpicture}
+                \end{center}
+                This starts by picking an augmenting path, which is any path from $s$ to $t$.
+                Once we pick the path, we add the minimum capacity of all the capacities on the path to the "flow used".
+                We keep doing this until we cannot pick more paths - since the next path that is picked isn't exact, this is a method and not an algorithm.
+                \medskip
+
+                An implementation (not working) of this in Haskell is as follows;
+                \begin{lstlisting}
+                    untilNothing :: (a -> Maybe b) -> (b -> a -> a) -> a -> a
+                    -- (a -> Maybe a) takes a graph, and may produce a path
+                    -- (b -> a -> a)  takes a path, a graph, and gives back a graph
+                    -- a              is the initial graph
+                    -- a              is the final graph
+                    ff g s t = untilNothing (findPath s t) augment (initGraph g)
+
+                    findPath :: v -> v -> g -> Maybe Path
+                    findPath s t g = bfs -- (Edmonds Karp)
+
+                    augment :: Path -> Graph -> Graph
+                \end{lstlisting}
+                Note that we could also pass in the ~findPath~ function, since changing that for Ford Fulkerson changes the algorithm.
+                The idea here is that some algorithms can be comprised of smaller algorithms, which can change its complexity, and similarly with data structures.
 \end{document}
