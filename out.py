@@ -6,7 +6,11 @@ exclude = [ "co000" ]
 output_path = os.path.realpath(".") + "/_output/"
 total_pages = { }
 total_lines = { }
-for d in filter(lambda x : os.path.isdir(x), os.listdir(".")):
+
+dirs = list(os.listdir("."))
+dirs.sort()
+
+for d in filter(lambda x : os.path.isdir(x), dirs):
     if not (d[0:2] == "co" and d[2].isdigit()) or d in exclude:
         continue
     print("Copying " + d)
