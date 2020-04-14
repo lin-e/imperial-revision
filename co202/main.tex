@@ -1610,7 +1610,7 @@
                     toList t = toList' t []
                 \end{lstlisting}
                 Hence our ~toList~ is $O(n)$.
-        \subsection*{November 5th 2019}
+        \subsection*{5th November 2019}
             \subsubsection*{Dynamic Programming}
                 The idea behind dynamic programming is that we start with a recursive function, and repeated calls do not get executed again.
                 We are trading space for speed.
@@ -1763,7 +1763,7 @@
                 \end{lstlisting}
                 While ~x = xs !! i~ and ~y = ys !! j~ isn't constant time, we assume we can simply tabulate it to obtain constant time access, and ignore it.
                 The original version was $O(3^{m + n})$, and this has been reduced to $O(mn)$.
-        \subsection*{November 8th 2019}
+        \subsection*{8th November 2019}
             Note that this lecture is 3 hours long, with the first hour being in \textbf{CO220}.
             It starts with a remark that the examples of dynamic programming we've looked at so far only gives us the answer, and not how the answer was reached.
             \subsubsection*{The Travelling Salesman Problem}
@@ -2268,7 +2268,7 @@
                 \end{itemize}
                 In an imperative setting, for the colour flip, only three values need to be changed ($a, b, c, d$ no longer cause a red-red conflict, as the parents are now black).
                 Note that the transformations can be aborted early, unlike in the persistent setting, since only parts of the tree need to be modified.
-        \subsection*{November 15th 2019}
+        \subsection*{15th November 2019}
             Note that this lecture has no sound.
             \subsubsection*{Construction of Red-Black Trees}
                 Constructing this tree can be done with repeated addition, similar to before;
@@ -2921,7 +2921,7 @@
                 If $r$ is the rank of the right-most pennant, the black condition implies a pennant of rank $i$ appears either once or twice, for all $0 \leq i \leq r$.
                 Since the size of rank $i $pennant is $2^i$, it corresponds to the 1-2 system.
                 It abandons 0, therefore each natural number has a unique representation.
-        \subsection*{November 26th 2019}
+        \subsection*{26th November 2019}
             \subsubsection*{Simple PageRank}
                 A simple implementation of PageRank is the sum of the SimplePageRanks of the pages pointing to a particular node divided by the number of nodes it's pointing to.
                 \begin{center}
