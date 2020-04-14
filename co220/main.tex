@@ -1347,5 +1347,278 @@
                     \item we now have the \textbf{enabling point} in the test suite, allowing us to swap out the ~Alerter~ (interface for ~Emailer~)
                     \item this behaviour can either be tested by manually implementing fields in our implementation of ~Alerter~, or with a mock object library
                     \item we have a dependency on the system clock, which we can try to control in a similar way to allow for testing time based behaviour
-                \end{itemize} 
+                \end{itemize}
+        \subsection*{5th November 2019}
+            \subsubsection*{Threads}
+                Note that when we create new threads, they should implement ~Runnable~, and override ~run()~ (since we aren't really specialising the thread's behaviour);
+                \begin{lstlisting}
+                    public class ThreadExample {
+                      public static void main(String[] args) {
+                        new Thread(new Task("A")).start();
+                        new Thread(new Task("B")).start();
+                      }
+                    }
+
+                    class Task implements Runnable {
+
+                      private final String name;
+
+                      public Task(String name) {
+                        this.name = name;
+                      }
+
+                      @Override
+                      public void run() {
+                        print("starting thread " + name);
+                        ... // some code with possible delays
+                        print("completed thread " + name);
+                      }
+                    }
+                \end{lstlisting}
+                Note that extending ~Thread~ is a use of the template pattern, whereas implementing ~Runnable~ is a use of the strategy pattern, thus avoiding the coupling.
+                By doing this, we can also run ~Task~ synchronously, with ~run()~, without needing it to be in a ~Thread~.
+            \subsubsection*{Callables}
+                Note that a ~Runnable~ has no return value, whereas a ~Callable~ does.
+                This can be used if we want to perform some computation asynchronously;
+                \begin{lstlisting}
+                    class CountingTask implements Callable<Integer> {
+
+                      private final String name;
+
+                      public CountingTask(String name) {
+                        this.name = name;
+                      }
+
+                      @Override
+                      public Integer call() {
+
+                        print("starting callable " + name);
+                        ... // some code with possible delays
+                        print("completed thread " + name);
+                        return 42;
+                      }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Command Pattern}
+                This pattern wraps up a piece of behaviour in an object, which we can be done now, later, or repeatedly.
+                These operations can be queued or undone.
+                A command is an instruction to do something.
+                It can be thought of passing around a function (which is the operation), and a state (containing options).
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=0.75cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (2, -0.5) {~Queue~};
+                            \node[anchor=west] at (0.5, -2) {\shortstack[l]{~List<Command>~\\~executeAll()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(5, 0)}]
+                            \node at (2, -0.5) {~Command~};
+                            \node[anchor=west] at (0.5, -2) {~execute()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(5, -5)}]
+                            \node at (2, -0.5) {~ConcreteCommand~};
+                            \node[anchor=west] at (0.5, -2) {~execute()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(-2, -5)}]
+                            \node at (2, -0.5) {~Client~};
+                            \node[anchor=west] at (0.5, -2) {\shortstack[l]{~queue:Queue~\\~execute()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \draw
+                        (2, -6.5) -- (3, -6.5) -- (3, -4) -- (-1, -4) -- (-1, -2)
+                        (-1, -2) edge[->] (0, -2)
+                        (4, -2) edge[->] (5, -2)
+                        (2, -7.5) edge[->] (5, -7.5)
+                        (7, -5) edge[->, blue] (7, -3);
+                    \end{tikzpicture}
+                \end{center}
+                For example, we can have the following;
+                \begin{lstlisting}
+                    public class QueuingExample {
+                      public static void main(String[] args) {
+
+                        CommandQueue queue = new CommandQueue();
+                        queue.add(new Command("A"));
+                        queue.add(new Command("B"));
+
+                        queue.runAllCommands();
+                      }
+                    }
+
+                    class CommandQueue {
+
+                      private Queue<Runnable> queue = new LinkedList<Runnable>();
+
+                      public void add(Command command) {
+                        queue.add(command);
+                      }
+
+                      public void runAllCommands() {
+                        for (Runnable command : queue) {
+                          command.run();
+                        }
+                      }
+                    }
+
+                    class Command implements Runnable {
+
+                      private final String name;
+
+                      public Command(String name) {
+                        this.name = name;
+                      }
+
+                      @Override
+                      public void run() {
+                        System.out.println("Starting command " + name);
+                        ...
+                        System.out.println("Finishing command " + name);
+                      }
+                    }
+                \end{lstlisting}
+                However, all of this is currently running in a single thread.
+                We can think of an ~Executor~ as a command queue which has a set of threads (a pool), which can each perform a task.
+                \medskip
+
+                We can think of a function that adds tasks to the queue as \textbf{producers}, and the threads as \textbf{consumers}, who "compete" for tasks.
+                Queues are also load balancers, as it can deal with different lengths of jobs naturally, as a job is picked up by a thread as soon as one is free.
+                Therefore producers can enqueue in bursts, and consumers can work steadily.
+                \begin{lstlisting}
+                    public class CommandExample {
+
+                      public void run() {
+                        // gives us a pool of 3 threads
+                        Executor queue = Executors.newFixedThreadPool(3);
+
+                        for (int i = 1; i <= 10; i++) {
+                          // note that Command implements Runnable
+                          queue.execute(new Command(i));
+                        }
+                      }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Futures}
+                However, we might want to to obtain a calculated response from our tasks.
+                By using ~Future~s, we can get the result once it is finished.
+                \begin{lstlisting}
+                    public static void main(String[] args) throws Exception {
+
+                      MyCallable task = new MyCallable("A");
+
+                      ExecutorService executor = Executors.newFixedThreadPool(2);
+
+                      Future<Double> future = executor.submit(task);
+
+                      // do something whilst calculating
+
+                      // the following line blocks until the result is available
+                      Double result = future.get();
+                    }
+                \end{lstlisting}
+                By using this ~Future~, that's returned after submitting the task to the ~ExecutorService~, we can do the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~get()~ \hfill blocks until ready
+                    \item ~get(timeout)~ \hfill throws exception if it doesn't complete in time
+                    \item ~cancel(mayInteruptIfRunning)~ \hfill the parameter allows a running task to be cancelled
+                    \item ~isDone()~ \hfill is it done
+                    \item ~isCancelled~ \hfill is it cancelled
+                \end{itemize}
+                \begin{lstlisting}
+                    public static void main(String[] args) {
+
+                      ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+                      executorService.submit(new MyTask("A"));
+                      executorService.submit(new MyTask("B"));
+                      executorService.submit(new MyTask("C"));
+                      executorService.submit(new MyTask("D"));
+
+                      // do not accept more tasks
+                      executorService.shutdown();
+
+                      try {
+                        // wait a maximum of 2 minutes for everything to terminate
+                        executorService.awaitTermination(120, TimeUnit.SECONDS);
+                      } catch (InterruptedException e) {
+                        // handle the case where it times out
+                      }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Latch}
+                We don't want to shut down the ~ExecutorService~ once all the jobs are completed, but we want to cluster jobs together, such that the main thread can continue once a part of it is done.
+                For this, a ~Latch~ can be used, which is set with an initial value, and then decremented by the tasks.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm, y=1.25cm]
+                        \begin{scope}[shift={(3.25, 1.75)}]
+                            \node at (0.75, -0.375) {~Task~};
+                            \draw (0, 0) -- (1.5, 0) -- (1.5, -0.75) -- (0, -0.75) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(3.25, 0.75)}]
+                            \node at (0.75, -0.375) {~Task~};
+                            \draw (0, 0) -- (1.5, 0) -- (1.5, -0.75) -- (0, -0.75) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(6, -1)}]
+                            \node at (0.75, -0.375) {~Latch~};
+                            \draw (0, 0) -- (1.5, 0) -- (1.5, -0.75) -- (0, -0.75) -- cycle;
+                        \end{scope}
+                        \node at (1, -2.5) {~MainThread~};
+                        \node at (4, -0.5) {~Exec.Serv.~};
+                        \draw (0, 0) -- (2, 0) -- (2, -3) -- (0, -3) -- cycle;
+                        \draw (3, 2) -- (5, 2) -- (5, -1) -- (3, -1) -- cycle;
+                        \draw (2.25, -2.5) edge[->, bend right=10, below] node{~await()~} (6.75, -2);
+                        \draw (5.25, 1.375) edge[->, bend left=10, right] node{~countDown()~} (6.75, -0.75);
+                        \draw (5.25, 0.375) edge[->, bend left=10] (6.75, -0.75);
+                    \end{tikzpicture}
+                \end{center}
+                A simple example is as follows;
+                \begin{lstlisting}
+                    public class LatchExample {
+                      public static void main(String[] args) throws Exception {
+
+                        ExecutorService executor = Executors.newFixedThreadPool(2);
+                        CountDownLatch latch = new CountDownLatch(4);
+
+                        executor.submit(new LatchedTask("A", latch));
+                        executor.submit(new LatchedTask("B", latch));
+                        executor.submit(new LatchedTask("C", latch));
+                        executor.submit(new LatchedTask("D", latch));
+
+                        latch.await();
+                      }
+                    }
+
+                    class LatchedTask implements Runnable {
+
+                      private final String name;
+                      private final CountDownLatch latch;
+
+                      public LatchedTask(String name, CountDownLatch latch) {
+                        this.name = name;
+                        this.latch = latch;
+                      }
+
+                      @Override
+                      public void run() {
+                        System.out.println("Starting " + name);
+                        // do something
+                        System.out.println("Finished " + name);
+
+                        latch.countDown();
+                      }
+                    }
+                \end{lstlisting}
+                Note that the ~latch~ is shared by each batch of tasks.
+                At the end of running, each task must ~countDown()~.
+                Generally, we should use executors instead of creating our own threads.
 \end{document}
