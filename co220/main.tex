@@ -1621,4 +1621,245 @@
                 Note that the ~latch~ is shared by each batch of tasks.
                 At the end of running, each task must ~countDown()~.
                 Generally, we should use executors instead of creating our own threads.
+        \subsection*{12th November 2019}
+            \subsubsection*{Graphical User Interfaces}
+                Typically, for whatever platform we're working on, there should be a library with components that we are able to use for our interface.
+                This reduces the work we have to do significantly, as we don't have to write all the UI components from scratch.
+            \subsubsection*{Example}
+                This lecture uses \textit{Swing}, which is a fairly simple library, and is quite outdated.
+                \begin{lstlisting}
+                    package interactive;
+
+                    import ...;
+
+                    public GuiApp {
+
+                      public class GuiApp {
+                        new GuiApp.display();
+                      }
+
+                      private void display() {
+                        JFrame window = new JFrame("Example App");
+                        window.setSize(400, 300);
+
+                        JPanel panel = new JPanel();
+
+                        // 10 character limit
+                        JTextField textField = new JTextField(10);
+                        JButton button = new JButton();
+
+                        // this can be replaced with a lambda
+                        button.addActionListener(new ActionListener() {
+                          @Override
+                          public void actionPerformed(ActionEvent e) {
+                            textField.setText("clicked");
+                          }
+                        });
+
+                        panel.add(textField);
+                        panel.add(button);
+
+                        window.add(panel);
+
+                        window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+                        // do this at the end, once everything is set up
+                        window.setVisible(true);
+                      }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Observer Pattern}
+                In a non-interactive application, the flow is fairly simple - it read from the top down, branching or looping if needed.
+                However, in an interactive application, we need to react to \textbf{events} from the user.
+                When something happens, something else may happen (triggered by the first event).
+                \medskip
+
+                The observer pattern has objects that know when another object's state is changed - by being told, not by continuously querying whether the event is complete.
+                This is also known as registering a callback, or publish-subscribe.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=0.75cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (2, -0.5) {~Subject~};
+                            \node[anchor=west] at (0.5, -2.5) {\shortstack[l]{~observers:List~\\~addObserver(o)~\\~removeObserver(o)~\\~notifyObservers()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -4) -- (0, -4) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(5, 0)}]
+                            \node at (2, -0.5) {~Observer~};
+                            \node[anchor=west] at (0.5, -2) {~update(subject)~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \draw (4, -2) edge[->] (5, -2);
+                    \end{tikzpicture}
+                \end{center}
+                When the state of the ~Subject~ has changed, all of its ~Observer~s can be notified via ~update~ with its state.
+                Note that an observer must first register to be notified;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (5, 0) edge[->, above] node{2 - trigger} (1, 0)
+                        (-6, 2) edge[->, below] node{1 - register} (-1.5, 0)
+                        (-6, -2) edge[->] (-1.5, 0)
+                        (0, 0) edge[->, above] node{3 - notify} (-4.5, 2)
+                        (0, 0) edge[->, below] node{3 - notify} (-4.5, -2);
+                        \begin{scope}[shift={(0, 0)}]
+                            \draw[fill=white] (0, 0) circle (1);
+                            \node at (0, 0) {~subj~};
+                            \draw
+                            (-1, 0) -- (-1.5,  0)
+                            (-1.5, 0.5) -- (-1.5, -0.5);
+                        \end{scope}
+                        \begin{scope}[shift={(6, 0)}]
+                            \draw[fill=white] (0, 0) circle (1);
+                            \node at (0, 0) {~stim~};
+                        \end{scope}
+                        \begin{scope}[shift={(-6, 2)}]
+                            \draw[fill=white] (0, 0) circle (1);
+                            \node at (0, 0) {~obs1~};
+                            \draw
+                            (1, 0) -- (1.5,  0)
+                            (1.5, 0.5) -- (1.5, -0.5);
+                        \end{scope}
+                        \begin{scope}[shift={(-6, -2)}]
+                            \draw[fill=white] (0, 0) circle (1);
+                            \node at (0, 0) {~obs2~};
+                            \draw
+                            (1, 0) -- (1.5,  0)
+                            (1.5, 0.5) -- (1.5, -0.5);
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Model-View-Controller (MVC)}
+                MVC splits interactive apps into 3 parts - data, display, and user input.
+                The \textbf{view} is concerned with drawing on the screen (anything presentational or to do with formatting).
+                Front-end specialists can work on this part.
+                This separation allows for different views, without changing the model.
+                \medskip
+
+                \textbf{Model} is to do with the logic of the application, and modelling the domain.
+                Finally, the \textbf{controller} is concerned with events - it should be kept simple, as it is a translation from the world of events.
+                Typically, all the logic should be in the model, and not in the controller.
+                \medskip
+
+                An example of code that doesn't follow this \textbf{architectural pattern} is as follows;
+                \begin{lstlisting}
+                    public class GuiApp {
+
+                      private final JButton button = new JButton("Press me!");
+                      private final JTextField textField = new JTextField(10);
+
+                      private final PressCounter pressCounter = new PressCounter();
+
+                      class PressCounter {
+
+                        private int count;
+
+                        public void increment() {
+                          count++;
+                          if (count < 5) {
+                            textField.setText(String.valueOf(count));
+                          } else {
+                            textField.setText("Too many!");
+                            button.setEnabled(false);
+                          }
+                        }
+                      }
+
+                      private void display() {
+                        ... // standard setup
+
+                        button.addActionListener(new ActionListener() {
+                          public void actionPerformed(ActionEvent actionEvent) {
+                            pressCounter.increment();
+                          }
+                        });
+                        ...
+                      }
+                    }
+                \end{lstlisting}
+                We can separate this into the following classes.
+                Note that we are using the \textbf{observer pattern}, as we then query the ~Model~ passed in.
+                \begin{lstlisting}
+                    class View implements Updatable {
+
+                      private final JButton button = new JButton("Press me!");
+                      private final JTextField textField = new JTextField(10);
+
+                      public View(ActionListener controller) {
+                        JFrame frame = new JFrame("Example App");
+                        frame.setSize(400, 300);
+
+                        button.addActionListener(controller);
+
+                        JPanel panel = new JPanel();
+                        panel.add(textField);
+                        panel.add(button);
+                        frame.add(panel);
+                        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+                        frame.setVisible(true);
+                      }
+
+                      public void update(Model model) {
+                        if (model.morePressesAllowed()) {
+                          textField.setText(String.valueOf(model.count()));
+                        } else {
+                          textField.setText("Too many!");
+                          button.setEnabled(false);
+                        }
+                      }
+                    }
+                \end{lstlisting}
+                This contains all the logic, and also contains functions that can easily be called from the ~View~.
+                Since this isn't specific to the display, it can be reused in other applications easily.
+                We can also add more observers (~View~s) to the model - by having any number of observers, we can also have none, which allows for unit tests to be easily written.
+                \begin{lstlisting}
+                    class Model {
+
+                      private final Updatable view;
+
+                      private int count;
+                      private boolean morePressesAllowed = true;
+
+                      public Model(Updatable view) {
+                        this.view = view;
+                      }
+
+                      public void increment() {
+                        count++;
+                        if (count >= 5) {
+                          morePressesAllowed = false;
+                        }
+                        view.update(this);
+                      }
+
+                      public boolean morePressesAllowed() {
+                        return morePressesAllowed;
+                      }
+
+                      public int count() {
+                        return count;
+                      }
+                    }
+                \end{lstlisting}
+                Finally, the controller (and wiring) is as follows;
+                \begin{lstlisting}
+                    public class GuiApp {
+
+                      private View view = new View(new Controller());
+                      private Model pressCounter = new Model(view);
+
+                      class Controller implements ActionListener {
+                        public void actionPerformed(ActionEvent actionEvent) {
+                          pressCounter.increment();
+                        }
+                      }
+
+                      public static void main(String[] args) {
+                        new GuiApp();
+                      }
+                    }
+                \end{lstlisting}
 \end{document}
