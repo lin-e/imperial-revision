@@ -593,7 +593,7 @@
 
                         context.checking(new Expectations() {{
                           exactly(1).of(pastryChef).order(APPLE_TART);
-                        }})
+                        }});
 
                         headChef.order(ROAST_CHICKEN, APPLE_TART);
                       }
@@ -606,7 +606,7 @@
                         context.checking(new Expectations() {{
                           exactly(1).of(pastryChef).isCooked(APPLE_TART); will(returnValue(true));
                           exactly(1).of(waiter).serve(APPLE_TART);
-                        }})
+                        }});
 
                         headChef.customerReadyFor(APPLE_TART);
                       }
@@ -619,7 +619,7 @@
                         context.checking(new Expectations() {{
                           exactly(1).of(pastryChef).isCooked(APPLE_TART); will(returnValue(false));
                           never(waiter).serve(APPLE_TART);
-                        }})
+                        }});
 
                         headChef.customerReadyFor(APPLE_TART);
                       }
@@ -667,4 +667,138 @@
                         void serve(Order order);
                     }
                 \end{lstlisting}
+        \subsection*{18th October 2019}
+            \subsubsection*{Feedback}
+                We only want to test each behaviour once, to avoid breaking tests elsewhere.
+                Note that \textit{jMock} is more strict than \textit{Mockito}.
+                Additionally, if we are expecting the same value in the behaviour, we don't have to make a new mock object if it won't be tested (hence we can just create a constant field).
+                \begin{lstlisting}
+                    ... // (CameraTest.java)
+
+                    public class CameraTest {
+                      ...
+
+                      private static final byte[] PHOTO = new byte[8];
+                      ...
+
+                      @Test
+                      public void switchingTheCameraOffPowersDownTheSensor() {
+
+                        context.checking(new Expectations() {{
+                          ignoring(sensor).powerUp();
+                          exactly(1).of(sensor).powerDown();
+                        }});
+
+                        camera.powerOn();
+                        camera.powerOff();
+                      }
+
+                      @Test
+                      public void pressingTheShutterCopiesData() {
+
+                        context.checking(new Expectations() {{
+                          ignoring(sensor).powerUp();
+                          exactly(1).of(sensor).readData(); will(returnValue(PHOTO));
+                          exactly(1).of(memoryCard).write(PHOTO);
+                        }});
+
+                        camera.powerOn();
+                        camera.pressShutter();
+                      }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Designing for Flexibility}
+                Bad design consists of the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{rigidity} \hfill difficult to change, possibly due to complex code (long methods, deep conditions etc.)
+                    \item \textbf{fragility} \hfill making a change in one place could break another part of the code
+                    \item \textbf{immobility} \hfill difficult to reuse code in another context
+                \end{itemize}
+            \subsubsection*{Law of Demeter}
+                Recall the graph that had many ~getX()~s, the red lines reached across the graph, but the law of Demeter states that access should generally be to an object that is one "hop" away.
+                This preserves flexibility.
+                Violating this can cause fragility, as changing one part of the code could affect another part of the code that is far away.
+                \medskip
+
+                We can perform the following steps to extract a "trainwreck" into a method, which is then put into the next object down the "chain" of ~getX()~s.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (4, -0.5) edge[->, dashed] (7, -0.5)
+                        (4, -2.5) edge[->, dashed] (7, -2.5)
+                        (9, -1) edge[->] (9, -2)
+                        (9, -3) edge[->] (9, -4)
+                        (9, -5) edge[->] (9, -6)
+                        (9, -7) edge[->] (9, -8);
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (2, -0.5) {\shortstack{trainwreck assigned\\to variable}};
+                            \draw[dashed] (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(0, -2)}]
+                            \node at (2, -0.5) {\shortstack{free trainwreck\\expression}};
+                            \draw[dashed] (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(7, 0)}]
+                            \node at (2, -0.5) {inline variable};
+                            \draw (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(7, -2)}]
+                            \node at (2, -0.5) {\shortstack{extract method for\\affect statements}};
+                            \draw (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(7, -4)}]
+                            \node at (2, -0.5) {\shortstack{introduce parameters\\for members}};
+                            \draw (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(7, -6)}]
+                            \node at (2, -0.5) {\shortstack{move method onto\\target object}};
+                            \draw (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(7, -8)}]
+                            \node at (2, -0.5) {rename new method};
+                            \draw (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Defending against Null Pointer Exceptions}
+                The following snippet of code has lines 3 and 5 added to protect against NPEs - however if this is needed frequently it could lead to code duplication;
+                \begin{lstlisting}
+                    void playTrack(String name) {
+                      Track track = library.getTrack(name);
+                      if (track != null) {
+                        track.play();
+                      }
+                    }
+                \end{lstlisting}
+                Another approach is to have the \textbf{null object pattern}, which is an empty implementation;
+                \begin{lstlisting}
+                    interface Track {
+                      public void play();
+                    }
+
+                    class NullTrack implements Track {
+                      public void play() {
+                        // do nothing
+                      }
+                    }
+                \end{lstlisting}
+                As a development team, it makes sense to agree on what will be done, whether it be using the null object pattern, or using Java's ~Optional~s.
+            \subsubsection*{Coupling and Cohesion}
+                \begin{itemize}
+                    \itemsep0em
+                    \item aim for \textbf{low coupling} between classes \hfill changing one part requires a change in the other
+                    \item aim for \textbf{high cohesion} within each class \hfill a class should be specialised (less changes needed)
+                \end{itemize}
+                Ideally, we want to limit the "blast radius" of our changes, which is the amount of code we affect to just parts managed by us.
+            \subsubsection*{Approaches}
+                One extreme is to store all of the code in a single repository, allowing changes to be made when needed (given approval), which is done by Google.
+                This has the benefit that a part can be changed in part of the code, and can also be fixed in another.
+                However, due to the ability to affect other unrelated parts of the codebase, it can also lead to issues when updating a core object.
+                \medskip
+
+                The other extreme is to have modular code, which is individually versioned.
+                That way, if something is updated, other modules can use older versions and update when needed (which doesn't break functionality straight away).
+                However, updates will need to be done quite frequently, otherwise other modules will be behind.
+                It's also difficult to make changes in other parts.
 \end{document}
