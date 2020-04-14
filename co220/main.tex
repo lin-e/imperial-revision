@@ -396,4 +396,32 @@
                     }
                 \end{lstlisting}
                 This is the only time I will actually write out every step, since that's the focus of TDD.
+        \subsection*{11th October 2019}
+            \subsubsection*{Feedback}
+                Note that the names of the test files should be ~SomeObjectTest~, for ~SomeObject~.
+                This convention allows the IDE to link the files, as well as having them in alphabetical order.
+                Also always use a \textit{jUnit} library function;
+                \begin{center}
+                    ~assertThat(rul.size(), is(0))~ or ~assertEquals(0, rul.size())~
+
+                    instead of
+
+                    ~assert rul.size() == 0~
+                \end{center}
+                Generally make the LHS of fields the interface ~List~ instead of ~ArrayList~, and attempt to make it ~private~ and ~final~ (if possible).
+                Additionally, any fields are reinitialised automatically by \textit{jUnit}, hence it doesn't need to be reset at the end of each test.
+            \subsubsection*{Refactoring}
+                This starts with multiple examples on handouts.
+                As we're writing new code, we should look out for small changes that can improve the structure of our code.
+                \medskip
+
+                We can accumulate "technical debt" by writing code quickly to get a feature working, but we must fix it soon, otherwise it builds up leading to unhygienic code.
+                \medskip
+
+                Note that refactoring should be done with tools when possible (such as renaming identifiers), since the tool will be able to analyse the entire codebase to detect where changes need to be made.
+                Behaviour should not be changed.
+                \medskip
+
+                The example after this is mostly using \textit{IntelliJ} tools wherever possible.
+                One note to make is that sometimes it is helpful to get code into a state where it becomes similar enough to other parts of the code, to allow for the tool to do the work.
 \end{document}
