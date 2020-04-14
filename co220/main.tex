@@ -1286,4 +1286,66 @@
                 \end{lstlisting}
                 However, singleton creates dependency, and if we wanted to run unit tests, we would need the actual singleton instance in production (which may be sensitive, and cannot be tested on).
                 It doesn't allow us to create mock objects.
+        \subsection*{1st November 2019}
+            \subsubsection*{Legacy System}
+                A legacy system is something that has been passed on, \textbf{and is of value}.
+                While the examples covered assume good test coverage, this is rarely the case in actual systems, and we need techniques to apply our rules to existing codebases.
+                \medskip
+
+                Additionally, code may be messy, or difficult to understand.
+                As the codebase grows, it becomes infeasible to read every line of code to understand what it all does, and we need strategies to pick out what is useful, and what is dangerous to change.
+                It's also important not to change code to "clean it up" when unnecessary, as it can be quite risky to completely rewrite working code.
+                \medskip
+
+                We'd like to find out the connections between modules, how data flows in the system, and what changes could affect other modules.
+                Sometimes, this can be done by having scripts visualise some diagrams, which displays how modules are connected.
+            \subsubsection*{Preserving Working Code}
+                We want to avoid changing code that may look "broken" if we don't need to change it.
+                A bug may be counteracted by another bug somewhere else in the system, and therefore "fixing" a bug in one place, may cause other parts of the system to break.
+                Furthermore, this "incorrect" behaviour may be used by the customer, or the end user, and they may rely on it working in the same way.
+            \subsubsection*{Confidence and Testing}
+                In some code bases, it may be difficult to make changes, or it may be higher-risk in an environment which deals with finances.
+                \medskip
+
+                To build confidence on modifying code, we want to have some form of guidance that our changes haven't broken any functionality.
+                We can split tests into two types;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{unit test} \hfill micro level
+                        \medskip
+
+                        This can give a lot of information about a small bit of code - it's not feasible to write this for all of a legacy system.
+                    \item \textbf{system test} \hfill macro level
+                        \medskip
+
+                        At a system level test, we run an expected action all the way through, and track what is called.
+                        If something fails, it doesn't tell us where, just that the functionality is incorrect.
+                \end{itemize}
+                Generally, we start by adding unit tests for the small region of code we are changing.
+                \medskip
+
+                Examples of code that may be difficult to test are generally environment dependent - if a piece of code in production relies on making requests to a (protected) server, or a database, accessing this may be difficult or give inconsistent results, whereas we'd ideally want to test in isolation.
+            \subsubsection*{Seams and Sensing}
+                The idea of a \textbf{seam} is a place where behaviour can be altered without editing in that particular place.
+                For example, if we wanted to test something that has a web endpoint, we wouldn't want to change it, test it, change it back, and then commit it (since we shouldn't change code after testing).
+                A seam allows us to inject different behaviour.
+                Every seam has an enabling point, were we can make the decision to use one behaviour or another.
+                \medskip
+
+                We break dependencies to \textbf{sense} when we can't access values our code computes.
+            \subsubsection*{Live Example}
+                See Panopto timestamp 34:50 for this.
+                Notes will be added here, in bullet points;
+                \begin{itemize}
+                    \itemsep0em
+                    \item we don't want to change too much, as we can't test if it works in the same way as before, but we do have to change a bit to test it
+                    \item we want to simulate the behaviour when a website is broken, but this generally isn't the case
+                    \item we extract the behaviour of ~WebPageProbe~ to implement the interface ~Probe~, which we can make always fail
+                    \item we can then create a \textbf{new} constructor (don't modify existing constructor), which takes in the failing ~Probe~
+                    \item this has the expected behaviour, but we are now notifying on every test
+                    \item we then spot a use of ~getInstance()~, suggesting a singleton pattern; we can try taking this out into a field, and adding it to the constructor
+                    \item we now have the \textbf{enabling point} in the test suite, allowing us to swap out the ~Alerter~ (interface for ~Emailer~)
+                    \item this behaviour can either be tested by manually implementing fields in our implementation of ~Alerter~, or with a mock object library
+                    \item we have a dependency on the system clock, which we can try to control in a similar way to allow for testing time based behaviour
+                \end{itemize} 
 \end{document}
