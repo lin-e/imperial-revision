@@ -971,4 +971,75 @@
                 \end{center}
                 As the ~Reverser~ and ~Doubler~ no longer have a relationship with ~Encoder~, we have must less coupling, hence we have better mobility and flexibility.
                 Generally, composition should be preferred over inheritance.
+        \subsection*{25th October 2019}
+            \subsubsection*{Stability}
+                If a core object, such as a ~Customer~ class, has many things depending on it, such that it has a high afferent coupling, it can be a benefit since it can be heavily reused.
+                However, it needs to be very stable, and require little to no changing, as changing it can break other parts of the codebase if done incorrectly.
+                It should rely on very few other objects (if any).
+                These are represented by the \teal{\textbf{teal}} nodes below.
+                \medskip
+
+                On other hand, the components at the edges (the ones in \textbf{\violet{violet}}), can include UI components, such as a dashboard.
+                It makes sense for the dashboard to depend on the ~Customer~ class, but not the other way around.
+                These can be changed fairly easily, as not many things depend on it.
+                \begin{center}
+                    \begin{tikzpicture}[y=0.75cm]
+                        \node[inner sep=10pt, circle, draw=black, fill=teal] (t1) at (0, 0) {};
+                        \node[inner sep=6pt, circle, draw=black, fill=teal] (t2) at (-2, -1) {};
+                        \node[inner sep=6pt, circle, draw=black, fill=violet] (p1) at (-3, 0) {};
+                        \node[inner sep=6pt, circle, draw=black, fill=violet] (p2) at (-2, 1) {};
+                        \node[inner sep=6pt, circle, draw=black, fill=violet] (p3) at (-3, -2) {};
+                        \node[inner sep=6pt, circle, draw=black, fill=violet] (p4) at (1, -2) {};
+                        \node[inner sep=6pt, circle, draw=black, fill=violet] (p5) at (3, 0) {};
+                        \node[inner sep=6pt, circle, draw=black, fill=violet] (p6) at (2, 1) {};
+                        \node[inner sep=6pt, circle, draw=black, fill=violet] (p7) at (2, -1) {};
+                        \draw
+                        (t2) edge[->] (t1)
+                        (p2) edge[->] (t1) (p2) edge[->] (t2) (p2) edge[->] (p1)
+                        (p3) edge[->] (t2)
+                        (p4) edge[->] (t1) (p4) edge[->] (t2) (p4) edge[->] (p3)
+                        (p5) edge[->] (t1)
+                        (p6) edge[->] (t1)
+                        (p7) edge[->] (t1);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Complexity Metrics}
+                Some methods for quantifying the complexity of a program are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{cyclomatric (McCabe)}
+                        \medskip
+
+                        Described in McCabe's paper, it counts the possible different executions that could happen, and gives a lower bound on the number of tests required for a particular unit.
+                    \item \textbf{WILT (Whitespace Integrated over Lines of Text)}
+                        \medskip
+
+                        Integrates over the indented area of a given piece of code - this has a correlation with the McCabe complexity, but is much easier to calculate.
+                    \item \textbf{ABC (Assignments, Branches, and Conditions)}
+                        \medskip
+
+                        Every time it encounters each of the following constructs, it increments a counter by some number.
+                        This isn't as accurate as McCabe, but gives an approximation.
+                        For example, \textit{Flog} is an ABC metric with specialist knowledge of Ruby;
+                        \begin{lstlisting}
+                            def blah         # 11.2 total
+                              a = eval "1+1" # 1.2 (a=) + 6.0 (eval) +
+
+                              if a == 2      # 1.2 (if) + 1.2 (==) + 0.4 (fixnum) +
+                                puts "yay"   # 1.2 (puts)
+                              end
+                            end
+                        \end{lstlisting}
+                \end{itemize}
+                I honestly have no idea what this lecture is supposed to be going through.
+                Generally, we should look at the trends for the complexity of code, rather than ensuring it is monotonically improving.
+            \subsubsection*{Turbulence}
+                If we plot complexity against commits (number of changes), we can divide it into 4 general quadrants.
+                Something that is high complexity, but has low commits, probably doesn't need to be refactored as we aren't modifying it often.
+                This could be an algorithm copied from an academic paper, or a third party library being imported.
+                The quadrant with low complexity and high commits could include configuration files, which are modified frequently.
+                \medskip
+
+                The top right quadrant, which has high complexity and high commits should be a cause for concern.
+                This is likely to introduce bugs as it is being changed often, and has high complexity.
 \end{document}
