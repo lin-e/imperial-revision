@@ -801,4 +801,174 @@
                 That way, if something is updated, other modules can use older versions and update when needed (which doesn't break functionality straight away).
                 However, updates will need to be done quite frequently, otherwise other modules will be behind.
                 It's also difficult to make changes in other parts.
+        \subsection*{22nd October 2019}
+            \subsubsection*{Motivation}
+                This focuses mostly on the middle two layers in the pyramid mentioned in the first lecture.
+                We assume that the code is working correctly, and we can check that the code is working correctly with the test suite.
+            \subsubsection*{Example}
+                ~ReverseEncoder~ is an encoder for encryption, which reverses each word in the input (such that ~"abc 123"~ becomes ~"cba 321"~).
+                This will be done in Python;
+                \begin{lstlisting}
+                    class ReverseEncoder:
+                      def encode(self, line):
+                        words = line.split(" ")
+                        results = []
+                        for word in words:
+                          results.append(word[::-1])
+                        return " ".join(results)
+                \end{lstlisting}
+                Now suppose we have another encoder, ~DoublingEncoder~, that repeats each word in the input (such that ~"abc 123"~ becomes ~"abcabc 123123"~).
+                This can easily be implemented as follows;
+                \begin{lstlisting}
+                    class DoublingEncoder:
+                      def encode(self, line):
+                        words = line.split(" ")
+                        results = []
+                        for word in words:
+                          results.append(word + word)
+                        return " ".join(results)
+                \end{lstlisting}
+                However, notice that there is a significant amount of duplication, as essentially all lines are the same, other than line 6.
+                To remedy this, we can add an ~Encoder~ class which they both extend;
+                \begin{lstlisting}
+                    from abc import abstractmethod
+
+                    class Encoder:
+                      def encode(self, line):
+                        words = line.split(" ")
+                        results = []
+                        for word in words:
+                          results.append(self.encode_word(word))
+                        return " ".join(results)
+
+                      @abstractmethod
+                      def encode_word(self, word):
+                        pass
+
+                    class ReverseEncoder(Encoder):
+                      def encode_word(self, word):
+                        return word[::-1]
+
+                    class DoublingEncoder(Encoder):
+                      def encode_word(self, word):
+                        return word + word
+                \end{lstlisting}
+                Now, everything that is common to the two algorithms is in the superclass, and only the part that is specialised is each individual class.
+            \subsubsection*{Template Method Pattern}
+                The template method pattern is used when requirements change over time, and we need to vary a small part of an algorithm.
+                A skeleton should be defined (our ~Encoder~ in the example above), and the vary steps should be deferred to subclasses (~ReverseEncoder~, and ~DoublingEncoder~).
+                \begin{center}
+                    Separate things that change from things that stay the same.
+                \end{center}
+                Generally, this has the following pattern, where the specialised \teal{hook methods} are overwritten by the \blue{inheriting} classes, and the \violet{template method} contains the shared behaviour;
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=0.75cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (2, -0.5) {~AbstractClass~};
+                            \node[anchor=west] at (0.5, -2) {\shortstack[l]{\violet{~templateMethod()~}\\\teal{~operation1()~}\\\teal{~operation2()~}}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(-3, -5)}]
+                            \node at (2, -0.5) {~ConcreteClass1~};
+                            \node[anchor=west] at (0.5, -2) {\shortstack[l]{~operation1()~\\~operation2()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(3, -5)}]
+                            \node at (2, -0.5) {~ConcreteClass2~};
+                            \node[anchor=west] at (0.5, -2) {\shortstack[l]{~operation1()~\\~operation2()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \draw
+                        (-1, -5) -- (-1, -4) -- (5, -4) -- (5, -5)
+                        (2, -4) edge[->, blue] (2, -3);
+                    \end{tikzpicture}
+                \end{center}
+                This follows the \textbf{open-closed principle}, where we can extend the class' behaviour without modifying it, as we can just add a new subclass.
+                We therefore don't have to edit code, which may have lead to bugs, as we are safer by just adding code.
+                Modules should be open for extension, but closed to modification.
+                Change behaviour by adding new code, not by changing existing code.
+            \subsubsection*{Coupling Metrics}
+                Afferent coupling (Ca) - remember this as how many arrows \textbf{a}rrive - a class' afferent couplings is a measure of it's responsibility (how many other classes use it).
+                Efferent coupling (Ce) - remember this as how many arrows \textbf{e}xit - it's a measure of how many different classes are used by this specific class (measures independence).
+                \medskip
+
+                For example, the ~ReverseEncoder~ cannot really be used elsewhere, as it has a strong coupling with the ~Encoder~ superclass.
+                In general, we may want to avoid this coupling.
+            \subsubsection*{Strategy Pattern}
+                An alternative is the template method (still done for the same reason) is to delegate to a collaborator (instead of a subclass) - the algorithm should be pulled into a separate object.
+                This favours object composition over class inheritance.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=0.75cm]
+                        \begin{scope}[shift={(-5, 0)}]
+                            \node at (2, -0.5) {~Context~};
+                            \node[anchor=west] at (0.5, -2) {~strategy~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (2, -0.5) {~Strategy~};
+                            \node[anchor=west] at (0.5, -2) {~operation()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(-3, -5)}]
+                            \node at (2, -0.5) {~Strategy1~};
+                            \node[anchor=west] at (0.5, -2) {~operation()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(3, -5)}]
+                            \node at (2, -0.5) {~Strategy2~};
+                            \node[anchor=west] at (0.5, -2) {~operation()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \node[violet] at (6, -2) (i) {interface};
+                        \draw
+                        (i) edge[->, violet, bend right=20] (4, -0.5)
+                        (-1, -2) edge[->] (0, -2)
+                        (-1, -5) -- (-1, -4) -- (5, -4) -- (5, -5)
+                        (2, -4) edge[->, blue] (2, -3);
+                    \end{tikzpicture}
+                \end{center}
+                It's important to note that ~Strategy~ is an interface, hence ~Strategy1~ and ~Strategy2~ implement it.
+                The example can be modified as follows;
+                \begin{lstlisting}
+                    from abc import abstractmethod
+
+                    class Encoder:
+                      def __init__(self, encryptor):
+                        self.encryptor = encryptor
+
+                      def encode(self, line):
+                        words = line.split(" ")
+                        results = []
+                        for word in words:
+                          results.append(self.encryptor.encode_word(word))
+                        return " ".join(results)
+
+                    class Reverser:
+                      def encode_word(self, word):
+                        return word[::-1]
+
+                    class Doubler:
+                      def encode_word(self, word):
+                        return word + word
+                \end{lstlisting}
+                The main sign is that the strategy is passed in to the context; hence we would have;
+                \begin{center}
+                    ~Encoder(Reverser()).encode("...")~
+                \end{center}
+                As the ~Reverser~ and ~Doubler~ no longer have a relationship with ~Encoder~, we have must less coupling, hence we have better mobility and flexibility.
+                Generally, composition should be preferred over inheritance.
 \end{document}
