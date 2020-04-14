@@ -425,4 +425,246 @@
                 The example after this is mostly using \textit{IntelliJ} tools wherever possible.
                 One note to make is that sometimes it is helpful to get code into a state where it becomes similar enough to other parts of the code, to allow for the tool to do the work.
         \subsection*{15th October 2019}
+            \subsubsection*{Sending Messages}
+                Instead of considering how objects call methods, it may be beneficial to design how modules communicate with each other ("send messages").
+                \medskip
+
+                The idea is that when one object "sends a message", we don't really care how it does it, just that it performs the expected action.
+            \subsubsection*{OOP}
+                Typically, larger systems are built up of smaller units that work together.
+                Some of these will be from the standard library, some of those will be written by us, and some others may be written by third parties.
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=2cm]
+                        \draw[violet, dotted, very thick] (-0.375, 0.375) -- (1.375, 0.375) -- (1.375, -0.375) -- (-0.375, -0.375) -- cycle;
+                        \draw[teal, dotted, very thick] (0.675, 0.375) -- (2.375, 0.375) -- (2.375, -0.375) -- (0.675, -0.375) -- cycle;
+                        \draw[red, dotted, very thick] (-1.375, -0.625) -- (-0.625, -0.625) -- (-0.625, -1.375) -- (-1.375, -1.375) -- cycle;
+                        \draw[blue, dotted, very thick] (0.5, 0.5) -- (1.5, 0.5) -- (1.5, -0.5) -- (0.5, -0.5) -- cycle;
+                        \node[state, minimum size=1cm] (a) at (0, 0) {};
+                        \node[state, minimum size=1cm] (b) at (1, 0) {};
+                        \node[state, minimum size=1cm] (c) at (2, 0) {};
+                        \node[state, minimum size=1cm] (d) at (-1, -1) {};
+                        \node[state, minimum size=1cm] (e) at (1, -1.5) {};
+                        \node[state, minimum size=1cm] (f) at (2, -1) {};
+                        \draw
+                        (-1, 0) edge[->, dashed] (a)
+                        (a) edge[->] (b)
+                        (a) edge[->] (d)
+                        (b) edge[->, bend left=20] (c)
+                        (b) edge[->] (f)
+                        (c) edge[->, bend left=20] (b)
+                        (e) edge[->, dashed] (0, -1.5)
+                        (e) edge[->, dashed] (0.5, -2.1)
+                        (f) edge[->] (e)
+                        (f) edge[->, dashed, bend left=20] (3.1, -1.9)
+                        (2.9, -2.1) edge[->, dashed, bend left=20] (f);
+                    \end{tikzpicture}
+                \end{center}
+                However, these components should be reusable, and they can be combined in a different way if needed (we can't really modify code in the standard library, etc).
+                We want to have the possibility to swap out parts of the project without affecting other objects.
+                The system shouldn't care how the object does a job, just that it does it.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \violet{\textbf{commands}} \hfill "please do $X$"
+                        \medskip
+
+                        This doesn't wait for a response, or a even a return value.
+                    \item \teal{\textbf{queries}} \hfill "please tell me $Y$"
+                        \medskip
+
+                        Requests a bit of data, and then processes it.
+                        If too many queries are used, we tend to have a central part of the process that deals with all the information which isn't flexible.
+                        Ideally jobs are delegated to different components.
+                    \item \red{\textbf{value objects}}
+                        \medskip
+
+                        These don't typically interact with other objects, and just holds some data and performs some computations.
+                        These components can easily be tested.
+                    \item \blue{\textbf{tell don't ask}}
+                        \medskip
+
+                        The role of this object is to coordinate other objects in the system.
+                        Focusing on commands tends to give us more flexibility, but leads to different testing approaches.
+                \end{itemize}
+                Typically, asking looks like the following (can be characterised by a higher number of ~getX()~s);
+                \begin{lstlisting}
+                    table.getGrid().getColumnModel().getColumn(index).setPreferredWidth(newWidth);
+                \end{lstlisting}
+                Visually, the graph becomes something similar to this;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=2cm]
+                        \node[red, state, minimum size=1cm] (a) at (0, 0) {};
+                        \node[red, state, minimum size=1cm] (b) at (1, 0) {};
+                        \node[state, minimum size=1cm] (c) at (2, 0) {};
+                        \node[state, minimum size=1cm] (d) at (-1, -1) {};
+                        \node[state, minimum size=1cm] (e) at (1, -1.5) {};
+                        \node[red, state, minimum size=1cm] (f) at (2, -1) {};
+                        \draw
+                        (-1, 0) edge[red, ->, dashed] (a)
+                        (-1, 0) edge[red, ->, dashed, bend right=30] (b)
+                        (-1, 0) edge[red, ->, dashed, bend right=20] (f)
+                        (a) edge[->] (b)
+                        (a) edge[->] (d)
+                        (b) edge[->, bend left=20] (c)
+                        (b) edge[->] (f)
+                        (c) edge[->, bend left=20] (b)
+                        (e) edge[->, dashed] (0, -1.5)
+                        (e) edge[->, dashed] (0.5, -2.1)
+                        (f) edge[->] (e)
+                        (f) edge[->, dashed, bend left=20] (3.1, -1.9)
+                        (2.9, -2.1) edge[->, dashed, bend left=20] (f);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Testing Objects and Roles}
+                When we want to test a given object, let it be $O$, we shouldn't have to implement the objects it depends on first.
+                To do this, we use interfaces in Java to represent roles - which specifies what $O$ expects the other objects to do.
+                An object may play different roles (hence implement multiple interfaces).
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm] (a) at (0, 0.5) {$O$};
+                        \node[state, minimum size=1cm] at (4, 1) {};
+                        \node[state, minimum size=1cm] at (4, -1) {};
+                        \draw[black, domain=180:270] plot ({4 + 0.6*cos(\x)}, {1 + 0.6*sin(\x)});
+                        \draw[black, domain=90:180] plot ({4 + 0.6*cos(\x)}, {-1 + 0.6*sin(\x)});
+                        \draw (a) edge[->, bend left=15] (3.5, -0.5);
+                        \draw (a) edge[->] (3.5, 0.5);
+                    \end{tikzpicture}
+                \end{center}
+                The object $O$ is the one we wish to test, and should be triggered by a call in the test suite.
+            \subsubsection*{Mock Objects}
+                To test objects that rely on stuff other objects that haven't been implemented yet (only an interface exists), we can use mock objects.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, minimum size=1cm] (a) at (0, 0.5) {$O$};
+                        \node[violet, dashed, state, minimum size=1cm] (b) at (4, 1) {};
+                        \node[violet, dashed, state, minimum size=1cm] (c) at (4, -1) {};
+                        \draw[black, domain=180:270] plot ({4 + 0.6*cos(\x)}, {1 + 0.6*sin(\x)});
+                        \draw[black, domain=90:180] plot ({4 + 0.6*cos(\x)}, {-1 + 0.6*sin(\x)});
+                        \draw (a) edge[->, bend left=15] (3.5, -0.5);
+                        \draw (a) edge[->] (3.5, 0.5);
+
+                        \node[violet] at (2, -2.5) {test};
+                        \draw[violet] (1, -2) -- (3, -2) -- (3, -3) -- (1, -3) -- cycle;
+                        \draw[violet]
+                        (1, -2.5) edge[->, bend left=30] (a)
+                        (3, -2.5) edge[->, bend right=15] (7, -1.5)
+                        (6, -1) edge[<->, bend right=10] (c)
+                        (7, -0.5) edge[<->, bend right=10] (b);
+                        \node[violet] at (7, -1) {mockery};
+                        \draw[violet] (6, -0.5) -- (8, -0.5) -- (8, -1.5) -- (6, -1.5) -- cycle;
+                    \end{tikzpicture}
+                \end{center}
+                When a test is run, we can test if $O$ sends messages to the mock objects.
+                Instead of writing assertions about the state of $O$, we can write expectations for what should be called.
+                \medskip
+
+                An example is as follows (this is syntax from \textit{WebSequenceDiagrams}, because I don't want to draw it out);
+                \begin{lstlisting}
+                    Waiter->HeadChef: order(CHICKEN, APPLE)
+                    HeadChef->PastryChef: order(APPLE)
+
+                    Waiter->HeadChef: customerReadyFor(APPLE)
+                    HeadChef->PastryChef: isCooked(APPLE)
+                    PastryChef-->HeadChef: True
+                    HeadChef->Waiter: serve(APPLE)
+
+                    Waiter->HeadChef: customerReadyFor(APPLE)
+                    HeadChef->PastryChef: isCooked(APPLE)
+                    PastryChef-->HeadChef: False
+                \end{lstlisting}
+                In Java, we have the following for the tests;
+                \begin{lstlisting}
+                    ... // (HeadChefTest.java)
+
+                    public class HeadChefTest {
+
+                      @Rule
+                      public JUnitRuleMockery context = new JUnitRuleMockery();
+
+                      public final Order APPLE_TART = new Order("apple");
+                      public final Order ROAST_CHICKEN = new Order("chicken");
+
+                      Chef pastryChef = context.mock(Chef.class);
+                      RestaurantWaiter waiter = context.mock(RestaurantWaiter.class);
+
+                      @Test
+                      public void delegatesDessertToPastryChef() {
+
+                        HeadChef headChef = new HeadChef(pastryChef, waiter);
+
+                        context.checking(new Expectations() {{
+                          exactly(1).of(pastryChef).order(APPLE_TART);
+                        }})
+
+                        headChef.order(ROAST_CHICKEN, APPLE_TART);
+                      }
+
+                      @Test
+                      public void asksWaiterToServeDessertIfCooked() {
+
+                        HeadChef headChef = new HeadChef(pastryChef, waiter);
+
+                        context.checking(new Expectations() {{
+                          exactly(1).of(pastryChef).isCooked(APPLE_TART); will(returnValue(true));
+                          exactly(1).of(waiter).serve(APPLE_TART);
+                        }})
+
+                        headChef.customerReadyFor(APPLE_TART);
+                      }
+
+                      @Test
+                      public void doesNotAskWaiterToServeDessertIfNotCooked() {
+
+                        HeadChef headChef = new HeadChef(pastryChef, waiter);
+
+                        context.checking(new Expectations() {{
+                          exactly(1).of(pastryChef).isCooked(APPLE_TART); will(returnValue(false));
+                          never(waiter).serve(APPLE_TART);
+                        }})
+
+                        headChef.customerReadyFor(APPLE_TART);
+                      }
+                    }
+                \end{lstlisting}
+                Similarly for the ~HeadChef~;
+                \begin{lstlisting}
+                    ... // (HeadChef.java)
+
+                    public class HeadChef {
+
+                      private final Chef pastryChef;
+                      private final RestaurantWaiter waiter;
+
+                      public HeadChef(Chef pastryChef, RestaurantWaiter waiter) {
+                        this.pastryChef = pastryChef;
+                        this.waiter = waiter;
+                      }
+
+                      public void order(Order main, Order dessert) {
+                        pastryChef.order(dessert);
+                      }
+
+                      public void customerReadyFor(Order dessert) {
+                        if (pastryChef.isCooked(dessert)) {
+                          waiter.serve(dessert);
+                        }
+                      }
+                    }
+                \end{lstlisting}
+                Note that we have \textbf{interfaces} for ~Chef~ and ~RestaurantWaiter~, as they aren't implemented;
+                \begin{lstlisting}
+                    ... // (Chef.java)
+
+                    public interface Chef {
+                      void order(Order order);
+
+                      bool isCooked(Order order);
+                    }
+                \end{lstlisting}
+                \begin{lstlisting}
+                    ... // (RestaurantWaiter.java)
+
+                    public interface RestaurantWaiter {
+                        void serve(Order order);
+                    }
+                \end{lstlisting}
 \end{document}
