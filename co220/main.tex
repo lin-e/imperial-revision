@@ -1042,4 +1042,248 @@
 
                 The top right quadrant, which has high complexity and high commits should be a cause for concern.
                 This is likely to introduce bugs as it is being changed often, and has high complexity.
+        \subsection*{29th October 2019}
+            \subsubsection*{Factory Method Pattern}
+                Factory methods (along with objects) allow for more flexibility and clarity with regards to object creation.
+                Factory methods can have names unlike constructors.
+                Note that the example on line 5 should be motivation to use factory methods, as it has less clarity, compared to the line above.
+                By doing this, we can also close off some options by not exposing the constructor.
+                \begin{lstlisting}
+                    List<Object> l = Collections.emptyList();
+                    Boolean b = Boolean.valueOf("true");
+                    ExecutorService es = Executors.newFixedThreadPool(4);
+                    VirtualMachine vm1 = VirtualMachine.withHardDiskGigabytes(128);
+                    // VirtualMachine vm2 = new VirtualMachine(2, 512, 128);
+                \end{lstlisting}
+                The ~VirtualMachine~ example can be done as follows;
+                \begin{lstlisting}
+                    class VirtualMachine {
+
+                      private final int cores;
+                      private final int ram;
+                      private final int disk;
+                      private final int costPerMin;
+                      ...
+
+                      // factory methods are static
+                      public static VirtualMachine withHardDiskGigabytes(int size) {
+                        return new VirtualMachine(4, 128, size);
+                      }
+
+                      // private constructors force callers to use the factory methods
+                      private VirtualMachine(int cores, int ram, int disk) {
+                        this.cores = cores;
+                        this.ram = ram;
+                        this.disk = disk;
+                        this.costPerMin = (cores * ram + disk) / 50;
+                        ...
+                      }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Factory Objects}
+                Sometimes, we don't know what we want to display until run-time (and therefore can't put it in directly) - as such, factory objects can decide what to return at run-time (example for some UI);
+                \begin{lstlisting}
+                    class LogoFactory {
+
+                      // can return any sub-type of Logo
+                      static Logo createLogo() {
+                        if (config.country().equals(Country.UK)) {
+                          return new FlagLogo("UK");
+                        }
+                        if (config.country().equals(Country.USA)) {
+                          return new FlagLogo("US");
+                        }
+                        return new DefaultLogo();
+                      }
+
+                      class FlagLogo implements Logo { ... }
+                      class DefaultLogo implements Logo { ... }
+                    }
+                \end{lstlisting}
+                Therefore, when we need the logo, we can call ~LogoFactory.createLogo()~ to obtain the appropriate one.
+                Additionally, if we want to add a new logo, it only needs to be modified in one place.
+            \subsubsection*{Abstract Factory Pattern}
+                This is less frequently used.
+                It's an interface of a factory, thus all implementations of it are factories.
+                \begin{lstlisting}
+                    interface WidgetFactory {
+                      Widget createScrollBar();
+                      Widget createMenu();
+                      ...
+                    }
+
+                    class MobileWidgetFactory implements WidgetFactory {
+
+                      @Override
+                      public Widget createScrollBar() {
+                        return new MobileScrollBar(Color.GREEN);
+                      }
+
+                      @Override
+                      public Widget createMenu() {
+                        return new MobileMenu(5);
+                      }
+                      ...
+                    }
+
+                    class DesktopWidgetFactory implements WidgetFactory {
+
+                      @Override
+                      public Widget createScrollBar() {
+                        ...
+                      }
+                      ...
+                    }
+                \end{lstlisting}
+                This can help maintain consistency (such that we don't get a ~MobileScrollBar~ when building a desktop UI, etc).
+            \subsubsection*{Builder Pattern}
+                Separate the construction of a complex object, likely with many parameters, from its representation.
+                We also want the object to be in a "usable state" once it is first constructed, such that we don't have a transitionary state.
+                An example is as follows;
+                \begin{lstlisting}
+                    public class BananaBuilder {
+
+                      private double ripeness = 0.0;
+                      private double curve = 0.5;
+
+                      // ensures the builder itself is created with factory method
+                      private BananaBuilder() { }
+
+                      public static BananaBuilder aBanana() {
+                        return new BananaBuilder();
+                      }
+
+                      public Banana build() {
+                        Banana banana = new Banana(curve);
+                        banana.ripen(ripeness);
+                        return banana;
+                      }
+
+                      public BananaBuilder withRipeness(double ripeness) {
+                        this.ripeness = ripeness;
+                        return this;
+                      }
+
+                      public BananaBuilder withCurve(double curve) {
+                        this.curve = curve;
+                        return this;
+                      }
+                    }
+                \end{lstlisting}
+                Note that the configuration methods return ~this~ (and is mutable), which gives a fluent interface allowing for method chaining.
+                The builder can be used as follows;
+                \begin{lstlisting}
+                    import static BananaBuilder.*
+
+                    public class FruitBasket {
+                      ...
+
+                      public FruitBasket() {
+                        Banana banana = aBanana().withRipeness(2.0).withCurve(0.9).build();
+                        ...
+                      }
+                    }
+                \end{lstlisting}
+                The ~build()~ method also allows us to validate the parameters (which can also have default values).
+            \subsubsection*{Singleton Pattern}
+                We often do not need this pattern, and it can be troublesome when misused.
+                The singleton pattern ensures a class only has one instance, and there is a global point of access - this is typically when instantiating the object has a high cost (high memory cost, actual fee, etc).
+                An example of this is as follows;
+                \begin{lstlisting}
+                    public class BankAccountStore {
+
+                      // static initialisation runs when class loaded
+                      private static BankAccountStore instance = new BankAccountStore();
+
+                      private Collection<BankAccount> accounts;
+
+                      // private constructor ensures no-one can create a new instance
+                      private BankAccountStore() {
+                        ...
+                      }
+
+                      // getInstance() is called to gain access to the global instance
+                      public static BankAccountStore getInstance() {
+                        return instance;
+                      }
+
+                      public BankAccount lookupAccountById(int id) {
+                        ...
+                      }
+                      ...
+                    }
+                \end{lstlisting}
+                The example above is an eager initialisation, which could be wasteful if it has a high cost to initialise, but no one actually needs it;
+                \begin{lstlisting}
+                    public class BankAccountStore {
+
+                      // no initialisation when class loaded
+                      private static BankAccountStore instance;
+
+                      private Collection<BankAccount> accounts;
+
+                      // private constructor ensures no-one can create a new instance (expensive)
+                      private BankAccountStore() {
+                          ...
+                      }
+
+                      // getInstance() is called to gain access to the global instance
+                      public static synchronized BankAccountStore getInstance() {
+                        if (instance == null) {
+                          instance = new BankAccountStore();
+                        }
+                        return instance;
+                      }
+
+                      public BankAccount lookupAccountById(int id) {
+                        ...
+                      }
+                      ...
+                    }
+                \end{lstlisting}
+                Note that we have made the method thread-safe to avoid the race condition where multiple threads attempt to create instances simultaneously.
+            \subsubsection*{Dependencies}
+                Note that in the example below, we have a strong coupling between a ~PushSwitch~ and a ~Light~.
+                This means that we cannot really test the switch independently of the light - which we want to avoid.
+                Additionally, we cannot use this switch for another device, if required.
+                \begin{lstlisting}
+                    class Light:
+                      def on(self):
+                        print("Shining")
+
+                      def off(self):
+                        print("Dark")
+
+                    class PushSwitch:
+                      def __init__(self):
+                        self.light = Light();
+                        self.on = False
+
+                      def press(self):
+                        self.on = not self.on
+                        if self.on:
+                          self.light.on()
+                        else
+                          self.light.off()
+
+                    switch = PushSwitch()
+                \end{lstlisting}
+                The fix for this is following the \textbf{dependency-inversion principle} - we want to depend upwards on an abstraction, rather than downwards on a concrete class.
+                \begin{lstlisting}
+                    class PushSwitch:
+                      def __init__(self, device):
+                        self.device = device
+                        self.on = False
+
+                      def press(self):
+                        self.on = not self.on
+                        if self.on:
+                          self.device.on()
+                        else
+                          self.device.off()
+
+                      switch = PushSwitch(Light())
+                \end{lstlisting}
+                However, singleton creates dependency, and if we wanted to run unit tests, we would need the actual singleton instance in production (which may be sensitive, and cannot be tested on).
+                It doesn't allow us to create mock objects.
 \end{document}
