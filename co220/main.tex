@@ -2300,4 +2300,125 @@
                 \medskip
 
                 Testing more in the middle (unit tests) allows for faster feedback.
+        \subsection*{22nd November 2019}
+            \subsubsection*{Splitting an Application}
+                When an application grows, it may make sense to split it into smaller components.
+                For example, if some part of the system is computationally intensive, it may make sense to use a different language for just that part, or if the team grows too large, separating components allows for more independence.
+                Similarly, some parts may need to be scaled across multiple systems, without scaling the entire application.
+            \subsubsection*{Remote Services}
+                We can consider this as client applications using remote services, which may use other services to do their jobs.
+                Each service has a bounded job.
+                These can be run on the same machine, but can also be run on other systems to distribute work.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (1, -0.5) {client};
+                            \draw (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(4, 1)}]
+                            \node at (1, -0.5) {service};
+                            \draw (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(4, -1)}]
+                            \node at (1, -0.5) {service};
+                            \draw (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \draw
+                        (2, -0.25) edge[->] (4, 0.5)
+                        (2, -0.75) edge[->] (4, -1.5);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Examples for Large Companies}
+                \textit{SoundCloud} performed a migration from a single "mothership" to having microservices.
+                The same microservices were used to power the public API, allowing applications previously relying on this API to continue functioning without any changes.
+                \medskip
+
+                Similarly, \textit{Amazon} migrated from a single datacenter with everything in one Java application, to thousands of fine grained services.
+                Over the course of 10 years, no services have direct access with each other, and must communicate over APIs.
+            \subsubsection*{Network Connections}
+                While we can interact with services by directly making connections over sockets, it's often undesirable.
+                Instead, we can use the Web, which has standardised protocols (and infrastructure), and applications generally follow a similar structure, thus allowing us to use existing libraries to perform these connections.
+            \subsubsection*{Representational Stat Transfer (REST)}
+                The idea is that this uses everything the web has to offer, which use the methods provided by HTTP, as well as the status codes.
+                This means that some behaviour doesn't have to be manually written, as we have conventions for dealing with cases (such as error codes).
+                \medskip
+
+                Typically, data is transferred in formats such as \textbf{XML} (less popular), or \textbf{JSON}.
+                These are fairly human-readable, but can also be quite easily parsed with standard libraries.
+                JSON requires the entire string to be loaded into the document for it to be processed, whereas XML is better for larger messages since it can be read in a stream.
+            \subsubsection*{Clients}
+                If a page in a browser was dynamically updating from a data source, it doesn't make sense for it to redraw components that haven't changed.
+                Therefore, we can pull from a feed of data which is much lighter than rendering the entire page again.
+                An example of this is performing AJAX (Asynchronous JavaScript And XML), using \textit{jQuery}.
+                \medskip
+
+                On the other hand, a web request can be made from any source, not just a web client.
+                This allows services to use other services.
+                Typically, we'd want to wrap this functionality, to abstract away from the complexity of networking.
+            \subsubsection*{Example}
+                An example of this, using the \textit{Spring} framework in Java, is as follows;
+                \begin{lstlisting}
+                    ... // importing Spring etc
+
+                    @RestController
+                    public class GreetingController {
+
+                      private static final String template = "Hello, %s!";
+                      private final AtomicLong counter = new AtomicLong();
+
+                      @RequestMapping("/greeting")
+                      public Greeting greeting(@RequestParam(value="name", defaultValue="World") String name) {
+                        return new Greeting(counter.increment.andGet(),
+                                            String.format(template, name));
+                      }
+                    }
+                \end{lstlisting}
+                The Java ~Greeting~ object is then converted into JSON, when displayed to the web client.
+                Instead of manually specifying the parameter, as ~?name=everyone~, we can use path variables;
+                \begin{lstlisting}
+                    ... // importing Spring etc
+
+                    @RestController
+                    public class GreetingController {
+                      ...
+
+                      @RequestMapping("/greeting/{name}")
+                      public Greeting greeting(@PathVariable(value="name") String name) {
+                        return new Greeting(counter.increment.andGet(),
+                                            String.format(template, name));
+                      }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Richardson Maturity Model}
+                We can score how well an API uses the web, based on how well it uses what is available (Hypermedia, HTTP, URI);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Level 0}
+                        \medskip
+
+                        This service has a single URI, and we typically encode the request in the body of the request (which is done with HTTP POST) - this doesn't use different HTTP methods, and has a single URI.
+                        An example is SOAP.
+                    \item \textbf{Level 1}
+                        \medskip
+
+                        This has many URIs (representing different resources), but this typically uses HTTP GET - however GET typically shouldn't have a side effect on the server.
+                    \item \textbf{Level 2}
+                        \medskip
+
+                        Similarly, this has many URIs.
+                        However, it uses four HTTP verbs for CRUD (Create, Read, Update, Delete), to perform different actions;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item POST \hfill create
+                            \item GET \hfill read
+                            \item PUT \hfill update (modify)
+                            \item DELETE \hfill delete
+                            This also uses HTTP status codes, which informs the user what it does.
+                        \end{itemize}
+                    \item \textbf{Level 3}
+                        \medskip
+
+                        Similar to the previous level, but the resource representations contain links, and the client can follow those links.
+                        This is used for REST.
+                \end{itemize}
 \end{document}
