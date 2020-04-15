@@ -2421,4 +2421,119 @@
                         Similar to the previous level, but the resource representations contain links, and the client can follow those links.
                         This is used for REST.
                 \end{itemize}
+        \subsection*{26th November 2019}
+            \subsubsection*{Diagram for Previous Exercise}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}[shift={(0, 0)}, violet]
+                            \node at (1.5, -1) {\shortstack{unit\\test}};
+                            \draw (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(4, -3)}, violet]
+                            \node at (1.5, -1) {\shortstack{mock\\temperature\\service}};
+                            \draw (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(8, -3)}, violet]
+                            \node at (1.5, -1) {\shortstack{integration\\test}};
+                            \draw (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(4, 0)}]
+                            \node at (1.5, -1) {\shortstack{caching\\temperature\\service\\\red{(proxy)}}};
+                            \draw (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(8, 0)}]
+                            \node at (1.5, -1) {\shortstack{W.D.C.\\temperature\\service\\\red{(adapter)}}};
+                            \draw (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(6, 3)}]
+                            \node at (1.5, -1) {\shortstack{temperature\\service\\\red{(interface)}}};
+                            \draw (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(13, -0.5)}]
+                            \node at (1.5, -0.5) {\shortstack{~com.weather~\\~Forecaster~}};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \node[red] at (14.5, 2) {\shortstack{third party\\APIs}};
+                        \begin{scope}[shift={(13, -2)}]
+                            \node at (1.5, -0.5) {\shortstack{~com.weather~\\~Region~}};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(13, -3.5)}]
+                            \node at (1.5, -0.5) {\shortstack{~com.weather~\\~Day~}};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \draw[violet]
+                        (3, -1) edge[->] (4, -1)
+                        (1.5, -2) edge[->] (4, -4)
+                        (7, -1.5) -- (7.5, -1.5) -- (7.5, -4)
+                        (7.5, -4) edge[->] (7, -4)
+                        (9.5, -3) edge[->] (9.5, -2);
+                        \draw
+                        (7, -1) edge[->] (8, -1)
+                        (11, -1) edge[->] (13, -1)
+                        (11, -1.25) edge[->] (13, -2.5)
+                        (11, -1.5) edge[->] (13, -4)
+                        (5.5, 0) -- (5.5, 0.5) -- (9.5, 0.5) -- (9.5, 0)
+                        (7.5, 0.5) edge[->, blue] (7.5, 1)
+                        (12, -5) edge[red, dashed] (12, 3);
+                    \end{tikzpicture}
+                \end{center}
+                Additionally, to test for changes that rely on time, we create a new interface for clocks, which allows us to modify the time.
+                This interface should provide the required functionality when used with a standard clock.
+            \subsubsection*{Continuous Delivery and Agile Methods}
+                Note that as we progress down the waterfall model, the cost of change increases;
+                \begin{itemize}
+                    \itemsep0em
+                    \item requirements \hfill cheapest here (don't implement something broken)
+                    \item design
+                    \item coding \hfill slightly expensive (change parts of code)
+                    \item testing
+                    \item deployment
+                    \item released \hfill most expensive (rewrite significant amount of code, and re-releasing software)
+                \end{itemize}
+                Instead of doing this once, it should be done iteratively, and quickly.
+                This allows for issues to be raised early on, as well as increasing the amount of money available (instead of spending a significant amount, and then having the profit at the end).
+                \medskip
+
+                The manifesto for agile development is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item individuals and interaction \hfill over processes and tools
+                        \medskip
+
+                        Communicating and agreeing on something is preferable to following a rigorous process.
+                    \item working software \hfill over comprehensive documentation
+                        \medskip
+
+                        A piece of software that works, with no documentation, is better than having comprehensive documentation for something that doesn't yet exist.
+                    \item customer collaboration \hfill over contract negotiation
+                        \medskip
+
+                        Continuously asking the customer what needs to be done is preferred over having a large specification in a contract.
+                    \item responding to change \hfill over following a plan
+                        \medskip
+
+                        The ability to modify the software is more important than following a strict plan.
+                \end{itemize}
+                The main "flavours" are;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{scrum} \hfill easy to do
+                        \medskip
+
+                        Divide your work into sprints of 30 days, to 2 weeks.
+                        Specific roles for customer interaction, and "scrum master".
+                        Daily meetings should be carried out.
+                        General project management process (not specific to software development).
+                    \item \textbf{extreme programming}
+                        \medskip
+
+                        Concerns both programming (includes "ruthless refactoring", pair programming, TDD, and continuous integration), as well as general project management.
+                    \item \textbf{kanban}
+                        \medskip
+
+                        Originally by \textit{Toyota}.
+                        Eliminating waste, such as rewriting code, or waiting for tests to be written.
+                        Shortest time from idea to production.
+                \end{itemize}
 \end{document}
