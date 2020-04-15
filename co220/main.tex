@@ -2536,4 +2536,119 @@
                         Eliminating waste, such as rewriting code, or waiting for tests to be written.
                         Shortest time from idea to production.
                 \end{itemize}
+        \subsection*{29th November 2019}
+            \subsubsection*{Continuous Integration}
+                An issue that may have been encountered is performing the iterations only within the team, and not releasing to the user frequently.
+                Ideally, we'd like to release it once it is in a ready state.
+                \medskip
+
+                Continuous integration is the idea that a branch should (ideally) be integrated into ~master~ once a day (if possible), otherwise it may cause issues with other branches as they diverge.
+                A machine (can be a free cloud service) should build the ~HEAD~ of ~master~ once something is merged in, ensuring that it works (on a clean machine).
+                If the continuous integration is red, nothing more should be changed, as the codebase is broken.
+                \medskip
+
+                An automated test should perform all of the steps below (the pipeline) in one command ("one button build"), and stop as soon as any step fails.
+                Build tools which assist this include \textit{Gradle}, \textit{Maven}, \textit{Ant}, \textit{Rake}, \textit{Scons}, \textit{MSBuild}, etc.
+                \begin{itemize}
+                    \itemsep0em
+                    \item compile
+                    \item run unit tests
+                    \item run other tests / checks \hfill system / integration tests, or style checks
+                    \item package for release \hfill build an installer, or copied to a server
+                \end{itemize}
+                We want to stop the pipeline if anything fails, as we want fast feedback (longer tests such as system tests shouldn't be run if the unit tests are broken), and we also don't want to package broken code.
+                \medskip
+
+                The CI server runs a build and test after something is pushed to the repository.
+                Tests can also be more time consuming, and it makes more sense to run it on a separate machine from the development machine.
+                Tools for servers exist, such as \textit{Jenkins}.
+                \medskip
+
+                If we wanted to test on multiple platforms (or run test in parallel), we need multiple \textbf{build agents}, which is then coordinated by the CI server.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (1.5, -0.5) {\shortstack{A's\\working copy}};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(4, 0)}]
+                            \node at (1.5, -0.5) {\shortstack{B's\\working copy}};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(8, 0)}]
+                            \node at (1.5, -0.5) {\shortstack{C's\\working copy}};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(4, 2)}]
+                            \node at (1.5, -0.5) {repository};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(4, 4)}]
+                            \node at (1.5, -0.5) {\shortstack{CI server\\\tiny{coordinate}}};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(10, 4)}]
+                            \node at (1.5, -0.5) {\shortstack{build agent\\\tiny{build + test}}};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(10, 2)}]
+                            \node at (1.5, -0.5) {\shortstack{build agent\\\tiny{build + test}}};
+                            \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \end{scope}
+                        \draw
+                        (1.5, 0) edge[<->] (5, 1)
+                        (5.5, 0) edge[<->] (5.5, 1)
+                        (9.5, 0) edge[<-] (6, 1)
+                        (5.5, 2) edge[->] (5.5, 3)
+                        (7, 3.5) edge[<->, dashed] (10, 3.5)
+                        (7, 3.25) edge[<->, dashed] (10, 1.5);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Continuous Delivery}
+                We want to be able to release software whenever, not just when we assume customers aren't using it (weekends or nights).
+                Ideally, we'd also do smaller builds, which allows us to roll back a change easily if a feature is broken, since it is likely that the bug was caused by what was changed in that build.
+                \medskip
+
+                After a build passes the pipeline, such that it becomes a release candidate, we should proceed to a stage called \textbf{user acceptance testing} (or \textbf{business acceptance testing}) - where whoever requested the change / feature should accept it (for example, if we built something correct but not what the user wanted).
+                If it is accepted, then it can be released in production (\textbf{promotion of good builds}).
+                Note that none of the code here is changed, as we never want to change code before all of this succeeds (don't fix in production).
+                \medskip
+
+                This promotion of good builds should also be done in environments that represent what the production environment will be in;
+                \begin{center}
+                    \begin{tikzpicture}[x=1.1cm, y=1.1cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \draw[fill=white] (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \node at (1, -0.5) {local};
+                        \end{scope}
+                        \begin{scope}[shift={(2, 1.5)}]
+                            \draw[fill=white] (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \node at (1, -0.5) {integration};
+                        \end{scope}
+                        \begin{scope}[shift={(4, 3)}]
+                            \foreach \o in {1} {
+                                \draw[fill=white] (0 + 0.125*\o, 0 - 0.125*\o) -- (2 + 0.125*\o, 0 - 0.125*\o) -- (2 + 0.125*\o, -1 - 0.125*\o) -- (0 + 0.125*\o, -1 - 0.125*\o) -- cycle;
+                            }
+                            \draw[fill=white] (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \node at (1, -0.5) {UAT};
+                        \end{scope}
+                        \begin{scope}[shift={(6, 4.5)}]
+                            \foreach \o in {3,...,1} {
+                                \draw[fill=white] (0 + 0.125*\o, 0 - 0.125*\o) -- (2 + 0.125*\o, 0 - 0.125*\o) -- (2 + 0.125*\o, -1 - 0.125*\o) -- (0 + 0.125*\o, -1 - 0.125*\o) -- cycle;
+                            }
+                            \draw[fill=white] (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \node at (1, -0.5) {production};
+                        \end{scope}
+                        \foreach \i in {0,...,2} {
+                            \draw (1 + 2*\i, 1.5*\i) edge[->, bend left=45] (2 + 2*\i, 1 + 1.5*\i);
+                        }
+                    \end{tikzpicture}
+                \end{center}
+                Note that "integration" runs the production OS (with the same configuration and packages), and "UAT" runs a production-like cluster (small number of servers, mirroring network for production).
+                \medskip
+
+                The smallest slice of an application should be released to production in an early iteration, which is called the \textbf{walking skeleton}.
+                \medskip
+
+                It's worth investing a day at the start of a project in configuring a pipeline, as it serves as a useful guide.
 \end{document}
