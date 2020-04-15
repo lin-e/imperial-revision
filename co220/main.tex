@@ -1862,4 +1862,221 @@
                       }
                     }
                 \end{lstlisting}
+        \subsection*{15th November 2019}
+            \subsubsection*{Presentation-Abstraction-Control}
+                This is used by \textit{React}.
+                This has multiple MVCs, each group of which is called an \textbf{agent} - which is useful for hierarchical, widget-based UIs.
+                Each agent handles one part of the UI, and they are organised in a tree, with the root agent handling the largest part.
+                \medskip
+
+                The rule is that the controllers can communicate with the controller of its direct parent, or any of its own children.
+                For example - if the entire window is changed, then the highest-level agent will inform its children, and so on.
+                However, if only a small bit is changed (such as changing tabs), only that portion will need to be informed of a change.
+            \subsubsection*{Event Bus}
+                However, PAC has a drawback when we are trying to notify something else in the tree, that isn't directly related as it would have to go all the way up the tree, and then back down.
+                The event bus has a broadcast channel which allows an agent to inform all others of a change.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (-6.5, -1) {\shortstack{broadcast\\channel}};
+                        \draw
+                        (-2.5, -1) edge[->] (-4.5, -1)
+                        (-4.5, -1.5) edge[->] (-2.5, -1.5)
+                        (-2.5, -6) edge[->] (-4.5, -6)
+                        (-4.5, -6.5) edge[->] (-2.5, -6.5);
+                        \draw (-8, 0) -- (-5, 0) -- (-5, -7.5) -- (-8, -7.5) -- cycle;
+                        \begin{scope}[shift={(0, 0)}]
+                            \node[anchor=north west] at (-1.75, 0.25) {agent};
+                            \draw (-2, 0.5) -- (4, 0.5) -- (4, -3) -- (-2, -3) -- cycle;
+                            \begin{scope}[shift={(0, 0)}]
+                                \node at (1, -0.5) {controller};
+                                \draw (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \end{scope}
+                            \begin{scope}[shift={(-1.5, -1.5)}]
+                                \node at (1, -0.5) {controller};
+                                \draw (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \end{scope}
+                            \begin{scope}[shift={(1.5, -1.5)}]
+                                \node at (1, -0.5) {controller};
+                                \draw (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \end{scope}
+                            \draw
+                            (0.5, -1) edge[->] (-0.5, -1.5)
+                            (1.5, -1) edge[->] (2.5, -1.5);
+                        \end{scope}
+                        \begin{scope}[shift={(0, -5)}]
+                            \node[anchor=north west] at (-1.75, 0.25) {agent};
+                            \draw (-2, 0.5) -- (4, 0.5) -- (4, -3) -- (-2, -3) -- cycle;
+                            \begin{scope}[shift={(0, 0)}]
+                                \node at (1, -0.5) {controller};
+                                \draw (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \end{scope}
+                            \begin{scope}[shift={(-1.5, -1.5)}]
+                                \node at (1, -0.5) {controller};
+                                \draw (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \end{scope}
+                            \begin{scope}[shift={(1.5, -1.5)}]
+                                \node at (1, -0.5) {controller};
+                                \draw (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \end{scope}
+                            \draw
+                            (0.5, -1) edge[->] (-0.5, -1.5)
+                            (1.5, -1) edge[->] (2.5, -1.5);
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Testing Interactive Applications}
+                We need to ensure that the entire system works together, with full system tests.
+                The system test should call a driver, which then interacts with the interactive application.
+                \begin{lstlisting}
+                    public class CalculatorGuiTest {
+
+                      CalculatorDriver calculatorUI;
+
+                      @Before
+                      public void runTheApplication() {
+                        new Calculator();
+                        calculatorUI = new CalculatorDriver();
+                      }
+
+                      @After
+                      public void stopTheApplication() {
+                        calculatorUI.dispose();
+                      }
+
+                      @Test
+                      public void canAddTwoNumbers() {
+                        calculatorUI.clickDigitButton(1);
+                        calculatorUI.clickDigitButton(2);
+                        calculatorUI.clickAddButton();
+                        calculatorUI.shouldDisplay("3");
+                      }
+
+                      @Test
+                      public void canSubtractTwoNumbers() {
+                        calculatorUI.clickDigitButton(4);
+                        calculatorUI.clickDigitButton(3);
+                        calculatorUI.clickMinusButton();
+                        calculatorUI.shouldDisplay("1");
+                      }
+                    }
+                \end{lstlisting}
+                For the driver to work, names need to be added to the UI components, which do not show up, but allow for us to differentiate between them.
+                This is done with ~button.setName("button" + i)~, for example.
+                The driver is implemented as follows;
+                \begin{lstlisting}
+                    public class CalculatorDriver extends JFrameDriver {
+
+                      public CalculatorDriver() {
+                        ... // a very long super(...)
+                      }
+
+                      public void shouldDisplay(String expectedResult) {
+                        display().hasText(equalTo(expectedResult));
+                      }
+
+                      public void clickDigitButton(int digit) {
+                        button(String.valueOf(digit)).click();
+                      }
+
+                      public void clickAddButton() {
+                        button("+").click();
+                      }
+
+                      public void clickMinusButton() {
+                        button("-").click();
+                      }
+
+                      private JTextFieldDriver display() {
+                        return new JTextFieldDriver(this, JTextField.class, ComponentDriver.named(CalculatorGui.DISPLAY));
+                      }
+
+                      private JButtonDriver button(String name) {
+                        return new JButtonDriver(this, JButton.class, ComponentDriver.named("button" + name));
+                      }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Web Application}
+                The model can be used directly, without any modification (MVC).
+                The controller also has to handles parameters from the request (such as ~?q=foobar~), and so on.
+                However, the view also has to give a HTTP response back to the browser, with the content rendered.
+                \begin{lstlisting}
+                    ...
+
+                    public class WebServer {
+
+                      public WebServer() throws Exception {
+
+                        Server server = new Server(serverPort());
+
+                        ServletHandler handler = new ServletHandler();
+                        handler.addServletWithMapping(new ServletHolder(new CalculatorPageController()), "/*");
+                        server.sendHandler(handler);
+
+                        server.start();
+                      }
+
+                      private int ServerPort() {
+                        String port = System.getenv("PORT");
+                        return port == null ? 5000 : Integer.parseInt(port);
+                      }
+
+                      public static void main(String[] args) throws Exception {
+                        new WebServer();
+                      }
+                    }
+                \end{lstlisting}
+                The ~CalculatorPageController~ has the following code;
+                \begin{lstlisting}
+                    ...
+
+                    public class CalculatorPageController extends HttpServlet {
+
+                      private final RpnQueryProcessor queryProcessor = new RpnQueryProcessor();
+
+                      @Override
+                      protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+                        if (req.getParameter("q") == null) {
+                          new IndexPage().writeTo(resp);
+                        } else {
+                          new ResultsPage(queryProcessor.process(req.getParamter("q"))).writeTo(resp);
+                        }
+                      }
+                    }
+                \end{lstlisting}
+                The view in this case is just the ~ResultsPage~, which takes the response and puts it into a HTML template, which is sent back to the browser.
+                The model can be tested in the same way.
+                \medskip
+
+                This can be tested by another driver, such as \textit{Selenium WebDriver}, which acts as a user interacting with the page.
+                \begin{lstlisting}
+                    public class SeleniumTest {
+
+                      @Test
+                      public void canSubmitCalculationAndSeeResults() throws Exception {
+
+                        System.setProperty(...);
+                        WebDriver driver = new ChromeDriver();
+
+                        WebElement inputBox = driver.findElement(By.name("q"));
+
+                        inputBox.sendKeys("5 7 +");
+                        inputBox.submit();
+
+                        String resultsText = driver.findElement(By.id("results")).getText();
+                        assertThat(resultsText, is("12"));
+
+                        driver.quit();
+                      }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Deploying to Heroku}
+                This is basically free for small scale projects, and allows the application to be deployed.
+                \begin{lstlisting}
+                    $\dollar$ heroku login
+                    $\dollar$ cd /path/to/root/directory/
+                    $\dollar$ heroku create
+                \end{lstlisting}
+                Doing this gives a URL, and a repository - when it is pushed, it is built.
+                A ~Procfile~ is added, which tells the service how to initialise the application.
+                This allows for the \textit{Selenium} tests to be run on a production server.
 \end{document}
