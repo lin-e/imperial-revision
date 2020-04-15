@@ -2079,4 +2079,225 @@
                 Doing this gives a URL, and a repository - when it is pushed, it is built.
                 A ~Procfile~ is added, which tells the service how to initialise the application.
                 This allows for the \textit{Selenium} tests to be run on a production server.
+        \subsection*{19th November 2019}
+            \subsubsection*{Integrating Existing Components}
+                While we can use external libraries, and connect them, it's not purely sticking them together, as we still need to write logic to drive them.
+                However, we still have third party, and open source libraries that are available for us to use, such as UI frameworks, reducing the amount of work we have to do.
+                \medskip
+
+                We may also have components that need to be integrated from other organisations, or within the same organisation (written by other teams).
+                For this to work well, we need a few design patterns.
+            \subsubsection*{Adapter Pattern}
+                \begin{center}
+                    \textit{"I have an $X$, but I need a $Y$"}
+                \end{center}
+                It does the right thing (has the right functionality), but doesn't the right interface to plug into our application.
+                We don't want to rewrite this, as it works, and we don't want to change our interface.
+                Changing our interface can lead to polluting our codebase with methods from other libraries.
+                \medskip
+
+                This converts the interface of a class into another interface clients expect - if it cannot be changed, we create a wrapper.
+                Delegate as much as possible to the working component.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm, y=0.75cm]
+                        \begin{scope}[shift={(0, 4)}]
+                            \node at (2, -0.5) {~Service~};
+                            \node at (2, -2) {~request()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (2, -0.5) {~Adapter~};
+                            \node at (2, -2) {\shortstack[l]{~service:Adaptee~\\~request()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(-5, 0)}]
+                            \node at (2, -0.5) {~Client~};
+                            \node at (2, -2) {\shortstack[l]{~service:Service~\\~doSomething()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(5, 0)}]
+                            \node at (2, -0.5) {~Adaptee~};
+                            \node at (2, -2) {~performAction()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \draw
+                        (-1, -1.5) edge[->] (0, -1.5)
+                        (4, -1.5) edge[->] (5, -1.5)
+                        (2, 0) edge[->, blue] (2, 1);
+                    \end{tikzpicture}
+                \end{center}
+                The ~Adaptee~ has the correct behaviour, but does not have the correct interface.
+                The ~Adapter~ implements the ~Service~ interface, which the ~Client~ has a field for.
+                \medskip
+
+                An example is as follows (~ThirdPartyFileLogger~ is the ~Adaptee~, ~FileLogger~ is the ~Adapter~, and ~Logger~ is the ~Service~);
+                \begin{lstlisting}
+                    ...
+
+                    import third.party.ThirdPartyFileLogger;
+
+                    public class FileLogger implements Logger {
+
+                      private final ThirdPartyFileLogger logger;
+
+                      public FileLogger(String filename) {
+                        this.logger = new ThirdPartyFileLogger(filename);
+                      }
+
+                      @Override
+                      public void log(String message) {
+                        logger.info(new LogMessage(message));
+                      }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Decorator Pattern}
+                \begin{center}
+                    \textit{"I have an $X$, but I want a better $X$"}
+                \end{center}
+                This is the case where we have something we want, and has the correct behaviour, but we want it to do more.
+                This adds functionality or responsibility to an object dynamically, by wrapping an existing object.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm, y=0.75cm]
+                        \begin{scope}[shift={(2.5, 5)}]
+                            \node at (2, -0.5) {~Service~};
+                            \node at (2, -2) {~request()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (2, -0.5) {~Decorator~};
+                            \node at (2, -2) {\shortstack[l]{~service:Service~\\~request()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(-5, 0)}]
+                            \node at (2, -0.5) {~Client~};
+                            \node at (2, -2) {\shortstack[l]{~service:Service~\\~doSomething()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(5, 0)}]
+                            \node at (2, -0.5) {~BasicService~};
+                            \node at (2, -2) {~request()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \draw
+                        (-1, -1.5) edge[->] (0, -1.5)
+                        (4, -1.5) edge[->] (5, -1.5)
+                        (2, 0) -- (2, 1) -- (7, 1) -- (7, 0)
+                        (4.5, 1) edge[->, blue] (4.5, 2);
+                    \end{tikzpicture}
+                \end{center}
+                Note that the ~Decorator~ and ~BasicService~ both have the same interface ~Service~.
+                For example, using the same example as above, we want to add timestamps before each message;
+                \begin{lstlisting}
+                    ...
+
+                    import java.time.LocalTime;
+
+                    public class TimeStampedLogger implements Logger {
+
+                      private final Logger logger;
+
+                      public TimeStampedLogger(Logger logger) {
+                        this.logger = logger;
+                      }
+
+                      @Override
+                      public void log(String message) {
+                        logger.log(LocalTime.now().toString() + " : " + message);
+                      }
+                    }
+                \end{lstlisting}
+                This gives us additional flexibility, as we can choose not to use the decorator if we don't need it, since they implement the same interface.
+            \subsubsection*{Facade Pattern}
+                \begin{center}
+                    \textit{"I have an $X$, but I want a simpler $X$"}
+                \end{center}
+                This is the case where we have working code, but it has complexity we want to hide away.
+                A lesser-known variation is the \textbf{simplicator pattern} which allows our application to interact with the complicated system through the simplicator.
+            \subsubsection*{Proxy Pattern}
+                \begin{center}
+                    \textit{"I have an $X$, but it's too slow"}
+                \end{center}
+                I have something that does the correct thing, but it takes too long to do it.
+                We want a way to speed up access to this resource - by delegation (and sometimes preventing delegation).
+                This controls access to an object by providing a placeholder or surrogate object.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm, y=0.75cm]
+                        \begin{scope}[shift={(2.5, 5)}]
+                            \node at (2, -0.5) {~Service~};
+                            \node at (2, -2) {~request()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (2, -0.5) {~ProxyService~};
+                            \node at (2, -2) {\shortstack[l]{~service:Service~\\~request()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(-5, 0)}]
+                            \node at (2, -0.5) {~Client~};
+                            \node at (2, -2) {\shortstack[l]{~service:Service~\\~doSomething()~}};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \begin{scope}[shift={(5, 0)}]
+                            \node at (2, -0.5) {~RealService~};
+                            \node at (2, -2) {~request()~};
+                            \draw
+                            (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle
+                            (0, -1) -- (4, -1);
+                        \end{scope}
+                        \draw
+                        (-1, -1.5) edge[->] (0, -1.5)
+                        (4, -1.5) edge[dashed, ->] (5, -1.5)
+                        (2, 0) -- (2, 1) -- (7, 1) -- (7, 0)
+                        (4.5, 1) edge[->, blue] (4.5, 2);
+                    \end{tikzpicture}
+                \end{center}
+                The ~ProxyService~ can control access (preventing some users from using it), as well as caching it (a caching proxy).
+                The proxy can store a ~Map~, containing queries and their recorded results, thus reducing the number of calls needed to the expensive (time, or actual cost) service (which may be an external web API).
+                If we are caching, we should ensure that this data does not become stale or outdated.
+                \medskip
+
+                This design pattern is useful especially in the case of using a remote service, as we want to hide away the complexity of performing network requests from the client.
+            \subsubsection*{Hexagonal Architectures}
+                We typically think about the structure of a system as a series of layers, with a UI at the top, and a database at the bottom.
+                We should think of it similar to an onion.
+                The modules in the core should not depend on any particular external objects.
+                This also allows us to test much quicker, as we can purely run unit tests within the core.
+                \medskip
+
+                The hexagonal (ports and adapters) architecture adds a layer (the adapter layer) in between the core and any external sources.
+                For example, changing a database should be easily done, without changing the core code, by just changing the adapter.
+                This also helps to reduce pollution from one codebase to another.
+                For example, if an external service gave results back in an XML format, and that was used throughout, then a coupling is formed with the service.
+                \medskip
+
+                Pure unit tests can be done for the core (which should be as large as possible), using mock objects for the external objects.
+                An integration test generally tests code that is written by you, with code that isn't written by you.
+                For example, testing an adapter with an external service.
+                Finally, full system tests are used to ensure the entire system works together.
+                Typically these are the slowest tests (unit tests are the fastest), hence there should be fewer of these.
+                \medskip
+
+                Testing more in the middle (unit tests) allows for faster feedback.
 \end{document}
