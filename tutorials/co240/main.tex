@@ -199,7 +199,7 @@
         \subsection*{Tutorial 1 - Expressions}
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item d
+                \item
                     Consider the \textbf{big-step} operational semantics for the language \textit{SimpleExp} given in the lectures.
                     Find a number $n$ such that
                     \begin{center}
@@ -576,5 +576,228 @@
 
                             Yes, the rule allows for different evaluation order, but doesn't change the result of the evaluation.
                     \end{enumerate}
+            \end{enumerate}
+        \subsection*{Tutorial 2 - State}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item
+                    Consider the small-step operation semantics of the language \textit{While}.
+                    Write down all of the evaluation steps of the program $(z := x; x := y); y := z$, with the initial state $s = (x \mapsto 5, y \mapsto 7)$.
+                    Give the full derivation tree for the first step in this evaluation.
+                    \begin{center}
+                                        \axiom{}
+                                    \llabel{(W-EXP.VAR)}
+                                    \unary{$\la x, (x \mapsto 5, y \mapsto 7) \ra \to_e \la 5, (x \mapsto 5, y \mapsto 7) \ra$}
+                                \llabel{(W-ASS.EXP)}
+                                \unary{$\la z := x, (x \mapsto 5, y \mapsto 7) \ra \to_c \la z := 5, (x \mapsto 5, y \mapsto 7) \ra$}
+                            \llabel{(W-SEQ.LEFT)}
+                            \unary{$\la z := x; x := y, (x \mapsto 5, y \mapsto 7) \ra \to_c \la z := 5; x := y, (x \mapsto 5, y \mapsto 7) \ra$}
+                        \llabel{(W-SEQ.LEFT)}
+                        \unary{$\la (z := x; x := y); y := z, (x \mapsto 5, y \mapsto 7) \ra \to_c \la (z := 5; x := y); y := z, (x \mapsto 5, y \mapsto 7) \ra$}
+                        \dproof
+                    \end{center}
+                    All of the steps are as follows;
+                    \begin{align*}
+                        & \la (z := x; x := y); y := z, (x \mapsto 5, y \mapsto 7) \ra \\
+                        \to_c\ & \la (z := 5; x := y); y := z, (x \mapsto 5, y \mapsto 7) \ra \\
+                        \to_c\ & \la (~skip~; x := y); y := z, (x \mapsto 5, y \mapsto 7, z \mapsto 5) \ra \\
+                        \to_c\ & \la x := y; y := z, (x \mapsto 5, y \mapsto 7, z \mapsto 5) \ra \\
+                        \to_c\ & \la x := 7; y := z, (x \mapsto 5, y \mapsto 7, z \mapsto 5) \ra \\
+                        \to_c\ & \la ~skip~; y := z, (x \mapsto 7, y \mapsto 7, z \mapsto 5) \ra \\
+                        \to_c\ & \la y := z, (x \mapsto 7, y \mapsto 7, z \mapsto 5) \ra \\
+                        \to_c\ & \la y := 5, (x \mapsto 7, y \mapsto 7, z \mapsto 5) \ra \\
+                        \to_c\ & \la ~skip~, (x \mapsto 7, y \mapsto 5, z \mapsto 5) \ra
+                    \end{align*}
+                \item
+                    Consider the small-step operational semantics of the language \textit{While}.
+                    Write down all of the evaluation steps of the program (given the initial state $s = (x \mapsto 1)$)
+                    \begin{center}
+                        $\violet{(\text{let } W =)}\ ~while ~ x < 4 ~ do ~ x := x + 2$
+                    \end{center}
+                    Give full derivation trees for the first four steps.
+                    \begin{center}
+                            \axiom{}
+                        \llabel{1}
+                        \unary{$\la ~while ~ x < 4 ~ do ~ x := x + 2, (x \mapsto 1) \ra \to_c\ \la ~if ~ x < 4 ~ then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 1) \ra$}
+                        \dproof
+                        \medskip
+
+                                    \axiom{}
+                                \llabel{(W-EXP.VAR)}
+                                \unary{$\la x, (x \mapsto 1) \ra \to_e \la 1, (x \mapsto 1) \ra$}
+                            \llabel{(W-BEXP.LEFT)}
+                            \unary{$\la x < 4, (x \mapsto 1) \ra \to_b \la 1 < 4, (x \mapsto 1) \ra$}
+                        \llabel{2}
+                        \unary{$\la ~while ~ x < 4 ~ do ~ x := x + 2, (x \mapsto 1) \ra \to_c\ \la ~if ~ 1 < 4 ~ then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 1) \ra$}
+                        \dproof
+                        \medskip
+
+                                \axiom{}
+                            \llabel{(W-BEXP.LT)}
+                            \unary{$\la 1 < 4, (x \mapsto 1) \ra \to_b \la ~true~, (x \mapsto 1) \ra$}
+                        \llabel{2}
+                        \unary{$\la ~while ~ x < 4 ~ do ~ x := x + 2, (x \mapsto 1) \ra \to_c\ \la ~if true then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 1) \ra$}
+                        \dproof
+                        \medskip
+
+                            \axiom{}
+                        \llabel{(W-COND.TRUE)}
+                        \unary{$\la ~if true then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 1) \ra \to_c\ \la x := x + 2; W, (x \mapsto 1) \ra$}
+                        \dproof
+                    \end{center}
+                    Note that rule 1 is {\scriptsize (W-WHILE)}, and rule 2 is {\scriptsize (W-COND.BEXP)}.
+                    The full evaluation path is as follows;
+                    \begin{align*}
+                        & \la ~while ~ x < 4 ~ do ~ x := x + 2, (x \mapsto 1) \ra \\
+                        \to_c\ & \la ~if ~ x < 4 ~ then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 1) \ra \\
+                        \to_c\ & \la ~if ~ 1 < 4 ~ then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 1) \ra \\
+                        \to_c\ & \la ~if true then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 1) \ra \\
+                        \to_c\ & \la x := x + 2; W, (x \mapsto 1) \ra \\
+                        \to_c\ & \la x := 1 + 2; W, (x \mapsto 1) \ra \\
+                        \to_c\ & \la x := 3; W, (x \mapsto 1) \ra \\
+                        \to_c\ & \la ~skip~; W, (x \mapsto 3) \ra \\
+                        \to_c\ & \la ~while ~ x < 4 ~ do ~ x := x + 2, (x \mapsto 3) \ra \\
+                        \to_c\ & \la ~if ~ x < 4 ~ then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 3) \ra \\
+                        \to_c\ & \la ~if ~ 3 < 4 ~ then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 3) \ra \\
+                        \to_c\ & \la ~if true then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 3) \ra \\
+                        \to_c\ & \la x := x + 2; W, (x \mapsto 3) \ra \\
+                        \to_c\ & \la x := 3 + 2; W, (x \mapsto 3) \ra \\
+                        \to_c\ & \la x := 5; W, (x \mapsto 3) \ra \\
+                        \to_c\ & \la ~skip~; W, (x \mapsto 5) \ra \\
+                        \to_c\ & \la ~while ~ x < 4 ~ do ~ x := x + 2, (x \mapsto 5) \ra \\
+                        \to_c\ & \la ~if ~ x < 4 ~ then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 5) \ra \\
+                        \to_c\ & \la ~if ~ 5 < 4 ~ then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 5) \ra \\
+                        \to_c\ & \la ~if false then ~ (x := x + 2; W) ~ else skip~, (x \mapsto 5) \ra \\
+                        \to_c\ & \la ~skip~, (x \mapsto 5) \ra
+                    \end{align*}
+                \item
+                    Consider adding the increment expression $x++$ to the language \textit{While}.
+                    The expression returns the value of the variable (only applied to variables) $x$ and then updates the value of $x$ to be one greater than the old value; its semantics is given by the following rule:
+                    \begin{center}
+                            \axiom{}
+                        \llabel{(W-EXP.PP)}
+                        \rlabel{$s(x) = n, n^\prime = n + 1$}
+                        \unary{$\la x++, s \ra \to_e \la n, s[x \mapsto n^\prime] \ra$}
+                        \dproof
+                    \end{center}
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Give the full execution path for the program $x := (x++) + (x++)$ from the initial state $(x \mapsto 2)$.
+                            \begin{align*}
+                                & \la x := (x++) + (x++), (x \mapsto 2) \ra \\
+                                \to_c\ & \la x := 2 + (x++), (x \mapsto 3) \ra \\
+                                \to_c\ & \la x := 2 + 3, (x \mapsto 4) \ra \\
+                                \to_c\ & \la x := 5, (x \mapsto 4) \ra \\
+                                \to_c\ & \la ~skip~, (x \mapsto 5) \ra
+                            \end{align*}
+                        \item Given an operational semantics rule for $++x$, which increments $x$ and then returns the result.
+                            \begin{center}
+                                    \axiom{}
+                                \llabel{(W-EXP.PP)}
+                                \rlabel{$s(x) = n, n^\prime = n + 1$}
+                                \unary{$\la ++x, s \ra \to_e \la n^\prime, s[x \mapsto n^\prime] \ra$}
+                                \dproof
+                            \end{center}
+                    \end{enumerate}
+                \item
+                    Consider what happens if we add a 'side-effecting expression' of the form
+                    \begin{center}
+                        $~do ~ C ~ return ~ E$
+                    \end{center}
+                    This runs first runs the command $C$, and returns the value of $E$.
+                    \begin{center}
+                        \hfill
+                            \axiom{$\la C, s \ra \to_c \la C^\prime, s^\prime \ra$}
+                        \unary{$\la ~do ~ C ~ return ~ E, s \ra \to_e \la ~do ~ C^\prime ~ return ~ E, s^\prime \ra$}
+                        \dproof
+                        \hfill
+                            \axiom{}
+                        \unary{$\la ~do skip return ~ E, s \ra \to_e \la E, s \ra$}
+                        \dproof
+                        \hfill \phantom{}
+                    \end{center}
+                \item
+                    Consider the \textit{While} language extend with parallel composition of commands: $C \concsep C$.
+                    The semantics of parallel composition is given by interleaving the execution steps of the two composed commands in an arbitrary fashion.
+                    This is expressed formally as;
+                    \begin{center}
+                        \hfill
+                            \axiom{$\la C_1, s \ra \to_c \la C_1^\prime, s^\prime \ra$}
+                        \unary{$\la C_1 \concsep C_2, s \ra \to_c \la C_1^\prime \concsep C_2, s^\prime \ra$}
+                        \dproof
+                        \hfill
+                            \axiom{$\la C_2, s \ra \to_c \la C_2^\prime, s^\prime \ra$}
+                        \unary{$\la C_1 \concsep C_2, s \ra \to_c \la C_1 \concsep C_2^\prime, s^\prime \ra$}
+                        \dproof
+                        \hfill
+                            \axiom{}
+                        \unary{$\la ~skip~ \concsep ~skip~, s \ra \to_c \la ~skip~, s \ra$}
+                        \dproof
+                        \hfill \phantom{}
+                    \end{center}
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item
+                            Consider the command $(x := 1) \concsep (x := 2; x := (x + 2))$, run with initial state $s = (x \mapsto 0)$.
+                            How many possible final values for $x$ does this command have?
+                            \medskip
+
+                            There are 3 possible values; 1, 3, or 4.
+                        \item How many different evaluation paths exist for obtaining the final value 4?
+                            \medskip
+
+                            3 paths.
+                            I really can't be bothered to type out all of the steps.
+                            The point is the operation $x := x + 2$ is not atomic; even if we have obtained $x := 4$, we can execute $x := 1$, and then still obtain a state with $x \mapsto 4$, if the former is executed at the end.
+                        \item
+                            A useful operation in concurrency is atomic compare-and-swap.
+                            This operation is added to the \textit{While} language in the form of a new boolean expression $~CAS~(x, E, E)$.
+                            To execute the operation $~CAS~(x, E_1, E_2)$, first $E_1$ and then $E_2$ are evaluated to numbers $n_1$ and $n_2$ in the usual way.
+                            Then, \textbf{in a single step}, the operation compares the value of variable $x$ with $n_1$; if the values are equal, it updates the value of $x$ to be number $n_2$ and returns ~true~, otherwise, it simply returns ~false~.
+                            Extend the operational semantics with rules for ~CAS~ that implement this behaviour.
+                            \begin{center}
+                                    \axiom{$\la E_1, s \ra \to_e \la E_1^\prime, s^\prime \ra$}
+                                \unary{$\la ~CAS~(x, E_1, E_2), s \ra \to_b \la ~CAS~(x, E_1^\prime, E_2), s^\prime \ra$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{$\la E_2, s \ra \to_e \la E_2^\prime, s^\prime \ra$}
+                                \unary{$\la ~CAS~(x, n_1, E_2), s \ra \to_b \la ~CAS~(x, n_1, E_2^\prime), s^\prime \ra$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{}
+                                \rlabel{$s(x) = n_1$}
+                                \unary{$\la ~CAS~(x, n_1, n_2), s \ra \to_b \la ~true~, s[x \mapsto n_2] \ra$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{}
+                                \rlabel{$s(x) \neq n_1$}
+                                \unary{$\la ~CAS~(x, n_1, n_2), s \ra \to_b \la ~false~, s \ra$}
+                                \dproof
+                            \end{center}
+                    \end{enumerate}
+                \item
+                    Suppose that $\la C_1; C_2, s \ra \to_c^* \la C_2, s^\prime \ra$.
+                    Show that it is not necessarily the case that $\la C_1, s \ra \to_c^* \la ~skip~, s^\prime \ra$.
+                    \medskip
+
+                    Let there be a state $s^{\prime\prime} \neq s^\prime$, where $\la C_1, s \ra \to_c^* \la ~skip~, s^{\prime\prime} \ra$.
+                    For $\la C_1; C_2, s \ra \to_c^* \la C_2, s^\prime \ra$, we can find $C_2$ such that $\la C_2, s^{\prime\prime} \ra \to_c^* \la C_2, s^\prime \ra$.
+                    From here, we see that our foal is to find $C_2$ as something that evaluates to itself, but in a different state (hence a loop).
+                    \begin{align*}
+                        C_1 & = ~skip~ \\
+                        C_2 & = ~while true do ~ x := 1 \\
+                        s & = (x \mapsto 0)
+                    \end{align*}
+                    Executing this we have;
+                    \begin{align*}
+                        & \la ~while true do ~ x := 1, (x \mapsto 0) \ra \\
+                        \to_c\ & \la ~if true then ~ x := 1; C_2 ~ else skip~, (x \mapsto 0) \ra \\
+                        \to_c\ & \la x := 1; C_2, (x \mapsto 0) \ra \\
+                        \to_c\ & \la ~skip~; C_2, (x \mapsto 1) \ra \\
+                        \to_c\ & \la C_2, (x \mapsto 1) \ra \\
+                    \end{align*}
             \end{enumerate}
 \end{document}
