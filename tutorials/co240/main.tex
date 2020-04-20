@@ -272,5 +272,309 @@
                     How is an expression such as $(3 - 7)$ handled in your semantics?
                     Have you made any arbitrary decisions about this?
                     If so, what other options were available?
+                    \medskip
+
+                    Note that this question has multiple valid options; we can either introduce a ~NaN~ concept, representing an "invalid" operation, which has to be propagated in all rules, or we could have it be some value.
+                    The latter can lead to ambiguity, because if we had $(3 - 7) \Downarrow 0$, and also $(4 - 7) \Downarrow 0$, we may unexpected results.
+                \item Recall the \textbf{small-step} operational semantics of \textit{SimpleExp}.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item
+                            Give the full derivation of the first step of evaluation of $((1 + 2) + (4 + 3))$ - give the derivation tree of the step (for some expression $E$);
+                            \begin{center}
+                                $((1 + 2) + (4 + 3)) \to E$
+                            \end{center}
+                            For the first step, we have the following;
+                            \begin{center}
+                                        \axiom{}
+                                    \llabel{(S-ADD)}
+                                    \unary{$(1 + 2) \to 3$}
+                                \llabel{(S-LEFT)}
+                                \unary{$((1 + 2) + (4 + 3)) \to (3 + (4 + 3))$}
+                                \dproof
+                            \end{center}
+                        \item
+                            Write down all the steps of evaluation needed to reduce the above expression to 10.
+                            Give the full derivation for each of these steps.
+                            \medskip
+
+                            Note that the \textbf{evaluation path} is;
+                            \begin{center}
+                                $((1 + 2) + (4 + 3)) \to (3 + (4 + 3)) \to (3 + 7) \to 10$
+                            \end{center}
+                            The derivation tree for each step is as follows;
+                            \begin{center}
+                                        \axiom{}
+                                    \llabel{(S-ADD)}
+                                    \unary{$(4 + 3) \to 7$}
+                                \llabel{(S-RIGHT)}
+                                \unary{$(3 + (4 + 3)) \to (3 + 7)$}
+                                \dproof
+                            \end{center}
+                            Followed by;
+                            \begin{center}
+                                    \axiom{}
+                                \llabel{(S-ADD)}
+                                \unary{$(3 + 7) \to 10$}
+                                \dproof
+                            \end{center}
+                    \end{enumerate}
+                \item Here is the abstract syntax for a simple language \textit{Bool} of boolean expressions:
+                    \begin{center}
+                        $B \in \textit{Bool} ::= ~true~ \bnfsep ~false~ \bnfsep B \& B \bnfsep \neg B \bnfsep ~if ~ B ~ then ~ B ~ else ~ B$
+                    \end{center}
+                    Intuitively, every expression evaluates to either ~true~ or ~false~.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Give a \textbf{small-step} operational semantics for \textit{Bool}.
+                            \begin{center}
+                                    \axiom{$B_1 \to B_1^\prime$}
+                                \unary{$B_1 \& B_2 \to B_1^\prime \& B_2$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{$B_2 \to B_2^\prime$}
+                                \unary{$~true~ \& B_2 \to ~true~ \& B_2^\prime$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{$B_2 \to B_2^\prime$}
+                                \unary{$~false~ \& B_2 \to ~false~ \& B_2^\prime$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{}
+                                \unary{$~true~ \& ~true~ \to ~true~$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{}
+                                \unary{$~true~ \& ~false~ \to ~false~$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{}
+                                \unary{$~false~ \& ~true~ \to ~false~$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{}
+                                \unary{$~false~ \& ~false~ \to ~false~$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{$B \to B^\prime$}
+                                \unary{$\neg B \to \neg B^\prime$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{}
+                                \unary{$\neg ~true~ \to ~false~$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{}
+                                \unary{$\neg ~false~ \to ~true~$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{$B_1 \to B_1^\prime$}
+                                \unary{$~if ~ B_1 ~ then ~ B_2 ~ else ~ B_3$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{}
+                                \unary{$~if true then ~ B_2 ~ else ~ B_3 \to B_2$}
+                                \dproof
+                                \medskip
+
+                                    \axiom{}
+                                \unary{$~if false then ~ B_2 ~ else ~ B_3 \to B_3$}
+                                \dproof
+                            \end{center}
+                            Note that these are all evaluated right-to-left.
+                        \item Write down all the steps of evaluation needed to reduce the following expression to a result:
+                            \begin{align*}
+                                & \neg (~if ~ (~false~ \& ~true~) ~ then ~ (~if true then ~ (~false~ \& ~true~) ~ else false~) ~ else ~ \neg ~true~) \\
+                                \to\ & \neg (~if false then ~ (~if true then ~ (~false~ \& ~true~) ~ else false~) ~ else ~ \neg ~true~) \\
+                                \to\ & \neg (\neg ~true~) \\
+                                \to\ & \neg ~false~ \\
+                                \to\ & ~true~
+                            \end{align*}
+                    \end{enumerate}
+                \item
+                    The syntax of \textit{SimpleExp} is extended with a new operator $?$, as follows;
+                    \begin{center}
+                        $E \in \textit{SimpleExp} ::= \dots \bnfsep (E ? E)$
+                    \end{center}
+                    This operator allows the implementation to choose to give the result of $E_1$, or $E_2$, when given $E_1 ? E_2$.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Extend the \textbf{big-step} operational semantics with rules for $?$ that capture this meaning.
+                            \begin{center}
+                                \hfill
+                                    \axiom{$E_1 \Downarrow n_1$}
+                                \llabel{(B-CHOICE-1)}
+                                \unary{$E_1 ? E_2 \Downarrow n_1$}
+                                \dproof
+                                \hfill
+                                    \axiom{$E_2 \Downarrow n_2$}
+                                \llabel{(B-CHOICE-2)}
+                                \unary{$E_1 ? E_2 \Downarrow n_2$}
+                                \dproof
+                                \hfill \phantom{}
+                            \end{center}
+                        \item For what values of $n$ does $(0 ? 1) + (2 ? 3) \Downarrow n$?
+                            \begin{center}
+                                            \axiom{}
+                                        \llabel{(B-NUM)}
+                                        \unary{$0 \Downarrow 0$}
+                                    \llabel{(B-CHOICE-1)}
+                                    \unary{$(0 ? 1) \Downarrow 0$}
+                                            \axiom{}
+                                        \llabel{(B-NUM)}
+                                        \unary{$2 \Downarrow 2$}
+                                    \llabel{(B-CHOICE-1)}
+                                    \unary{$(2 ? 3) \Downarrow 2$}
+                                \llabel{(B-ADD)}
+                                \binary{$(0 ? 1) + (2 ? 3) \Downarrow 2$}
+                                \dproof
+                                \medskip
+
+                                            \axiom{}
+                                        \llabel{(B-NUM)}
+                                        \unary{$0 \Downarrow 0$}
+                                    \llabel{(B-CHOICE-1)}
+                                    \unary{$(0 ? 1) \Downarrow 0$}
+                                            \axiom{}
+                                        \llabel{(B-NUM)}
+                                        \unary{$3 \Downarrow 3$}
+                                    \llabel{(B-CHOICE-2)}
+                                    \unary{$(2 ? 3) \Downarrow 3$}
+                                \llabel{(B-ADD)}
+                                \binary{$(0 ? 1) + (2 ? 3) \Downarrow 3$}
+                                \dproof
+                                \medskip
+
+                                            \axiom{}
+                                        \llabel{(B-NUM)}
+                                        \unary{$1 \Downarrow 1$}
+                                    \llabel{(B-CHOICE-2)}
+                                    \unary{$(0 ? 1) \Downarrow 1$}
+                                            \axiom{}
+                                        \llabel{(B-NUM)}
+                                        \unary{$2 \Downarrow 2$}
+                                    \llabel{(B-CHOICE-1)}
+                                    \unary{$(2 ? 3) \Downarrow 2$}
+                                \llabel{(B-ADD)}
+                                \binary{$(0 ? 1) + (2 ? 3) \Downarrow 3$}
+                                \dproof
+                                \medskip
+
+                                            \axiom{}
+                                        \llabel{(B-NUM)}
+                                        \unary{$1 \Downarrow 1$}
+                                    \llabel{(B-CHOICE-2)}
+                                    \unary{$(0 ? 1) \Downarrow 1$}
+                                            \axiom{}
+                                        \llabel{(B-NUM)}
+                                        \unary{$3 \Downarrow 3$}
+                                    \llabel{(B-CHOICE-2)}
+                                    \unary{$(2 ? 3) \Downarrow 3$}
+                                \llabel{(B-ADD)}
+                                \binary{$(0 ? 1) + (2 ? 3) \Downarrow 4$}
+                                \dproof
+                            \end{center}
+                        \item
+                            Is the semantics deterministic?
+                            Is it total?
+                            \medskip
+
+                            It is not deterministic as we have $0 ? 1 \Downarrow 0$, as well as $0 ? 1 \Downarrow 1$ - but $0 \neq 1$.
+                            It is total as it is applies to every expression (for something to be total, we need some number $n$ for every expression $E$ such that $E \Downarrow n$).
+                    \end{enumerate}
+                \item
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Extend the \textbf{small-step} semantics for \textit{SimpleExp} to handle the $?$ operator by adding appropriate derivation rules for $\to$.
+                            \begin{center}
+                                \hfill
+                                    \axiom{}
+                                \llabel{(S-CHOICE-1)}
+                                \unary{$E_1 ? E_2 \to E_1$}
+                                \dproof
+                                \hfill
+                                    \axiom{}
+                                \llabel{(S-CHOICE-2)}
+                                \unary{$E_1 ? E_2 \to E_2$}
+                                \dproof
+                                \hfill \phantom{}
+                            \end{center}
+                        \item Give all possible derivations of the first step of evaluation of $(0 ? 1) + (2 ? 3)$.
+                            \begin{center}
+                                \hfill
+                                        \axiom{}
+                                    \llabel{(S-CHOICE-1)}
+                                    \unary{$0 ? 1 \to 0$}
+                                \llabel{(S-LEFT)}
+                                \unary{$(0 ? 1) + (2 ? 3) \to 0 + (2 ? 3)$}
+                                \dproof
+                                \hfill
+                                        \axiom{}
+                                    \llabel{(S-CHOICE-2)}
+                                    \unary{$0 ? 1 \to 1$}
+                                \llabel{(S-LEFT)}
+                                \unary{$(0 ? 1) + (2 ? 3) \to 1 + (2 ? 3)$}
+                                \dproof
+                                \hfill \phantom{}
+                            \end{center}
+                        \item Give all of the possible evaluation paths for $(0 ? 1) + (2 ? 3)$.
+                            \begin{center}
+                                $(0 ? 1) + (2 ? 3) \to 0 + (2 ? 3) \to 0 + 2 \to 2$
+
+                                $(0 ? 1) + (2 ? 3) \to 0 + (2 ? 3) \to 0 + 3 \to 3$
+
+                                $(0 ? 1) + (2 ? 3) \to 1 + (2 ? 3) \to 1 + 2 \to 3$
+
+                                $(0 ? 1) + (2 ? 3) \to 1 + (2 ? 3) \to 1 + 3 \to 4$
+                            \end{center}
+                        \item Is the semantics confluent?
+                            \medskip
+
+                            We've shown $(0 ? 1) + (2 ? 3) \to^* 2$ and also $(0 ? 1) + (2 ? 3) \to^* 3$.
+                            Therefore, for the semantics to be confluent, there must be some $E^\prime$ such that $2 \to^* E^\prime$ and $3 \to^* E^\prime$ - however, since they are both in normal forms, they can only evaluate to themselves.
+                            $2 \neq 3$, hence it is not confluent.
+                        \item Is the semantics normalising?
+                            \medskip
+
+                            Yes, there are no infinite sequences of expressions, hence any evaluation path will eventually reach a normal form.
+                    \end{enumerate}
+                \item Suppose that instead of the \textit{SimpleExp} small-step rule {\scriptsize (S-RIGHT)}, we had the following;
+                    \begin{center}
+                            \axiom{$E_2 \to E_2^\prime$}
+                        \llabel{(S-RIGHT$^\prime$)}
+                        \unary{$(E_1 + E_2) \to (E_1 + E_2^\prime)$}
+                        \dproof
+                    \end{center}
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Given an evaluation path using the {\scriptsize S-RIGHT} rule, is it also an evaluation path using the {\scriptsize S-RIGHT$^\prime$} rule?
+                            \medskip
+
+                            Yes, as the original rule constrained $E_1$ to be in a normal form, but the new rule doesn't.
+                            This means that the new rule covers all the cases of the original rule.
+                        \item Find an expression that has an evaluation path using the {\scriptsize S-RIGHT$^\prime$} rule that it did not have with the {\scriptsize S-RIGHT} rule.
+                            \begin{center}
+                                $(0 + 1) + (2 + 3) \to (0 + 1) + 5 \to 1 + 5 \to 6$
+                            \end{center}
+                        \item Is $\to$ deterministic?
+                            \medskip
+
+                            No, starting with $(0 + 1) + (2 + 3)$, we can go to either $1 + (2 + 3)$ {\scriptsize S-LEFT}, or $(0 + 1) + 5$ with {\scriptsize S-RIGHT$^\prime$} - however the two expressions are not equal.
+                        \item Is $\to$ confluent?
+                            \medskip
+
+                            Yes, the rule allows for different evaluation order, but doesn't change the result of the evaluation.
+                    \end{enumerate}
             \end{enumerate}
 \end{document}
