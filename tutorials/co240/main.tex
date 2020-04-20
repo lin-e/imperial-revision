@@ -1321,4 +1321,167 @@
                             \end{center}
                     \end{enumerate}
             \end{enumerate}
+        \subsection*{Tutorial 5 - More Register Machines}
+            \begin{enumerate}
+                \itemsep0em
+                \item Consider the register machine program $P$, given by the following code;
+                    \begin{align*}
+                        L_0 & : R_1^- \to L_1, L_6 \\
+                        L_1 & : R_2^- \to L_2, L_4 \\
+                        L_2 & : R_0^+ \to L_3 \\
+                        L_3 & : R_3^+ \to L_1 \\
+                        L_4 & : R_3^- \to L_5, L_0 \\
+                        L_5 & : R_2^+ \to L_4 \\
+                        L_6 & : ~HALT~
+                    \end{align*}
+                    Which computes the function $f(x, y) = x \times y$.
+                    The code of $P$ has the form $\crnr{[\crnr{B_0}, \dots, \crnr{B_6}]}$, where $B_i$ is the body of $L_i$.
+                    Give the value of $\crnr{B_i}$ for each $i$.
+                    \begin{align*}
+                        \crnr{B_0} & = \lla 2 \cdot 1 + 1, \la 1, 6 \ra \rra \\
+                        & = \lla 3, 25 \rra \\
+                        & = 408 \\
+                        \crnr{B_1} & = \lla 2 \cdot 2 + 1, \la 2, 4 \ra \rra \\
+                        & = \lla 5, 35 \rra \\
+                        & = 2272 \\
+                        \crnr{B_2} & = \lla 2 \cdot 0, 3 \rra \\
+                        & = \lla 0, 3 \rra \\
+                        & = 7 \\
+                        \crnr{B_3} & = \lla 2 \cdot 3, 1 \rra \\
+                        & = \lla 6, 1 \rra \\
+                        & = 192 \\
+                        \crnr{B_4} & = \lla 2 \cdot 3 + 1, \la 5, 0 \ra \rra \\
+                        & = \lla 7, 31 \rra \\
+                        & = 8064 \\
+                        \crnr{B_5} & = \lla 2 \cdot 2, 4 \rra \\
+                        & = \lla 4, 4 \rra \\
+                        & = 144 \\
+                        \crnr{B_6} & = 0
+                    \end{align*}
+                \item Consider the natural number $2^{216} \cdot 833$.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item What register machine is represented by this number?
+                            \medskip
+
+                            Working backwards from the coding of pairs, we get the following list;
+                            \begin{center}
+                                $[216, 5, 1, 0]$
+                            \end{center}
+                            Using these values, we can get the labels as follows;
+                            \begin{align*}
+                                216 & = 2^3 (2 \cdot 13 + 1) \\
+                                & = \lla 3, 13 \rra \\
+                                & = \lla 2 \cdot 1 + 1, \la 1, 3 \ra \rra \\
+                                & = \crnr{R_1^- \to L_1, L_3} \\
+                                5 & = 2^0 (2 \cdot 2 + 1) \\
+                                & = \lla 0, 2 \rra \\
+                                & = \lla 2 \cdot 0, 2 \rra \\
+                                & = \crnr{R_0^+ \to L_2} \\
+                                1 & = 2^0 (2 \cdot 0 + 1) \\
+                                & = \lla 0, 0 \rra \\
+                                & = \lla 2 \cdot 0, 0 \rra \\
+                                & = \crnr{R_0^+ \to L_0} \\
+                                0 & = \crnr{~HALT~}
+                            \end{align*}
+                        \item What function of one argument is computed by this register machine?
+                            \medskip
+
+                            It doubles the input, such that $f(x) = 2x$.
+                    \end{enumerate}
+                \item
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Define a gadget which determines whether the initial value of register $L$ is 0, without changing the value;
+                            \begin{center}
+                                \begin{tikzpicture}
+                                    \node at (1, 0.5) {$\text{test } L = 0$};
+                                    \draw (0, 0) -- (2, 0) -- (2, -3) -- (0, -3) -- cycle;
+                                    \node (lm) at (1, -1) {$L^-$};
+                                    \node (lp) at (1, -2) {$L^+$};
+                                    \node (y) at (3, -1) {~yes~};
+                                    \node (n) at (3, -2) {~no~};
+                                    \draw
+                                    (-1, -1) edge[->] (lm)
+                                    (lm) edge[->] (lp)
+                                    (lm) edge[->>] (y)
+                                    (lp) edge[->] (n);
+                                \end{tikzpicture}
+                            \end{center}
+                        \item Define a gadget which, when initially $Z = 0$ and $L = l$, exits with $Z = l$ and $L = 0$;
+                            \begin{center}
+                                \begin{tikzpicture}
+                                    \node at (1, 0.5) {$Z \leftarrow L$};
+                                    \draw (0, 0) -- (2, 0) -- (2, -3) -- (0, -3) -- cycle;
+                                    \node (lm) at (1, -0.5) {$L^-$};
+                                    \node (zp) at (1, -2.5) {$Z^+$};
+                                    \draw
+                                    (-1, -0.5) edge[->] (lm)
+                                    (lm) edge[->, bend left=30] (zp)
+                                    (lm) edge[->>] (3, -0.5)
+                                    (zp) edge[->, bend left=30] (lm);
+                                \end{tikzpicture}
+                            \end{center}
+                        \item Define a gadget which computes the quotient of $Z$, such that if we start with $Z = z$ and $L = 0$, we terminate with $Z = 0$ and $L = \floor{\frac{z}{2}}$, exiting on the ~rem 0~ branch if $z$ is even, and ~rem 1~ otherwise.
+                            \begin{center}
+                                \begin{tikzpicture}
+                                    \node at (2, 0.5) {$L \leftarrow \frac{Z}{2}$};
+                                    \draw (0, 0) -- (4, 0) -- (4, -3) -- (0, -3) -- cycle;
+                                    \node (lp) at (2, -1) {$L^+$};
+                                    \node (zml) at (1, -2) {$Z^-$};
+                                    \node (zmr) at (3, -2) {$Z^-$};
+                                    \node (r0) at (1, -4) {~rem 0~};
+                                    \node (r1) at (3, -4) {~rem 1~};
+                                    \draw
+                                    (-1, -2) edge[->] (zml)
+                                    (zml) edge[->] (zmr)
+                                    (zml) edge[->>] (r0)
+                                    (zmr) edge[->, bend right=30] (lp)
+                                    (zmr) edge[->>] (r1)
+                                    (lp) edge[->, bend right=30] (zml);
+                                \end{tikzpicture}
+                            \end{center}
+                        \item Define a gadget which does the same as the above, but computes it into itself (using a scratch register, which is reset).
+                            \begin{center}
+                                \begin{tikzpicture}
+                                    \node at (2, 0.5) {$L ::= \frac{L}{2}$};
+                                    \draw (0, 0) -- (4, 0) -- (4, -4) -- (0, -4) -- cycle;
+                                    \node[draw] (b) at (2, -1) {$Z \leftarrow L$};
+                                    \node[draw] (c) at (2, -3) {$L \leftarrow \frac{Z}{2}$};
+                                    \node (r0) at (-3.5, -3) {~rem 0~};
+                                    \node (r1) at (7.5, -3) {~rem 1~};
+                                    \draw
+                                    (-1, -1) edge[->] (b)
+                                    (b) edge[-|>] (c)
+                                    (c) edge[-|>, above] node{~rem 0~} (r0)
+                                    (c) edge[-|>, above] node{~rem 1~} (r1);
+                                \end{tikzpicture}
+                            \end{center}
+                        \item Define a gadget that does the following;
+                            \begin{itemize}
+                                \itemsep0em
+                                \item if $X = x$, and $L = 0$, it takes the ~empty~ exit with $X = L = 0$
+                                \item if $X = x$, and $L = \lla y, z \rra = 2^y(2z + 1)$, it takes the ~done~ exit with $X = y$ and $L = z$
+                            \end{itemize}
+                            \begin{center}
+                                \begin{tikzpicture}
+                                    \draw (0, 0) -- (6, 0) -- (6, -4) -- (0, -4) -- cycle;
+                                    \node[draw] (zero) at (1, -1) {zero $X$};
+                                    \node[draw] (test) at (4, -1) {test $L = 0$};
+                                    \node[draw] (div) at (4, -3) {$L ::= \frac{L}{2}$};
+                                    \node (xp) at (1, -3) {$X^+$};
+                                    \node (e) at (9, -1) {~empty~};
+                                    \node (d) at (9, -3) {~done~};
+                                    \draw
+                                    (-1, -1) edge[->] (zero)
+                                    (zero) edge[-|>] (test)
+                                    (test) edge[-|>, above] node{~yes~} (e)
+                                    (test) edge[-|>, right] node{~no~} (div)
+                                    (div) edge[-|>, above] node{~rem 1~} (d)
+                                    (div) edge[-|>, below] node{~rem 0~} (xp)
+                                    (xp) edge[->, bend left=45] (div);
+                                \end{tikzpicture}
+                            \end{center}
+                    \end{enumerate}
+            \end{enumerate}
 \end{document}
