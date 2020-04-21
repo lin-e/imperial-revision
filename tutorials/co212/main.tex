@@ -296,4 +296,121 @@
                             $$\frac{s}{R} = m \Rightarrow R = \frac{s}{m}$$
                     \end{enumerate}
             \end{enumerate}
+        \subsection*{Tutorial 2 - Application Layer}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item Consider the following scenario when from within your Web browser you click on a link to obtain a webpage.
+                    \begin{itemize}
+                        \itemsep0em
+                        \item
+                            The IP address for the associated URL is not cached in your local host, so a DNS lookup is necessary to obtain the IP address.
+                            Suppose that $n$ DNS servers are visited before your host receives the IP address from the DNS; visiting $k$ of them incurs a RTT of $D_1$ per DNS, and visiting each of the remaining incurs an RTT of $D_2$.
+                        \item The webpage associated with the link contains $m$ small objects.
+                        \item HTTP is running in non-persistent mode.
+                        \item $\text{RTT}_0$ denotes the RTT between the local host and the server for each object.
+                    \end{itemize}
+                    Assuming zero transmission time of each object, calculate the amount of time that elapses from when the client clicks on the link until the client receives all the objects.
+                    \begin{center}
+                        $(m + 1) \cdot 2 \cdot \text{RTT}_0 + k \cdot D_1 + (n - k) \cdot D_2$
+                    \end{center}
+                    Note that $\text{RTT}_0$ is multiplied by 2, as we need the time to open a connection, and \textbf{then} the time to download each object.
+                    $(m + 1)$ is the $m$ objects, as well as the main page.
+                \item
+                    Referring to the previous question, suppose three DNS servers are visited and the value of $k$ is 2.
+                    Further, the HTML file references five very small objects on the same server.
+                    Neglecting transmission times, how much time elapses with;
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Non-persistent HTTP with no parallel TCP connections?
+                            \begin{center}
+                                $12 \cdot \text{RTT}_0 + 2 \cdot D_1 + D_2$
+                            \end{center}
+                            This is essentially using the expression derived above, substituting values when appropriate.
+                        \item Non-persistent HTTP with the browser configured for five parallel connections?
+                            \begin{center}
+                                $4 \cdot \text{RTT}_0 + 2 \cdot D_1 + D_2$
+                            \end{center}
+                            This is similar to the above, but since we have 5 parallel connections, we can do a batch of 5 (simultaneously), and then 1 by itself (total of 6).
+                        \item Persistent HTTP connection?
+                            \begin{center}
+                                $7 \cdot \text{RTT}_0 + 2 \cdot D_1 + D_2$
+                            \end{center}
+                            This has an initial $\text{RTT}_0$ to open the connection, and then another 6 for the content.
+                    \end{enumerate}
+                \item
+                    Consider a short, 15-meter link, over which a sender can transmit at a rate of $150$ bps in both directions.
+                    Suppose that packets containing data are $200,000$ bits long.
+                    Assume that $N$ parallel connections each get $\frac{1}{N}$ of the link bandwidth.
+                    Now consider the HTTP protocol, and suppose that each downloaded object is 200Kb long, and that the initial downloaded object contains 10 referenced objects from the same sender.
+                    Would parallel downloads via parallel instances of non-persistent HTTP make sense in this case?
+                    Now consider persistent HTTP.
+                    Do you expect significant gains over the non-persistent case?
+                    Justify and explain your answer.
+                    \medskip
+
+                    First, consider the parallel case - the initial connection has a link bandwidth of $150$ bps, and the 10 parallel connections each have a link bandwidth of $15$ bps.
+                    Let $d_p$ be the time it takes to send a request.
+                    \begin{align*}
+                        T & = \overbrace{\underbrace{2 \cdot d_p}_\text{(1)} + \underbrace{d_p}_\text{(2)} + \underbrace{d_p + \frac{200000}{150}}_\text{(3)}}^\text{initial object} + \overbrace{\underbrace{2 \cdot d_p}_\text{(1)} + \underbrace{d_p}_\text{(2)} + \underbrace{d_p + \frac{200000}{15}}_\text{(4)}}^\text{10 parallel objects} \\
+                        & = 8 \cdot d_p + \frac{2000000}{150} + \frac{2000000}{15} \\
+                        & \approx 8 \cdot d_p + 14666.67 \text{ seconds}
+                    \end{align*}
+                    \begin{enumerate}[(1)]
+                        \itemsep0em
+                        \item open the connection
+                        \item send request for object
+                        \item download object with link bandwidth of $150$ bps
+                        \item download object with link bandwidth of $15$ bps
+                    \end{enumerate}
+                    Now we can do the same for a persistent HTTP connection, without parallel requests;
+                    \begin{align*}
+                        T & = \overbrace{\underbrace{2 \cdot d_p}_\text{(1)} + \underbrace{d_p}_\text{(2)} + \underbrace{d_p + \frac{200000}{150}}_\text{(3)}}^\text{initial object} + 10 \cdot \overbrace{(\underbrace{d_p}_\text{(2)} + \underbrace{d_p + \frac{200000}{15}}_\text{(3)})}^\text{single object} \\
+                        & = 24 \cdot d_p + \frac{2000000}{150} + 10 \cdot \frac{2000000}{150} \\
+                        & \approx 24 \cdot d_p + 14666.67 \text{ seconds}
+                    \end{align*}
+                    We can calculate $d_p$ as $\frac{15}{c} = \frac{15}{3 \times 10^8} = 0.05 \mu \text{s}$, which is negligible.
+                    Therefore, persistent HTTP approximately achieves the same download times as non-persistent HTTP with parallel downloads.
+                \item
+                    Consider the scenario introduced in the previous exercise.
+                    Now suppose that the link is shared by Bob with four other users.
+                    Bob uses parallel instances of non-persistent HTTP and the four other users use use non-persistent HTTP without parallel downloads.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Do Bob's parallel connections help him get webpages more quickly?
+                            \medskip
+
+                            Yes, as the use of more parallel connections gives him a larger share of the link bandwidth.
+                        \item If all five users open five parallel instances of non-persistent HTTP, then would Bob's parallel connections still be beneficial?
+                            \medskip
+
+                            Yes, as he would have a smaller share of the link bandwidth if he wasn't using parallel connections.
+                    \end{enumerate}
+                \item
+                    The DNS server in your domain is updated when the mail server is (temporarily) moved to another machine during a systems upgrade.
+                    Users continue to use the name mail however.
+                    Lookups you make on mail will return a variety of information.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item What information would DNS return?
+                            \medskip
+
+                            ~CNAME~ records mapping mail to a hostname, which will change during an upgrade, and ~A~ record mapping a hostname to an IP address.
+                        \item What value ranges would you expect the TTL to take before, during and after the mail server migration?
+                            \medskip
+
+                            The ~A~ record can have a long TTL, such as 86400 seconds, but the ~CNAME~ record should be low, such as as 6000 seconds.
+                    \end{enumerate}
+                \item What information does the URL ~http://www.phdcomics.com:80/comics.php~ give?
+                    \begin{itemize}
+                        \itemsep0em
+                        \item ~http~ \hfill use HTTP
+                        \item ~www.phdcompics.com~ \hfill gives hostname (which can be resolved to an IP)
+                        \item ~:80~ \hfill connect on port 80
+                        \item ~/comics.php~ \hfill name of resource is a PHP script, suggesting dynamic content
+                    \end{itemize}
+                \item
+                    Suppose a host elects to use a name server not within its organisation for address resolution.
+                    When would this result in no more total traffic, assuming queries are not found in the DNS caches, than with a local name server?
+                    When might this result in a better DNS cache hit rate and possibly less total traffic?
+            \end{enumerate}
 \end{document}
