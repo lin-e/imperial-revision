@@ -1490,7 +1490,7 @@
                         take this $\violet{N}$ to be the function parameter, put it in the body
                         \subitem An abstraction followed by an application is called a redex - it can be reduced (the part before the $\to_\beta$).
                     \item
-                        \axiom{$\violet{M} \to_\beta \violet{M^\prime}$}
+                            \axiom{$\violet{M} \to_\beta \violet{M^\prime}$}
                         \unary{$\lambda x.\ \violet{M} \to_\beta \lambda x.\ \violet{M^\prime}$}
                         \dproof
                     \item
@@ -1505,7 +1505,7 @@
                             \axiom{$\violet{M} =_\alpha \violet{M^\prime}$}
                             \axiom{$\violet{M^\prime} \to_\beta \violet{N^\prime}$}
                             \axiom{$\violet{N^\prime} =_\alpha \violet{N}$}
-                        \trinary{$\violet{M^\prime} \to_\beta \violet{N^\prime}$}
+                        \trinary{$\violet{M} \to_\beta \violet{N}$}
                         \dproof
                 \end{itemize}
                 An example of this is as follows, note how it all ends up at $yy$ - \textbf{confluence};

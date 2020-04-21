@@ -1484,4 +1484,162 @@
                             \end{center}
                     \end{enumerate}
             \end{enumerate}
+        \subsection*{Tutorial 6 - Lambda Calculus}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item $(\lambda \violet{x y}.\ \teal{y} (\lambda \violet{x}.\ \teal{x y}) \blue{z}) (\blue{x} (\lambda \violet{z x}.\ \teal{x z} \blue{y}))$
+                            \begin{enumerate}[i.]
+                                \itemsep0em
+                                \item \violet{Highlight} all of the binding occurrences of variables in this $\lambda$-term.
+                                \item \teal{Highlight} all of the bound concurrences of variables in this $\lambda$-term.
+                                \item \blue{Highlight} all of the free concurrences of variables in this $\lambda$-term.
+                            \end{enumerate}
+                        \item Give the set of free variables for;
+                            \begin{enumerate}[i.]
+                                \itemsep0em
+                                \item $(\lambda x.\ x \violet{y})(\violet{x} \lambda y.\ y \violet{x})(\lambda y z.\ z y)$ \hfill $FV = \{ y, x \}$
+                                \item $(\lambda z.\ z (\lambda y.\ y z \violet{x}) \violet{y})(\lambda x z.\ (\lambda y.\ z x y) x)$ \hfill $FV = \{ x, y \}$
+                            \end{enumerate}
+                    \end{enumerate}
+                \item
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Which of the following $\lambda$-terms is $\alpha$-equivalent to $(\lambda x y.\ y (\lambda x.\ x y) z)$?
+                            \begin{enumerate}[i.]
+                                \itemsep0em
+                                \item $(\lambda x y.\ a (\lambda x.\ x a) a)$ \hfill no, set of free variables is different
+                                \item $(\lambda z y.\ y (\lambda x.\ x y) z)$ \hfill no, free variable becomes bound
+                                \item $(\lambda x y.\ y (\lambda z.\ z y) z)$ \hfill yes
+                                \item $(\lambda x y.\ y (\lambda z.\ z y) a)$ \hfill no, set of free variables is different
+                                \item $(\lambda x a.\ a (\lambda a.\ a a) z)$ \hfill no, structure isn't the same
+                                \item $(\lambda x a.\ a (\lambda x.\ x a) a)$ \hfill no, set of free variables is different
+                                \item $(\lambda x a.\ a (\lambda z.\ z a) z)$ \hfill yes
+                                \item $(\lambda z a.\ a (\lambda z.\ z a) z)$ \hfill no, free variable becomes bound
+                            \end{enumerate}
+                        \item Write down three $\lambda$-terms which are $\alpha$-equivalent to $(\lambda y.\ (\lambda x.\ x y) z x y)$.
+                            \begin{itemize}
+                                \itemsep0em
+                                \item $(\lambda a.\ (\lambda x.\ x a) z x a)$
+                                \item $(\lambda y.\ (\lambda a.\ a y) z x y)$
+                                \item $(\lambda a.\ (\lambda b.\ b a) z x a)$
+                            \end{itemize}
+                        \item For each of the three $\lambda$-terms in part (b), write the set of free variables.
+                            \medskip
+
+                            Should all be the same, $FV = \{ z, x \}$
+                    \end{enumerate}
+                \item Give the result of each of the following $\lambda$-term substitutions:
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item $(x y)[z / x]$ \hfill $(z  y)$
+                        \item $(x y)[\lambda x.\ x x / x]$ \hfill $((\lambda x. x x) y)$
+                        \item $(\lambda x.\ x y)[z / y]$ \hfill $(\lambda x.\ x z)$
+                        \item $(\lambda x.\ x y)[z / x]$ \hfill (do nothing, $x$ is bound) $(\lambda x.\ x y)[z / x]$
+                        \item $(\lambda x.\ x y)[x / y]$ \hfill (rename $x$ to $z$) $(\lambda z.\ z x)[x / y]$
+                        \item $(\lambda x.\ x x)[\lambda x.\ x x / x]$ \hfill (do nothing, $x$ is bound) $(\lambda x.\ x x)[\lambda x.\ x x / x]$
+                        \item $(\lambda x.\ x y)[\lambda x.\ x y / y]$ \hfill $(\lambda x.\ x (\lambda x.\ x y))$
+                        \item $(\lambda x.\ x y)[(x (\lambda x.\ x y)) / y]$ \hfill (rename $x$ to $z$) $(\lambda z.\ z (x (\lambda x.\ x y)))$
+                    \end{enumerate}
+                \item
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item For each of the following $\lambda$-terms, perform a single $\beta$-reduction step and give the entire derivation tree for each step.
+                            \begin{enumerate}[i.]
+                                \itemsep0em
+                                \item $(\lambda x.\ x) y$
+                                    \begin{center}
+                                            \axiom{}
+                                        \unary{$(\lambda x.\ x) y \to_\beta \violet{x[y / x] =}\ y$}
+                                        \dproof
+                                    \end{center}
+                                \item $(\lambda x.\ \lambda y.\ x y) y$
+                                    \begin{center}
+                                            \axiom{}
+                                        \unary{$(\lambda x.\ \lambda y.\ x y) y \to_\beta \violet{(\lambda y.\ x y)[y / x] =}\ \lambda z.\ y z$}
+                                        \dproof
+                                    \end{center}
+                                \item $(\lambda x.\ \lambda y.\ x y) z$
+                                    \begin{center}
+                                            \axiom{}
+                                        \unary{$(\lambda x.\ \lambda y.\ x y) z \to_\beta \violet{(\lambda y.\ x y)[z / x] =}\ \lambda y.\ z y$}
+                                        \dproof
+                                    \end{center}
+                                \item $\lambda x.\ x ((\lambda x.\ x) y)$
+                                    \begin{center}
+                                                    \axiom{}
+                                                \unary{$(\lambda x.\ x) y \to_\beta y$}
+                                            \unary{$x (\lambda x.\ x) y \to_\beta x y$}
+                                        \unary{$\lambda x.\ x ((\lambda x.\ x) y) \to_\beta \lambda x.\ x y$}
+                                        \dproof
+                                    \end{center}
+                            \end{enumerate}
+                        \item Find distinct $\lambda$-terms $M, N$ such that $M$ and $N$ are not $\lambda$-equivalent and:
+                            \begin{center}
+                                $((\lambda x.\ x)(\lambda x.\ x x))((\lambda x.\ x)(\lambda x.\ x x)) \to M$
+
+                                $((\lambda x.\ x)(\lambda x.\ x x))((\lambda x.\ x)(\lambda x.\ x x)) \to N$
+                            \end{center}
+                            Let $M = (\lambda x.\ x x)((\lambda x.\ x)(\lambda x.\ x x))$ and $N = ((\lambda x.\ x)(\lambda x.\ x x))(\lambda x.\ x x)$.
+                        \item What happens if you continue reducing $M$ and $N$?
+                            \medskip
+
+                            By confluence, they will reach the same point, $(\lambda x.\ x x)(\lambda x.\ x x)$.
+                        \item
+                            Let $T \triangleq \lambda x.\ x x x$.
+                            Perform some $\beta$-reduction steps on $TT$.
+                            What is observed?
+                            \medskip
+
+                            Not doing the actual steps, but the term grows with every reduction.
+                    \end{enumerate}
+                \item For each of the following $\lambda$-terms, find its normal form, if it exists.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item $(\lambda x.\ x) y$ \hfill $y$
+                        \item $y (\lambda x.\ x)$ \hfill already in normal form (a redex is an application followed by an abstraction)
+                        \item $(\lambda x.\ x)(\lambda y.\ y)$ \hfill $\lambda y.\ y$
+                        \item $(\lambda x.\ x x)(\lambda x.\ x x)$ \hfill a normal form does not exist
+                        \item $(\lambda x.\ x x)(\lambda x.\ x)$ \hfill $\lambda x.\ x$
+                        \item $(\lambda x.\ x)(\lambda x.\ x x)$ \hfill $\lambda x.\ x x$
+                    \end{enumerate}
+                \item Consider the $\lambda$-term
+                    \begin{center}
+                        $((\lambda x y.\ x y x) t u)((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w))$
+                    \end{center}
+                    Perform as many reduction steps as possible, ignoring $\alpha$-conversion using;
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item normal order
+                            \begin{align*}
+                                & (\violet{(\lambda x y.\ x y x) t} u)((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                                \to_\beta\ & (\violet{(\lambda y.\ t y t) u})((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                                \to_\beta\ & (t u t)(\violet{(\lambda x y z.\ x ((\lambda x.\ x x) y)) v} ((\lambda x.\ x y) w)) \\
+                                \to_\beta\ & (t u t)(\violet{(\lambda y z.\ v ((\lambda x.\ x x) y)) ((\lambda x.\ x y) w)}) \\
+                                \to_\beta\ & (t u t)(\lambda z.\ v (\violet{(\lambda x.\ x x) ((\lambda x.\ x y) w)})) \\
+                                \to_\beta\ & (t u t)(\lambda z.\ v (\violet{(\lambda x.\ x y) w}) ((\lambda x.\ x y) w))) \\
+                                \to_\beta\ & (t u t)(\lambda z.\ v ((w y) (\violet{(\lambda x.\ x y) w}))) \\
+                                \to_\beta\ & (t u t)(\lambda z.\ v ((w y) (w y)))
+                            \end{align*}
+                        \item call by name
+                            \begin{align*}
+                                & (\violet{(\lambda x y.\ x y x) t} u)((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                                \to_\beta\ & (\violet{(\lambda y.\ t y t) u})((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                                \to_\beta\ & (t u t)(\violet{(\lambda x y z.\ x ((\lambda x.\ x x) y)) v} ((\lambda x.\ x y) w)) \\
+                                \to_\beta\ & (t u t)(\violet{(\lambda y z.\ v ((\lambda x.\ x x) y)) ((\lambda x.\ x y) w)}) \\
+                                \to_\beta\ & (t u t)(\lambda z.\ v ((\lambda x.\ x x) ((\lambda x.\ x y) w)))
+                            \end{align*}
+                        \item call by value
+                            \begin{align*}
+                                & (\violet{(\lambda x y.\ x y x) t} u)((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                                \to_\beta\ & (\violet{(\lambda y.\ t y t) u})((\lambda x y z.\ x ((\lambda x.\ x x) y)) v ((\lambda x.\ x y) w)) \\
+                                \to_\beta\ & (t u t)((\lambda x y z.\ x ((\lambda x.\ x x) y)) v (\violet{(\lambda x.\ x y) w})) \\
+                                \to_\beta\ & (t u t)(\violet{(\lambda x y z.\ x ((\lambda x.\ x x) y)) v} (w y)) \\
+                                \to_\beta\ & (t u t)(\violet{(\lambda y z.\ v ((\lambda x.\ x x) y)) (w y)}) \\
+                                \to_\beta\ & (t u t)(\lambda z.\ v ((\lambda x.\ x x) (w y))) \\
+                            \end{align*}
+                    \end{enumerate}
+            \end{enumerate}
 \end{document}
