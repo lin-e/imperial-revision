@@ -1298,7 +1298,7 @@
 
                         The initial value of $W$ is the maximum segment size (MSS), which is quite low for modern (high-speed) networks.
                         To result in a good throughput, TCP increases the sending rate exponentially for its first phase.
-                        It increases $W$ by 1 MSS on every (positive) segment acknowledgement (doubles each time - the first ~ACK~ increases it by 1 MSS, the second ~ACK~ will be after sending 2 segments, hence it increases by a further s2 MSS, and so on), until it reaches some slow start threshold (ssthresh), or until congestion occurs.
+                        It increases $W$ by 1 MSS on every (positive) segment acknowledgement (doubles each time - the first ~ACK~ increases it by 1 MSS, the second ~ACK~ will be after sending 2 segments, hence it increases by a further 2 MSS, and so on), until it reaches some slow start threshold (ssthresh), or until congestion occurs.
                         If $W$ is greater than (ssthresh), then use congestion avoidance (if they are equal, either could be used).
                     \item \textbf{congestion avoidance}
                         \medskip

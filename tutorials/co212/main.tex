@@ -413,4 +413,107 @@
                     When would this result in no more total traffic, assuming queries are not found in the DNS caches, than with a local name server?
                     When might this result in a better DNS cache hit rate and possibly less total traffic?
             \end{enumerate}
+        \subsection*{Tutorial 3 - Transport Layer}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item
+                    Consider a reliable data transfer protocol that uses only negative acknowledgements (~NACK~s).
+                    Suppose the sender sends data only infrequently.
+                    Would a ~NACK~-only protocol be preferable to a protocol that uses ~ACK~s?
+                    Why?
+                    Now suppose the sender has a lot of data to send and the end-to-end connection experiences a few losses.
+                    In this second case, would a ~NACK~-only protocol be preferable to a protocol that uses ~ACK~s?
+                    Why?
+                    \medskip
+
+                    Note that lost transmissions are only detected by the receiver when the sequence number is different from what the receiver was expecting.
+                    For example, if it were to receive a segment with sequence number $x - 1$, and then one with $x + 1$, it would know $x$ was lost.
+                    \medskip
+
+                    In the first scenario, where there are fewer transmissions, it would take a longer amount of time for the receiver to notify the sender that a segment was lost (since it would need to wait for $x + 1$ to know $x$ was lost).
+                    This leads to slower recovery.
+                    Therefore this would not be preferable.
+                    \medskip
+
+                    On the other hand, if segments were sent frequently, recovery could be done faster as there is less delay between segments being received.
+                    Additionally, if there aren't many faults, the number of ~NACK~s that would be needed would be low, leading to less traffic, hence it would be preferable.
+                \item
+                    Consider the \textit{Go-Back-N} and \textit{Selective Repeat} protocol.
+                    Suppose that the sequence number space is of size $k$.
+                    What is the largest allowable sender window that will avoid the occurrence of problems such as the one depicted in the figure.
+                    Note the issue is that ~pkt0~ is sent, the receiver doesn't know if it is a new packet, or a retransmission.
+                    \begin{center}
+                        \begin{tikzpicture}[x=1.5cm, y=0.75cm]
+                            \node at (-2.5, -2) {\teal{~0 1 2~}~ 3 0 1 2~};
+                            \node at (-2.5, -3) {\teal{~0 1 2~}~ 3 0 1 2~};
+                            \node at (-2.5, -4) {\teal{~0 1 2~}~ 3 0 1 2~};
+                            \node at (-2.5, -5) {~0 ~\teal{~1 2 3~}~ 0 1 2~};
+                            \node at (-2.5, -6) {~0 1 ~\teal{~2 3 0~}~ 1 2~};
+                            \node at (-0.5, -2) {~pkt0~};
+                            \node at (-0.5, -3) {~pkt1~};
+                            \node at (-0.5, -4) {~pkt2~};
+                            \node at (-0.5, -5) {~pkt3~};
+                            \node at (-0.5, -6) {~pkt0~};
+                            \node at (6.5, -2) {~0 ~\teal{~1 2 3~}~ 0 1 2~};
+                            \node at (6.5, -3) {~0 1 ~\teal{~2 3 0~}~ 1 2~};
+                            \node at (6.5, -4) {~0 1 2 ~\teal{~3 0 1~}~ 2~};
+                            \node at (4.5, -2) {~ACK0~};
+                            \node at (4.5, -3) {~ACK1~};
+                            \node at (4.5, -4) {~ACK2~};
+                            \node at (4.5, -6) {~???~};
+                            \draw
+                            (0, 0) edge[->] (0, -8)
+                            (4, 0) edge[->] (4, -8)
+                            (0, -2) edge[->] (4, -2)
+                            (4, -2) edge[->] (0, -5)
+                            (0, -3) edge[->] (4, -3)
+                            (4, -3) edge[->] (0, -6)
+                            (0, -4) edge[->] (4, -4)
+                            (4, -4) edge[->] (0, -7)
+                            (0, -5) edge[->, red] (2, -5)
+                            (0, -6) edge[->] (4, -6);
+                        \end{tikzpicture}
+                    \end{center}
+                    Let the window size be $w$.
+                    If the receiver is waiting for segment $m$, then the receiver's window must be $[m, m + w - 1]$.
+                    Assume that none of the segments $m - w, \dots, m - 1$ have been ~ACK~ by the receiver (such as the ~ACK~ being lost on its way to the sender), therefore the sender's window is still $[m - w, m - 1]$.
+                    \medskip
+
+                    None of these segments, in the sender's window, can have a sequence number that falls in the the receiver's window.
+                    In order to ensure this, the sequence number space must be at least twice the window size, hence $k \geq 2w$.
+                \item
+                    Assume a company has two production sites located in New York and Los Angeles respectively.
+                    These sites are connected through a dedicated 1 Gbps fiber connection with a one-way speed-of-light-delay of 50 ms and communicate using TCP with a congestion window of 64 KB.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item What is the actual throughput (using the macroscopic description of TCP)?
+                            $$\frac{\frac{3}{4} \cdot W}{\text{RTT}} = \frac{\frac{3}{4} \cdot 64 \times 10^3 \times 8}{0.05 \times 2} = 3.84 \text{ Mbps}$$
+                            The window varies between $\frac{W}{2}$ and $W$, hence it has a mean of $\frac{3}{4} \cdot W$ (apparently).
+                        \item
+                            In order to improve efficiency, two different options are available; either replace the line with a 2 Gbps fiber, or add another 1 Gbps line in parallel.
+                            Ignoring installation costs, which solution would improve the throughput?
+                            And the latency?
+                            \medskip
+
+                            Neither solutions would improve the latency, as that is caused by the distance between the two locations.
+                            However, the throughput cannot be improved by a 2 Gbps line, since the limitation is caused by the TCP congestion window (as shown above).
+                            On the other hand, with two parallel lines, the throughput can be doubled, as data can be sent in parallel.
+                    \end{enumerate}
+                \item Consider sending a large file from a host to another over a TCP connection that has no loss.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item
+                            Suppose TCP uses AIMD for its congestion control without slow start.
+                            Assuming that the congestion window $W$ increases by 1 MSS every time a batch of ~ACK~s is received, and assuming approximately constant round-trip times, how long does it take for $W$ to increase from 5 MSS to 12 MSS?
+                            \medskip
+
+                            1 RTT to increase to 6 MSS, 2 RTTs to increase to 7 MSS, and so on, until 7 RTTs to increase to 12 MSS.
+                            Hence it requires a total of 28 RTTs.
+                        \item What is the average throughput (in terms of MSS and RTT) for this connection up through time $t = 6$ RTT?
+                            \medskip
+
+                            In the first RTT, 5 MSS is sent, then 6 MSS in the second RTT, and so on, until 10 MSS is sent in the $6^\text{th}$ RTT, as such, it sends a total of $5 + 6 + 7 + 8 + 9 + 10 = 45$ MSS;
+                            $$\frac{45 \text{ MSS}}{6 \text{ RTT}} = 7.5 \cdot \frac{\text{MSS}}{\text{RTT}}$$
+                    \end{enumerate}
+            \end{enumerate}
 \end{document}
