@@ -516,4 +516,71 @@
                             $$\frac{45 \text{ MSS}}{6 \text{ RTT}} = 7.5 \cdot \frac{\text{MSS}}{\text{RTT}}$$
                     \end{enumerate}
             \end{enumerate}
+        \subsubsection*{Tutorial 4 - Network Security}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item
+                    What are the differences between message confidentiality and message integrity?
+                    Can you have confidentiality without integrity?
+                    Can you have integrity without confidentiality?
+                    Justify your answer.
+                    \medskip
+
+                    Confidentiality ensures that only the intended recipients of a message can access the contents, whereas integrity ensures that the contents of a message are valid (not tampered with) - and the recipients can detect tampering.
+                    \medskip
+
+                    It's possible to have confidentiality without integrity, as an encrypted message may be sent from $A$ to $B$.
+                    However, the message may be intercepted along the way, and a new message may be sent to $B$ - the contents haven't been revealed, but the message has been tampered with, hence integrity is broken.
+                    \medskip
+
+                    On the other hand, it's possible to have integrity without confidentiality - a file may be written in plain text on a secured server, this cannot be modified by anyone who doesn't have permission to do so (hence integrity is maintained), but it is visible to everyone (and not just the intended recipient).
+                \item
+                    Suppose $N$ people want to communicate with each of $N - 1$ other people using symmetric key encryption.
+                    All communication between any two people, $i$ and $j$ is visible to all other people in this group of $N$, and no other person in this group should be able to decode their communication.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item How many keys are required in the system as a whole?
+                            \medskip
+
+                            $\frac{N(N - 1)}{2}$ keys will be needed - the first person needs $N - 1$ keys to communicate with every other person, the second person needs $N - 2$ keys, since it needs to communicate with $N - 1$ other people (but a key has already been established by the first person).
+                        \item
+                            Now suppose that public key encryption is used.
+                            How many keys are required in this case?
+                            \medskip
+
+                            Since each person has a public and private key, only $2N$ keys will be required.
+                    \end{enumerate}
+                \item
+                    Can you decrypt a hash of a message to get the original message?
+                    Explain your answer.
+                    \medskip
+
+                    No, by the definition of a hash - it is a one-way function.
+                    It may however be reversed with a rainbow table, which has pre-computed values for input strings.
+                \item
+                    In the BitTorrent P2P file distribution protocol, the seed breaks the file into blocks, and the peers redistribute the blocks to each other.
+                    Without any protection, an attacker can easily wreak havoc in a torrent by masquerading as a benevolent peer and sending bogus blocks to a small subset of peers in the torrent.
+                    These unsuspecting peers then redistribute the bogus blocks to a other peers, which in turn redistribute the bogus blocks to even more peers.
+                    Thus, it is critical for BitTorrent to have a mechanism that allows a peer to verify the integrity of a block, so that it doesn't redistribute bogus blocks.
+                    Assume that when a peer joins a torrent, it initially gets a ~.torrent~ file from a fully trusted source.
+                    Describe a simple scheme that allows peers to verify the integrity of blocks.
+                    \medskip
+
+                    Each block should have an associated hash, which is stored in the ~.torrent~ file.
+                    When a peer receives a block, it should compute the hash of the received block, and compare it to the ~.torrent~ file.
+                    If it matches, then the block is valid, and can be redistributed, otherwise it has been tampered with, and should be discarded.
+                \item
+                    Give one reason why a firewall might be configured to inspect incoming traffic.
+                    Give one reason why it might be configured to inspect outgoing traffic.
+                    Do you think the inspections are likely to be successful?
+                    \medskip
+
+                    Incoming traffic may be inspected by a firewall as a method of user authentication.
+                    Another reason for incoming traffic to be analysed would be to detect attacks, by spotting patterns in access.
+                    \medskip
+
+                    On the other hand, outgoing traffic may be inspected to prevent data from being leaked, or to prevent a user from accessing blocked content.
+                    Typically, the inspections are likely to be successful, as it can analyse the contents of the message, instead of just the headers.
+                    This inspection isn't very useful however, if the contents are encryption.
+            \end{enumerate}
 \end{document}
