@@ -17,6 +17,7 @@
 \usepackage{multirow}
 \usepackage{tipa}
 \usepackage{pgfplots}
+\usepackage{adjustbox}
 
 % tikz libraries
 \usetikzlibrary{
@@ -124,6 +125,8 @@
 \newcommand{\quaternary}[1]{\QuaternaryInfC{#1}}
 \newcommand{\quinary}[1]{\QuinaryInfC{#1}}
 \newcommand{\dproof}[0]{\DisplayProof}
+\newcommand{\llabel}[1]{\LeftLabel{\scriptsize #1}}
+\newcommand{\rlabel}[1]{\RightLabel{\scriptsize #1}}
 
 \newcommand{\ttbs}{\char`\\}
 \newcommand{\lrbt}[0]{\ \bullet\ }
@@ -586,4 +589,38 @@
         \subsubsection*{Tutorial 5 - Practical Applications}
             The sheet for this is just the IoT lecture.
             See the full notes for some of the answers.
+        \subsubsection*{Tutorial 6 - Network Layer}
+            Fill in the empty fields below (parts that have been pre-filled are in \violet{violet}).
+            \begin{center}
+                \begin{adjustbox}{width=\textwidth, center}
+                    \begin{tabular}{|r|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+                        \hline
+                        IP address (dec) & \multicolumn{8}{c|}{\violet{~192~}} & ~.~ & \multicolumn{8}{c|}{\violet{~168~}} & ~.~ & \multicolumn{8}{c|}{\violet{~1~}} & ~.~ & \multicolumn{8}{c|}{\violet{~10~}} \\
+                        \hline
+                        subnet mask (dec) & \multicolumn{8}{c|}{\violet{~255~}} & ~.~ & \multicolumn{8}{c|}{\violet{~255~}} & ~.~ & \multicolumn{8}{c|}{\violet{~128~}} & ~.~ & \multicolumn{8}{c|}{\violet{~0~}} \\
+                        \hline
+                        IP address (bin) & ~1~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~1~ & ~0~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~1~ & ~.~ & ~0~ & ~0~ & ~0~ & ~0~ & ~1~ & ~0~ & ~1~ & ~0~ \\
+                        \hline
+                        subnet mask (bin) & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~.~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~.~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ \\
+                        \hline
+                        network address (bin) & ~1~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~1~ & ~0~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ \\
+                        \hline
+                        network address (dec) & \multicolumn{8}{c|}{~192~} & ~.~ & \multicolumn{8}{c|}{~168~} & ~.~ & \multicolumn{8}{c|}{~0~} & ~.~ & \multicolumn{8}{c|}{~0~} \\
+                        \hline
+                        first host address (bin) & ~1~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~1~ & ~0~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~1~ \\
+                        \hline
+                        first host address (dec) & \multicolumn{8}{c|}{~192~} & ~.~ & \multicolumn{8}{c|}{~168~} & ~.~ & \multicolumn{8}{c|}{~0~} & ~.~ & \multicolumn{8}{c|}{~1~} \\
+                        \hline
+                        last host address (bin) & ~1~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~1~ & ~0~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~0~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~.~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~0~ \\
+                        \hline
+                        last host address (dec) & \multicolumn{8}{c|}{~192~} & ~.~ & \multicolumn{8}{c|}{~168~} & ~.~ & \multicolumn{8}{c|}{~127~} & ~.~ & \multicolumn{8}{c|}{~254~} \\
+                        \hline
+                        broadcast address (bin) & ~1~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~1~ & ~0~ & ~1~ & ~0~ & ~0~ & ~0~ & ~0~ & ~0~ & ~.~ & ~0~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~.~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ & ~1~ \\
+                        \hline
+                        broadcast address (dec) & \multicolumn{8}{c|}{~192~} & ~.~ & \multicolumn{8}{c|}{~168~} & ~.~ & \multicolumn{8}{c|}{~127~} & ~.~ & \multicolumn{8}{c|}{~255~} \\
+                        \hline
+                    \end{tabular}
+                \end{adjustbox}
+            \end{center}
+            CIDR is ~/17~.
 \end{document}
