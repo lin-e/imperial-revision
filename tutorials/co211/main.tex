@@ -492,7 +492,109 @@
         \subsection*{Tutorial 4 - Synchronisation}
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item 
+                \item Explain why the following statement is false; "when several threads access shared information in main memory, mutual exclusion must be enforced to prevent the production of indeterminate results."
+                    \medskip
+
+                    If multiple threads are \textbf{reading} the same shared information, then mutual exclusion is not needed.
+                    Mutual exclusion is needed if the shared information can be modified.
+                \item Discuss the pros and cons of busy waiting.
+                    \medskip
+
+                    Busy waiting is useful when the wait times are short, as we therefore do not need to invoke the kernel for context switching.
+                    Additionally, they are used within the kernel, since it cannot use a blocking abstraction.
+                    On the other hand, busy waiting wastes CPU time as it is doing nothing, but occupying the processor.
+                \item
+                    One requirement in the implementation of the semaphore operations ~up~ and ~down~ is that each of these operations must be executed atomically; once started, each operation runs to completion without interruption.
+                    Give an example of a simple situation in which, if these operations are not executed atomically, mutual exclusion may not be properly enforced.
+                    \medskip
+
+                    Assume we are using a binary semaphore, (where the counter is initialised to 1).
+                    Two threads are attempting to access a critical region, and therefore both ~down~ the semaphore.
+                    If this wasn't atomic, it's possible that both threads fall into the branch where the counter is greater than 0, and then both attempt to decrement it.
+                    This means that neither threads are blocked, and both continue to execute, thus both being in the critical region.
+                \item
+                    Can two threads in the same process synchronise using a kernel semaphore if the threads are implemented by the kernel?
+                    What if they are implemented in user space?
+                    Assume no threads in other processes have access to the semaphore.
+                    \medskip
+
+                    Yes, as the kernel handles the synchronisation by providing the semaphores.
+                    On the other hand, user space threads cannot use semaphores, since blocking would block all threads, and therefore user space threads must have another method of synchronisation implemented.
+                \item Does the strict alternation solution work the same way when process scheduling is preemptive?
+                    \medskip
+
+                    Yes, it was designed with preemption.
+                    If the scheduling isn't preemptive, and the process that's waiting runs first, it may run indefinitely, since it hasn't completed execution.
+                \item Give a sketch of how a uni-processor operating system that can disable interrupts could implement semaphores.
+                    \medskip
+
+                    Any operations involving a semaphore should disable interrupts right at the start.
+                    This ensures atomicity of the semaphores.
+                    \medskip
+
+                    When a semaphore is initialised with ~init(s, i)~, the ~counter~ should be set to ~i~, and an empty queue is associated with the semaphore.
+                    When a semaphore is downed with ~down(s)~, it should first check if the counter is greater than 0 - if it is, it decrements the counter, otherwise it adds the calling thread to the queue and blocks the thread (this is atomic).
+                    Similarly, if a thread calls ~up(s)~, it should disable interrupts, then check the semaphore's queue.
+                    If the queue isn't empty, a process in the queue is resumed, otherwise the counter is incremented.
+                \item Consider the following three threads;
+                    \begin{center}
+                        \begin{minipage}[t]{0.3\textwidth}
+                            \violet{~T1:~}
+                            \begin{lstlisting}
+                                a = 1;
+                                b = 2;
+                            \end{lstlisting}
+                        \end{minipage}
+                        \hfill
+                        \begin{minipage}[t]{0.3\textwidth}
+                            \teal{~T2:~}
+                            \begin{lstlisting}
+                                b = 1;
+                            \end{lstlisting}
+                        \end{minipage}
+                        \hfill
+                        \begin{minipage}[t]{0.3\textwidth}
+                            \blue{~T3:~}
+                            \begin{lstlisting}
+                                a = 2;
+                            \end{lstlisting}
+                        \end{minipage}
+                    \end{center}
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Show all possible thread interleavings.
+                            \begin{center}
+                                \begin{adjustbox}{width=\textwidth, center}
+                                    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+                                        \hline
+                                        \violet{~a = 1;~} & \violet{~a = 1;~} & \violet{~a = 1;~} & \blue{~a = 2;~} & \violet{~a = 1;~} & \violet{~a = 1;~} & \violet{~a = 1;~} & \blue{~a = 2;~} & \teal{~b = 1;~} & \teal{~b = 1;~} & \teal{~b = 1;~} & \blue{~a = 2;~} \\
+                                        \violet{~b = 2;~} & \violet{~b = 2;~} & \blue{~a = 2;~} & \violet{~a = 1;~} & \teal{~b = 1;~} & \teal{~b = 1;~} & \blue{~a = 2;~} & \violet{~a = 1;~} & \violet{~a = 1;~} & \violet{~a = 1;~} & \blue{~a = 2;~} & \teal{~b = 1;~} \\
+                                        \teal{~b = 1;~} & \blue{~a = 2;~} & \violet{~b = 2;~} & \violet{~b = 2;~} & \violet{~b = 2;~} & \blue{~a = 2;~} & \teal{~b = 1;~} & \teal{~b = 1;~} & \violet{~b = 2;~} & \blue{~a = 2;~} & \violet{~a = 1;~} & \violet{~a = 1;~} \\
+                                        \blue{~a = 2;~} & \teal{~b = 1;~} & \teal{~b = 1;~} & \teal{~b = 1;~} & \blue{~a = 2;~} & \violet{~b = 2;~} & \violet{~b = 2;~} & \violet{~b = 2;~} & \blue{~a = 2;~} & \violet{~b = 2;~} & \violet{~b = 2;~} & \violet{~b = 2;~} \\
+                                        \hline
+                                        ~(2, 1)~ & ~(2, 1)~ & ~(2, 1)~ & ~(1, 1)~ & ~(2, 2)~ & ~(2, 2)~ & ~(2, 2)~ & ~(1, 2)~ & ~(2, 2)~ & ~(2, 2)~ & ~(1, 2)~ & ~(1, 2)~ \\
+                                        \hline
+                                    \end{tabular}
+                                \end{adjustbox}
+                            \end{center}
+                        \item If all thread interleavings are as likely to occur, what is the probability to have ~a = 1~ and ~b = 1~ after all threads complete execution?
+                            $$\frac{1}{12}$$
+                        \item What about ~a = 2~ and ~b = 2~?
+                            $$\frac{5}{12}$$
+                    \end{enumerate}
+                \item
+                    Synchronisation within monitors uses condition variables and two special operations, ~wait~ and ~signal~.
+                    A more general form of synchronisation would be to have a single primitive, ~waituntil~, that had an arbitrary boolean predicate as a parameter.
+                    Thus, one could say;
+                    \begin{center}
+                        ~waituntil x < 0 or x + z < n~
+                    \end{center}
+                    The ~signal~ primitive would be no longer needed.
+                    This scheme is clearly more general than that of Hoare, but it is not used, why?
+                    \medskip
+
+                    This is more expensive, the entire predicate must be re-evaluated every time any of the variables in the predicate change.
+                    On the other hand, processes can only be awakened with a ~signal~ primitive, when using a Hoare monitor.
             \end{enumerate}
         \subsection*{Tutorial 5 - Deadlocks}
             \begin{enumerate}[1.]
