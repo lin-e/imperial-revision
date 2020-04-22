@@ -669,7 +669,133 @@
         \subsection*{Tutorial 6 - Memory Management}
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item 
+                \item Describe the difference between swapping and paging in the context of virtual memory management.
+                    \medskip
+
+                    While both move data from main memory to the disk, swapping moves the entire process's address space into the swap device, whereas paging does this with individual pages from the address space.
+                \item What is the advantage of a paged virtual memory system with a
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item small page size
+                            \medskip
+
+                            There is less unused space, hence less fragmentation.
+                        \item large page size
+                            \medskip
+
+                            Less overhead, hence translation is faster.
+                    \end{enumerate}
+                \item What is an associative memory, how does it work, and how is it implemented?
+                    \medskip
+
+                    Associative memory is used to cache frequently translated memory addresses.
+                    This can be thought of as a table which holds the page number and frame number - instead of checking the page table (in main memory) directly, it can first check if the page number is in this cache, and only accesses the page table when it cannot be found.
+                    It is typically implemented in hardware for high performance.
+                \item
+                    Describe how a context switch affects the virtual memory system.
+                    What must the OS do to ensure that memory reference made by the newly-running process will be properly translated?
+                    \medskip
+
+                    On a context switch, the page table needs to be changed (the base register in the MMU should be changed to point to the page table in memory), as well as the cache being flushed.
+                \item
+                    A system implements a paged virtual address space for each process using a one-level page table.
+                    The maximum size of an address space is 16 MB.
+                    The page table for the running process includes the following entries;
+                    \begin{center}
+                        \begin{tabular}{|c|c|}
+                            \hline
+                            page & frame \\
+                            \hline
+                            0 & 4 \\
+                            1 & 8 \\
+                            2 & 16 \\
+                            3 & 17 \\
+                            4 & 9 \\
+                            \hline
+                        \end{tabular}
+                    \end{center}
+                    The page size is 1024 bytes, and the maximum physical memory size of the machine is 2 MB.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item How many bits are required for each page table entry?
+                            \medskip
+
+                            Since each page is 1 KB, there is a total of $2 \cdot 2^{10} = 2^{11}$ frames on physical memory - this can be represented in 11 bits.
+                            By thinking of the page table as an array, each entry needs 11 bits (as well as any additional bits for metadata).
+                        \item What is the maximum number of entries in a page table?
+                            \medskip
+
+                            Similarly, there can be a total of $16 \cdot 2^{10} = 2^{14}$ pages in the virtual address space.
+                        \item How many bits are there in a virtual address?
+                            \medskip
+
+                            In a virtual address, there are the 14 bits specifying the page, and then an additional 10, which indicate the offset, thus a total of 24 bits.
+                        \item To which physical address will the virtual address 1524 translate to?
+                            \medskip
+
+                            Because $1023 < 1524 < 2047$, it lies in page 1.
+                            Therefore, it maps to $8 \cdot 1024 + (1524 - 1024) = 8592$.
+                        \item Which virtual address will translate to physical address 10020?
+                            \medskip
+
+                            Working backwards, it lies in frame 9, hence it is in page 4.
+                            Therefore, the virtual address that translates to this is $4 \cdot 1024 + (10020 - 9 \cdot 1024) = 4900$.
+                    \end{enumerate}
+                \item
+                    A pure paging system uses a three level page table.
+                    Virtual addresses are decomposed into four fields, $(a, b, c, d)$ with $d$ being the offset.
+                    In terms of these constants, what is the maximum number of pages in a virtual address space?
+                    \begin{center}
+                        $2^{a + b + c}$ pages
+                    \end{center}
+                \item
+                    Calculate the access times for a four-level paging system assuming the following TLB hit ratios. of $80\%$ and $98\%$.
+                    Assume that time for memory access is 100ns, and for TLB access 20ns.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item $80\%$
+                            $$\underbrace{0.8 \cdot (20 + 100)}_\text{TLB hit} + \underbrace{(1 - 0.8) \cdot (20 + 4 \cdot 100 + 100)}_\text{TLB miss} = 200 \text{ns}$$
+                        \item $98\%$
+                            $$\underbrace{0.98 \cdot (20 + 100)}_\text{TLB hit} + \underbrace{(1 - 0.98) \cdot (20 + 4 \cdot 100 + 100)}_\text{TLB miss} = 128 \text{ns}$$
+                    \end{enumerate}
+                    How does this compare to a single-level paging system?
+                    \medskip
+
+                    With single level paging, it takes 140ns, and 122ns respectively.
+                \item Suppose that pages in a virtual address space a referenced in the following order:
+                    \begin{center}
+                        ~1 2 1 3 2 1 4 3 1 1 2 4 1 5 6 2 1~
+                    \end{center}
+                    There are three empty frames available.
+                    Assume that paging decisions are made on demand (when page faults occur).
+                    Show the contents of the frames after each memory reference, and the number of page faults;
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item the LRU replacement policy \hfill 11 faults
+                            \begin{center}
+                                \begin{tabular}{l|ccccccccccccccccc}
+                                    \multirow{2}{*}{frame} & \multicolumn{17}{c}{reference} \\
+                                    & 1 & 2 & 1 & 3 & 2 & 1 & 4 & 3 & 1 & 1 & 2 & 4 & 1 & 5 & 6 & 2 &  1 \\
+                                    \hline
+                                    0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 2 & 2 \\
+                                    1 &   & 2 & 2 & 2 & 2 & 2 & 2 & 3 & 3 & 3 & 3 & 4 & 4 & 4 & 6 & 6 & 6 \\
+                                    2 &   &   &   & 3 & 3 & 3 & 4 & 4 & 4 & 4 & 2 & 2 & 2 & 5 & 5 & 5 & 1 \\
+                                    fault & $\times$ & $\times$ & & $\times$ & & & $\times$ & $\times$ & & & $\times$ & $\times$ & & $\times$ & $\times$ & $\times$ & $\times$
+                                \end{tabular}
+                            \end{center}
+                        \item the clock policy \hfill 9 faults
+                            \begin{center}
+                                \begin{tabular}{l|ccccccccccccccccc}
+                                    \multirow{2}{*}{frame} & \multicolumn{17}{c}{reference} \\
+                                    & 1 & 2 & 1 & 3 & 2 & 1 & 4 & 3 & 1 & 1 & 2 & 4 & 1 & 5 & 6 & 2 &  1 \\
+                                    \hline
+                                    0 & 1 & 1 & 1 & 1 & 1 & 1 & 4 & 4 & 4 & 4 & 4 & 4 & 4 & 5 & 5 & 5 & 5 \\
+                                    1 &   & 2 & 2 & 2 & 2 & 2 & 2 & 2 & 1 & 1 & 1 & 1 & 1 & 1 & 6 & 6 & 6 \\
+                                    2 &   &   &   & 3 & 3 & 3 & 3 & 3 & 3 & 3 & 2 & 2 & 2 & 2 & 2 & 2 & 1 \\
+                                    fault & $\times$ & $\times$ & & $\times$ & $\times$ & & $\times$ & & $\times$ & & $\times$ & & & $\times$ & $\times$ & &
+                                \end{tabular}
+                            \end{center}
+                    \end{enumerate}
             \end{enumerate}
         \subsection*{Tutorial 7 - Device Management}
             \begin{enumerate}[1.]
