@@ -599,7 +599,72 @@
         \subsection*{Tutorial 5 - Deadlocks}
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item 
+                \item
+                    Suppose that there is a resource deadlock in a system.
+                    Give an example to show that the set of processes deadlocked can include processes that are not in the circular chain in the corresponding resource allocation graph.
+                    \medskip
+
+                    Consider a cycle in the resource allocation graph, such that process $A$ is holding resource $R$, and wants to acquire resource $S$, and similarly $B$ is holding $S$ and is attempting to acquire $R$.
+                    If a process $C$ tried to acquire either $R$ or $S$, it would be deadlocked, but not in the cycle.
+                    \medskip
+
+                    Note that an arrow from a square (resource) to a circle (process) denotes the process holding the resource, and an arrow from a circle to a square denotes the process waiting for (attempting to acquire) a resource.
+                    \begin{center}
+                        \begin{tikzpicture}[x=0.666cm, y=0.666cm]
+                            \begin{scope}[shift={(-3, 0)}]
+                                \node at (0.5, -0.5) {$C$};
+                                \draw (0.5, -0.5) circle (0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(0, 0)}]
+                                \node at (0.5, -0.5) {$R$};
+                                \draw (0, 0) -- (1, 0) -- (1, -1) -- (0, -1) -- cycle;
+                            \end{scope}
+                            \begin{scope}[shift={(3, 0)}]
+                                \node at (0.5, -0.5) {$A$};
+                                \draw (0.5, -0.5) circle (0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(3, -3)}]
+                                \node at (0.5, -0.5) {$S$};
+                                \draw (0, 0) -- (1, 0) -- (1, -1) -- (0, -1) -- cycle;
+                            \end{scope}
+                            \begin{scope}[shift={(0, -3)}]
+                                \node at (0.5, -0.5) {$B$};
+                                \draw (0.5, -0.5) circle (0.5);
+                            \end{scope}
+                            \draw
+                            (-2, -0.5) edge[->] (0, -0.5)
+                            (1, -0.5) edge[->] (3, -0.5)
+                            (3.5, -1) edge[->] (3.5, -3)
+                            (3, -3.5) edge[->] (1, -3.5)
+                            (0.5, -3) edge[->] (0.5, -1);
+                        \end{tikzpicture}
+                    \end{center}
+                \item
+                    Consider a system that uses the banker's algorithm to avoid deadlocks.
+                    At some time a process $P$ requests a resource $R$, but is denied even though $R$ is currently available.
+                    Does it mean that if the system allocated $R$ to $P$, the system would deadlock?
+                    \medskip
+
+                    No, it is possible for $P$ to complete execution, and free all the resources.
+                    However, we no longer have the guarantee that a deadlock will not occur, hence it is \textbf{possible} the system will deadlock.
+                \item
+                    Two processes $A$ and $B$ each need three records, ~1~, ~2~, and ~3~ in a database.
+                    If $A$ asks for them in the order ~1~, ~2~, ~3~, and $B$ asks for them in the same order, deadlock is not possible.
+                    However, if $B$ asks for them in the order ~3~, ~2~, ~1~, then deadlock is possible.
+                    With three resources, there are $3! = 6$ possible combinations each process can request resources.
+                    What fraction of all combinations is guaranteed to be deadlock free?
+                    \medskip
+
+                    Since the records are arbitrary, we can reason about it with just one configuration.
+                    Assuming $A$ asks for them in ascending order, if $B$ were to also request ~1~ first, one of the two processes would obtain the lock, blocking the other, thus a deadlock will not occur.
+                    Therefore, a third of the possible combinations will not result in deadlock.
+                \item
+                    Can a single-processor system have no processes ready and no process running?
+                    Is this a deadlocked system?
+                    \medskip
+
+                    Yes, all the processes could be blocked (waiting for I/O) - however typically there is an idle process that runs in this case.
+                    This is not a deadlocked system, thus the lack of a running process cannot be used to determine deadlock.
             \end{enumerate}
         \subsection*{Tutorial 6 - Memory Management}
             \begin{enumerate}[1.]
