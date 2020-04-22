@@ -1,0 +1,331 @@
+\documentclass[a4paper, 12pt]{article}
+
+% packages
+\usepackage{amssymb}
+\usepackage[fleqn]{mathtools}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{bussproofs}
+\usepackage{xcolor}
+\usepackage[margin=1.3cm]{geometry}
+\usepackage{logicproof}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{lstautogobble}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{tipa}
+\usepackage{pgfplots}
+\usepackage{adjustbox}
+
+% tikz libraries
+\usetikzlibrary{
+    decorations.pathreplacing,
+    arrows,
+    shapes.gates.logic.US,
+    circuits.logic.US,
+    calc,
+    automata,
+    positioning,
+    intersections
+}
+
+\pgfplotsset{compat=1.16}
+
+\pgfmathdeclarefunction{gauss}{2}{%
+  \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
+}
+
+\allowdisplaybreaks % allow environments to break
+\setlength\parindent{0pt} % no indent
+
+% shorthand for verbatim
+% this clashes with logicproof, so maybe fix this at some point?
+\catcode`~=\active
+\def~#1~{\texttt{#1}}
+
+% code listing
+\lstdefinestyle{main}{
+    numberstyle=\tiny,
+    breaklines=true,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=2,
+    numbers=left,
+    basicstyle=\ttfamily,
+    columns=fixed,
+    fontadjust=true,
+    basewidth=0.5em,
+    autogobble,
+    xleftmargin=3.0ex,
+    mathescape=true
+}
+\newcommand{\dollar}{\mbox{\textdollar}} %
+\lstset{style=main}
+
+% augmented matrix
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+\hskip -\arraycolsep
+\let\@ifnextchar\new@ifnextchar
+\array{#1}}
+\makeatother
+
+% ceiling / floor
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+% custom commands
+\newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
+\newcommand{\defint}[4]{\int_{#1}^{#2} #3 \, \mathrm{d}#4}
+\newcommand{\pdif}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\limit}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\lim_{#1 \to #2}}$}}}
+\newcommand{\limitsup}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\limsup_{#1 \to #2}}$}}}
+\newcommand{\summation}[2]{\sum\limits_{#1}^{#2}}
+\newcommand{\product}[2]{\prod\limits_{#1}^{#2}}
+\newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
+\newcommand{\laplace}{\mathcal{L}}
+\newcommand{\fourier}{\mathcal{F}}
+\newcommand{\mat}[1]{\boldsymbol{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\rowt}[1]{\begin{bmatrix}
+    #1
+\end{bmatrix}^\top}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+
+\newcommand{\lto}[0]{\leadsto\ }
+
+\newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
+
+\newcommand{\powerset}[0]{\wp}
+\renewcommand{\emptyset}[0]{\varnothing}
+
+\makeatletter
+\newsavebox{\@brx}
+\newcommand{\llangle}[1][]{\savebox{\@brx}{\(\m@th{#1\langle}\)}%
+  \mathopen{\copy\@brx\kern-0.5\wd\@brx\usebox{\@brx}}}
+\newcommand{\rrangle}[1][]{\savebox{\@brx}{\(\m@th{#1\rangle}\)}%
+  \mathclose{\copy\@brx\kern-0.5\wd\@brx\usebox{\@brx}}}
+\makeatother
+\newcommand{\lla}{\llangle}
+\newcommand{\rra}{\rrangle}
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+\newcommand{\crnr}[1]{\text{\textopencorner} #1 \text{\textcorner}}
+\newcommand{\bnfsep}[0]{\ |\ }
+\newcommand{\concsep}[0]{\ ||\ }
+
+\newcommand{\axiom}[1]{\AxiomC{#1}}
+\newcommand{\unary}[1]{\UnaryInfC{#1}}
+\newcommand{\binary}[1]{\BinaryInfC{#1}}
+\newcommand{\trinary}[1]{\TrinaryInfC{#1}}
+\newcommand{\quaternary}[1]{\QuaternaryInfC{#1}}
+\newcommand{\quinary}[1]{\QuinaryInfC{#1}}
+\newcommand{\dproof}[0]{\DisplayProof}
+\newcommand{\llabel}[1]{\LeftLabel{\scriptsize #1}}
+\newcommand{\rlabel}[1]{\RightLabel{\scriptsize #1}}
+
+\newcommand{\ttbs}{\char`\\}
+\newcommand{\lrbt}[0]{\ \bullet\ }
+
+% colours
+\newcommand{\violet}[1]{\textcolor{violet}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\teal}[1]{\textcolor{teal}{#1}}
+
+% reasoning proofs
+\usepackage{ltablex}
+\usepackage{environ}
+\keepXColumns
+\NewEnviron{reasoning}{
+    \begin{tabularx}{\textwidth}{rlX}
+        \BODY
+    \end{tabularx}
+}
+\newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
+\newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
+\newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
+\newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
+\newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
+
+% ER diagrams
+\newcommand{\nattribute}[4]{
+    \node[draw, state, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\mattribute}[4]{
+    \node[draw, state, accepting, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\dattribute}[4]{
+    \node[draw, state, dashed, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\entity}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 0.5)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -0.5)$) {};
+    \draw
+    ($(#1-c) + (-1, 0.5)$) -- ($(#1-c) + (1, 0.5)$) -- ($(#1-c) + (1, -0.5)$) -- ($(#1-c) + (-1, -0.5)$) -- cycle;
+}
+\newcommand{\relationship}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 1)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -1)$) {};
+    \draw
+    ($(#1-c) + (-1, 0)$) -- ($(#1-c) + (0, 1)$) -- ($(#1-c) + (1, 0)$) -- ($(#1-c) + (0, -1)$) -- cycle;
+}
+
+% AVL Trees
+\newcommand{\avltri}[4]{
+    \draw ($(#1)$) -- ($(#1) + #4*(0.5, -1)$) -- ($(#1) + #4*(-0.5, -1)$) -- cycle;
+    \node at ($(#1) + #4*(0, -1) + (0, 0.5)$) {#3};
+    \node at ($(#1) + #4*(0, -1) + (0, -0.5)$) {#2};
+}
+
+% RB Trees
+\tikzset{rbtr/.style={inner sep=2pt, circle, draw=black, fill=red}}
+\tikzset{rbtb/.style={inner sep=2pt, circle, draw=black, fill=black}}
+
+% actual document
+\begin{document}
+    \section*{CO202 - Algorithms II \hfill Tutorial Sheets}
+        \subsection*{Tutorial 1}
+            Not sure if I'll actually cover it, since I've done these questions already in the notes.
+        \subsection*{Tutorial 2}
+            Note that the ~List~ class is as follows;
+            \begin{lstlisting}
+                class List list where
+                  fromList :: [a] -> list a
+                  toList :: list a -> [a]
+                  normalize :: list a -> list a
+
+                  empty :: list a
+                  single :: a -> list a
+
+                  cons :: a -> list a -> list a
+                  snoc :: a -> list a -> list a
+                  head :: list a -> a
+                  tail :: list a -> list a
+                  init :: list a -> list a
+                  last :: list a -> a
+
+                  isEmpty :: list a -> Bool
+                  isSingle :: list a -> Bool
+
+                  length :: list a -> Int
+                  (++) :: list a -> list a -> list a
+            \end{lstlisting}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item
+                    The ~List~ typeclass overloads the functions ~empty~, ~cons~, ~snoc~, ~head~, ~tail~, ~init~, ~last~, ~null~, ~length~, and ~(++)~ into the ~List~ class given above.
+                    It is possible to give default implementations for all of these functions.
+                    For instance, the definition of ~normalize~ is
+                    \begin{center}
+                        $~normalize = fromList . toList~$
+                    \end{center}
+                    Give all the other default implementations by appropriate conversion using ~toList~ and ~fromList~;
+                    \begin{lstlisting}
+                        empty = fromList []
+                        single x = fromList [x]
+
+                        cons x xs = fromList (x:toList xs)
+                        snoc x xs = fromList ((toList xs) ++ [x])
+                        head xs = Prelude.head (toList xs)
+                        tail xs = fromList (Prelude.tail (toList xs))
+                        init xs = fromList (Prelude.init (toList xs))
+                        last xs = Prelude.last (toList xs)
+
+                        isEmpty xs = null (toList xs)
+                        isSingle xs = case (toList xs) of [_] -> True
+                                                          _   -> False
+
+                        length xs = Prelude.length (toList xs)
+                        (++) xs ys = fromList (toList xs ++ toList ys)
+                    \end{lstlisting}
+                \item
+                    Give the trivial instance of ~List~ class for ordinary lists by giving the minimal definition of ~instance List []~.
+                    \begin{lstlisting}
+                        instance List [] where
+                          fromList = id
+                          toList = id
+                          normalize = id
+
+                          empty = []
+                          single x = [x]
+
+                          cons x xs = x:xs
+                          snoc x xs = xs ++ [x]
+                          head = Prelude.head
+                          tail = Prelude.tail
+                          init = Prelude.init
+                          last = Prelude.last
+
+                          isEmpty = null
+
+                          isSingle [_] = True
+                          isSingle _   = False
+
+                          length = Prelude.length
+                          (++) = Prelude.(++)
+                    \end{lstlisting}
+                \item
+                    Implement the instance of the ~List~ class for the ~DList~ datatype.
+                    State the complexity of each of these functions.
+                    \begin{lstlisting}
+                        instance List DList where
+                          fromList xs = DList (xs ++)
+                          toList (DList fxs) = fxs []
+
+                          DList fxs ++ DList fys = DList (fxs . fys)
+                    \end{lstlisting}
+                    Generally, the time complexities are the same, except for ~tail~ (since the whole list must now be rebuilt).
+                    The benefit is that ~(++)~ is now constant time.
+                \item Prove that the definition of ~(++)~ for ~DList~s is correct by showing;
+                    \begin{center}
+                        ~fromList xs ++ fromList ys = fromList (xs ++ ys)~
+                    \end{center}
+                    ~fromList xs~ gives ~DList (xs ++)~, and similarly ~fromList ys~ gives ~DList (ys ++)~.
+                    By our definition of ~(++)~, we know that ~fromList xs ++ fromList ys~ gives ~DList ((xs ++) . (ys ++))~.
+                    Intuitively, that is equivalent to ~DList ((xs ++ ys) ++)~, which is the result of ~fromList (xs ++ ys)~.
+                \item Explain the time complexity of the following definition of ~reverse~;
+                    \begin{lstlisting}
+                        reverse :: [a] -> [a]
+                        reverse []     = []
+                        reverse (x:xs) = reverse xs ++ [x]
+                    \end{lstlisting}
+                    This has a complexity of $O(n^2)$, due to the left nested chain of appends.
+                    \begin{align*}
+                        \text{let } n & = ~length xs~ & \text{for ~reverse xs~} \\
+                        T_~reverse~(0) & = 1 \\
+                        T_~reverse~(n) & = T_~reverse~(n - 1) + \underbrace{(n - 1)}_{T_~(++)~(n - 1)}
+                    \end{align*}
+                \item Show how to modify the previous definition of ~reverse~ to produce a version ~reverse' :: DList a -> DList a~, and give the time complexity of the resulting function.
+                    \begin{lstlisting}
+                        reverse' :: DList a -> DList a
+                        reverse' xs
+                          | isEmpty xs = empty
+                          | otherwise  = reverse' (tail xs) ++ single (head xs)
+                    \end{lstlisting}
+                    This has a time complexity in $O(n)$, as ~(++)~ is right associated.
+                \item Give a trivial representation of lists where ~length~ takes $O(1)$, and that does not affect the complexity of other operations.
+                    \begin{lstlisting}
+                        data LList a = LList Int [a]
+
+                        instance List LList where
+                          fromList xs = LList (length xs) xs
+                          toList (LList _ xs) = xs
+                          cons x (LList n xs) = LList (n + 1) (x:xs)
+                          length (LList n _) = n
+                    \end{lstlisting}
+                    This simply stores the length of the list as a parameter.
+            \end{enumerate}
+\end{document}
