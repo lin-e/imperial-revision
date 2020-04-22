@@ -1,0 +1,308 @@
+\documentclass[a4paper, 12pt]{article}
+
+% packages
+\usepackage{amssymb}
+\usepackage[fleqn]{mathtools}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{bussproofs}
+\usepackage{xcolor}
+\usepackage[margin=1.3cm]{geometry}
+\usepackage{logicproof}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{lstautogobble}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{tipa}
+\usepackage{pgfplots}
+\usepackage{adjustbox}
+
+% tikz libraries
+\usetikzlibrary{
+    decorations.pathreplacing,
+    arrows,
+    shapes.gates.logic.US,
+    circuits.logic.US,
+    calc,
+    automata,
+    positioning,
+    intersections
+}
+
+\pgfplotsset{compat=1.16}
+
+\pgfmathdeclarefunction{gauss}{2}{%
+  \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
+}
+
+\allowdisplaybreaks % allow environments to break
+\setlength\parindent{0pt} % no indent
+
+% shorthand for verbatim
+% this clashes with logicproof, so maybe fix this at some point?
+\catcode`~=\active
+\def~#1~{\texttt{#1}}
+
+% code listing
+\lstdefinestyle{main}{
+    numberstyle=\tiny,
+    breaklines=true,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=2,
+    numbers=left,
+    basicstyle=\ttfamily,
+    columns=fixed,
+    fontadjust=true,
+    basewidth=0.5em,
+    autogobble,
+    xleftmargin=3.0ex,
+    mathescape=true
+}
+\newcommand{\dollar}{\mbox{\textdollar}} %
+\lstset{style=main}
+
+% augmented matrix
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+\hskip -\arraycolsep
+\let\@ifnextchar\new@ifnextchar
+\array{#1}}
+\makeatother
+
+% ceiling / floor
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+% custom commands
+\newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
+\newcommand{\defint}[4]{\int_{#1}^{#2} #3 \, \mathrm{d}#4}
+\newcommand{\pdif}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\limit}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\lim_{#1 \to #2}}$}}}
+\newcommand{\limitsup}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\limsup_{#1 \to #2}}$}}}
+\newcommand{\summation}[2]{\sum\limits_{#1}^{#2}}
+\newcommand{\product}[2]{\prod\limits_{#1}^{#2}}
+\newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
+\newcommand{\laplace}{\mathcal{L}}
+\newcommand{\fourier}{\mathcal{F}}
+\newcommand{\mat}[1]{\boldsymbol{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\rowt}[1]{\begin{bmatrix}
+    #1
+\end{bmatrix}^\top}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+
+\newcommand{\lto}[0]{\leadsto\ }
+
+\newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
+
+\newcommand{\powerset}[0]{\wp}
+\renewcommand{\emptyset}[0]{\varnothing}
+
+\makeatletter
+\newsavebox{\@brx}
+\newcommand{\llangle}[1][]{\savebox{\@brx}{\(\m@th{#1\langle}\)}%
+  \mathopen{\copy\@brx\kern-0.5\wd\@brx\usebox{\@brx}}}
+\newcommand{\rrangle}[1][]{\savebox{\@brx}{\(\m@th{#1\rangle}\)}%
+  \mathclose{\copy\@brx\kern-0.5\wd\@brx\usebox{\@brx}}}
+\makeatother
+\newcommand{\lla}{\llangle}
+\newcommand{\rra}{\rrangle}
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+\newcommand{\crnr}[1]{\text{\textopencorner} #1 \text{\textcorner}}
+\newcommand{\bnfsep}[0]{\ |\ }
+\newcommand{\concsep}[0]{\ ||\ }
+
+\newcommand{\axiom}[1]{\AxiomC{#1}}
+\newcommand{\unary}[1]{\UnaryInfC{#1}}
+\newcommand{\binary}[1]{\BinaryInfC{#1}}
+\newcommand{\trinary}[1]{\TrinaryInfC{#1}}
+\newcommand{\quaternary}[1]{\QuaternaryInfC{#1}}
+\newcommand{\quinary}[1]{\QuinaryInfC{#1}}
+\newcommand{\dproof}[0]{\DisplayProof}
+\newcommand{\llabel}[1]{\LeftLabel{\scriptsize #1}}
+\newcommand{\rlabel}[1]{\RightLabel{\scriptsize #1}}
+
+\newcommand{\ttbs}{\char`\\}
+\newcommand{\lrbt}[0]{\ \bullet\ }
+
+% colours
+\newcommand{\violet}[1]{\textcolor{violet}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\teal}[1]{\textcolor{teal}{#1}}
+
+% reasoning proofs
+\usepackage{ltablex}
+\usepackage{environ}
+\keepXColumns
+\NewEnviron{reasoning}{
+    \begin{tabularx}{\textwidth}{rlX}
+        \BODY
+    \end{tabularx}
+}
+\newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
+\newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
+\newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
+\newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
+\newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
+
+% ER diagrams
+\newcommand{\nattribute}[4]{
+    \node[draw, state, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\mattribute}[4]{
+    \node[draw, state, accepting, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\dattribute}[4]{
+    \node[draw, state, dashed, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\entity}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 0.5)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -0.5)$) {};
+    \draw
+    ($(#1-c) + (-1, 0.5)$) -- ($(#1-c) + (1, 0.5)$) -- ($(#1-c) + (1, -0.5)$) -- ($(#1-c) + (-1, -0.5)$) -- cycle;
+}
+\newcommand{\relationship}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 1)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -1)$) {};
+    \draw
+    ($(#1-c) + (-1, 0)$) -- ($(#1-c) + (0, 1)$) -- ($(#1-c) + (1, 0)$) -- ($(#1-c) + (0, -1)$) -- cycle;
+}
+
+% AVL Trees
+\newcommand{\avltri}[4]{
+    \draw ($(#1)$) -- ($(#1) + #4*(0.5, -1)$) -- ($(#1) + #4*(-0.5, -1)$) -- cycle;
+    \node at ($(#1) + #4*(0, -1) + (0, 0.5)$) {#3};
+    \node at ($(#1) + #4*(0, -1) + (0, -0.5)$) {#2};
+}
+
+% RB Trees
+\tikzset{rbtr/.style={inner sep=2pt, circle, draw=black, fill=red}}
+\tikzset{rbtb/.style={inner sep=2pt, circle, draw=black, fill=black}}
+
+% actual document
+\begin{document}
+    \section*{CO211 - Operating Systems \hfill Tutorial Sheets}
+        \subsection*{Tutorial 1 - Introduction}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item
+                    The issue of resource allocation shows up in different forms in different types of operating systems.
+                    List the most important resources that must be managed by an operating system in the following settings;
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Supercomputer
+                            \medskip
+
+                            Since this is most likely used for computation, processor time as well as memory should be carefully managed.
+                        \item Workstations connected to servers via a network
+                            \medskip
+
+                            Network access and bandwidth.
+                        \item Smartphone
+                            \medskip
+
+                            Energy, since it is a portable device, as well as access to hardware such as the camera, GPS, as well as connectivity (Bluetooth, mobile network, etc).
+                    \end{enumerate}
+                \item What is the kernel of an operating system?
+                    \medskip
+
+                    The kernel of the operating system is part of the operating system that remains in memory, executing in the privileged part of the CPU.
+                \item
+                    Why is the separation into a user mode and a kernel mode considered good operating system design?
+                    Give an example in which the execution of a user process switches from user mode to kernel mode, and then back to user mode again.
+                    \medskip
+
+                    Any bugs executing in user space should not cause the entire system to crash, since the kernel allows for recovery.
+                    If all programs were to run in kernel mode, a failure would bring down the entire system.
+                    An example of this switch would be writing to disk (or any system call in general).
+                \item Which of the following instructions should only be allowed in kernel mode, and why?
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Disable all interrupts \hfill kernel only
+                            \medskip
+
+                            If something in user were to disable interrupts, the kernel would have no way of regaining control,
+                        \item Read the time of day clock \hfill user
+                            \medskip
+
+                            All user processes should be able to access the time if needed.
+                        \item Change the memory map \hfill kernel only
+                            \medskip
+
+                            Managing memory should be restricted to the kernel.
+                        \item Set the time of day \hfill kernel only
+                            \medskip
+
+                            Processes running in user space should not be able to change the time, as it can cause issues for other processes.
+                    \end{enumerate}
+                \item
+                    A portable operating system is one that can be ported from one system architecture to another with little modification.
+                    Explain why it is infeasible to build an operating system that is portable without any modification.
+                    Describe two general parts that you can find in an operating system that has been designed to be highly portable.
+                    \medskip
+
+                    Since the operating system must interact with the hardware, it's not feasible to build an OS that can interact with every hardware configuration.
+                    Device drivers (\textbf{platform specific}) allow for the operating system to interact with hardware, and this can be provided by the hardware manufacturer.
+                    Another part would be an API the OS provides to programs (\textbf{platform independent}), allowing them to interact with hardware via this abstraction.
+            \end{enumerate}
+        \subsection*{Tutorial 2 - Processes + Threads}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item 
+            \end{enumerate}
+        \subsection*{Tutorial 3 - Scheduling}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item 
+            \end{enumerate}
+        \subsection*{Tutorial 4 - Synchronisation}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item 
+            \end{enumerate}
+        \subsection*{Tutorial 5 - Deadlocks}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item 
+            \end{enumerate}
+        \subsection*{Tutorial 6 - Memory Management}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item 
+            \end{enumerate}
+        \subsection*{Tutorial 7 - Device Management}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item 
+            \end{enumerate}
+        \subsection*{Tutorial 8 - Disk Management}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item 
+            \end{enumerate}
+        \subsection*{Tutorial 9 - File Systems}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item 
+            \end{enumerate}
+        \subsection*{Tutorial 10 - Security}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item 
+            \end{enumerate}
+\end{document}
