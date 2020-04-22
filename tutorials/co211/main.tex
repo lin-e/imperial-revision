@@ -368,7 +368,126 @@
         \subsection*{Tutorial 3 - Scheduling}
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item 
+                \item State which of the following are true and which false.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Interactive systems generally use non-preemptive processor scheduling.
+                            \medskip
+
+                            \textbf{False}.
+                            An interactive system uses preemptive scheduling - if there was a background process that was taking up too much time, the user interface would appear unresponsive.
+                            A preemptive scheduler allows this process to be preempted, giving control to the process running the user interface.
+                        \item Turnaround times are more predictable in preemptive than in non-preemptive systems.
+                            \medskip
+
+                            \textbf{False}.
+                            In a non-preemptive system, a process will run to completion (or until it blocks).
+                        \item One weakness of priority scheduling is that the system will faithfully honour the priorities, but the priorities themselves may not be meaningful.
+                            \medskip
+
+                            \textbf{True}.
+                            The actual priority of a job can depend on what other processes are running at the same time.
+                    \end{enumerate}
+                \item
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Give an example showing why FCFS is not an appropriate scheduling scheme for interactive users.
+                            \medskip
+
+                            Assume that there are two tasks on a system.
+                            The first task, is a large computation that happens in the background, and takes a notable amount of time (and is purely CPU bound, hence no blocking).
+                            The second task is a browser.
+                            Since the first task would be run first, the browser will be unresponsive to the end user, since the first task occupies the resources until it finishes.
+                        \item Using the previous example, show why round-robin is a better scheme for interactive users.
+                            \medskip
+
+                            Round-robin switches between the two tasks, thus ensuring both tasks get the processor periodically.
+                            As such, the browser will be able to respond (since the large task can be interrupted), and the computation can continue after the browser uses up its time quantum.
+                    \end{enumerate}
+                \item
+                    Five jobs are waiting to be run.
+                    Their expected run times are $9, 6, 3, 5, X$.
+                    In what order should they be run to minimise average turnaround time?
+                    \medskip
+
+                    It should be run with the shortest job first, and the longest job last ($X$ should be placed in the list $3, 5, 6, 9$ accordingly).
+                \item
+                    Five batch jobs, $A$ through $E$, arrive at a computer centre at essentially the same time.
+                    Their estimated running times, and priorities (lower value is higher priority) are as follows;
+                    \begin{center}
+                        \begin{tabular}{c|c|c}
+                            job & running time (minutes) & priority \\
+                            \hline
+                            $A$ & 15 & 6 \\
+                            $B$ & 9 & 3 \\
+                            $C$ & 3 & 7 \\
+                            $D$ & 6 & 9 \\
+                            $E$ & 12 & 4
+                        \end{tabular}
+                    \end{center}
+                    For each of the following scheduling algorithms, determine the turnaround time for each job, and the average turnaround time for all jobs.
+                    Ignore process switching overhead and assume all jobs are completely CPU bound.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item non-preemptive priority scheduling
+                            \begin{center}
+                                \begin{tabular}{c|c}
+                                    job & turnaround time (minutes) \\
+                                    \hline
+                                    $B$ & $9$ \\
+                                    $E$ & $9 + 12 = 21$ \\
+                                    $A$ & $21 + 15 = 36$ \\
+                                    $C$ & $36 + 3 = 39$ \\
+                                    $D$ & $39 + 6 = 45$
+                                \end{tabular}
+                            \end{center}
+                            Hence the average turnaround time is $30$ minutes.
+                        \item FCFS (in order $A, B, C, D, E$)
+                            \begin{center}
+                                \begin{tabular}{c|c}
+                                    job & turnaround time (minutes) \\
+                                    \hline
+                                    $A$ & $15$ \\
+                                    $B$ & $15 + 9 = 24$ \\
+                                    $C$ & $24 + 3 = 27$ \\
+                                    $D$ & $27 + 6 = 33$ \\
+                                    $E$ & $33 + 12 = 45$
+                                \end{tabular}
+                            \end{center}
+                            Hence the average turnaround time is $28.8$ minutes.
+                        \item shortest job first
+                            \begin{center}
+                                \begin{tabular}{c|c}
+                                    job & turnaround time (minutes) \\
+                                    \hline
+                                    $C$ & $3$ \\
+                                    $D$ & $3 + 6 = 9$ \\
+                                    $B$ & $9 + 9 = 18$ \\
+                                    $E$ & $18 + 12 = 30$ \\
+                                    $A$ & $30 + 15 = 45$
+                                \end{tabular}
+                            \end{center}
+                            Hence the average turnaround time is $21$ minutes.
+                        \item round robin with a time quantum of 1 minute
+                            \medskip
+
+                            The order is as follows; note that a \teal{teal} quantum is the final quantum for that job.
+                            \begin{center}
+                                ~ABCDEABCDEAB~\teal{~C~}~DEABDEABDEAB~\teal{~D~}~EABEABEA~\teal{~B~}~EAEAEA~\teal{~E~}~AA~\teal{~A~}
+                            \end{center}
+                            \begin{center}
+                                \begin{tabular}{c|c}
+                                    job & turnaround time (minutes) \\
+                                    \hline
+                                    $A$ & $45$ \\
+                                    $B$ & $35$ \\
+                                    $C$ & $13$ \\
+                                    $D$ & $26$ \\
+                                    $E$ & $42$
+                                \end{tabular}
+                            \end{center}
+                            Hence the average turnaround time is $32.2$ minutes.
+                    \end{enumerate}
             \end{enumerate}
         \subsection*{Tutorial 4 - Synchronisation}
             \begin{enumerate}[1.]
