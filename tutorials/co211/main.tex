@@ -263,7 +263,107 @@
         \subsection*{Tutorial 2 - Processes + Threads}
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item 
+                \item
+                    If a multithreaded process forks, a problem occurs if the child gets copies of all the parent's threads.
+                    Suppose that one of the original threads was waiting for keyboard input.
+                    Now two threads are waiting for keyboard input, one in each process.
+                    Does this problem ever occur in single-threaded processes?
+                    \medskip
+
+                    No, this does not happen in single-threaded processes as the entire process would be blocked when waiting for input, and therefore cannot fork.
+                \item
+                    What is the biggest advantage of implementing threads in user space?
+                    What is the biggest disadvantage?
+                    \medskip
+
+                    The biggest advantage is that it allows the thread scheduling to be managed by the programmer, and also avoids the overhead of context switching.
+                    On the other hand, the main disadvantage is that if any of the user space threads were to block (to wait for input), it would context switch to another thread.
+                \item If in a multithreaded web server the only way to read from a file is the normal blocking ~read()~ system call, do you think user-level threads or kernel-level threads are being used?
+                    \medskip
+
+                    Kernel-level threads are being used, as the entire web server would block if it was done with user space threads.
+                \item
+                    Why would a thread ever voluntarily give up the CPU by calling ~thread\_yield()~?
+                    After all, since there is no periodic clock interrupts, it may never get the CPU back.
+                    \medskip
+
+                    It is done to lower the priority of the thread in the scheduler, allowing another thread to run.
+                    This allows threads to cooperate.
+                \item
+                    The register set is a per-thread rather than a per-process item.
+                    Why?
+                    After all, the machine has only one set of registers.
+                    \medskip
+
+                    When a thread is stopped, it has its own contents in a register which must be saved (and then restored transparently to the thread).
+                \item
+                    In a system with threads, is there one stack per thread or one stack per process when user-level threads are used?
+                    What about when kernel threads are used?
+                    Explain.
+                    \medskip
+
+                    Since each thread can call procedures, it must have a stack per thread in order to store local variables and calls.
+                    The same can be said for kernel threads.
+                \item
+                    In this problem you are to compare reading a file using a single-threaded file server and a multithreaded server, running on a single CPU-machine.
+                    It takes 15 ms to get a request for work, dispatch it, and do the rest of the necessary processing, assuming that the data needed are in the block cache.
+                    If a disk operation is needed, as is the case one-third of the time, an additional 75 ms is required, during which time the thread sleeps.
+                    For this problem, assume that thread switching time is negligible.
+                    How many requests/sec can the server handle if it is single-threaded?
+                    If it is multithreaded?
+                    \medskip
+
+                    Let the average time for an operation be $15 + \frac{1}{3} \cdot 75 = 40$ ms.
+                    Therefore, with a single thread, it can process 25 requests/s.
+                    \medskip
+
+                    We want to calculate the probability that all threads are waiting for I/O.
+                    The average blocking time per thread is 25 ms, as seen above.
+                    This means that the probability that all threads are blocked is $1 - (\frac{25}{40})^n = 1 - (\frac{5}{8})^n$,
+                    As such, we can calculate the number of requests per second as;
+                    $$\left(1 - \left(\frac{5}{8}\right)^n\right) \cdot \frac{1000}{15}$$
+                    Note $\frac{1000}{15}$ requests/sec is at full efficiency.
+                \item
+                    Would an algorithm that performs several independent CPU-intensive calculations concurrently (e.g. matrix multiplication) be more efficient if it used threads, or if it did not use threads?
+                    Why is this a hard question to answer?
+                    \medskip
+
+                    It would be more efficient as long as the overhead for threads is negligible compared to the performance increase, and the CPU is actually able to perform the computation in parallel (multiple cores), otherwise the overhead of threads will cause it to be less efficient.
+                    This is difficult to answer as it depends on the problem itself, how it is divided, as well as the system specifications.
+                \item IPC mechanisms
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item What happens when a signal is received by a process?
+                            \medskip
+
+                            Other than ~SIGKILL~ and ~SIGSTOP~, the receiving process is able to choose what it does with the signal.
+                            It can either ignore it, or manually handle it.
+                            Otherwise, it generally terminates the process.
+                        \item
+                            When two processes communicate through a pipe, the kernel allocates a buffer (of size 65536 bytes in Linux) for the pipe.
+                            What happens when the process at the write-end of the pipe attempts to sen additional bytes on a full pipe?
+                            \medskip
+
+                            It cannot write, and will block until the process at the read-end reads from it, thus freeing up space.
+                        \item
+                            What happens when the process at the write-end of the pipe attempts to send additional bytes and the process at the read-end has already closed the file descriptor associated with the read-end of the pipe?
+                            \medskip
+
+                            The writing process will have an error returned to it.
+                        \item
+                            The process at the write-end of the pipe wants to transmit a linked list data structure (with one integer field, an a "next" pointer) over a pipe.
+                            How can it do this?
+                            \medskip
+
+                            Since they do not share address spaces, it must be serialised in some form by the sending process, which can then be converted back into a linked list by the receiving process.
+                        \item
+                            When would it be better for two processes to communicate via shared memory instead of pipes?
+                            What about the other way around?
+                            \medskip
+
+                            It would be better for two processes to communicate via shared memory as it is faster due to the lack of kernel intervention - it also allows for bi-directional communication.
+                            On the other hand, pipes are handled by the kernel, thus synchronisation does not have to be implemented by the programmer.
+                    \end{enumerate}
             \end{enumerate}
         \subsection*{Tutorial 3 - Scheduling}
             \begin{enumerate}[1.]
