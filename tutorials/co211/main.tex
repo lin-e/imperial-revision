@@ -800,7 +800,145 @@
         \subsection*{Tutorial 7 - Device Management}
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item 
+                \item In which of the four I/O software layers (user-level I/O software, device-independent OS software, device drivers, and interrupts handlers) is each of the following done?
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item computing the track, sector and head for a disk read \hfill device drivers
+                            \medskip
+
+                            This requires familiarity with the actual disk layout.
+                            Modern hard disks will often perform the mapping entirely in hardware by the disk controller.
+                        \item maintaining a cache of recently used blocks \hfill device-independent OS software
+                            \medskip
+
+                            A block cache is useful across block I/O devices, thus it can be shared if implemented in this layer.
+                        \item writing commands to the drive registers \hfill device drivers
+                            \medskip
+
+                            This can also be done in the interrupt handler (if it quick and time-critical).
+                        \item checking to see if the user is permitted to use the device \hfill device-independent OS software
+                            \medskip
+
+                            Access control is applicable to many devices, hence it can be reused if implemented in this layer.
+                        \item converting binary integers to ASCII for printing \hfill user-level I/O software
+                            \medskip
+
+                            This can be done cheaply in user space as it doesn't require any privileged access.
+                    \end{enumerate}
+                \item What is the difference between
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item a device driver and a device controller?
+                            \medskip
+
+                            A device driver is software in the OS kernel which communicates with the device controller (hardware) on the external device.
+                        \item a block-oriented device and a character-oriented device?
+                            \medskip
+
+                            A block-oriented device deals with data in fixed size blocks, which is preferable when reading or writing a large amount of data (over making multiple individual requests) - this can also use a cache.
+                            On the other hand, a character-oriented device deals with data a character at a time.
+                    \end{enumerate}
+                \item What is memory-mapped I/O, and why is it sometimes used?
+                    \medskip
+
+                    Memory mapped I/O allows a device to be addressed as a memory location.
+                    This can be used when reading from / writing to a large file, instead of loading the contents into a buffer.
+                    To implement this, the memory controller must intercept requests to address ranges representing I/O devices and put them on the PCI bus instead of the memory bus.
+                \item An alternative to using interrupts for I/O is polling, are there any circumstances where this is better choice?
+                    \medskip
+
+                    This is a simpler mechanism (hence easier to implement) compared to interrupt-driven I/O.
+                    As such, this is advantageous in embedded systems, where the overhead of a context switch is unnecessary (if the operation finishes quickly).
+                \item
+                    Explain what direct memory access is, and why it is used.
+                    Although DMA does not use the CPU, the maximum transfer rate is still limited.
+                    Consider reading a block from disk.
+                    Name three factors that might ultimately limit the rate of transfer.
+                    \medskip
+
+                    DMA allows the device to write directly into memory, and then raise an interrupt once the operation is complete, thus reducing the number of interrupts it requires.
+                    The following factors might limit the rate of transfer;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item speed of the disk (how fast it can actually spin)
+                        \item speed of the link (bus) between devices
+                        \item access bandwidth supported by the memory
+                    \end{itemize}
+                \item
+                    What is spooling?
+                    Why is a printer spooling system better than direct user access to printers?
+                    \medskip
+
+                    Spooling is used to create queue of jobs to be sent to a device.
+                    For example, a process can send a job to the spooling daemon for the printer, and know that it will eventually be printed (hence only the daemon has direct access to the printer).
+                    This prevents the process from blocking if there are other jobs in the queue, or interfering with other jobs which are also attempting to write into the device.
+                \item
+                    An operating system has to support I/O devices with very diverse properties.
+                    Complete the following table;
+                    \begin{center}
+                        \begin{tabular}{c|c|c|c}
+                            device & data rate & type (\textbf{C}haracter / \textbf{B}lock) & operation (\textbf{R}ead, \textbf{W}rite, \textbf{S}eek) \\
+                            \hline
+                            clock & & & \\
+                            keyboard & 10 B/s & C & R \\
+                            mouse & 100 B/s & C & R \\
+                            56k modem & 7 KB/s & C & R, W \\
+                            laser printer & 100 KB/s & C & W \\
+                            scanner & 400 KB/s & C & R \\
+                            52x CD-ROM & 8 MB/s & B & R, S \\
+                            FastEthernet & 12.5 MB/s & C & R, W \\
+                            EIDE (ATA-2) disk & 16.7 MB/s & B & R, W, S \\
+                            ISA bus & 16.7 MB/s & C & R, W\\
+                            Fire Wire (IEEE 1394) & 50 MB/s & C & R, W\\
+                            USB 2.0 & 60 MB/s & C & R, W\\
+                            XGA monitor & 60 MB/s & C & R, W\\
+                            Gigabit Ethernet & 125 MB/s & C & R, W\\
+                            Serial ATA disk & 300 MB/s & B & R, W, S\\
+                            SCSI Ultrawide4 disk & 320 MB/s & B & R, W, S \\
+                            PCI bus & 528 MB/s & C & R, W \\
+                        \end{tabular}
+                    \end{center}
+                \item
+                    Explain how one can provide an asynchronous I/O API on top of a blocking I/O system call interface.
+                    You have to implement a web server that should handle thousands of concurrent incoming connections.
+                    What would be the advantages of using a non-blocking I/O interface for this?
+                    \medskip
+
+                    The main process can create a new thread, which will be blocked waiting for I/O, and the main process continues executing.
+                    The new thread can then signal (once it unblocks by receiving I/O) the main process, which can then handle the signal with a callback.
+                    \medskip
+
+                    If this was to use blocking I/O, there would be a significant context switching overhead (due to a thread being required for each connection).
+                    Instead, the web server can be implemented using an event-driven design, where an event loop polls active file descriptors with outstanding I/O operations.
+                \item
+                    Write a C program that implements the copy (~cp~) command.
+                    Your program should be invoked as
+                    \begin{center}
+                        ~mycp <source file> <destination file>~
+                    \end{center}
+                    \begin{lstlisting}
+                        #include <sys/types.h>
+                        #include <sys/stat.h>
+                        #include <fcntl.h>
+                        #include <stdlib.h>
+
+                        int main(int argc, char argv[]) {
+                          int inFile, outFile;
+                          char line[512];
+                          int bytes;
+
+                          // check if either are -1
+                          inFile = open(argv[1], O_RDONLY);
+                          outFile = open(argv[2], O_WRONLY | O_CREAT);
+
+                          while ((bytes = read(inFile, line, sizeof(line))) > 0) {
+                            write(outFile, line, bytes);
+                          }
+
+                          close(inFile);
+                          close(outFile);
+                        }
+                    \end{lstlisting}
             \end{enumerate}
         \subsection*{Tutorial 8 - Disk Management}
             \begin{enumerate}[1.]
