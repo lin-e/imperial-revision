@@ -943,7 +943,131 @@
         \subsection*{Tutorial 8 - Disk Management}
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item 
+                \item
+                    A disk controller with enough memory can perform read-ahead, reading blocks on the current track into its memory before the CPU asks for them.
+                    Should it also do write-behind (reporting back to the CPU that a block has been written once it is stored in the disk controller's memory)?
+                    \medskip
+
+                    Not in general, as we will encounter data loss if the system loses power before the disk controller writes to the disk - we need to ensure that data is actually written if it the drive reports the block has been written.
+                    However, if the drive is able to complete the write after power loss (with some sort of emergency power), then write-behind is possible.
+                \item
+                    Suppose that the current position of the disk arm is over cylinder 200.
+                    The disk request queue contains requests for sectors on the following cylinders;
+                    \begin{center}
+                        400, 20, 19, 74, 899
+                    \end{center}
+                    In which order will the requests be handled under:
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item FCFS \hfill 400, 20, 19, 74, 899
+                            \medskip
+
+                            As the name implies, it processes the requests in order.
+                            However, this has a drawback as it can lead to random seek patterns.
+                            However, under light load, this is fine as it is a fair scheduling method.
+                        \item SSTF \hfill 74, 20, 19, 400, 899
+                            \medskip
+
+                            This travels to the cylinder with the shortest distance from the current position of the head.
+                            Due to this, the head tends to stay in the middle, possibly causing the innermost and outermost tracks to be starved.
+                        \item SCAN \hfill 400, 899, 74, 20, 19
+                            \medskip
+
+                            This chooses requests which result in the shortest seek time, but in a given direction.
+                            Once the queue has no more requests in the given direction, it starts going in the other direction.
+                            However, this can still lead to delays for the extreme locations.
+                        \item C-SCAN \hfill 400, 899, 19, 20, 74
+                            \medskip
+
+                            This is similar to scan, but once it reaches the outermost track, it goes straight to the innermost track (or vice versa) - hence the scanning only occurs in one direction.
+                            This reduces the variance for times for requests to extreme tracks.
+                    \end{enumerate}
+                \item
+                    Disk requests come in to the disk drive for tracks 10, 22, 20, 2, 40, 6, and 38, in that order.
+                    A seek takes 5 ms per track moved.
+                    In all cases the arm is initially at track 20.
+                    How much seek time is needed for;
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item FCFS \hfill 10, 22, 20, 2, 40, 6, 38
+                            \begin{center}
+                                $5 \cdot (10 + 12 + 2 + 18 + 38 + 34 + 32) = 730 \text{ ms}$
+                            \end{center}
+                        \item SSTF \hfill 20, 22, 10, 6, 2, 38, 40
+                            \begin{center}
+                                $5 \cdot (0 + 2 + 12 + 4 + 4 + 36 + 2) = 300 \text{ ms}$
+                            \end{center}
+                        \item SCAN \hfill 20, 22, 38, 40, 10, 6, 2
+                            \begin{center}
+                                $5 \cdot (0 + 2 + 16 + 2 + 30 + 4 + 4) = 290 \text{ ms}$
+                            \end{center}
+                    \end{enumerate}
+                \item Consider the following parameters describing a disk;
+                    \begin{center}
+                        \begin{tabular}{ll}
+                            parameter & description \\
+                            \hline
+                            $C$ & number of cylinders \\
+                            $T$ & number of tracks per cylinder (number of platters) \\
+                            $S$ & number of sectors per track \\
+                            $\omega$ & rotational velocity (rotations per second) \\
+                            $B$ & number of bytes per sector
+                        \end{tabular}
+                    \end{center}
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item How many bytes of data are on each disk cylinder?
+                            \begin{center}
+                                $(B \cdot S \cdot T) \text{ bytes}$
+                            \end{center}
+                        \item Which parameters would be changed, and why, to reduce the expected rotational latency for requests?
+                            \medskip
+
+                            The rotational velocity would have to be increased, since the rotational latency is $\frac{1}{2 \omega}$.
+                        \item Which parameters would be change to reduce the disk's transfer time?
+                            \medskip
+
+                            The transfer speed is $\frac{1}{S B \omega}$, therefore the number of bytes per track ($S \cdot B$) and / or the rotational velocity would have to be increased.
+                    \end{enumerate}
+                \item
+                    A disk drive has the same parameters as above.
+                    Consider $s_1$ and $s_2$, consecutive sectors on the same track of the disk ($s_2$ will pass under a read / write head immediately after $s_1$).
+                    A read request for $s_1$ arrives at the disk and is serviced.
+                    Exactly $d$ seconds $(0 < d < \frac{1}{\omega})$ seconds after the disk completes that request, a read request for sector $s_2$ arrives at the disk.
+                    Assuming no intervening requests, how long will it take the disk to service the request for sector $s_2$?
+                    \begin{align*}
+                        t_\text{access} & = t_\text{seek} + t_\text{latency} + t_\text{transfer} \\
+                        & = 0 + \frac{1}{2 \omega} + \frac{1}{}
+                    \end{align*}
+                \item
+                    A disk drive has the same parameters as above.
+                    However, for simplicity, we assume that the disk only has one single-sided platter (hence $T = 1$).
+                    The following function gives the relationship between seek distance $d$, in cylinders, and seek time $t_\text{seek}$ in milliseconds;
+                    $$t_\text{seek} = \begin{cases}
+                        0 & d = 0 \\
+                        5 + 0.05 \cdot d & 0 < d \leq C
+                    \end{cases}$$
+                    ????
+                \item
+                    A disk drive has $T = 1000$ tracks per surface, and $S = 10$ sectors per track.
+                    The platters spin at a rate of $\omega = 100$ rotations per second.
+                    The following function relates seek distance $d$ in cylinders, to the seek time (in milliseconds);
+                    \begin{center}
+                        $t_\text{seek} = 0.1 \cdot d  + 5$
+                    \end{center}
+                    Sectors $s_1$ and $s_2$ are consecutive sectors on the same track of cylinder 100 ($s_2$ will pass under the read / write head immediately after $s_1$ does).
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item
+                            The read / write heads are initially located over cylinder zero.
+                            The disk receives a request for sector $s_1$.
+                            After servicing that request, it is idle for a time, and then receives a request for sector $s_2$.
+                            What is the sum of the expected service times for these two requests?
+                        \item
+                            The read / write heads are initially located over cylinder zero.
+                            The disk receives a single request to read sectors $s_1$ and $s_2$.
+                            What is the expected service time for this request?
+                    \end{enumerate}
             \end{enumerate}
         \subsection*{Tutorial 9 - File Systems}
             \begin{enumerate}[1.]
