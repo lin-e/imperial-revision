@@ -1037,7 +1037,7 @@
                     Assuming no intervening requests, how long will it take the disk to service the request for sector $s_2$?
                     \begin{align*}
                         t_\text{access} & = t_\text{seek} + t_\text{latency} + t_\text{transfer} \\
-                        & = 0 + \frac{1}{2 \omega} + \frac{1}{}
+                        & = 0 + \frac{1}{\omega} - d + \frac{1}{S \omega}
                     \end{align*}
                 \item
                     A disk drive has the same parameters as above.
@@ -1047,7 +1047,71 @@
                         0 & d = 0 \\
                         5 + 0.05 \cdot d & 0 < d \leq C
                     \end{cases}$$
-                    ????
+                    The sectors are laid out and numbered sequentially, starting with the outer cylinder, as shown in the diagram below.
+                    \begin{center}
+                        \begin{tikzpicture}[x=0.85cm, y=0.85cm]
+                            \draw (0, 0) circle (4);
+                            \draw (0, 0) circle (3);
+                            \draw (0, 0) circle (2);
+                            \foreach \r in {0,22.5,45,67.5,90,112.5,135,157.5} {
+                                \draw[rotate=\r] (-4, 0) -- (4, 0);
+                            }
+                            \begin{scope}[rotate=123.75]
+                                \node at (3.5, 0) {\scriptsize $S - 2$};
+                            \end{scope}
+                            \begin{scope}[rotate=101.25]
+                                \node at (3.5, 0) {\scriptsize $S - 1$};
+                            \end{scope}
+                            \begin{scope}[rotate=78.75]
+                                \node at (3.5, 0) {\scriptsize $S$};
+                            \end{scope}
+                            \begin{scope}[rotate=56.25]
+                                \node at (3.5, 0) {\scriptsize $1$};
+                            \end{scope}
+                            \begin{scope}[rotate=33.75]
+                                \node at (3.5, 0) {\scriptsize $2$};
+                            \end{scope}
+                            \begin{scope}[rotate=11.25]
+                                \node at (3.5, 0) {\scriptsize $3$};
+                            \end{scope}
+                            \begin{scope}[rotate=-11.25]
+                                \node at (3.5, 0) {\scriptsize $4$};
+                            \end{scope}
+                            \begin{scope}[rotate=101.25]
+                                \node at (2.5, 0) {\scriptsize $2S - 1$};
+                            \end{scope}
+                            \begin{scope}[rotate=78.75]
+                                \node at (2.5, 0) {\scriptsize $2S$};
+                            \end{scope}
+                            \begin{scope}[rotate=56.25]
+                                \node at (2.5, 0) {\scriptsize $S + 1$};
+                            \end{scope}
+                            \begin{scope}[rotate=33.75]
+                                \node at (2.5, 0) {\scriptsize $S + 2$};
+                            \end{scope}
+                            \draw (5, -3) edge[->, right] node{\shortstack{direction\\of\\rotation}} (5, 3);
+                        \end{tikzpicture}
+                    \end{center}
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item
+                            Suppose the disk read / write head is located over cylinder 10.
+                            The disk receives a request to read sector $S$.
+                            What is the expected service time for this request?
+                            \begin{align*}
+                                t_\text{service} & = t_\text{seek} + t_\text{latency} + t_\text{transfer} \\
+                                & = 5 + 0.05 \cdot 10 + \frac{1}{2 \omega} + \frac{1}{S \omega} \\
+                                & = 5.5 \text{ ms} + \frac{1}{2 \omega} + \frac{1}{S \omega}
+                            \end{align*}
+                        \item
+                            Exactly $d$ milliseconds after completing the request for $S$, the disk receives a request for sector $S + 1$.
+                            What is the expected service time for this request?
+                            \begin{align*}
+                                t_\text{service} & = t_\text{seek} + t_\text{latency} + t_\text{transfer} \\
+                                & = 5 + 0.05 \cdot 1 + \frac{1}{\omega} \cdot (d + t_\text{seek}) + \frac{1}{S \omega} \\
+                                & = 5.5 \text{ ms} + \frac{1}{\omega} \cdot (d + t_\text{seek}) + \frac{1}{S \omega}
+                            \end{align*}
+                    \end{enumerate}
                 \item
                     A disk drive has $T = 1000$ tracks per surface, and $S = 10$ sectors per track.
                     The platters spin at a rate of $\omega = 100$ rotations per second.
@@ -1063,10 +1127,25 @@
                             The disk receives a request for sector $s_1$.
                             After servicing that request, it is idle for a time, and then receives a request for sector $s_2$.
                             What is the sum of the expected service times for these two requests?
+                            \begin{align*}
+                                t_\text{service} & = t_\text{seek} + 2 \cdot t_\text{latency} + 2 \cdot t_\text{transfer} \\
+                                & = (0.1 \cdot d + 5) + 2 \cdot \frac{1}{2 \cdot \underbrace{\omega \cdot \frac{1}{1000}}_\text{convert}} + 2 \cdot \frac{1}{S \cdot \underbrace{\omega \cdot \frac{1}{1000}}_\text{convert}} \\
+                                & = 0.1 \cdot 100 + 5 + 2 \cdot \frac{1}{2 \cdot 0.1} + 2 \cdot \frac{1}{10 \cdot 0.1} \\
+                                & = 15 + 10 + 2 \\
+                                & = 27 \text{ ms}
+                            \end{align*}
+                            Note that the time for latency and transfer are the same for the second request, however seek time is not needed.
                         \item
                             The read / write heads are initially located over cylinder zero.
                             The disk receives a single request to read sectors $s_1$ and $s_2$.
                             What is the expected service time for this request?
+                            \begin{align*}
+                                t_\text{service} & = t_\text{seek} + t_\text{latency} + t_\text{transfer} \\
+                                & = (0.1 \cdot d + 5) + \frac{1}{2 \cdot \underbrace{\omega \cdot \frac{1}{1000}}_\text{convert}} + \frac{2}{S \cdot \underbrace{\omega \cdot \frac{1}{1000}}_\text{convert}} \\
+                                & = 0.1 \cdot 100 + 5 + \frac{1}{2 \cdot 0.1} + \frac{2}{10 \cdot 0.1} \\
+                                & = 15 + 5 + 2 \\
+                                & = 22 \text{ ms}
+                            \end{align*}
                     \end{enumerate}
             \end{enumerate}
         \subsection*{Tutorial 9 - File Systems}
