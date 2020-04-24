@@ -1151,11 +1151,129 @@
         \subsection*{Tutorial 9 - File Systems}
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item 
+                \item
+                    Explain what it means to "defragment a file system"?
+                    Are there file systems that do not require defragmentation?
+                    How can a file system reduce the amount of fragmentation?
+                    \medskip
+
+                    Defragmenting a file system is the process of moving blocks associated with the same file together, such that they form a contiguous block, thus avoiding unnecessary seeks.
+                    Generally, any file system can become fragmented, however there can be strategies to reduce fragmentation by allocating in zones.
+                \item
+                    Consider a file system that maintains a unique inode for each file in the system.
+                    Each inode includes 8 direct pointers, a single indirect pointer, and a double indirect pointer.
+                    The file system block size is $2^{10} = 1024$ bytes, and a block pointer occupies 4 bytes.
+                    How many disk operations will be required if a process reads data from the $N^\text{th}$ block of a file?
+                    Assume that the file is already open, the buffer cache is empty, and each disk operation reads a single file block.
+                    Your answer should be given in terms of $N$.
+                    \medskip
+
+                    Each block can have $\frac{1024}{4} = 256$ block pointers.
+                    Therefore, the direct pointer point to 8 blocks, the single-indirect pointer points to 256 blocks, and the double-indirect pointer points to $256 \cdot 256 = 65536$ blocks.
+                    Therefore; the number of disk operations $o$ is;
+                    $$o = \begin{cases}
+                        1 & 0 \leq N < 8 \\
+                        2 & 8 \leq N < 264 \\
+                        3 & 264 \leq N < 65800
+                    \end{cases}$$
+                \item
+                    Consider a file system that uses inodes with single-indirect and double-indirect blocks and a block size of $2^{10} = 1024$ bytes.
+                    If the block size of the file system is doubled, by approximately what factor does the maximum possible file size increase?
+                    Your answer should be an integer.
+                    \medskip
+
+                    Since most of the data would be accessed through the double-indirect pointers, so we can ignore the single-indirect pointers.
+                    Given a block size of $b$, and a pointer size of $p$, we have a total size of $(\frac{b}{p})^2 b = \frac{b^3}{p^2}$.
+                    Assuming the pointer size doesn't change, doubling the block size would lead to an increase of a factor of 8.
+                \item
+                    Consider a hierarchical file system in which free disk space is kept in a free block bitmap.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item
+                            Suppose that the stored free block bitmap is lost.
+                            Can the OS reconstruct the lost information?
+                            If so, describe how.
+                            \medskip
+
+                            The bitmap would have to be first reinitialised.
+                            The OS would then have to mark every used by every file by recursively descending through the file system.
+                            When this is finished, the free block bitmap can be updated.
+                        \item Suggest a scheme to protect the free block bitmap against such accidental loss.
+                            \medskip
+
+                            To prevent loss, multiple copies of the bitmap would have to be stored for redundancy - these would all have to be updated together.
+                    \end{enumerate}
+                \item
+                    Consider a file system with an inode organisation.
+                    Suppose that, for a given file, the file system has filled up all the blocks stemming from the doubly indirect pointers.
+                    Assume that the inode and free block bitmap are both completely in memory, but there is no buffer cache.
+                    How many disk accesses will it take to write one more byte to the file?
+                    \medskip
+
+                    This would require a triply indirect pointer, thus 4 accesses are needed.
+                    The first would be to connect the doubly indirect pointer to the block containing the indirect pointer block.
+                    The second would be to connect the indirect pointer to the the data block pointer,
+                    Connecting the data block pointer to the data block is the third disk access, and finally the final disk access is writing a byte to the data block.
+                    Allocating the four blocks needed is done without disk access, as the bitmap is in memory, and connecting the triply indirect pointer of the inode containing doubly indirect pointers does not require another access since the inode is also in memory.
             \end{enumerate}
         \subsection*{Tutorial 10 - Security}
             \begin{enumerate}[1.]
                 \itemsep0em
-                \item 
+                \item Why are security and protection important even for computers that do not contain sensitive data?
+                    \medskip
+
+                    A system may be compromised, which means that it can be used as part of a botnet to perform attacks (or consume resources such as processing power to mine cryptocurrencies).
+                \item
+                    Sharing and protection are conflicting goals.
+                    Give three significant examples of sharing supported by operating systems.
+                    For each, explain what protection mechanisms are necessary to control the sharing.
+                    \begin{itemize}
+                        \itemsep0em
+                        \item files
+                            \medskip
+
+                            File systems implement security mechanisms such as access control lists, preventing unauthorised users from accessing or modifying files.
+                        \item virtual memory
+                            \medskip
+
+                            Virtual memory regions can be shared by multiple processes.
+                            Protection is provided by the OS via page and segment table entries.
+                        \item processor time
+                            \medskip
+
+                            Via scheduling, the OS protects against a process occupying all the processor time with interrupts.
+                    \end{itemize}
+                \item Explain what one-way functions are and give an example of how they are used in practice.
+                    \medskip
+
+                    One-way functions, as the name implies, gives the same output with the same input value.
+                    However, the input value cannot be deduced from the output value.
+                    This is used for passwords - instead of storing the password in plain text (which is insecure), the hash can be stored, and the input can be computed to a hash value, which is then compared to the password hash.
+                \item Why are passwords in UNIX store together with a salt value?
+                    \medskip
+
+                    Since the same string will hash to the same value, if multiple passwords have the same hash - it becomes obvious that the password is very likely the same (and therefore possibly a common password).
+                    Salting the password, which adds a unique string to the password, causes the hashes to be different, even with the same password.
+                \item What is the principle of least privilege and why does it make sense?
+                \item
+                    Represent the ownerships and permissions shown in this UNIX irectory as an access control matrix.
+                    Treat each of the two users and two groups as principals.
+                    Note ~a~ is a member of ~users~ and ~systems~. and ~b~ is a member of ~users~ only.
+                    \begin{lstlisting}
+                        -rw-r--r-- 3 a systems 4137 2010-03-16 14:19 .emacs
+                        -rwxr-xr-x 3 b users   6420 2010-03-16 14:19 os.pptx
+                        -rw-rw---- 1 b systems 1997 2010-03-16 14:19 notes.txt
+                        -rw-r----- 3 a users   7442 2010-03-16 14:19 index.html
+                    \end{lstlisting}
+                    \begin{center}
+                        \begin{tabular}{c|c|c|c|c}
+                            & ~.emacs~ & ~os.pptx~ & ~notes.txt~ & ~index.html~ \\
+                            \hline
+                            ~a~ & ~rw~ & ~rx~ & ~rw~ & ~rw~ \\
+                            ~b~ & ~r~ & ~rwx~ & ~rw~ & ~r~ \\
+                            ~users~ & ~r~ & ~rx~ & & ~r~ \\
+                            ~systems~ & ~r~ & ~rx~ & ~rw~ &
+                        \end{tabular}
+                    \end{center}
             \end{enumerate}
 \end{document}
