@@ -1,0 +1,326 @@
+\documentclass[a4paper, 12pt]{article}
+
+% packages
+\usepackage{amssymb}
+\usepackage[fleqn]{mathtools}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{bussproofs}
+\usepackage{xcolor}
+\usepackage[margin=1.3cm]{geometry}
+\usepackage{logicproof}
+\usepackage{diagbox}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{lstautogobble}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{tipa}
+\usepackage{pgfplots}
+\usepackage{adjustbox}
+
+% tikz libraries
+\usetikzlibrary{
+    decorations.pathreplacing,
+    arrows,
+    shapes.gates.logic.US,
+    circuits.logic.US,
+    calc,
+    automata,
+    positioning,
+    intersections
+}
+
+\pgfplotsset{compat=1.16}
+
+\pgfmathdeclarefunction{gauss}{2}{%
+  \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
+}
+
+\allowdisplaybreaks % allow environments to break
+\setlength\parindent{0pt} % no indent
+
+% shorthand for verbatim
+% this clashes with logicproof, so maybe fix this at some point?
+\catcode`~=\active
+\def~#1~{\texttt{#1}}
+
+% code listing
+\lstdefinestyle{main}{
+    numberstyle=\tiny,
+    breaklines=true,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=2,
+    numbers=left,
+    basicstyle=\ttfamily,
+    columns=fixed,
+    fontadjust=true,
+    basewidth=0.5em,
+    autogobble,
+    xleftmargin=3.0ex,
+    mathescape=true
+}
+\newcommand{\dollar}{\mbox{\textdollar}} %
+\lstset{style=main}
+
+% augmented matrix
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+\hskip -\arraycolsep
+\let\@ifnextchar\new@ifnextchar
+\array{#1}}
+\makeatother
+
+% ceiling / floor
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+% custom commands
+\newcommand{\indefint}[2]{\int #1 \, \mathrm{d}#2}
+\newcommand{\defint}[4]{\int_{#1}^{#2} #3 \, \mathrm{d}#4}
+\newcommand{\pdif}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\dif}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\limit}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\lim_{#1 \to #2}}$}}}
+\newcommand{\limitsup}[2]{\raisebox{0.5ex}{\scalebox{0.8}{$\displaystyle{\limsup_{#1 \to #2}}$}}}
+\newcommand{\summation}[2]{\sum\limits_{#1}^{#2}}
+\newcommand{\product}[2]{\prod\limits_{#1}^{#2}}
+\newcommand{\intbracket}[3]{\left[#3\right]_{#1}^{#2}}
+\newcommand{\laplace}{\mathcal{L}}
+\newcommand{\fourier}{\mathcal{F}}
+\newcommand{\mat}[1]{\boldsymbol{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\rowt}[1]{\begin{bmatrix}
+    #1
+\end{bmatrix}^\top}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+
+\newcommand{\lto}[0]{\leadsto\ }
+
+\newcommand{\ulsmash}[1]{\underline{\smash{#1}}}
+
+\newcommand{\powerset}[0]{\wp}
+\renewcommand{\emptyset}[0]{\varnothing}
+
+\makeatletter
+\newsavebox{\@brx}
+\newcommand{\llangle}[1][]{\savebox{\@brx}{\(\m@th{#1\langle}\)}%
+  \mathopen{\copy\@brx\kern-0.5\wd\@brx\usebox{\@brx}}}
+\newcommand{\rrangle}[1][]{\savebox{\@brx}{\(\m@th{#1\rangle}\)}%
+  \mathclose{\copy\@brx\kern-0.5\wd\@brx\usebox{\@brx}}}
+\makeatother
+\newcommand{\lla}{\llangle}
+\newcommand{\rra}{\rrangle}
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+\newcommand{\crnr}[1]{\text{\textopencorner} #1 \text{\textcorner}}
+\newcommand{\bnfsep}[0]{\ |\ }
+\newcommand{\concsep}[0]{\ ||\ }
+
+\newcommand{\axiom}[1]{\AxiomC{#1}}
+\newcommand{\unary}[1]{\UnaryInfC{#1}}
+\newcommand{\binary}[1]{\BinaryInfC{#1}}
+\newcommand{\trinary}[1]{\TrinaryInfC{#1}}
+\newcommand{\quaternary}[1]{\QuaternaryInfC{#1}}
+\newcommand{\quinary}[1]{\QuinaryInfC{#1}}
+\newcommand{\dproof}[0]{\DisplayProof}
+\newcommand{\llabel}[1]{\LeftLabel{\scriptsize #1}}
+\newcommand{\rlabel}[1]{\RightLabel{\scriptsize #1}}
+
+\newcommand{\ttbs}{\char`\\}
+\newcommand{\lrbt}[0]{\ \bullet\ }
+
+% colours
+\newcommand{\violet}[1]{\textcolor{violet}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\teal}[1]{\textcolor{teal}{#1}}
+
+% reasoning proofs
+\usepackage{ltablex}
+\usepackage{environ}
+\keepXColumns
+\NewEnviron{reasoning}{
+    \begin{tabularx}{\textwidth}{rlX}
+        \BODY
+    \end{tabularx}
+}
+\newcommand{\proofline}[3]{$(#1)$ & $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\proofarbitrary}[1]{& take arbitrary $#1$ \smallskip \\}
+\newcommand{\prooftext}[1]{\multicolumn{3}{l}{#1} \smallskip \\}
+\newcommand{\proofmath}[3]{$#1$ & = $#2$ & \hfill #3 \smallskip \\}
+\newcommand{\prooftherefore}[1]{& $\therefore #1$ \smallskip \\}
+\newcommand{\proofbc}[0]{\prooftext{\textbf{Base Case}}}
+\newcommand{\proofis}[0]{\prooftext{\textbf{Inductive Step}}}
+
+% ER diagrams
+\newcommand{\nattribute}[4]{
+    \node[draw, state, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\mattribute}[4]{
+    \node[draw, state, accepting, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\dattribute}[4]{
+    \node[draw, state, dashed, inner sep=0cm, minimum size=0.2cm, label=#3:{#4}] (#1) at (#2) {};
+}
+\newcommand{\entity}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 0.5)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -0.5)$) {};
+    \draw
+    ($(#1-c) + (-1, 0.5)$) -- ($(#1-c) + (1, 0.5)$) -- ($(#1-c) + (1, -0.5)$) -- ($(#1-c) + (-1, -0.5)$) -- cycle;
+}
+\newcommand{\relationship}[3]{
+    \node[] (#1-c) at (#2) {#3};
+    \node[inner sep=0cm] (#1-l) at ($(#1-c) + (-1, 0)$) {};
+    \node[inner sep=0cm] (#1-r) at ($(#1-c) + (1, 0)$) {};
+    \node[inner sep=0cm] (#1-u) at ($(#1-c) + (0, 1)$) {};
+    \node[inner sep=0cm] (#1-d) at ($(#1-c) + (0, -1)$) {};
+    \draw
+    ($(#1-c) + (-1, 0)$) -- ($(#1-c) + (0, 1)$) -- ($(#1-c) + (1, 0)$) -- ($(#1-c) + (0, -1)$) -- cycle;
+}
+
+% AVL Trees
+\newcommand{\avltri}[4]{
+    \draw ($(#1)$) -- ($(#1) + #4*(0.5, -1)$) -- ($(#1) + #4*(-0.5, -1)$) -- cycle;
+    \node at ($(#1) + #4*(0, -1) + (0, 0.5)$) {#3};
+    \node at ($(#1) + #4*(0, -1) + (0, -0.5)$) {#2};
+}
+
+% RB Trees
+\tikzset{rbtr/.style={inner sep=2pt, circle, draw=black, fill=red}}
+\tikzset{rbtb/.style={inner sep=2pt, circle, draw=black, fill=black}}
+
+% actual document
+\begin{document}
+    \section*{CO233 - Computational Techniques \hfill Tutorial Sheets}
+        \subsection*{Tutorial 1 - Linear Maps and Norms}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item
+                    For $\mat{A} \in \mathbb{R}^{m \times n}$ the transpose matrix $\mat{A}^\top \in \mathbb{R}^{n \times m}$ is defined by $(\mat{A}^\top)_{i, j} = \mat{A}_{j, i}$.
+                    Show that for $\mat{A} \in \mathbb{R}^{m \times n}$ and $\mat{B} \in \mathbb{R}^{n \times p}$ we have $(\mat{A}\mat{B})^\top = \mat{B}^\top\mat{A}^\top$.
+
+                    Recall $(\mat{A}\mat{B})_{i, j} = \summation{k = 1}{n} \mat{A}_{i, k}\mat{B}_{k, j}$.
+                    \begin{align*}
+                        (\mat{A}\mat{B})_{i, j} & = \summation{k = 1}{n} \mat{A}_{i, k}\mat{B}_{k, j} \\
+                        ((\mat{A}\mat{B})^\top)_{i, j} & = (\mat{A}\mat{B})_{j, i} \\
+                        & = \summation{k = 1}{n} \underbrace{\mat{A}_{j, k}}_{\in \mathbb{R}}\underbrace{\mat{B}_{k, i}}_{\in \mathbb{R}} \\
+                        & = \summation{k = 1}{n} \mat{B}_{k, i}\mat{A}_{j, k} \\
+                        & = \summation{k = 1}{n} (\mat{B}^\top)_{i, k}(\mat{A}^\top)_{k, j} \\
+                        & = \mat{B}^\top\mat{A}^\top & \blacksquare
+                    \end{align*}
+                \item
+                    An orthonormal set of vectors in a set of normalised vectors. (i.e. of Euclidean length 1) that are mutually orthogonal.
+                    Check that one of the two following pairs of vectors are orthogonal.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Dot product is 0, hence orthogonal.
+                            $$\begin{bmatrix}
+                                2 \\ 5 \\ 1
+                            \end{bmatrix} \text{ and } \begin{bmatrix}
+                                -3 \\ 1 \\ 1
+                            \end{bmatrix}$$
+                        \item Dot product is -4, hence not orthogonal.
+                            $$\begin{bmatrix}
+                                3 \\ 5 \\ 3 \\ -4
+                            \end{bmatrix} \text{ and } \begin{bmatrix}
+                                4 \\ -2 \\ 2 \\ 3
+                            \end{bmatrix}$$
+                    \end{enumerate}
+                    \begin{align*}
+                        \vec{v_1} & = \frac{1}{\sqrt{2^2 + 5^2 + 1^2}} \begin{bmatrix}
+                            2 \\ 5 \\ 1
+                        \end{bmatrix} \\
+                        & = \frac{1}{\sqrt{30}} \begin{bmatrix}
+                            2 \\ 5 \\ 1
+                        \end{bmatrix} \\
+                        \vec{v_2} & = \frac{1}{\sqrt{3^2 + 1^2 + 1^2}} \begin{bmatrix}
+                            -3 \\ 1 \\ 1
+                        \end{bmatrix} \\
+                        & = \frac{1}{\sqrt{11}} \begin{bmatrix}
+                            -3 \\ 1 \\ 1
+                        \end{bmatrix} \\
+                        \vec{v_3} & = \vec{v_1} \times \vec{v_2} \\
+                        & = \frac{1}{\sqrt{330}} \begin{bmatrix}
+                            4 \\ -5 \\ 17
+                        \end{bmatrix}
+                    \end{align*}
+                \item
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item
+                            For vectors $\vec{u}, \vec{v} \in \mathbb{R}^m$, we define $\text{proj}_{\vec{u}}(\vec{v}) = \frac{\vec{u} \cdot \vec{v}}{\vec{u} \cdot \vec{u}} \vec{u}$ if $\vec{u} \neq \vec{0}$, and 0 otherwise.
+                            Explain geometrically, what $\text{proj}_{\vec{u}}(\vec{v})$ represents.
+                            \medskip
+                        \item
+                            Now suppose we have any (not necessarily orthonormal) basis $\{ \vec{v_1}, \vec{v_2}, \vec{v_3} \}$ for $\mathbb{R}^3$, let
+                            \begin{center}
+                                $\vec{u_1} = \vec{v_1}$, $\vec{u_2} = \vec{v_2} - \text{proj}_{\vec{u_1}}(\vec{v_2})$, $\vec{u_3} = \vec{v_3} - \text{proj}_{\vec{u_1}}(\vec{v_3}) - \text{proj}_{\vec{u_2}}(\vec{v_3})$, and $\vec{w_i} = \frac{u_i}{\Vert \vec{u_i \Vert}}$
+                            \end{center}
+                            Check that $\{ \vec{w_i} : i = 1, 2, 3 \}$ is an orthonormal basis for $\mathbb{R}^3$.
+                    \end{enumerate}
+                \item Let $f : \mathbb{R}^2 \to \mathbb{R}^2$ be a linear map, and let $\vec{e_1}, \vec{e_2}$ be a basis for $\mathbb{R}^2$, suppose;
+                    \begin{center}
+                        $f(\vec{e_1) = 5\vec{e_1} - 6\vec{e_2}}$ and $f(\vec{e_2}) = \vec{e_2} + 3\vec{e_1}$
+                    \end{center}
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item Find the matrix $\mat{A}$ representing $f$ with respect to the basis $\vec{e_1}, \vec{e_2}$.
+                            $$\mat{A} = \begin{bmatrix}
+                                5 & 3 \\
+                                -6 & 1
+                            \end{bmatrix}$$
+                        \item
+                            If $\vec{v} \in \mathbb{R}^2$ is given by $\vec{v = 2\vec{e_1} - \vec{e_2}}$.
+                            Find $f(\vec{v})$ and check that the matrix representing $f$ correctly computes the coordinates of $f(\vec{v})$ with respect to the basis $\vec{e_1}, \vec{e_2}$.
+                            \begin{align*}
+                                f(\vec{v}) & = 2f(\vec{e_1}) - f(\vec{e_2}) \\
+                                & = 2(5\vec{e_1} - 6\vec{e_2}) - (\vec{e_1} + 3\vec{e_1}) \\
+                                & = 7\vec{e_1} - 13\vec{e_2} \\
+                                \begin{bmatrix}
+                                    5 & 3 \\
+                                    -6 & 1
+                                \end{bmatrix} \begin{bmatrix}
+                                    2 \\ -1
+                                \end{bmatrix} & = \begin{bmatrix}
+                                    7 \\ -13
+                                \end{bmatrix} & \text{as expected}
+                            \end{align*}
+                        \item Suppose now we have a new basis $\vec{d_1}, \vec{d_2}$ given by
+                            \begin{center}
+                                $\vec{d_1} = \vec{e_1} - \vec{e_2}$ and $\vec{d_2} = \vec{e_1} + \vec{e_2}$
+                            \end{center}
+                            Find the matrix representing $f$ in the new basis $\vec{d_1}, \vec{d_2}$.
+                            \begin{align*}
+                                \mat{I}_{ED} & = \begin{bmatrix}
+                                    1 & 1 \\
+                                    -1 & 1
+                                \end{bmatrix} \\
+                                \mat{I}_{DE} & = (\mat{I}_{DE})^{-1} \\
+                                & = \frac{1}{2} \begin{bmatrix}
+                                    1 & -1 \\
+                                    1 & 1
+                                \end{bmatrix} \\
+                                f_{DD} & = \mat{I}_{DE}\underbrace{f_{EE}}_{\mat{A}}\mat{I}_{ED} \\
+                                & = \frac{1}{2} \begin{bmatrix}
+                                    1 & -1 \\
+                                    1 & 1
+                                \end{bmatrix} \begin{bmatrix}
+                                    5 & 3 \\
+                                    -6 & 1
+                                \end{bmatrix} \begin{bmatrix}
+                                    1 & 1 \\
+                                    -1 & 1
+                                \end{bmatrix} \\
+                                & = \frac{1}{2} \begin{bmatrix}
+                                    9 & 13 \\
+                                    -5 & 3
+                                \end{bmatrix}
+                            \end{align*}
+                    \end{enumerate}
+            \end{enumerate}
+\end{document}
