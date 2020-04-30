@@ -1,4 +1,4 @@
-*/notes/*
+# ignore auxiliary LaTeX files
 *.bak
 *.aux
 *.fdb_latexmk
@@ -6,9 +6,15 @@
 *.log
 *.synctex.gz
 *.out
-programming/*
+
+# accidentally started a Scala project
 .metals/*
-co000/*
+
+# ignore notes that are by the college
+*/notes/*
 materials/*
 
+# ignore testing, and programming practice
+co000/*
+gitlab/*
 ignored/*
