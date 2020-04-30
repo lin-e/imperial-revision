@@ -17,6 +17,7 @@
 \usepackage{multirow}
 \usepackage{tipa}
 \usepackage{pgfplots}
+\usepackage{adjustbox}
 
 % tikz libraries
 \usetikzlibrary{
@@ -124,6 +125,8 @@
 \newcommand{\quaternary}[1]{\QuaternaryInfC{#1}}
 \newcommand{\quinary}[1]{\QuinaryInfC{#1}}
 \newcommand{\dproof}[0]{\DisplayProof}
+\newcommand{\llabel}[1]{\LeftLabel{\scriptsize #1}}
+\newcommand{\rlabel}[1]{\RightLabel{\scriptsize #1}}
 
 \newcommand{\ttbs}{\char`\\}
 \newcommand{\lrbt}[0]{\ \bullet\ }
@@ -193,6 +196,8 @@
 
 % actual document
 \begin{document}
+    {\sc Computing $2^\text{nd}$ Year Notes} \hfill ~https://github.com/lin-e/imperial-revision~
+    \rule{\textwidth}{0.1pt}
     \section*{CO233 - Computational Techniques}
         \subsection*{15th January 2020}
             \subsubsection*{Vector and Matrix Norms}
