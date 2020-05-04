@@ -328,4 +328,336 @@
                     \end{lstlisting}
                     This simply stores the length of the list as a parameter.
             \end{enumerate}
+        \subsubsection*{Mock Exam}
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item This question is about dynamic programming.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item
+                            The \textit{edit-distance} between two strings is the minimum number of insertions, deletions, and updates of characters required to turn one string into the other.
+                            For example. ~"change"~ can be turned into ~"hunger"~ in 3 steps with the sequence ~["hange", "hunge", "hunger"]~ by deleting ~'c'~, updating ~'a'~ to ~'u'~, and inserting ~'r'~.
+                            \begin{enumerate}[i)]
+                                \itemsep0em
+                                \item
+                                    Write a recursive function called ~dist~ that calculates the edit distance between two strings.
+                                    The function should have the following signature;
+                                    \begin{lstlisting}
+                                        dist :: String -> String -> Int
+                                    \end{lstlisting}
+                                    For example, ~dist "change" "hunger" = 3~.
+                                    You may use the function ~minimum :: [Int] -> Int~ which returns the minimum value in a non-empty list of integers.
+                                    \medskip
+
+                                    Start with the example(s) given, if there is any doubt.
+                                    Since we're told to do induction on strings, we can do case analysis on lists of characters.
+                                    \begin{lstlisting}
+                                        dist :: String -> String -> Int
+                                        dist [] [] = 0
+                                        dist [] ys = length ys
+                                        dist xs [] = length xs
+                                        dist xxs@(x:xs) yys@(y:ys)
+                                          = minimum [1 + dist xs yys,
+                                                    ,1 + dist xxs ys,
+                                                    ,(if (x == y) then 0 else 1) + dist xs ys]
+                                    \end{lstlisting}
+                                \item What is the time complexity of ~dist xs ys~?
+                                    \medskip
+
+                                    Let $m = ~length xs~$, and $n = ~length ys~$.
+                                    The second and third cases, on lines 3 and 4, have complexities $O(n)$ and $O(m)$.
+                                    However, the final case has branching, which suggests an exponential complexity.
+                                    Therefore, the overall complexity is in $O(3^{m + n})$.
+                            \end{enumerate}
+                        \item The function ~tabulate~ can be used to build an array.
+                            \begin{lstlisting}
+                                tabulate :: (Enum i, Ix i) => (i, i) -> (i -> a) -> Array i a
+                                tabulate (m, n) f = array (m, n) [(i, f i) | i <- range (m, n)]
+                            \end{lstlisting}
+                            The resulting array allows fast access to its elements, where given an array ~as~, the expression ~as ! i~ accesses the $~i~^\text{th}$ element in constant time.
+                            Define ~dist'~, an efficient version of ~dist~ that uses dynamic programming.
+                            You may assume that the relevant ~Enum~ and ~Ix~ instances exist for the ~tabulate~ function, and that indexing into strings takes constant-time.
+                            \medskip
+
+                            Here, we want to replace all recursive calls with lookups.
+                            \begin{lstlisting}
+                                dist' :: String -> String -> Int
+                                dist' xs ys = table ! (m, n)
+                                  where
+                                    m = length xs
+                                    n = length ys
+
+                                    table = tabulate (m + 1, n + 1) mdist
+
+                                    mdist 0 0 = 0
+                                    mdist 0 j = j
+                                    mdist i 0 = i
+                                    mdist i j =
+                                      minimum [1 + table ! (i - 1, j)
+                                              ,1 + table ! (i, j - 1)
+                                              ,(if (x == y) then 0 else 1) + table (i - 1, j - 1)]
+                                      where
+                                        x = xs !! (i - 1)
+                                        y = ys !! (j - 1)
+                            \end{lstlisting}
+                        \item
+                            Define a recursive function ~dists~, where ~dists xs ys~ is a sequence of strings of shortest length needed to turn ~xs~ into ~ys~.
+                            This should have the signature;
+                            \begin{lstlisting}
+                                dists :: String -> String -> [String]
+                            \end{lstlisting}
+                            You do not need to worry about efficiency.
+                            You may use standard list functions so long as you give their type and briefly explain what they do.
+                            \medskip
+
+                            Note that this question tends to be harder, and worth less.
+                            Therefore, it should be attempted at the end, when the rest of the marks are secured.
+                            For this, we want to define a function ~inits :: [a] -> [[a]]~, for example ~inits "hunger" = ["", "h", "hu", ..., "hunger"]~.
+                            Similarly, we want to define ~tails~, such that ~tails "change" = ["change", "hange", "ange", ..., ""]~.
+                            Now that we've defined these functions, we can use it as follows;
+                            \begin{lstlisting}
+                                dists :: String -> String -> [String]
+                                dists [] [] = []
+                                dists [] ys = inits ys
+                                dists xs [] = tails xs
+                                dists (x:xs) (y:ys)
+                                  = minimums [xs : dists xs (y:ys)
+                                             ,map (y:) ((x:xs) dists (x:xs) ys)
+                                             ,if (x == y) then (map (x:) dists xs ys) else (map (y:) (xs : dists xs ys))]
+                            \end{lstlisting}
+                            ~minimums~ can be easily defined, which returns the list of minimum length.
+                    \end{enumerate}
+                \item This question is about divide \& conquer, and randomised algorithms.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item The numbers in Fibonacci sequence are given by this recursive function:
+                            \begin{lstlisting}
+                                fib :: Int -> Integer
+                                fib 0 = 0
+                                fib 1 = 1
+                                fib n = fib (n - 1) + fib (n - 2)
+                            \end{lstlisting}
+                            The sequence starts ~[0, 1, 1, 2, 3, 5, ...]~.
+                            \medskip
+
+                            The $n^\text{th}$ Fibonacci number can also be computed by the following equation;
+                            $$~fib n~ = \frac{\psi^~n~}{\sqrt{5}} \text{ where } \psi = \frac{1 + \sqrt{5}}{2}$$
+                            \begin{enumerate}[i)]
+                                \itemsep0em
+                                \item Give an upper bound for the complexity of the recursive ~fib~ function.
+                                    \begin{center}
+                                        $O(2^n)$
+                                    \end{center}
+                                \item By passing the previous two results around as arguments, write a recursive function called ~fib'~ that calculates ~fib n~ in linear time.
+                                    \begin{lstlisting}
+                                        fib' :: Int -> Integer
+                                        fib' n = loop n 0 1
+                                          where
+                                            loop 0 x y = x -- base case, when we are "done"
+                                            loop n x y = loop (n - 1) (x + y) x
+                                    \end{lstlisting}
+                                \item
+                                    Use the golden ratio ($\psi$) to define ~fib''~, a divide \& conquer version of ~fib~.
+                                    You may assume you can calculate the golden ratio accurately in constant time, and that multiplication takes constant time.
+                                    State the complexity of ~fib''~.
+                                    \begin{lstlisting}
+                                        fib'' :: Int -> Integer
+                                        fib'' n = round (psi n / sqrt 5)
+
+                                        psi :: Int -> Double
+                                        psi 0 = 1
+                                        psi 1 = 1 + (sqrt 5) / 2
+                                        psi n
+                                          | even n    = pk * pk
+                                          | otherwise = pk * pk * (psi 1)
+                                          where
+                                            k = div n 2
+                                            pk = psi k
+                                    \end{lstlisting}
+                                    Since we're halving at each stage, we can see that ~fib''~ is in $O(\log_2 n)$.
+                            \end{enumerate}
+                        \item
+                            \begin{enumerate}[i)]
+                                \itemsep0em
+                                \item Recall the following functions for working with random numbers:
+                                    \begin{lstlisting}
+                                        mkStdGen :: Int -> StdGen
+                                        random :: Random a => StdGen -> (a, StdGen)
+                                        randomR :: Random a => (a, a) -> StdGen -> (a, StdGen)
+                                    \end{lstlisting}
+                                    Explain what these functions do.
+                                    \medskip
+
+                                    See notes.
+                                \item
+                                    Define a randomised Monte Carlo algorithm ~sqrt5~ to find an approximation of $\sqrt{5}$ after 100000 trials.
+                                    It should have the following signature;
+                                    \begin{lstlisting}
+                                        sqrt5 :: Double
+                                    \end{lstlisting}
+                                    By considering the ratio of random numbers drawn uniformly between 0 and 3, we can do this as follows (the first solution is iterative, with a ~loop~).
+                                    \begin{lstlisting}
+                                        sqrt5 :: Double
+                                        sqrt5 = loop 100000 0
+                                          where
+                                            loop :: Int -> Int -> StdGen -> Double
+                                            loop 0 k seed = 3 * (fromIntegral k / fromIntegral 100000)
+                                            loop n k seed = loop (n - 1) k' seed'
+                                              where
+                                                (x, seed') = randomR (0, 3) seed
+                                                k' = if (x * x <= 5) then k + 1 else k
+                                    \end{lstlisting}
+                                    See the notes for a more functional method.
+                            \end{enumerate}
+                    \end{enumerate}
+                \item This question is about abstract data representation and amortised analysis.
+                    \begin{enumerate}[(a)]
+                        \itemsep0em
+                        \item
+                            The following is the interface for a ~Stack~, which is a data structure that holds integers.
+                            The function ~look~ has a default implementation that can be overridden.
+                            \begin{lstlisting}
+                                class Stack stack where
+                                  empty :: stack
+                                  push :: Int -> stack -> stack
+                                  pop :: stack -> stack
+                                  peek :: stack -> Maybe Int
+
+                                  look :: Int -> stack -> Maybe Int
+                                  look 0 xs = peek xs
+                                  look i xs = look (i - 1) (pop xs)
+
+                                  -- the following must hold for any implementation;
+                                  -- pop (empty) = empty
+                                  -- peek (empty) = Nothing
+                                  -- pop (push x xs) = xs
+                                  -- peek (push x xs) = Just x
+                            \end{lstlisting}
+                            \begin{enumerate}[i)]
+                                \itemsep0em
+                                \item
+                                    Implement the list instance for ~Stack~.
+                                    Give the time complexity of the functions ~push~, ~pop~, and ~peek~.
+                                    \begin{lstlisting}
+                                        instance Stack [Int] where
+                                          empty = []
+
+                                          push x xs = x:xs     -- O(1)
+
+                                          pop [] = []          -- O(1)
+                                          pop (x:xs) = xs
+
+                                          peek [] = Nothing    -- O(1)
+                                          peek (x:xs) = Just x
+                                    \end{lstlisting}
+                                \item Explain the time complexity of the default implementation of ~look~ for lists.
+                                    \medskip
+
+                                    The complexity of ~look n xs~ is in $O(n)$, since we are decrementing the $n$.
+                            \end{enumerate}
+                        \item
+                            The type ~Array Int a~ represents an array of values of type ~a~ indexed by values of type ~Int~.
+                            A new array can be constructed with the ~fromList~ function;
+                            \begin{lstlisting}
+                                fromList :: [Int] -> Array Int Int
+                            \end{lstlisting}
+                            Given a list of values ~xs~, the array given by ~fromList xs~ takes $O(n)$ time to construct, where $n = ~length xs~$.
+                            The function ~(!) :: Array Int a -> Int -> a~ is such that given an array ~ar~ and an index ~i~, the result of ~ar ! i~ is the value in the array ~ar~ at index ~i~.
+                            The function ~modify :: Array Int a -> Int -> a -> Array Int a~ is such that given an array ~ar~, an index ~i~, and a value ~x~, the result of ~modify ar i x~ is the array ~ar~ except that the value at ~i~ is now ~x~.
+                            Assume this takes constant time.
+                            \begin{enumerate}[i)]
+                                \itemsep0em
+                                \item Define a data type ~StackArray~ that contains ~Array Int Int~ and two ~Int~s; the number of elements in the stack, and the maximum capacity of the array.
+                                    \begin{lstlisting}
+                                        data StackArray = StackArray (Array Int Int) Int Int
+                                    \end{lstlisting}
+                                \item Define the ~Stack StackArray~ instance where the complexities of ~empty~, ~pop~, ~peek~, and ~look~ are constant, as is the amortised complexity of ~push~.
+                                    \begin{lstlisting}
+                                        instance Stack StackArray where
+                                          empty = StackArray (fromList [0]) 0 1
+
+                                          pop (StackArray a 0 n) = StackArray a 0 n
+                                          pop (StackArray a m n) = StackArray a (m - 1) n
+
+                                          peek (StackArray a 0 n) = Nothing
+                                          peek (StackArray a m n) = Just (a ! (n - m))
+
+                                          look i (StackArray a m n)
+                                            | i < m     = Just (a ! (n - m + i))
+                                            | otherwise = Nothing
+
+                                          push x (StackArray a m n)
+                                            | m < n     = StackArray (modify a (m - m - 1) x) (m + 1) n
+                                            | otherwise = StackArray (fromList ((replicate n x) ++ (elems a))) (m + 1) (2 * n)
+                                    \end{lstlisting}
+                                \item Prove that the amortised complexity of ~push~ is indeed constant.
+                                    \medskip
+
+                                    For the amortised complexity, we must define $A$, $C$ and $S$, and check that the following holds;
+                                    \begin{center}
+                                        $\violet{C_{~op~_~i~}(~xs~_~i~) \leq A_{~op~_~i~}(~xs~_~i~) + S(~xs~_~i~) - S(~xs~_~i+1~)}$
+                                    \end{center}
+                                    This gives us;
+                                    $$\summation{i = 0}{n - 1} C_{~op~_~i~}(~xs~_~i~) \leq \summation{i = 0}{n - 1} A_{~op~_~i~}(~xs~_~i~) + S(~xs~_~0~) - S(~xs~_~n~)$$
+                                    If $S(~xs~_~0~) = 0$, then the following holds;
+                                    $$\summation{i = 0}{n - 1} C_{~op~_~i~}(~xs~_~i~) \leq \summation{i = 0}{n - 1} A_{~op~_~i~}(~xs~_~i~)$$
+                                    We define this as follows, and we aim to prove the \violet{violet} inequality;
+                                    \begin{align*}
+                                        C_~empty~(~xs~) & = 1 \\
+                                        C_~pop~(~xs~) & = 1 \\
+                                        C_~peek~(~xs~) & = 1 \\
+                                        C_~look~(~xs~) & = 1 \\
+                                        C_~push~(~StackArray a m n~) & = 2n \\
+                                        A_~op~(~xs~) & = 2
+                                    \end{align*}
+                                    Given ~StackArray a m n~, we want to show the following;
+                                    \begin{center}
+                                        $2n \leq 2 + S(~xs~_~i~) - S(~xs~_~i+1~)$
+                                    \end{center}
+                                    From this, we want to find the size as something that is close to $2n$ \textbf{before} the push, and close to 0 \textbf{after} the push.
+                                    \medskip
+
+                                    Generally, the array is as follows (on the number line);
+                                    \begin{center}
+                                        \begin{tikzpicture}
+                                            \draw
+                                            (0, 0) -- (6, 0)
+                                            (0, -0.25) -- (0, 0.25)
+                                            (3, -0.25) -- (3, 0.25)
+                                            (6, -0.25) -- (6, 0.25);
+                                            \node at (3, -0.5) {$m$};
+                                            \node at (6, -0.5) {$n$};
+                                        \end{tikzpicture}
+                                    \end{center}
+                                    However, in the worst case, we have the following (this should ideally become size $2n$);
+                                    \begin{center}
+                                        \begin{tikzpicture}
+                                            \draw
+                                            (0, 0) -- (6, 0)
+                                            (0, -0.25) -- (0, 0.25)
+                                            (6, -0.25) -- (6, 0.25);
+                                            \node at (6, -0.5) {$m = n$};
+                                        \end{tikzpicture}
+                                    \end{center}
+                                    And after the push, we have the following (this should ideally become size 0);
+                                    \begin{center}
+                                        \begin{tikzpicture}
+                                            \draw
+                                            (0, 0) -- (6, 0)
+                                            (0, -0.25) -- (0, 0.25)
+                                            (4, -0.25) -- (4, 0.25)
+                                            (6, -0.25) -- (6, 0.25);
+                                            \node at (4, -0.5) {$m + 1$};
+                                            \node at (6, -0.5) {$2n$};
+                                        \end{tikzpicture}
+                                    \end{center}
+                                    As such, we can define the size function to be as follows;
+                                    \begin{center}
+                                        $S(~StackArray a m n~) = 2(2m - n)$
+                                    \end{center}
+                                    Not sure if the above works with $A_~op~(~xs~_~i~) = 2$, but it does work with $= 4$.
+                                    The screen was slightly cut off.
+                            \end{enumerate}
+                    \end{enumerate}
+            \end{enumerate}
 \end{document}
