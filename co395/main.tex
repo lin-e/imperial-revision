@@ -23,6 +23,7 @@
 \usetikzlibrary{
     decorations.pathreplacing,
     arrows,
+    shapes,
     shapes.gates.logic.US,
     circuits.logic.US,
     calc,
@@ -316,7 +317,131 @@
                 \medskip
 
                 In decision trees, we learn a succession of linear decision boundaries that we can use to eventually correctly classify samples.
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node[dotted, draw, star, star points=3, fill=yellow!100!cyan] at (0, 0) {};
+                        \node[dotted, draw, star, star points=4, fill=yellow!100!cyan] at (0, 1) {};
+                        \node[dotted, draw, star, star points=6, fill=yellow!100!cyan] at (0, 3) {};
+                        \node[dotted, draw, star, star points=7, fill=yellow!100!cyan] at (0, 4) {};
+
+                        \node[draw, star, star points=3, fill=yellow!80!cyan] at (1, 0) {};
+                        \node[dotted, draw, star, star points=5, fill=yellow!80!cyan] at (1, 2) {};
+                        \node[dotted, draw, star, star points=6, fill=yellow!80!cyan] at (1, 3) {};
+
+                        \node[draw, star, star points=3, fill=yellow!60!cyan] at (2, 0) {};
+                        \node[dotted, draw, star, star points=4, fill=yellow!60!cyan] at (2, 1) {};
+                        \node[draw, star, star points=6, fill=yellow!60!cyan] at (2, 3) {};
+                        \node[dotted, draw, star, star points=7, fill=yellow!60!cyan] at (2, 4) {};
+
+                        \node[draw, star, star points=4, fill=yellow!40!cyan] at (3, 1) {};
+                        \node[draw, star, star points=5, fill=yellow!40!cyan] at (3, 2) {};
+                        \node[dotted, draw, star, star points=7, fill=yellow!40!cyan] at (3, 4) {};
+
+                        \node[draw, star, star points=3, fill=yellow!20!cyan] at (4, 0) {};
+                        \node[draw, star, star points=6, fill=yellow!20!cyan] at (4, 3) {};
+                        \node[draw, star, star points=7, fill=yellow!20!cyan] at (4, 4) {};
+
+                        \node[draw, star, star points=4, fill=yellow!0!cyan] at (5, 1) {};
+                        \node[draw, star, star points=5, fill=yellow!0!cyan] at (5, 2) {};
+                        \node[draw, star, star points=7, fill=yellow!0!cyan] at (5, 4) {};
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \fill[blue!20]
+                        (-0.5, -0.5) -- (-0.5, 4.5) -- (5.5, 4.5) -- (5.5, -0.5) -- cycle;
+                        \fill[red!20]
+                        (-0.5, -0.5) -- (-0.5, 4.5) -- (3.5, 4.5) -- (3.5, 3.5) -- (1.5, 3.5) -- (1.5, 2.5) --(2.5, 2.5) -- (2.5, 0.5) -- (0.5, 0.5) -- (0.5, -0.5) -- cycle;
+                        \node[dotted, draw, star, star points=3, fill=yellow!100!cyan] at (0, 0) {};
+                        \node[dotted, draw, star, star points=4, fill=yellow!100!cyan] at (0, 1) {};
+                        \node[dotted, draw, star, star points=6, fill=yellow!100!cyan] at (0, 3) {};
+                        \node[dotted, draw, star, star points=7, fill=yellow!100!cyan] at (0, 4) {};
+
+                        \node[draw, star, star points=3, fill=yellow!80!cyan] at (1, 0) {};
+                        \node[dotted, draw, star, star points=5, fill=yellow!80!cyan] at (1, 2) {};
+                        \node[dotted, draw, star, star points=6, fill=yellow!80!cyan] at (1, 3) {};
+
+                        \node[draw, star, star points=3, fill=yellow!60!cyan] at (2, 0) {};
+                        \node[dotted, draw, star, star points=4, fill=yellow!60!cyan] at (2, 1) {};
+                        \node[draw, star, star points=6, fill=yellow!60!cyan] at (2, 3) {};
+                        \node[dotted, draw, star, star points=7, fill=yellow!60!cyan] at (2, 4) {};
+
+                        \node[draw, star, star points=4, fill=yellow!40!cyan] at (3, 1) {};
+                        \node[draw, star, star points=5, fill=yellow!40!cyan] at (3, 2) {};
+                        \node[dotted, draw, star, star points=7, fill=yellow!40!cyan] at (3, 4) {};
+
+                        \node[draw, star, star points=3, fill=yellow!20!cyan] at (4, 0) {};
+                        \node[draw, star, star points=6, fill=yellow!20!cyan] at (4, 3) {};
+                        \node[draw, star, star points=7, fill=yellow!20!cyan] at (4, 4) {};
+
+                        \node[draw, star, star points=4, fill=yellow!0!cyan] at (5, 1) {};
+                        \node[draw, star, star points=5, fill=yellow!0!cyan] at (5, 2) {};
+                        \node[draw, star, star points=7, fill=yellow!0!cyan] at (5, 4) {};
+
+                        \draw[blue, line width=2pt] (2.5, -0.5) -- (2.5, 4.5);
+                        \draw[red, line width=2pt] (2.5, 3.5) -- (5.5, 3.5);
+                        \draw[violet, line width=2pt] (-0.5, 0.5) -- (2.5, 0.5);
+                        \draw[teal, line width=2pt] (3.5, 3.5) -- (3.5, 4.5);
+                        \draw[magenta, line width=2pt] (0.5, -0.5) -- (0.5, 0.5);
+                        \draw[cyan, line width=2pt] (1.5, 0.5) -- (1.5, 4.5);
+                        \draw[lime, line width=2pt] (1.5, 2.5) -- (2.5, 2.5);
+                        \draw[brown, line width=2pt] (1.5, 3.5) -- (2.5, 3.5);
+                    \end{tikzpicture}
+                    \hfill
+                    \phantom{}
+                \end{center}
+                In the example above, we repeatedly choose divisions that result in the fewest number of errors, until we are able to classify everything.
+                This results in the following decision tree, when we are using the attributes of colour and number of points.
+                For brevity, the left branch is the ~false~ branch, ~p~ means points, and ~c~ means colour.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm, y=1.25cm]
+                        \node[draw, blue] (o) at (0, 0) {\textcolor{black}{~c > ~}\textcolor{yellow!60!cyan}{\Large$\bullet$}};
+                        \node[draw, violet] (ol) at (-3, -1) {\textcolor{black}{~p > 3~}};
+                        \node[draw, magenta] (oll) at (-5, -2) {\textcolor{black}{~c > ~}\textcolor{yellow!100!cyan}{\Large$\bullet$}};
+                        \node[draw, fill=red!20] (olll) at (-6, -3) {~done~};
+                        \node[draw, fill=blue!20] (ollr) at (-4, -3) {~done~};
+                        \node[draw, cyan] (olr) at (-1, -2) {\textcolor{black}{~c > ~}\textcolor{yellow!80!cyan}{\Large$\bullet$}};
+                        \node[draw, fill=red!20] (olrl) at (-2, -3) {~done~};
+                        \node[draw, lime] (olrr) at (0, -3) {\textcolor{black}{~p > 5~}};
+                        \node[draw, fill=red!20] (olrrl) at (-1, -4) {~done~};
+                        \node[draw, brown] (olrrr) at (1, -4) {\textcolor{black}{~p > 6~}};
+                        \node[draw, fill=blue!20] (olrrrl) at (0, -5) {~done~};
+                        \node[draw, fill=red!20] (olrrrr) at (2, -5) {~done~};
+                        \node[draw, red] (or) at (3, -1) {\textcolor{black}{~p > 6~}};
+                        \node[draw, fill=blue!20] (orl) at (1, -2) {~done~};
+                        \node[draw, teal] (orr) at (5, -2) {\textcolor{black}{~c > ~}\textcolor{yellow!40!cyan}{\Large$\bullet$}};
+                        \node[draw, fill=red!20] (orrl) at (4, -3) {~done~};
+                        \node[draw, fill=blue!20] (orrr) at (6, -3) {~done~};
+
+                        \draw
+                        (o) -- (ol)
+                        (o) -- (or)
+                        (ol) -- (oll)
+                        (ol) -- (olr)
+                        (or) -- (orl)
+                        (or) -- (orr)
+                        (oll) -- (olll)
+                        (oll) -- (ollr)
+                        (olr) -- (olrl)
+                        (olr) -- (olrr)
+                        (orr) -- (orrl)
+                        (orr) -- (orrr)
+                        (olrr) -- (olrrl)
+                        (olrr) -- (olrrr)
+                        (olrrr) -- (olrrrl)
+                        (olrrr) -- (olrrrr);
+                    \end{tikzpicture}
+                \end{center}
+                Decision trees are a method of approximating discrete classifciation functions, by representing them as a tree (a set of if-then rules).
+                The general algorithm (ID3) for constructing a decision tree is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item search for the optimal splitting rule on training data
+                    \item split data according to rule
+                    \item repeat 1 and 2 on each subset until each subset is pure (only containing a single class)
+                \end{enumerate}
             \subsubsection*{How to select the 'optimal' split rule}
+                
             \subsubsection*{Worked example for construction decision tree}
             \subsubsection*{Summary and other considerations with decision tree}
         \subsection*{Week 4 (Machine Learning Evaluation)}
