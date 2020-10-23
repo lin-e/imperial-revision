@@ -195,6 +195,10 @@
 \tikzset{rbtr/.style={inner sep=2pt, circle, draw=black, fill=red}}
 \tikzset{rbtb/.style={inner sep=2pt, circle, draw=black, fill=black}}
 
+% Samples
+\tikzset{spos/.style={inner sep=2pt, circle, draw=black, fill=blue!20}}
+\tikzset{sneg/.style={inner sep=2pt, circle, draw=black, fill=red!20}}
+
 % actual document
 \begin{document}
     {\sc Computing $3^\text{rd}$ Year Notes} \hfill ~https://github.com/lin-e/imperial-revision~
@@ -432,7 +436,7 @@
                         (olrrr) -- (olrrrr);
                     \end{tikzpicture}
                 \end{center}
-                Decision trees are a method of approximating discrete classifciation functions, by representing them as a tree (a set of if-then rules).
+                Decision trees are a method of approximating discrete classification functions, by representing them as a tree (a set of if-then rules).
                 The general algorithm (ID3) for constructing a decision tree is as follows;
                 \begin{enumerate}[1.]
                     \itemsep0em
@@ -440,10 +444,306 @@
                     \item split data according to rule
                     \item repeat 1 and 2 on each subset until each subset is pure (only containing a single class)
                 \end{enumerate}
-            \subsubsection*{How to select the 'optimal' split rule}
-                
+            \subsubsection*{How to select the `optimal' split rule}
+                Intuitively, we want to partition the datasets such that they are more pure than the original set.
+                To do this, we have several metrics;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Information gain} \hfill ID3, C4.5
+                        \subitem quantifies the reduction of \textbf{entropy}
+                    \item \textbf{Gini impurity} \hfill CART
+                        \subitem if we randomly select a point in the feature space and randomly classify it according to the class label distribution, what is our probability of getting it incorrect?
+                    \item \textbf{Variance reduction} \hfill CART
+                        \subitem mostly used for regression trees, with a continuous target variable
+                \end{itemize}
+                To do this, we need to understand information entropy.
+                Entropy is a measure of uncertainty of a random variable.
+                It can also be seen as the average amount of information needed to define a random state / variable.
+                If something has low entropy, it's predictable, and vice versa for high entropy.
+                \medskip
+
+                Imagine we have two boxes, with something stored in one of the two, with an equal probability in each.
+                To be fully certain, we need a single bit of information, if it's in the left box, the bit is ~0~, otherwise (if it's in the right box), it's ~1~.
+                Similarly, if we have four boxes, with a uniform distribution, we would need 4 bits to encode the 4 states.
+                In general;
+                \begin{align*}
+                    2^B & = K \text{ states} \\
+                    B & = \log_2(K) \\
+                    I(x) & = \log_2(K) & \text{amount of information to determine the state of a random variable} \\
+                    P(x) & = \frac{1}{K} & \Rightarrow \\
+                    K & = \frac{1}{K} & \Rightarrow \\
+                    I(x) & = -\log_2(P(x))
+                \end{align*}
+                As such, we can say;
+                $$I(x = \text{box}_1) = I(x = \text{box}_2) = I(x = \text{box}_3) = I(x = \text{box}_4) = -\log_2(P(x)) = 2 \text{ bits}$$
+                However, assume a non-uniform distribution, with the probabilities being 97\%, 1\%, 1\%, and 1\% respectively.
+                If we were told it was in box 1, we do not get a lot of new information (low entropy); however if we were told it was in one of the other three, we high entropy (represents very important information).
+                \begin{align*}
+                    I(x = \text{box}_1) & = -\log_2(0.97) \\
+                    & \approx 0.0439 \text{ bits} \\
+                    I(x = \text{box}_2) & = -\log_2(0.1) \\
+                    & \approx 6.6439 \text{ bits}
+                \end{align*}
+                Entropy is defined as the average amount of information;
+                $$H(X) = -\summation{k}{K}P(x_k)\log_2(P(x_k))$$
+                In our example, we therefore have;
+                $$H(X) = -(0.97 \cdot \log_2(0.97) + 0.01 \cdot \log_2(0.01) + 0.01 \cdot \log_2(0.01) + 0.01 \cdot \log_2(0.01)) \approx 0.2419 \text{ bits}$$
+                We therefore need, on average, less information to know where the key is (compared to the uniform distribution).
+                \medskip
+
+                For continuous entropy, we can use the probability density function $f(x)$ - this is imperfect (it can have negative values), but is still often used in Deep Learning.;
+                $$H(X) = - \defint{x}{}{f(x)\log_2(f(x))}{x}$$
+                Consider the following example;
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \draw[fill=violet!20] (-0.5, -0.5) -- (-0.5, 4.5) -- (5.5, 4.5) -- (5.5, -0.5) -- cycle;
+
+                        \node[sneg] at (0, 0) {};
+                        \node[sneg] at (0, 1) {};
+                        \node[sneg] at (0, 3) {};
+                        \node[sneg] at (0, 4) {};
+
+                        \node[spos] at (1, 0) {};
+                        \node[sneg] at (1, 2) {};
+                        \node[sneg] at (1, 3) {};
+
+                        \node[spos] at (2, 0) {};
+                        \node[sneg] at (2, 1) {};
+                        \node[spos] at (2, 3) {};
+                        \node[sneg] at (2, 4) {};
+
+                        \node[spos] at (3, 1) {};
+                        \node[spos] at (3, 2) {};
+                        \node[sneg] at (3, 4) {};
+
+                        \node[spos] at (4, 0) {};
+                        \node[spos] at (4, 3) {};
+                        \node[spos] at (4, 4) {};
+
+                        \node[spos] at (5, 1) {};
+                        \node[spos] at (5, 2) {};
+                        \node[spos] at (5, 4) {};
+                    \end{tikzpicture}
+                    \begin{align*}
+                        P(\textcolor{blue!20}{\bullet}) & = \frac{11}{20} \\
+                        P(\textcolor{red!20}{\bullet}) & = \frac{9}{20} \\
+                        H(\textcolor{violet!20}{\blacksquare}) & = -\left(\frac{11}{20} \cdot \log_2\left(\frac{11}{20}\right) + \frac{9}{20} \cdot \log_2\left(\frac{9}{20}\right)\right) \\
+                        & \approx 0.9928
+                    \end{align*}
+                    An entropy value close to 1 would indicate a maximum amount of information needed.
+                \end{center}
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \draw[fill=violet!20] (-0.5, -0.5) -- (-0.5, 4.5) -- (5.5, 4.5) -- (5.5, -0.5) -- cycle;
+
+                            \node[sneg] at (0, 0) {};
+                            \node[sneg] at (0, 1) {};
+                            \node[sneg] at (0, 3) {};
+                            \node[sneg] at (0, 4) {};
+
+                            \node[spos] at (1, 0) {};
+                            \node[sneg] at (1, 2) {};
+                            \node[sneg] at (1, 3) {};
+
+                            \node[spos] at (2, 0) {};
+                            \node[sneg] at (2, 1) {};
+                            \node[spos] at (2, 3) {};
+                            \node[sneg] at (2, 4) {};
+
+                            \node[spos] at (3, 1) {};
+                            \node[spos] at (3, 2) {};
+                            \node[sneg] at (3, 4) {};
+
+                            \node[spos] at (4, 0) {};
+                            \node[spos] at (4, 3) {};
+                            \node[spos] at (4, 4) {};
+
+                            \node[spos] at (5, 1) {};
+                            \node[spos] at (5, 2) {};
+                            \node[spos] at (5, 4) {};
+
+                            \draw (0.5, -0.5) edge[dashed] (0.5, 4.5);
+                        \end{scope}
+                        \begin{scope}[shift={(-4, -6)}]
+                            \draw (-0.5, -0.5)[fill=cyan!20] -- (-0.5, 4.5) -- (5.5, 4.5) -- (5.5, -0.5) -- cycle;
+
+                            \node[sneg] at (0, 0) {};
+                            \node[sneg] at (0, 1) {};
+                            \node[sneg] at (0, 3) {};
+                            \node[sneg] at (0, 4) {};
+                        \end{scope}
+                        \begin{scope}[shift={(4, -6)}]
+                            \draw (-0.5, -0.5)[fill=orange!20] -- (-0.5, 4.5) -- (5.5, 4.5) -- (5.5, -0.5) -- cycle;
+                            \node[spos] at (1, 0) {};
+                            \node[sneg] at (1, 2) {};
+                            \node[sneg] at (1, 3) {};
+
+                            \node[spos] at (2, 0) {};
+                            \node[sneg] at (2, 1) {};
+                            \node[spos] at (2, 3) {};
+                            \node[sneg] at (2, 4) {};
+
+                            \node[spos] at (3, 1) {};
+                            \node[spos] at (3, 2) {};
+                            \node[sneg] at (3, 4) {};
+
+                            \node[spos] at (4, 0) {};
+                            \node[spos] at (4, 3) {};
+                            \node[spos] at (4, 4) {};
+
+                            \node[spos] at (5, 1) {};
+                            \node[spos] at (5, 2) {};
+                            \node[spos] at (5, 4) {};
+                        \end{scope}
+
+                        \draw
+                        (2, -0.5) edge[->] (-1.5, -1.5)
+                        (3, -0.5) edge[->] (6.5, -1.5);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \begin{scope}[shift={(0, 0)}]
+                            \draw[fill=violet!20] (-0.5, -0.5) -- (-0.5, 4.5) -- (5.5, 4.5) -- (5.5, -0.5) -- cycle;
+
+                            \node[sneg] at (0, 0) {};
+                            \node[sneg] at (0, 1) {};
+                            \node[sneg] at (0, 3) {};
+                            \node[sneg] at (0, 4) {};
+
+                            \node[spos] at (1, 0) {};
+                            \node[sneg] at (1, 2) {};
+                            \node[sneg] at (1, 3) {};
+
+                            \node[spos] at (2, 0) {};
+                            \node[sneg] at (2, 1) {};
+                            \node[spos] at (2, 3) {};
+                            \node[sneg] at (2, 4) {};
+
+                            \node[spos] at (3, 1) {};
+                            \node[spos] at (3, 2) {};
+                            \node[sneg] at (3, 4) {};
+
+                            \node[spos] at (4, 0) {};
+                            \node[spos] at (4, 3) {};
+                            \node[spos] at (4, 4) {};
+
+                            \node[spos] at (5, 1) {};
+                            \node[spos] at (5, 2) {};
+                            \node[spos] at (5, 4) {};
+
+                            \draw (2.5, -0.5) edge[dashed] (2.5, 4.5);
+                        \end{scope}
+                        \begin{scope}[shift={(-4, -6)}]
+                            \draw[fill=teal!20] (-0.5, -0.5) -- (-0.5, 4.5) -- (5.5, 4.5) -- (5.5, -0.5) -- cycle;
+
+                            \node[sneg] at (0, 0) {};
+                            \node[sneg] at (0, 1) {};
+                            \node[sneg] at (0, 3) {};
+                            \node[sneg] at (0, 4) {};
+
+                            \node[spos] at (1, 0) {};
+                            \node[sneg] at (1, 2) {};
+                            \node[sneg] at (1, 3) {};
+
+                            \node[spos] at (2, 0) {};
+                            \node[sneg] at (2, 1) {};
+                            \node[spos] at (2, 3) {};
+                            \node[sneg] at (2, 4) {};
+                        \end{scope}
+                        \begin{scope}[shift={(4, -6)}]
+                            \draw[fill=black!20] (-0.5, -0.5) -- (-0.5, 4.5) -- (5.5, 4.5) -- (5.5, -0.5) -- cycle;
+
+                            \node[spos] at (3, 1) {};
+                            \node[spos] at (3, 2) {};
+                            \node[sneg] at (3, 4) {};
+
+                            \node[spos] at (4, 0) {};
+                            \node[spos] at (4, 3) {};
+                            \node[spos] at (4, 4) {};
+
+                            \node[spos] at (5, 1) {};
+                            \node[spos] at (5, 2) {};
+                            \node[spos] at (5, 4) {};
+                        \end{scope}
+
+                        \draw
+                        (2, -0.5) edge[->] (-1.5, -1.5)
+                        (3, -0.5) edge[->] (6.5, -1.5);
+                    \end{tikzpicture}
+                    \hfill
+                    \phantom{}
+                \end{center}
+                \begin{align*}
+                    H(\textcolor{cyan!20}{\blacksquare}) & = 0 \\
+                    H(\textcolor{orange!20}{\blacksquare}) & \approx 0.896 \\
+                    H(\{\textcolor{cyan!20}{\blacksquare}, \textcolor{orange!20}{\blacksquare}\}) & \approx \frac{4}{20} \cdot 0 + \frac{16}{20} \cdot 0.896 \\
+                    & \approx 0.7168 \\
+                    H(\textcolor{violet!20}{\blacksquare}) - H(\{\textcolor{cyan!20}{\blacksquare}, \textcolor{orange!20}{\blacksquare}\}) & \approx 0.276 & \text{information gain} \\ \\
+                    H(\textcolor{teal!20}{\blacksquare}) & \approx 0.8454 \\
+                    H(\textcolor{black!20}{\blacksquare}) & \approx 0.5033 \\
+                    H(\{\textcolor{teal!20}{\blacksquare}, \textcolor{black!20}{\blacksquare}\}) & \approx \frac{11}{20} \cdot 0.8454 + \frac{9}{20} \cdot 0.5033 \\
+                    & \approx 0.6915 \\
+                    H(\textcolor{violet!20}{\blacksquare}) - H(\{\textcolor{teal!20}{\blacksquare}, \textcolor{black!20}{\blacksquare}\}) & \approx 0.3013 & \text{information gain} \\ \\
+                \end{align*}
+                As the second split has the larger information gain, that is the one we will end up selecting (and generally we want to split to maximise information gain).
+                A formulation of this is as follows;
+                \begin{align*}
+                    IG(\text{dataset}, \text{subsets}) & = H(\text{dataset}) - \summation{S \in \text{subsets}}{} \frac{|\ S\ |}{|\ \text{dataset}\ |} H(S) \\
+                    |\ \text{dataset}\ | & = \summation{S \in \text{subsets}}{} |\ S\ |
+                \end{align*}
+                We can have the following types of input;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{ordered values}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item attribute and split point
+                            \item for each attribute, sort the values and consider split points between two examples with different classes
+                        \end{itemize}
+                    \item \textbf{categorical / symbolic values}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item search for the most informative feature and create as many branches as there are values for this feature
+                        \end{itemize}
+                \end{itemize}
             \subsubsection*{Worked example for construction decision tree}
+                Skipped, as this is basically done for the coursework.
             \subsubsection*{Summary and other considerations with decision tree}
+                Note that in general, if we have real-valued attributes, we will end up with a binary tree, with an attribute and threshold at each node.
+                On the other hand, if we have categorical values, we can end up with a \textbf{multiway tree}.
+                \medskip
+
+                Decision trees will \textbf{overfit}, like with many machine learning algorithms.
+                This means the algorithm will take into account every sample in the dataset, to the point where it picks up the noise in the dataset.
+                On the other hand, we have an underfitted algorithm, which has low variance and high bias (in contrast).
+                \medskip
+
+                In decision trees, to deal with overfitting, we can employ the following strategies;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{early stopping}
+                        \subitem basically stop the algorithm when a condition is met, rather than when the subset is pure (such as maximum depth of tree, or a minimum number of examples in the subset)
+                    \item \textbf{pruning} \hfill will be covered next week
+                \end{itemize}
+
+                To test this, we can reserve part of the dataset for training, and another part for validation.
+                This is called \textbf{cross-validation}.
+                The steps for pruning are as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item identify internal nodes connected to only leaf nodes
+                    \item turn each into a leaf node (with the majority class label)
+                    \item if the validation accuracy of the pruned tree is greater, we keep it, and then repeat the process until no other pruning can improve the accuracy
+                \end{enumerate}
+                Another approach is to use a random forest.
+                This involves training multiple decision trees, each with a subset of the training dataset, with a random subset of the features, and therefore each focuses on one subset of the features.
+                We then take the majority vote by each of the decision trees as the final outcome.
+                \medskip
+
+                Decision trees can also be used for regression (\textbf{regression trees}).
+                Instead of class labels, each leaf node predicts a real-valued number.
         \subsection*{Week 4 (Machine Learning Evaluation)}
         \subsection*{Week 5 (Artificial Neural Networks I)}
         \subsection*{Week 6 (Artificial Neural Networks II)}
