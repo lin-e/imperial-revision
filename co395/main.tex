@@ -725,18 +725,18 @@
                     \itemsep0em
                     \item \textbf{early stopping}
                         \subitem basically stop the algorithm when a condition is met, rather than when the subset is pure (such as maximum depth of tree, or a minimum number of examples in the subset)
-                    \item \textbf{pruning} \hfill will be covered next week
+                    \item \textbf{pruning} \hfill will be covered more next week
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item identify internal nodes connected to only leaf nodes
+                            \item turn each into a leaf node (with the majority class label)
+                            \item if the validation accuracy of the pruned tree is greater, we keep it, and then repeat the process until no other pruning can improve the accuracy
+                        \end{enumerate}
                 \end{itemize}
-
                 To test this, we can reserve part of the dataset for training, and another part for validation.
                 This is called \textbf{cross-validation}.
-                The steps for pruning are as follows;
-                \begin{enumerate}[1.]
-                    \itemsep0em
-                    \item identify internal nodes connected to only leaf nodes
-                    \item turn each into a leaf node (with the majority class label)
-                    \item if the validation accuracy of the pruned tree is greater, we keep it, and then repeat the process until no other pruning can improve the accuracy
-                \end{enumerate}
+                \medskip
+
                 Another approach is to use a random forest.
                 This involves training multiple decision trees, each with a subset of the training dataset, with a random subset of the features, and therefore each focuses on one subset of the features.
                 We then take the majority vote by each of the decision trees as the final outcome.
