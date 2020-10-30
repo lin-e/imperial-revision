@@ -204,5 +204,441 @@
     {\sc Computing $3^\text{rd}$ Year Notes} \hfill ~https://github.com/lin-e/imperial-revision~
     \rule{\textwidth}{0.1pt}
     \section*{CO572 - Advanced Databases \hfill (60002)}
+        \subsection*{Lecture 1}
+            What is a \textbf{database management system}?
+            A \textbf{database} is any structured collection of data points, which can be a relational table, a set, a vector, a graph, or anything along those lines.
+            \textbf{Data management} is needed for \textbf{data-intensive applications}, we say something processes a significant amount of data if the amount of data is larger than what fits in the CPU's cache, something in the order of a few MB.
+            We can say that below this threshold (around 5MB - 50MB), there are other factors that likely dominate performance.
+            A \textbf{system} is made up from components that interact together to achieve a greater goal and is usually applicable to many situations.
+            \subsubsection*{Applications}
+                \begin{itemize}
+                    \itemsep0em
+                    \item
+                        The scenario is at a hospital.
+                        At any given time, there are 800 patients, producing a sample per second of 5 metrics.
+                        There are also 200 doctors and nurses, who each produce a textual report every 10 minutes, and 80 lab technicians producing a structured dataset of 10 metrics every 5 minutes.
+                        Everything must be stored \textbf{reliably}, it cannot be lost after it is stored (or with a probability $p < 0.001$).
+                    \item
+                        You are developing a interactive dashboard for a global retail company.
+                        This company has stored 500GBs of sales, inventory, and customer records, and shall provide interactive access to calculated statistics.
+                        This should allow filtering of the dataset with predicates, and support the calculation of the sums of records, all with response times below a second.
+                \end{itemize}
+                Below are some examples of typical data-intensive application patterns;
+                \begin{itemize}
+                    \itemsep0em
+                    \item Online Transaction Processing \hfill \textbf{OLTP}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item lots of small updates to a persistent database
+                            \item focused on throughput (do as many updates as possible in a time-frame)
+                            \item ACID is key (reliable)
+                        \end{itemize}
+                    \item Online Analytical Processing \hfill \textbf{OLAP}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item running a single data analysis task
+                            \item focus on latency (do queries as quickly as possible)
+                            \item \textbf{ad-hoc} queries - we don't know what they'll be
+                        \end{itemize}
+                    \item Reporting
+                        \begin{itemize}
+                            \itemsep0em
+                            \item running many analysis tasks in a fixed time budget
+                            \item focused on resource efficiency - if we can do the same task by the same time it's due with fewer resources, then it would be cheaper
+                            \item queries are known in advance (and can be compiled into the system)
+                        \end{itemize}
+                    \item Hybrid Transactional / Analytical Processing \hfill \textbf{HTAP}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item a mix of \textbf{OLTP} and \textbf{OLAP}
+                            \item small updates woven with larger analytics
+                            \item common application is fraud detection
+                        \end{itemize}
+                \end{itemize}
+            \subsubsection*{Data-intensive Application vs Management System}
+                A \textbf{application} is not generic - it's often domain-specific with the logic baked in, and is therefore hard to generalise to other applications.
+                Generally, the cost (such as adapting for other applications) of application-specific data management outweighs the benefits.
+                We can generalise the following (from an application to a management system);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textit{Yelp}
+                    \item mobile app for geo-services
+                    \item library to manage unordered collections of tagged coordinates
+                    \item spatial data management library
+                    \item relational database
+                    \item block storage system
+                \end{itemize}
+            \subsubsection*{Requirements of a Data Management System}
+                A data management system should fulfil the following requirements;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{efficiency} \hfill should not be significantly slower than hand written applications
+                    \item \textbf{resilience} \hfill should recover from problems, such as power outage, hardware or software failures
+                    \item \textbf{robustness}
+                        \subitem should have predictable performance; a small change in the query should not lead to major changes in performance
+                    \item \textbf{scalability}
+                        \subitem should make efficient use of available resources - increase in resources should lead to an improvement of performance
+                    \item \textbf{concurrency}
+                        \subitem should transparently serve multiple clients transparently (without impacting results)
+                \end{itemize}
+            \subsubsection*{Solutions}
+                DBMSs often provide some ingenious solutions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Physical and Logical Data Model Separation}
+                        \subitem
+                            We typical provide a \textbf{logical data model} to the user, as they often send data in a \textbf{fire and forget} manner.
+                            The user doesn't typically care about file format, storage devices, nor portability.
+                            The DMBSs can then separate external from the internal model and therefore exploit these degrees of freedom for performance.
+                            For example, if the user doesn't care where the data is stored, we can keep the hot data on an SSD and the cold data on disk or even tape.
+                    \item \textbf{Transparent Concurrency: Transactional Semantics}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{Atomic} \hfill run completely or not at all (if aborted, everything is reverted)
+                            \item \textbf{Consistent} \hfill constraints must hold before and after (can be inconsistent between)
+                            \item \textbf{Isolated} \hfill run like you were alone on the system
+                            \item \textbf{Durable} \hfill after a transaction is committed \textbf{nothing} can undo it
+                        \end{itemize}
+                    \item \textbf{Ease of Use: Declarative Data Analysis}
+                        \subitem
+                            Retrieving information about data should be done by describing the result and the system will generate it.
+                            This can be a single tuple, some statistics, a detailed generated report, or even training a model to predict data.
+                \end{itemize}
+                However, they are not to be used as a filesystem.
+                Similarly, it cannot be used as runtime for applications - there are support for user-defined functions, but should not be used a such.
+                They also should not be used to store intermediate data (such as whether a user is logged in).
+            \subsubsection*{Relational Algebra}
+                A schema is the definition of the attributes of the tuples in the relations, but also can contain integrity constraints.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{vector} \hfill ordered collection of objects of the same type
+                    \item \textbf{tuple} \hfill ordered collection of objects of different type
+                    \item \textbf{bag} \hfill unordered collection of objects of the same type
+                    \item \textbf{set} \hfill unordered collection of unique objects of the same type
+                \end{itemize}
+                Relational algebra is used to define the semantics of operations and is used for logical optimisation.
+                However, it's not actually that useful for end-users.
+                A relation is an array which represents an $n$-ary relation $R$, with the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item each row represents an $n$-tuple of $R$
+                    \item the order of rows doesn't matter
+                    \item all rows are distinct (combined with above is a set)
+                    \item the order of columns matters - all rows have the same schema
+                    \item each column has a label (defines the schema of our relation)
+                \end{itemize}
+                Relations are \textbf{almost} sets of tuples.
+                A rough implementation in C++ is as follows;
+                \begin{lstlisting}
+                    template <typename... types>
+                    struct Relation {
+                        using OutputType = tuple<types...>;
+                        set<tuple<types...>> data;
+                        array<string, sizeof...(types)> schema;
+                        Relation(){};
+                        Relation(array<string, sizeof...(types)> schema, set<tuple<types...>> data): schema(schema), data(data) {}
+                    };
+                \end{lstlisting}
+                A relation can then be written as follows;
+                \begin{lstlisting}
+                    auto createCustomerTable() {
+                        Relation<int, string, string> customer(
+                            {"ID", "Name", "ShippingAddress"}, // labels of the attribute
+                            {{1, "james", "address 1"},
+                             {2, "steve", "another address}});
+                        return customer;
+                    }
+                \end{lstlisting}
+                A \textbf{relational expression} is composed from \textbf{relational operators}, and will often be referred to as a \textbf{(logical) plan}.
+                \textbf{Cardinality} is the number of tuples in a set.
+                Relational operations are set-based, and therefore order-invariant and duplicates are eliminated.
+                Additionally, it's \textbf{closed};
+                \begin{itemize}
+                    \itemsep0em
+                    \item every operator produces a relation as an output
+                    \item every operator accepts one or two relations as input
+                    \item simplifies the composition of operators into expressions (however expressions can be invalid)
+                \end{itemize}
+                Relational operators can be implemented as follows;
+                \begin{lstlisting}
+                    template <typename... types> struct Operator : public Relation<types...> {}; // therefore an operator is a relation
+                \end{lstlisting}
+                A minimal set of relational operators is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{project} ($\pi$)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item extract one or more attributes from a relation
+                            \item preserves relational semantics
+                            \item changes schema
+                        \end{itemize}
+                        For example, given a table;
+                        \begin{center}
+                            \hfill
+                            \begin{tabular}{ccc}
+                                \multicolumn{3}{c}{~table1~} \\
+                                ~field1~ & ~field2~ & ~field3~ \\
+                                \hline
+                                ~A~ & ~B~ & ~C~ \\
+                                ~D~ & ~E~ & ~F~ \\
+                                ~G~ & ~E~ & ~I~
+                            \end{tabular}
+                            \hfill
+                            \begin{tabular}{c}
+                                \multicolumn{1}{c}{$\pi_~field2~~table1~$} \\
+                                ~field2~ \\
+                                \hline
+                                ~B~ \\
+                                ~E~ \\
+                                \phantom{}
+                            \end{tabular}
+                            \hfill \phantom{}
+                        \end{center}
+                        The cardinality of the output of a projection can only be determined by evaluating it, as duplicates can be eliminated.
+                        On the other hand, the upper bound of the cardinality of the output is the cardinality of the input.
+                        \medskip
 
+                        It can also extract one or more attributes from a relation and perform a scalar operation on them.
+                        \begin{lstlisting}
+                            template <typename InputOperator, typename... outputTypes>
+                            struct Project : public Operator<outputTypes...> {
+                                InputOperator input;
+
+                                variant<function<tuple<outputTypes...>(typename InputOperator::OutputType)>,
+                                        set<pair<string, string>>>
+                                    projections;
+
+                                Project(InputOperator input, function<tuple<outputTypes...>(typename InputOperator::OutputType)> projections : input(input), projections(projections) {};
+
+                                Project(InputOperator input, set<pair<string, string>> projections : input(input), projections(projections) {};
+                            }
+
+                            void projectionExample {
+                                auto customer = createCustomerTable();
+
+                                auto p1 = Project<decltype(customer), string>(customer, [](auto input) { return get<1>(input); });
+
+                                auto p2 = Project<decltype(customer), string>(customer, {{"Name", "customerName"}});
+                            }
+                        \end{lstlisting}
+                    \item \textbf{select} ($\sigma$)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item produces a new relation containing tuples which satisfy a condition
+                            \item does not change schema
+                            \item changes cardinality (number of tuples in a relation)
+                        \end{itemize}
+                        For example, given a table;
+                        \begin{center}
+                            \hfill
+                            \begin{tabular}{ccc}
+                                \multicolumn{3}{c}{~table1~} \\
+                                ~field1~ & ~field2~ & ~field3~ \\
+                                \hline
+                                ~A~ & ~B~ & ~C~ \\
+                                ~D~ & ~E~ & ~F~ \\
+                                ~G~ & ~E~ & ~I~
+                            \end{tabular}
+                            \hfill
+                            \begin{tabular}{ccc}
+                                \multicolumn{3}{c}{$\sigma_~field2=E~~table1~$} \\
+                                ~field1~ & ~field2~ & ~field3~ \\
+                                \hline
+                                ~D~ & ~E~ & ~F~ \\
+                                ~G~ & ~E~ & ~I~ \\
+                                \phantom{}
+                            \end{tabular}
+                            \hfill \phantom{}
+                        \end{center}
+                        The cardinality can only be determined by evaluating it, and the upper bound of the cardinality is also the cardinality of the input.
+                        \begin{lstlisting}
+                            enum class Comparator { less, lessEqual, equal, greaterEqual, greater };
+
+                            struct Column {
+                                string name;
+                                Column(string name) : name(name) {};
+                            }
+                            using Value = variant<string, int float>;
+
+                            struct Condition {
+                                Column leftHandSide;
+                                Comparator compare;
+                                variant<Column, Value> rightHandSide;
+
+                                Condition(Column leftHandSide, Comparator compare, variant<Column, Value> rightHandSide): leftHandSide(leftHandSide), compare(compare), rightHandSide(rightHandSide) {};
+                            }
+                        \end{lstlisting}
+                    \item \textbf{cross product} ($\times$)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item takes two inputs
+                            \item produces a new relation by combining every tuple from the left with every tuple from the right
+                            \item changes the schema
+                        \end{itemize}
+                        For example, given tables;
+                        \begin{center}
+                            \hfill
+                            \begin{tabular}{ccc}
+                                \multicolumn{2}{c}{~table1~} \\
+                                ~field1~ & ~field2~ \\
+                                \hline
+                                ~A~ & ~B~ \\
+                                ~G~ & ~E~ \\
+                                \phantom{} \\
+                                \phantom{}
+                            \end{tabular}
+                            \hfill
+                            \begin{tabular}{ccc}
+                                \multicolumn{2}{c}{~table2~} \\
+                                ~fieldA~ & ~fieldB~ \\
+                                \hline
+                                ~2~ & ~6~ \\
+                                ~5~ & ~1~ \\
+                                \phantom{} \\
+                                \phantom{}
+                            \end{tabular}
+                            \hfill
+                            \begin{tabular}{cccc}
+                                \multicolumn{4}{c}{$~table1~ \times ~table2~$} \\
+                                ~field1~ & ~field2~ & ~fieldA~ & ~fieldB~ \\
+                                \hline
+                                ~A~ & ~B~ & ~2~ & ~6~ \\
+                                ~A~ & ~B~ & ~5~ & ~1~ \\
+                                ~G~ & ~E~ & ~2~ & ~6~ \\
+                                ~G~ & ~E~ & ~5~ & ~1~
+                            \end{tabular}
+                            \hfill \phantom{}
+                        \end{center}
+                        The cardinality of the output is the product of the two input cardinalities.
+                        \begin{lstlisting}
+                            template <typename LeftInputOperator, typename RightInputOperator>
+                            struct CrossProduct : public Operator<Concat<typename LeftInputOperator::OutputType, typename RightOutputOperator::OutputType>> {
+                                LeftInputOperator leftInput;
+                                RightInputOperator rightInput;
+                                CrossProduct(LeftInputOperator leftInput, RightInputOperator  rightInput): leftInput(leftInput), rightInput(rightInput) {};
+                            };
+                        \end{lstlisting}
+                    \item \textbf{union} ($\cup$)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item produces a new relation from two relations containing any tuple that is present in either
+                            \item does not change the schema (but does require schema compatibility)
+                            \item changes cardinality
+                        \end{itemize}
+                        No example provided, because it's quite simple.
+                        \begin{lstlisting}
+                            template <typename LeftInputOperator, typename RightInputOperator>
+                            struct Union : public Operator<typename LeftInputOperator:::OutputType> {
+                                LeftInputOperator leftInput;
+                                RightInputOperator rightInput;
+
+                                Union(LeftInputOperator leftInput, RightInputOperator rightInput): leftInput(leftInput), rightInput(rightInput){};
+                            };
+                        \end{lstlisting}
+                        The cardinality can only be known by evaluating (due to duplicates), and the upper bound is the sum of the cardinalities of the input.
+                    \item \textbf{difference} ($-$)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item produces new relation from two relations containing tuples present in the first but not the second
+                            \item doesn't change schema (requires compatibility)
+                            \item changes cardinality
+                        \end{itemize}
+                        No example provided, because it's quite simple.
+                        \begin{lstlisting}
+                            template <typename LeftInputOperator, typename RightInputOperator>
+                            struct Difference : public Operator<typename LeftInputOperator:::OutputType> {
+                                LeftInputOperator leftInput;
+                                RightInputOperator rightInput;
+
+                                Difference(LeftInputOperator leftInput, RightInputOperator rightInput): leftInput(leftInput), rightInput(rightInput){};
+                            };
+                        \end{lstlisting}
+                    \item \textbf{group aggregation} ($\Gamma$)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item produces new relation from one input by grouping tuples that have equal values in some attributes and aggregate others - groups are defined by the set of grouping attributes (can be empty), and the aggregates are defined by the set of \textbf{aggregations} which are triples consisting of;
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item \textbf{input} attribute
+                                    \item \textbf{aggregation function} (min, max, avg, sum, count)
+                                    \item \textbf{output} attribute
+                                \end{itemize}
+                            \item this changes both the schema and cardinality
+                        \end{itemize}
+                        For example, given the following table;
+                        \begin{center}
+                            \hfill
+                            \begin{tabular}{ccc}
+                                \multicolumn{3}{c}{~customer~} \\
+                                ~ID~ & ~Name~ & ~City~ \\
+                                \hline
+                                ~1~ & ~james~ & ~London~ \\
+                                ~2~ & ~steve~ & ~London~ \\
+                                ~3~ & ~kate~ & ~Manchester~
+                            \end{tabular}
+                            \hfill
+                            \begin{tabular}{cc}
+                                \multicolumn{2}{c}{$\Gamma((~City~),((~ID~,~count~,~c~)))~Customer~$} \\
+                                ~City~ & ~c~ \\
+                                \hline
+                                ~London~ & ~2~ \\
+                                ~Manchester~ & ~1~ \\
+                                \phantom{}
+                            \end{tabular}
+                            \hfill
+                            \phantom{}
+                        \end{center}
+                        \begin{lstlisting}
+                            enum class AggregationFunction { min, max, sum, avg, count };
+
+                            template <typename InputOperator, typename... Output>
+                            struct GroupedAggregation : public Operator<Output...> {
+                                InputOperator input;
+                                set<string> groupAttributes;
+                                set<tuple<string, AggregationFunction, string>> aggregations;
+                                GroupedAggregation(InputOperator input, set<string> groupAttributes, set<tuple<string, AggregationFunction, string>> aggregations): input(input), groupAttributes(groupAttributes), aggregations(aggregations){};
+                            };
+                        \end{lstlisting}
+                    \item \textbf{Top-N} ($T$)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item produce new relation from one input selecting the tuples with the $N$ greatest values with respect to an attribute
+                            \item changes cardinality, but maintains schema
+                        \end{itemize}
+                        For example, given the following table;
+                        \begin{center}
+                            \hfill
+                            \begin{tabular}{ccc}
+                                \multicolumn{3}{c}{~customer~} \\
+                                ~ID~ & ~Name~ & ~City~ \\
+                                \hline
+                                ~1~ & ~james~ & ~London~ \\
+                                ~2~ & ~steve~ & ~London~ \\
+                                ~3~ & ~kate~ & ~Manchester~
+                            \end{tabular}
+                            \hfill
+                            \begin{tabular}{ccc}
+                                \multicolumn{3}{c}{$T_{(2, ~ID~)}~Customer~$} \\
+                                ~ID~ & ~Name~ & ~City~ \\
+                                \hline
+                                ~2~ & ~steve~ & ~London~ \\
+                                ~3~ & ~kate~ & ~Manchester~ \\
+                                \phantom{}
+                            \end{tabular}
+                            \hfill
+                            \phantom{}
+                        \end{center}
+                        \begin{lstlisting}
+                            template <typename InputOperator>
+                            struct TopN : public Operator<typename InputOperator::OutputType> {
+                                InputOperator input;
+                                size_t N;
+                                string predicate;
+                                TopN(InputOperator input, size_t N, string predicate): input(input), N(N), predicate(predicate){};
+                            };
+                        \end{lstlisting}
+                \end{itemize}
+                Since relational algebra is closed, operators can be combined as long as signatures are respected (cross product takes two inputs, whereas selections and projections take one);
+                $$\pi_~BookID~(\sigma_~Order.ID == OrderedItem.OrderID~(~Order~ \times ~OrderedItem~))$$
 \end{document}
