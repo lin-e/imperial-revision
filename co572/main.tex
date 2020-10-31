@@ -199,6 +199,11 @@
 \tikzset{spos/.style={inner sep=2pt, circle, draw=black, fill=blue!20}}
 \tikzset{sneg/.style={inner sep=2pt, circle, draw=black, fill=red!20}}
 
+% Joins
+\newcommand\ljoin{\stackrel{\mathclap{\normalfont\mbox{\tiny L}}}{\bowtie}}
+\newcommand\rjoin{\stackrel{\mathclap{\normalfont\mbox{\tiny R}}}{\bowtie}}
+\newcommand\ojoin{\stackrel{\mathclap{\normalfont\mbox{\tiny O}}}{\bowtie}}
+
 % actual document
 \begin{document}
     {\sc Computing $3^\text{rd}$ Year Notes} \hfill ~https://github.com/lin-e/imperial-revision~
@@ -1114,4 +1119,580 @@
                 \end{itemize}
                 Some disk-based database systems also keep a dictionary per page, which solves the problem of variable sized records (and allows for duplicate elimination, at the granularity of a single page, as previously mentioned).
                 A global dictionary is not used as it will lead to more accesses.
+        \subsection*{Lecture 3}
+            \subsubsection*{Join}
+                The issue with data normalisation (see \textbf{CO130}) is that data ends up scattered across different tables.
+                For example, consider the following example tables.
+                Notice how a simple application is now split across these 4 tables - but we care more about who ordered what book, rather than the order IDs.
+                \begin{center}
+                    \hfill
+                    \begin{tabular}{ccc}
+                        \multicolumn{3}{c}{~Customer~} \\
+                        ~ID~ & ~Name~ & ~City~ \\
+                        \hline
+                        ~1~ & ~james~ & ~London~ \\
+                        ~2~ & ~steve~ & ~London~ \\
+                        ~3~ & ~kate~ & ~Manchester~ \\
+                        \phantom{}
+                    \end{tabular}
+                    \hfill
+                    \begin{tabular}{cc}
+                        \multicolumn{2}{c}{~Order~} \\
+                        ~ID~ & ~CustomerID~ \\
+                        \hline
+                        ~1~ & ~1~ \\
+                        ~2~ & ~2~ \\
+                        ~3~ & ~3~ \\
+                        \phantom{}
+                    \end{tabular}
+                    \hfill
+                    \begin{tabular}{cc}
+                        \multicolumn{2}{c}{~OrderedItem~} \\
+                        ~ID~ & ~CustomerID~ \\
+                        \hline
+                        ~1~ & ~1~ \\
+                        ~1~ & ~2~ \\
+                        ~2~ & ~1~ \\
+                        ~3~ & ~3~
+                    \end{tabular}
+                    \hfill
+                    \phantom{}
+                    \smallskip
+
+                    \hfill
+                    \begin{tabular}{ccc}
+                        \multicolumn{3}{c}{~Book~} \\
+                        ~ID~ & ~Title~ & ~Author~ \\
+                        \hline
+                        ~1~ & ~Fahrenheit 451~ & ~Ray Bradbury~ \\
+                        ~2~ & ~Animal Farm~ & ~George Orwell~ \\
+                        ~3~ & ~Distributed Systems~ & ~van Steen \& Tanenbaum~ \\
+                        \phantom{}
+                    \end{tabular}
+                    \hfill
+                    \phantom{}
+                \end{center}
+                Joins are very common not only due to normalisation (with mostly \textbf{Foreign-Key joins}), but also due to the value produced by combining data.
+                For example, we can find users that purchase the same product with joins, or finding what advertisements work (seeing which users search for a term within a timeframe after seeing an advert).
+                \medskip
+
+                Joins are basically cross products with a selection \textbf{involving both inputs}.
+                The variations on joins are based on how tuples without corresponding rows on either input are matched;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{left join} \hfill ($R \ljoin S$)
+                        \subitem
+                            This returns all rows in $R$, even if no rows in $S$ match (in this case it fills the columns of $S$ with ~NULL~ values)
+                    \item \textbf{right join} \hfill ($R \rjoin S$)
+                        \subitem
+                            Same as above, but the inverse
+                    \item \textbf{full outer join} \hfill ($R \ojoin S$)
+                        \subitem
+                            Returns every row in $R$ as well as every row in $S$ (even if no rows are matching) - similarly will fill with ~NULL~ values if nothing is matching;
+                            $$R \ojoin S \equiv (R \ljoin S) \cup (R \rjoin S)$$
+                \end{itemize}
+                An example of the matching function is as follows;
+                \begin{center}
+                    ~SELECT * FROM R JOIN S ON (R.r = S.s)~
+                \end{center}
+                The matching function for joins does not have to be equality;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{equi-join} (algorithmically equivalent to intersections) \hfill equality
+                    \item \textbf{inequality joins} \hfill inequality constraint (~<~ or ~>~)
+                    \item \textbf{anti-join} \hfill ~<>~ or ~!=~
+                    \item \textbf{Theta joins} \hfill all other joins (difficult to optimise)
+                \end{itemize}
+            \subsubsection*{Join Algorithms}
+                Some of the join algorithms are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{nested loop join}
+                        \begin{lstlisting}
+                            using Table = vector<vector<int>>;
+                            Table left, right;
+                            for (size_t i = 0; i < leftRelationSize; i++) {
+                                auto leftInput = left[i];
+                                for (size_t j = 0; j < rightRelationSize; j++) {
+                                    auto rightInput = right[j];
+                                    if (leftInput[leftAttribute] == rightInput[rightAttribute]) {
+                                        writeToOutput({leftInput, rightInput});
+                                    }
+                                }
+                            }
+                        \end{lstlisting}
+                        This is a simple algorithm and is trivial to parallelise (since there are no dependent loop iterations).
+                        This also has sequential I/O, which is good for the buffer manager.
+                        The effort required however is;
+                        $$\Theta(|L| \times |R|) \text{ , reduced to } \Theta\left(\frac{|L| \times |R|}{2}\right) \text{ if uniqueness can be assumed}$$
+                    \item \textbf{sort-merge joins}
+                        \begin{lstlisting}
+                            // this assumes values are unique and sorted
+                            auto leftI = 0;
+                            auto rightI = 0;
+                            // keep iterating until either input is finished
+                            while (leftI < leftInputSize && rightI < rightInputSize) {
+                                auto leftInput = left[leftI];
+                                auto rightInput = right[leftI];
+                                if (leftInput[leftAttribute] < rightInput[rightAttribute]) {
+                                    leftI++;
+                                } else if (rightInput[rightAttribute] > leftInput[leftAttribute]) {
+                                    rightI++;
+                                } else {
+                                    writeToOutput({leftInput, rightInput});
+                                    rightI++;
+                                    leftI++;
+                                }
+                            }
+                        \end{lstlisting}
+                        The idea of this is that we first sort both inputs and have cursors starting at the start of each input.
+                        If the value at the left pointer is smaller than the value at the right pointer, we increment the left pointer (and vice versa).
+                        If it's the same, then we can output a match.
+                        \medskip
+
+                        Assuming (without loss of generality) the value of on the left is less than the value on the right.
+                        All values after the value on the right are greater than it (due to the sorted nature).
+                        Therefore no value after the value on the right can be a join partner to the value on the left, therefore we can advance the cursor on the left.
+                        \begin{center}
+                            \begin{tikzpicture}[x=1.5cm, y=0.75cm]
+                                \node (f) at (0, -3) {5};
+                                \node (s) at (3, -2) {7};
+                                \draw
+                                (0, 0) edge[dashed] (f)
+                                (f) edge[dashed, left] node{$>5$} (0, -5)
+                                (3, 0) edge[dashed] (s)
+                                (s) edge[dashed, right] node{$>7$} (3, -5)
+                                (5, 0) edge[->, right] node{merge direction} (5, -5)
+                                (f) edge[<->, above] node{comparison} (s);
+                            \end{tikzpicture}
+                        \end{center}
+                        The effort required for this is as follows (the merge must go through each tuple on either side);
+                        $$O(\underbrace{|L| \times \log|L|}_{O(~sort~(L))} + \underbrace{|R| + \log|R|}_{O(~sort~(R))} + \underbrace{|L| + |R|}_{O(~merge~)})$$
+                        This has sequential I/O in the merge phase, however it is tricky to parallelise.
+                        This also works for inequality joins, but we need to be more careful when advancing the cursors.
+                    \item \textbf{hash joins}
+                        \begin{lstlisting}
+                            vector<optional<vector<int>>> hashTable; // optional since slots can be empty
+                            int hash(int);
+                            int nextSlot(int);
+
+                            for (size_t i = 0; i < buildSide.size(); i++) {
+                                auto buildInput = buildSide[i];
+                                auto hashValue = hash(buildInput[buildAttribute]);
+
+                                // avoid overwriting a value
+                                while (hashTable[hashValue].hasValue) {
+                                    hashValue = nextSlot(hashValue);
+                                }
+                                hashTable[hashValue] = buildInput;
+                            }
+
+                            for (size_t i = 0; i < probeSide.size(); i++) {
+                                auto probeInput = probeSide[i];
+                                auto hashValue = hash(probeInput[probeAttribute]);
+                                while (hashTable[hashValue].hasValue && hashTable[hashValue].value[buildAttribute] != probeInput[probeAttribute]) {
+                                    hashValue = nextSlot(hashValue);
+                                }
+                                if (hashTable[hashValue].value[buildAttribute] == probeInput[probeAttribute]) {
+                                    writeToOutput({hashTable[hashValue].value, probeInput})
+                                }
+                            }
+                        \end{lstlisting}
+                        We need to first distinguish the \textbf{build-side} (side buffered in the hashtable) and \textbf{probe-side} (side used to look up tuples in the hashtable).
+                        \medskip
+
+                        For this, we need to establish some requirements on the hash function.
+                        The requirements is that it is pure (and has no state), and need to know the output domain (the range of generated values) in order to allocate the size.
+                        It's also ideal to have a contiguous output domain (without holes) and a uniform distribution (where all values are equally likely for consistent performance).
+                        Some common examples are;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{MD5}
+                            \item \textbf{Modulo-Division} \hfill simplest (but input skew leads to output skew)
+                            \item \textbf{MurmurHash} \hfill one of fastest, decent hash-functions
+                            \item \textbf{CRC32} \hfill also has input skew issue, but has hardware support
+                        \end{itemize}
+                        Furthermore, we need to handle conflicts on hash collision.
+                        This needs to have some locality (if there is too much locality, there can be issues when inserting a lot of data into the same slot).
+                        Additionally, it needs to have no holes (we want to probe all slots to avoid memory waste).
+                        Some approaches are as follows;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{linear probing}
+                                \subitem
+                                    When a slot is filled, try the next one and continue doing so until a free slot is found - wrapping around to the start at the end of the buffer.
+                                    This approach is simple and has great access locality.
+                                    However it can lead to long probe-chains for adversarial input data (if we have input locality).
+                            \item \textbf{quadratic probing}
+                                \subitem
+                                    This is similar to the above strategy, but we instead double the distance from the initial slot each time, first checking one that is a distance of 1 away, then 2, then 4, and so on, also wrapping at the end of the buffer.
+                                    This is also simple, but only has good locality for the first few probes (and gets much worse).
+                                    The first few probes are also likely to cause conflicts.
+                            \item \textbf{rehashing}
+                                \subitem
+                                    We want to distribute probes uniformly, which can cause poor access locality but reduces conflicts.
+                                    To do so, we can just use the hash function again.
+                                    However, to ensure all slots are probed, we need to consider \textbf{cyclic groups}.
+                        \end{itemize}
+                        An example of this applied, with \textbf{modulo hashing} (with a constant factor of 10 for simplicity) and \textbf{linear probing} is as follows;
+                        \begin{lstlisting}
+                            int hash(int v) { return v % 10; }
+                            int probe(int v) { return (v + 1) % 10; }
+
+                            buildSide = {1, 2, 7, 8, 12, 16, 17};
+                        \end{lstlisting}
+                        With this, we'd end up with the following slots in the hash table (~-~ denotes unused);
+                        \begin{center}
+                            ~(index 0) => [-, 1, 2, 12, -, -, 16, 7, 8, 17] <= (index 9)~
+                        \end{center}
+                        Hash joins give us sequential I/O on inputs but pseudo-random access to the hash-table during build and probe.
+                        It's parallelisable over the values on the probe side, but parallelising the build is difficult.
+                        The effort required is;
+                        $$\Theta(|~build~| + |~probe~|) \text{ (best case) and } O(|~build~| \times |~probe~|) \text{ (worst case)}$$
+                        However, it's also important to consider that we typically want to store more than a single value, and often we may not have the uniqueness guarantee.
+                        Good hashing is still expensive and requires lots of CPU cycles (more expensive than multiple data accesses).
+                        Slots are often also allocated in buckets, allow for more than one tuple per slot.
+                        It's roughly equivalent to rounding every hash value down to a multiple of the bucket size.
+                        Sometimes buckets are implemented as linked lists (\textbf{bucket-chaining}, \textbf{open addressing}) which is a bad idea for lookup performance.
+                        Hashtables are also arrays, which occupy space (typically overallocated by a factor of two to reduce long probe chains).
+                        They are also probed randomly in the probe phase, ideally we want to keep the hash table in memory / cache, but not to disk.
+                        \textbf{For this class}, if the hashtable doesn't fit, \textbf{every access has a constant penalty}.
+                        Generally we use hash joins when one relation is much smaller than the other.
+                \end{itemize}
+            \subsubsection*{Partitioning}
+                We have the fundamental premise that sequential access is much cheaper than random access, and the difference grows with the page size.
+                If we assume a random value access cost $c$, the sequential value access cost is;
+                $$\frac{c}{\text{pagesize}_\text{OS}}$$
+                Assuming the hashtable doesn't fit in the page / cache, we will use the cost $c$ quite frequently, and therefore the extra pass for partitioning, which is mostly sequential access might be worth doing.
+                We can visualise thrashing as follows;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (1, 0.5) {build};
+                        \node at (5, 0.5) {hashtable};
+                        \node at (11, 0.5) {probe};
+                        \node at (8, 0.5) {\shortstack{random access to\\large array, bad\\cache locality}};
+                        \draw
+                        (2, -3) edge[->] (4, -3)
+                        (0, 0) -- (2, 0) -- (2, -6) -- (0, -6) -- cycle
+                        (4, 0) -- (6, 0) -- (6, -6) -- (4, -6) -- cycle
+                        (10, 0) -- (12, 0) -- (12, -6) -- (10, -6) -- cycle;
+                        \draw
+                        (10, -1) edge[->] (6, -1)
+                        (10, -2) edge[->] (6, -5)
+                        (10, -3) edge[->] (6, -4)
+                        (10, -4) edge[->] (6, -2)
+                        (10, -5) edge[->] (6, -3);
+                    \end{tikzpicture}
+                \end{center}
+                On the other hand, by using a partitioning function (which typically has a small range to fit stuff into memory);
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (1, 0.5) {input};
+                        \node at (4, 0.5) {\shortstack{partitioning\\function (~\% 4~)}};
+                        \node at (8, 0.5) {\shortstack{memory\\(5 pages)}};
+                        \node at (13, 0.5) {\shortstack{pages\\on disk}};
+                        \node at (1, -0.5) {14};
+                        \node at (1, -1.5) {12};
+                        \node at (1, -2.5) {17};
+                        \node at (1, -3.5) {5};
+                        \node (p0) at (4, -0.5) {2};
+                        \node (p1) at (4, -1.5) {0};
+                        \node (p2) at (4, -2.5) {1};
+                        \node (p3) at (4, -3.5) {1};
+                        \node at (13, -0.5) {hash 0};
+                        \node at (13, -4) {hash 1};
+                        \node at (13, -6.5) {hash 2};
+                        \node at (1, -4.5) {$\vdots$};
+                        \draw
+                        (2, -0.5) edge[dashed, ->] (p0)
+                        (p0) edge[->] (7, -2.5)
+                        (p1) edge[->] (7, -0.5)
+                        (p2) edge[->] (7, -1.5)
+                        (p3) edge[->] (7, -1.5)
+                        (2, -1.5) edge[dashed, ->] (p1)
+                        (2, -2.5) edge[dashed, ->] (p2)
+                        (2, -3.5) edge[dashed, ->] (p3)
+                        (9, -0.5) edge[->] (12, -0.5)
+                        (9, -1.5) edge[->] (12, -4)
+                        (9, -2.5) edge[->] (12, -6.5);
+                        \draw
+                        (0, -1) -- (2, -1)
+                        (0, -2) -- (2, -2)
+                        (0, -3) -- (2, -3)
+                        (0, 0) -- (2, 0) -- (2, -4) -- (0, -4) -- cycle;
+                        \draw
+                        (7, -1) -- (9, -1)
+                        (7, -2) -- (9, -2)
+                        (7, -3) -- (9, -3)
+                        (7, -4) -- (9, -4)
+                        (7, 0) -- (9, 0) -- (9, -5) -- (7, -5) -- cycle;
+                        \draw
+                        (12, 0) -- (14, 0) -- (14, -3) -- (12, -3) -- cycle
+                        (12, -3.5) -- (14, -3.5) -- (14, -5.5) -- (12, -5.5) -- cycle
+                        (12, -6) -- (14, -6) -- (14, -8) -- (12, -8) -- cycle;
+                    \end{tikzpicture}
+                \end{center}
+                The write from input to memory is done for every tuple, but the write from memory to the pages on the disk is only done when the page is \textbf{filled}, which doesn't waste bandwidth (and also lowers the number of $c$s we use).
+                As such, the probing becomes more involved, we first partition the probe in the same way, and we then only look at the partitioned hashtables, which gives us localised random access.
+                \medskip
+
+                Another benefit of partitioning is that we can now parallelise the processing of each of the smaller joins, since we know they are disjoint.
+            \subsubsection*{Indexing}
+                We should note that these algorithms are done in phases (build / probe and sort / merge).
+                Typically the first phase, build or sort, is independent of the query phase, and can be done before any data is requested (such as when it is first loaded in).
+                This is called indexing.
+                \medskip
+
+                An index is a secondary storage, which is about replicating data.
+                The replication is controlled by the DBMS, which means they can be created and destroyed without breaking the system.
+                These replicas are semantically invisible to the user (doesn't change results).
+                On the other hand, these replicas occupy space and need to be maintained under updates.
+                \medskip
+
+                A primary index is used to store the tuples of a table, not a table, and therefore only one of these can be used per table.
+                On the other hand, a secondary index stores pointers to the tuple of a table, hence we can have many of these in a table.
+                \medskip
+
+                In SQL, an index can be created and destroyed as follows (however, it's unclear what type of index is created, nor do we have control over parameters);
+                \begin{lstlisting}
+                    CREATE INDEX index_name ON table_name (column1, column2, ...);
+                    DROP INDEX index_name;
+                \end{lstlisting}
+                Some examples are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Hash-Indexing}
+                        \subitem
+                            The first step of a hash-join was building a hash-table, instead the hash-index is the same but persistent.
+                            In an unclustered hash-index, there is hash table which stores the key and position, and in the relation it is ordered by the position (and contains the actual data).
+                            \medskip
+
+                            The \textbf{ephemeral} hashtables we built for hash-joins were temporary, and we assume that no new tuples are added during the evaluation of the query, and we'd also know a rough amount of tuples that would end up in the table.
+                            However, all of this changes if the hash-table is persistent.
+                            Since persistent tables may grow arbitrarily large, we need to overallocate by a lot.
+                            If the fill-factor grows beyond $x$ percent, we need to rebuild it with a larger overallocation - this can be expensive (and leads to load spikes on the inserts causing rebuilds).
+                            Similar, deletion can also be problematic.
+                            \medskip
+
+                            Previously, we used empty slots to mark an end of a probe-chain.
+                            However, a value must remain if something is deleted - we can either leave the value and mark it as deleted, or put the last value in the probe chain in the position.
+                            A deletion strategy (to delete key ~k~) is as follows;
+                            \begin{itemize}
+                                \itemsep0em
+                                \item hash ~k~, find ~k~, and keep a pointer to ~k~
+                                \item continue probing until the end of the probe chain is found
+                                \item if the value at the end of the chain has the same hash as ~k~, move it into ~k~'s slot
+                                \item otherwise mark ~k~ as deleted (we can then fill this slot with the next value that hashes into the probe chain)
+                            \end{itemize}
+                            An example is as follows.
+                            Note that 14 has the same hash as 23 (under modulo 9), but 14 has a different hash to 17.
+                            \begin{center}
+                                \begin{tabular}{c|ccc|c}
+                                    \multicolumn{5}{c}{before} \\
+                                    \hline
+                                    key & \multicolumn{3}{c|}{non-key} & deleted \\
+                                    \hline
+                                    9 & 16 & 9 & 34 & \\
+                                    27 & 5 & 61 & 45 & \\
+                                    12 & 12 & 78 & 1 & \\
+                                    & & & & \\
+                                    23 & 84 & 17 & 69 & \\
+                                    5 & 45 & 71 & 20 & \\
+                                    17 & 9 & 42 & 83 & \\
+                                    14 & 21 & 55 & 2 & \\
+                                    & & & &
+                                \end{tabular}
+                                \hfill
+                                \begin{tabular}{c|ccc|c}
+                                    \multicolumn{5}{c}{after delete 23} \\
+                                    \hline
+                                    key & \multicolumn{3}{c|}{non-key} & deleted \\
+                                    \hline
+                                    9 & 16 & 9 & 34 & \\
+                                    27 & 5 & 61 & 45 & \\
+                                    12 & 12 & 78 & 1 & \\
+                                    & & & & \\
+                                    14 & 21 & 55 & 2 & \\
+                                    5 & 45 & 71 & 20 & \\
+                                    17 & 9 & 42 & 83 & \\
+                                    & & & & \\
+                                    & & & &
+                                \end{tabular}
+                                \hfill
+                                \begin{tabular}{c|ccc|c}
+                                    \multicolumn{5}{c}{after delete 14} \\
+                                    \hline
+                                    key & \multicolumn{3}{c|}{non-key} & deleted \\
+                                    \hline
+                                    9 & 16 & 9 & 34 & \\
+                                    27 & 5 & 61 & 45 & \\
+                                    12 & 12 & 78 & 1 & \\
+                                    & & & & \\
+                                    14 & 21 & 55 & 2 & $\times$ \\
+                                    5 & 45 & 71 & 20 & \\
+                                    17 & 9 & 42 & 83 & \\
+                                    & & & & \\
+                                    & & & &
+                                \end{tabular}
+                            \end{center}
+                            Similar to hash-joins, persistent hash-tables are good for hash-joins and aggregations (assuming they are built on the join / aggregation key columns).
+                            They also reduce the number of candidates for equality selections, but don't help on much else.
+                    \item \textbf{Bitmap-Index}
+                        \subitem
+                            It's first important to establish a \textbf{bitvector} is a sequence of 1-bit values indicating a boolean condition holding for the elements of a sequence of values.
+                            However, it's important to note that CPUs don't work with individual bits but rather words (let us assume 8 bit words, although in reality it's at least 32 bits);
+                            \begin{align*}
+                                BV_{== 7}([4, 7, 11, 7, 7, 11, 4, 7]) & = [0, 1, 0, 1, 1, 0, 0, 1] \\
+                                & = 128 \cdot 0 + 64 \cdot 1 + 32 \cdot 0 + 16 \cdot 1 + 8 \cdot 1 + 4 \cdot 0 + 2 \cdot 0 + 1 \cdot 1 \\
+                                & = 89
+                            \end{align*}
+                            Bitmap indices are a collection of bitvectors on a column (one for each distinct value in that column).
+                            This is useful if there are few distinct values and these bitvectors are disjoint.
+                            \begin{center}
+                                \begin{tabular}{c|ccc}
+                                    column & \multicolumn{3}{c}{bitmap index} \\
+                                    & ~==5~ & ~==3~ & ~==9~ \\
+                                    \hline
+                                    5 & 1 & 0 & 0 \\
+                                    3 & 0 & 1 & 0 \\
+                                    9 & 0 & 0 & 1 \\
+                                    9 & 0 & 0 & 1 \\
+                                    9 & 0 & 0 & 1 \\
+                                    5 & 1 & 0 & 0 \\
+                                    3 & 0 & 1 & 0 \\
+                                    9 & 0 & 0 & 1
+                                \end{tabular}
+                            \end{center}
+                            An implementation of this is as follows;
+                            \begin{lstlisting}
+                                unsigned char** bitmaps;
+                                void scanBitmap(byte* column, size_t inputSize, byte value) {
+
+                                    // finds specific bitmap for a certain value
+                                    unsigned char* scannedBitmap = bitmapForValue(bitmaps, value);
+
+                                    // iterate over bytes in bitmap
+                                    for (size_t i = 0; i < inputSize / 8; i++) {
+                                        // skip if none of the values are set
+                                        if (scannedBitmap[i] != 0) {
+                                            unsigned char bitmapMask = 128; // binary 10000000
+                                            for (size_t j = 0; j < 8; j++) {
+                                                if ((bitmapMask & scannedBitmap[i]) && column[i * 8 + j] == value) {
+                                                    writeOutput(column[i * 8 + j]);
+                                                }
+                                                bitmapMask >>= 1;
+                                            }
+                                        }
+                                    }
+                                }
+                            \end{lstlisting}
+                            This is useful as it reduces the bandwidth need for scanning a column, in the order of the size of the type of the column in bits (instead of loading a 32 bit value, we can just check 1 bit).
+                            Predicates can now also be combined using logical operators on the bitvectors.
+                            Additionally, arbitrary boolean conditions (such as ranges) can be indexed by some systems.
+                            \medskip
+
+                            Binned bitmaps uses the idea of having $n$ bitvectors, each with a predicate covering a different part of the value domain.
+                            For example if we assume our column type is a ~byte~, we can have the following three bins;
+                            \begin{itemize}
+                                \itemsep0em
+                                \item bin 1: 0 - 7
+                                \item bin 2: 8 - 20
+                                \item bin 3: 21 - 255
+                            \end{itemize}
+                            We need to ensure the conditions span the entire value domain.
+                            Also, the index cannot distinguish values in a bin (unless it only contains one value) - it can only produce \textbf{candidates}, some of which may be false positives.
+                            \medskip
+
+                            Generally there are two strategies for binning;
+                            \begin{itemize}
+                                \itemsep0em
+                                \item \textbf{equi-width}
+                                    \subitem
+                                        This is simple to configure - we can calculate our bin-width to be
+                                        $$\frac{\max(~column~) - \min(~column~)}{~numberOfBins~}$$
+                                        This has limited use when indexing non-uniformly distributed data (since there can be a high frequency of false positives in a highly populated bin).
+                                \item \textbf{equi-height}
+                                    \subitem
+                                        This method is more resilient against non-uniformly distributed data - the false positive rate is value independent.
+                                        We want to have the same number of counts per bin.
+                                        The construction is more difficult however, as we need to determine quantiles and is usually performed on samples.
+                                        If the distribution changes, it will need to be rebinned (which can be expensive).
+                            \end{itemize}
+                            Additionally, when we are binning, we may encounter many consecutive values which are equal.
+                            Each of these consecutive values can be replaced with the value (the Run) as well as the number of tuples (length) - this works very well on high-locality data.
+                            For example, we can transform ~[0, 1, 1, 1, 1, 1, 0, 1]~ to ~[(0, 1), (1, 5), (0, 1), (1, 1)]~.
+                            However, this will now require a sequential scan, which can be fixed with \textbf{length prefix summing} (which stores the start of the run instead of the length);
+                            ~[(0, 3), (1, 3), (0, 1), (1, 1)]~ to ~[(0, 0), (1, 3), (0, 6), (1, 7)]~.
+                            If we were to search for a value, we can just do a binary search instead of a sequential scan.
+                    \item \textbf{B-Trees}
+                        \subitem
+                            Databases are typically I/O bound (for disk), therefore we want to minimise page I/O operations.
+                            There are also many equality lookups, as well as many updates.
+                            Databases use high-fanout trees to minimise page I/Os.
+                            We want the node of a tree to ideally be exactly the same size as a page (if we access a page, we might as well get the maximum amount of information out).
+                            Generally, a node in a B-Tree contains pairs (pivots) of keys and payloads, as well as child pointers to other nodes between the pairs (as well as before and after).
+                            \medskip
+
+                            A B-Tree is defined as follows;
+                            \begin{itemize}
+                                \itemsep0em
+                                \item a \textbf{balanced tree} with out-degree $n$ (every node has $n - 1$ keys)
+                                \item the \textbf{root} has at least one element
+                                \item each \textbf{non-root node} contains at least $\floor{\frac{n - 1}{2}}$ key / value pairs (at least half full)
+                            \end{itemize}
+                            Unlike other trees, B-Trees grow towards the root.
+                            In order to maintain balance, on an insertion the following steps apply;
+                            \begin{itemize}
+                                \itemsep0em
+                                \item find the correct \textbf{leaf-node} to insert by walking the tree and inserting the value
+                                \item if this node overflows (the leaf was already full), split the node in two halves
+                                    \begin{itemize}
+                                        \itemsep0em
+                                        \item take one pivot from the middle of the leaf and move it to the parent node
+                                        \item the two newly created nodes will become the left and right children of the pivot
+                                    \end{itemize}
+                                \item if the parent overflows, repeat the procedure on the parent
+                                \item if the parent is root, a new root node is introduced (therefore we add more roots, rather than add leaves)
+                            \end{itemize}
+                            For deletion, the following steps apply;
+                            \begin{itemize}
+                                \itemsep0em
+                                \item find the value to delete
+                                    \begin{itemize}
+                                        \itemsep0em
+                                        \item delete it if it is in a leaf node
+                                        \item otherwise, if it is in an internal node, keep a pointer to it, and replace it with the maximum leaf-node value from the left-child (removing the value from the leaf-node) - all modifications are on the leaf level
+                                    \end{itemize}
+                                \item if the affected leaf node underflows, we need to rebalance the tree bottom-up
+                                    \begin{itemize}
+                                        \itemsep0em
+                                        \item try to obtain an element from a neighbouring node (to the right), move that up one level and make it the new splitting pivot, and take the old splitting pivot from the parent and put it into the leaf node
+                                        \item however, if that fails (the neighbour isn't more than half full), the nodes can be merged and the parent splitting key can be removed
+                                        \item if that causes an underflow, keep rebalancing upwards
+                                    \end{itemize}
+                            \end{itemize}
+                            While B-Trees can support ranges, it is complicated and requires going up and down the tree.
+                            This causes many node traversals, however node sizes are usually the same as page sizes, therefore traversals translate into page faults (which we want to minimise).
+                            Leaf pointers also aren't used, and most of the data lives in leaf nodes, therefore there is some space wasted.
+                    \item \textbf{B$^+$-Trees}
+                        \subitem
+                            The idea of this is to make range scans faster by keeping data only in the leaves, and linking leaf nodes to the next.
+                            Inner-node split values are replicas of leaf-node values.
+                            There is now more of a distinction between inner nodes and leaf nodes.
+                            The child pointers of the inner nodes are to other nodes, whereas the child pointers of leaf nodes (to the left) are now the payloads for a given key, and the right-most child pointer points to the next leaf.
+                            As such, the leaf nodes now form a sorted sequence.
+                            \medskip
+
+                            The balancing is largely the same as the balancing for regular B-Trees, however the deletion of an inner-node's split values imply a replacement with a new value from the leaf node.
+                    \item \textbf{Foreign-Key Index}
+                        \subitem
+                            In SQL, a foreign key is as follows;
+                            ~ALTER TABLE Orders ADD FOREIGN KEY (BookID\_index) REFERENCES Book(ID)~.
+                            FK constraints specify that for for every value that occurs in an attribute of a table, there is exactly one value in the PK column of another table.
+                            This constraint must be done by the DBMS, on an insertion or update, the DBMS needs to look up the PK value, and instead of storing the value, the DBMS could store a pointer to the referenced PK or tuple.
+                            We can think of this as equivalent to a pointer, and we can consider these as pre-calculated joins (which is often used since most joins are PK/FK joins from normalisation).
+                            \medskip
+
+                            Generally there are very few downsides - they cause insignificant work under updates, they do not cost much more space, and doesn't take more effort for query optimisation.
+                \end{itemize}
 \end{document}
