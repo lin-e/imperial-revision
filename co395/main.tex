@@ -745,6 +745,354 @@
                 Decision trees can also be used for regression (\textbf{regression trees}).
                 Instead of class labels, each leaf node predicts a real-valued number.
         \subsection*{Week 4 (Machine Learning Evaluation)}
+            \subsubsection*{Evaluation Set-up}
+                The goal is to create models and algorithms that can generalise to unseen data.
+                We have good accuracy for the training set, since we trained the model for that, however we care more about the accuracy of unknown data.
+                \medskip
+
+                To ensure meaningful evaluation, we need to split the training dataset from the test dataset (the test dataset should \textbf{never} be used to train, as it needs to simulate unknown data).
+                This is done by first shuffling the dataset, and then splitting it into training and test datasets.
+                The training dataset is used to train the model, and the test dataset is then fed into the trained model for final evaluation.
+                \medskip
+
+                \textbf{Hyperparameters} are model parameters chosen before the training, such as the $k$ value for $k$-NN algorithm.
+                Our overall objective is to find the values that lead to best performance for unknown data.
+                An incorrect approach for hyperparameter tuning is to try different values on the training dataset, and then select the ones that lead to the best accuracy on the test dataset.
+                This is incorrect because we now use the test dataset as part of the training process, and therefore we cannot say that it is unknown.
+                \medskip
+
+                As such, the correct approach is to split the dataset into 3; training, validation, and test.
+                The splits for this are between somewhere between $60:20:20$ and $80:10:10$.
+                Different hyperparameter values are attempted on the \textbf{training} set, and then the result with the best accuracy on the \textbf{validation} set is chosen.
+                The final evaluation is still done on the \textbf{test} dataset.
+                \medskip
+
+                We want to keep the classifier that leads to the maximum performance on the validation test.
+                We can extend this even further by adding the validation dataset to the training dataset and training it on the model with the best parameters to give it more data.
+                Once again, the final evaluation is still done with the test dataset.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node (shuffled) at (0, 0) {
+                            \begin{tabular}{c|cc|c}
+                                \multicolumn{4}{c}{~shuffled~} \\
+                                \hline
+                                ~id~ & ~f1~ & ~...~ & ~l~ \\
+                                \hline
+                                4 & & & \\
+                                2 & & & \\
+                                5 & & & \\
+                                3 & & & \\
+                                1 & & & \\
+                            \end{tabular}
+                        };
+                        \node (training) at (5, 1) {
+                            \begin{tabular}{c|cc|c}
+                                \multicolumn{4}{c}{~training~} \\
+                                \hline
+                                ~id~ & ~f1~ & ~...~ & ~l~ \\
+                                \hline
+                                4 & & & \\
+                                2 & & & \\
+                                5 & & &
+                            \end{tabular}
+                        };
+                        \node (validation) at (5, -3) {
+                            \begin{tabular}{c|cc|c}
+                                \multicolumn{4}{c}{~validation~} \\
+                                \hline
+                                ~id~ & ~f1~ & ~...~ & ~l~ \\
+                                \hline
+                                3 & & &
+                            \end{tabular}
+                        };
+                        \node (test) at (5, -6) {
+                            \begin{tabular}{c|cc|c}
+                                \multicolumn{4}{c}{~test~} \\
+                                \hline
+                                ~id~ & ~f1~ & ~...~ & ~l~ \\
+                                \hline
+                                1 & & &
+                            \end{tabular}
+                        };
+
+                        \node (eval0) at (12, 1.5) {~eval~};
+                        \node (eval1) at (12, -0.5) {~eval~};
+                        \node (eval2) at (12, -2.5) {~eval~};
+                        \node[draw] (fe) at (12, -6) {~final evaluation~};
+                        \node[draw] (fa) at (12, -7) {~final accuracy~};
+
+                        \draw
+                        (shuffled) edge[->] (training)
+                        (shuffled) edge[->] (validation)
+                        (shuffled) edge[->] (test)
+                        (training) edge[->] (9, 1.5)
+                        (training) edge[->] (9, -0.5)
+                        (training) edge[->] (9, -2.5)
+                        (validation) edge[bend right=57, ->] (eval0)
+                        (validation) edge[bend right=57, ->] (eval1)
+                        (validation) edge[bend right=57, ->] (eval2)
+                        (9, 1.5) edge[->] (eval0)
+                        (9, -0.5) edge[->] (eval1)
+                        (9, -2.5) edge[->] (eval2)
+                        (eval0) edge[->] (14, 1.5)
+                        (eval1) edge[->] (14, -0.5)
+                        (eval2) edge[->] (14, -2.5)
+                        (15, -3) edge[bend left=30, ->] (12.5, -4.5)
+                        (12, -5) edge[->] (fe)
+                        (test) edge[->] (fe)
+                        (fe) edge[->] (fa);
+
+                        \node[draw, fill=white] (eval0) at (12, 1.5) {~eval~};
+                        \node[draw, fill=white] (eval1) at (12, -0.5) {~eval~};
+                        \node[draw, fill=white] (eval2) at (12, -2.5) {~eval~};
+
+                        \node at (9.5, 2.5) {~models~};
+                        \node at (15, -0.5) {\shortstack{~pick~\\~best~\\~model~}};
+
+                        \draw (14, 2) -- (16, 2) -- (16, -3) -- (14, -3) -- cycle;
+
+                        \draw[fill=red!20] (9, 2) -- (10, 2) -- (10, 1) -- (9, 1) -- cycle;
+                        \draw[fill=blue!20] (9, 0) -- (10, 0) -- (10, -1) -- (9, -1) -- cycle;
+                        \draw[fill=teal!20] (9, -2) -- (10, -2) -- (10, -3) -- (9, -3) -- cycle;
+                        \draw[fill=blue!20] (11.5, -4) -- (12.5, -4) -- (12.5, -5) -- (11.5, -5) -- cycle;
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Cross-validation}
+                The idea of cross-validation is that the dataset can be divided into $k$ (usually 10) equal splits.
+                $k - 1$ of these folds can be used for training and validation, and the remaining split can be used for testing.
+                This is done $k$ times, each time testing on a different portion of the data, in which we test on all of the data (but notice we never train and test on the same data at the same time).
+                The performance on all $k$ held-out test sets can be averaged;
+                $$\text{global error estimate } = \frac{1}{N}\summation{i=1}{N} e_i$$
+                Note that this is used to evaluate an algorithm, not a particular model.
+                \medskip
+
+                This method needs to be slightly modified when doing parameter tuning, in which we have the following options;
+                \begin{enumerate}[{option} 1:]
+                    \itemsep0em
+                    \item
+                        At each iteration, we use 1 fold for testing, 1 for validation, and the remaining $k - 2$ folds for training.
+                        However, this will give us a different set of optimal parameters in each fold.
+                    \item
+                        Another approach is to do cross-validation within cross-validation.
+                        As before, we still separate 1 fold for testing, however we run another internal cross-validation over the remaining $k - 1$ folds to obtain the optimal hyperparameters.
+                        Once we obtain the best hyperparameters, we can then test it against the fold reserved for testing to obtain the final evaluation.
+                        This isn't always practical, as it requires a lot of computation for complex models.
+                \end{enumerate}
+                When we go into production (not as common in academia), we may use all the remaining reserved test data for training as well (once we have the optimal parameters).
+                However, this comes with the downside that we are no longer able to estimate the performance of the final trained model.
+            \subsubsection*{Performance Metrics}
+                Once we have a model, we want to have a quantifiable way to judge the quality of a model against another.
+                Consider the following results from the test dataset;
+                \begin{center}
+                    \hfill
+                    \begin{tabular}{c|cc}
+                        id & label & prediction \\
+                        \hline
+                        ~1~ & ~+~ & ~+~ \\
+                        ~2~ & ~+~ & ~+~ \\
+                        ~3~ & ~+~ & ~-~ \\
+                        ~4~ & ~+~ & ~+~ \\
+                        ~5~ & ~-~ & ~-~ \\
+                        ~6~ & ~-~ & ~+~ \\
+                        ~7~ & ~-~ & ~-~ \\
+                        ~8~ & ~-~ & ~+~
+                    \end{tabular}
+                    \hfill
+                    \begin{tabular}{c|cc}
+                        & class 1 (predicted) & class 2 (predicted) \\
+                        \hline
+                        class 1 (actual) & true positive (3) & false negative (1) \\
+                        class 2 (actual) & false positive (2) & true negative (2)
+                    \end{tabular}
+                    \hfill \phantom{}
+                \end{center}
+                This confusion matrix highlights the risk of each prediction - sometimes it can be more important to have fewer false negatives than fewer false positives (such as diagnosing a disease)
+                It also allows for easy identification of confusion between classes (when one class is commonly mislabelled as another).
+                Many other measures can be computed from the confusion matrix.
+                In our example, we have two classes (positive and negative).
+                The common measures are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{accuracy} \hfill $\frac{TP + TN}{TP + TN + FP + FN}$
+                        \subitem
+                            This is simply the number of correctly classified examples divided by the total number of examples.
+                            The classification error is $1 - \text{accuracy}$.
+                    \item \textbf{precision} \hfill $\frac{TP}{TP + FP}$
+                        \subitem
+                            This is the number of correctly classified positive examples divided by the total number of predicted positive examples.
+                            We can also think about it as;
+                            $$P(~positive~\ \vline\ ~example classified as positive~)$$
+                            A high precision implies that an example labelled as positive is actually positive (few false positives).
+                    \item \textbf{recall} \hfill $\frac{TP}{TP + FN}$
+                        \subitem
+                            This can be considered as the inverse of precision.
+                            It is the number of correctly classified positive examples divided by the number of actual positive examples.
+                            It can be thought of as
+                            $$P(~correctly classified as positive~\ \vline\ ~actually positive~)$$
+                            A high recall implies that the class is correctly recognised (therefore a small number of false negatives).
+                    \item \textbf{F-measure / F-score} \hfill $F_1 = \frac{2 \cdot ~precision~ \cdot ~recall~}{~precision~ + ~recall~}$
+                        \subitem
+                            Sometimes it is useful to measure the performance of the classifier with a single number.
+                            More generally it can be written as (with more emphasis on precision for higher $\beta$);
+                            $$F_\beta = (1 + \beta^2) \cdot \frac{~precision~ \cdot ~recall~}{(\beta^2 \cdot ~precision~) + ~recall~}$$
+                \end{itemize}
+                For something to be high recall and low precision, most of the positive examples are correctly recognised, but with many false positives.
+                On the other hand if something has low recall and high precision, we miss a lot of positive examples, but the ones that we predict as positive are more likely to be actually positive.
+                \medskip
+
+                The macro-averaged recall is the mean of the recalls for all the classes.
+                The same can be done for precision and F-measure.
+                In the multi-class case, precision, recall, and F-measure are computed for each class separately (we define one class each time as being the positive class).
+                Note that macro-averaging is done on the class level, and is the average of the metrics for each class.
+                On the other hand, micro-averaging does it on the item level (adding the TP, FP, TN, FN values for each class before calculating the metrics).
+                Note that micro-averaged P, R and F1 will be equal to accuracy.
+                \medskip
+
+                Another measure is regression tasks, where a lower mean squared error (MSE) is better (where $Y_i$ is a sample from the dataset and $\hat{Y}_i$ is the prediction from the model);
+                $$\frac{1}{N} \summation{i = 1}{N} (Y_i - \hat{Y}_i)^2$$
+                However, we don't only care about accuracy, our models should be;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{accurate} \hfill makes correct predictions
+                    \item \textbf{fast} \hfill fast to train and query
+                    \item \textbf{scalable} \hfill works with large datasets
+                    \item \textbf{simple} \hfill understandable and robust
+                    \item \textbf{interpretable} \hfill can explain predictions
+                \end{itemize}
+            \subsubsection*{Imbalanced Datasets}
+                In a balanced dataset, we have an equal number of positive and negative data points.
+                However, this will not always be the case, and we may have an unbalanced dataset where classes are not equally represented.
+                The accuracy goes down, as it tends to follow the majority class.
+                Additionally, the precision may also go down for the minority class.
+                Consider the following case;
+                \begin{center}
+                    \begin{tabular}{c|cc}
+                        & class 1 (predicted) & class 2 (predicted) \\
+                        \hline
+                        class 1 (actual) & 700 & 300 \\
+                        class 2 (actual) & 100 & 0
+                    \end{tabular}
+                \end{center}
+                From this, we obtain the following metrics where the accuracy may be high, but class 2 is completely misclassified;
+                \begin{align*}
+                    R(c1) & = 0.7 \\
+                    P(c1) & = 0.875 \\
+                    F_1(c1) & \approx 0.778 \\
+                    R(c2) & = 0 \\
+                    P(c2) & = 0 \\
+                    F_1(c2) & = ~N/A~ \\
+                    A & \approx 0.636
+                \end{align*}
+                In conclusion, we need to look at different metrics, as well as the confusion matrix as a single metric may be misleading by itself.
+                \medskip
+
+                We can normalise the confusion matrix by dividing each member of a row by the sum of that row (such that each row adds to one).
+                We can also downsample the majority class, by picking less examples to get the two classes equal, or upsample the minority class by duplicating data.
+                Neither will reflect how the model will generalise.
+            \subsubsection*{Overfitting}
+                An overfitted model has good performance on training data, but poor generalisation to other data.
+                On the other hand, underfitting has poor performance on the training data, as well as poor generalisation.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (0, 0) edge[->, left] node{$\varepsilon$} (0, 3)
+                        (0, 0) edge[->] (5, 0);
+
+                        \draw [red] plot [smooth] coordinates { (0.25, 2.75) (2, 1.75) (4, 2.125) (4.5, 2) };
+                        \draw [blue] plot [smooth, tension=1] coordinates { (0.25, 2.5) (1.75, 1) (4.5, 0.25) };
+
+                        \node at (5.5, 2) {test set};
+                        \node at (5.75, 0.25) {training set};
+                    \end{tikzpicture}
+                \end{center}
+                In the example above, it starts off with an underfitted model, and then ends up overfitted.
+                The point where it's correct is just as the error of the test set begins to increase again.
+                \medskip
+
+                Overfitting can occur under these scenarios (and how we could avoid it);
+                \begin{itemize}
+                    \itemsep0em
+                    \item model used is too complex (learns too many fine details)
+                        \subitem use the validation set to decide the complexity
+                    \item examples in the training set are not representative of all possible situations
+                        \subitem obtain more data
+                    \item learning is performed for too long (such as neural networks)
+                        \subitem stopping the training earlier (using the validation set to decide when)
+                \end{itemize}
+            \subsubsection*{Confidence Intervals}
+                The amount of data used in our test set also affects our confidence of the performance evaluation.
+                A 90\% accuracy score on a test set with 10 samples is still less trustworthy than an 84\% accuracy score on a test set with 10,000 samples.
+                \medskip
+
+                We define the true error of the model $h$ as the probability that it will misclassify a randomly drawn example $x$ from distribution $D$;
+                $$error_D(h) \equiv P[f(x) \neq h(x)]$$
+                The \textbf{sample error} of the model $h$ based on a data sample $S$ is as follows;
+                \begin{align*}
+                    n & = \text{number of samples} \\
+                    \delta(f(x), h(x)) & = \begin{cases}
+                        1 & f(x) \neq h(x) \\
+                        0 & f(x) = h(x)
+                    \end{cases} \\
+                    error_S(h) & \equiv \frac{1}{n} \summation{x \in S}{} \delta(f(x), h(x))
+                \end{align*}
+                We can say an $N\%$ confidence interval for some parameter $q$ is an interval with probability $N$ to contain the true value of $q$.
+                Given a sample $S$, with more than 30 examples;
+                $$error_S(h) \pm Z_N \underbrace{\sqrt{\frac{error_S(h) \cdot (1 - error_S(h))}{n}}}_\text{est. standard deviation of sample error}$$
+                Due to the $n$ in the estimation of the standard deviation, if we have a very large $n$, we can obtain a very tight confidence interval.
+                An example of this applied is as follows;
+                \medskip
+
+                Emotion recognition results for 3 samples, using 156 training and 50 testing samples.
+                \begin{center}
+                    \begin{tabular}{lllll}
+                        & attributes & number of classes & classifier & correctly classified \\
+                        \hline
+                        face & 67 * 8 & C4.5 & 78\% \\
+                        body & 140 & 6 & BayesNet & 90\%
+                    \end{tabular}
+                \end{center}
+                We want to classify the 95\% confidence interval for this error ($Z_N = 1.96$)
+                \begin{align*}
+                    error_S(h) & = 0.22 \\
+                    n & = 50 \\
+                    Z_N & = 1.96 \\
+                    \text{interval} & = \left[0.22 - 1.96\sqrt{\frac{0.22 \cdot (1 - 0.22)}{50}}, 0.22 + 1.96\sqrt{\frac{0.22 \cdot (1 - 0.22)}{50}}\right] \\
+                    & = [0.11, 0.33]
+                \end{align*}
+            \subsubsection*{Significance Testing}
+                Statistical tests can tell us if the means of two sets are significantly different;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{randomisation test}
+                        \subitem
+                            Randomly switch some predictions between two models and measure if the performance difference that we get is greater than or equal to the original difference.
+                    \item \textbf{two-sample T-test}
+                        \subitem
+                            This is used to estimate if two metrics from different populations are actually different.
+                            This has lower computational requirements and is easier to calculate.
+                    \item \textbf{paired T-test}
+                        \subitem
+                            Examining significance over multiple matched results, such as classification error over the same folds in cross-validation.
+                \end{itemize}
+                The \textbf{null hypothesis} (see \textbf{CO245}) is the hypothesis that the two algorithms / models perform the same and the differences are only due to sampling error.
+                These tests return a \textbf{p-value}, which is the probability of obtaining the differences we see, assuming the null hypothesis is correct.
+                A small p-value implies that we can be more confident that one system is actually different.
+                \medskip
+
+                We consider a performance difference to be \textbf{statistically significant} of $p < 0.05$.
+                However, $p > 0.05$ does not mean the algorithms are similar, just that we cannot observe a statistical difference.
+                \medskip
+
+                There's a fairly long bit on \textbf{P-hacking}, but not sure why.
+                A way to protect against P-hacking is to use an adaptive p-value;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item rank p-values from $M$ experiments;
+                        $$p_1 \leq p_2 \leq p_3 \leq \dots \leq p_M$$
+                    \item calculate the \textbf{Benjamini-Hochberg} critical value for each experiment;
+                        $$z_i = 0.05 \frac{i}{M}$$
+                    \item significant results are the ones where the p-value is smaller than the critical value
+                \end{enumerate}
         \subsection*{Week 5 (Artificial Neural Networks I)}
         \subsection*{Week 6 (Artificial Neural Networks II)}
         \subsection*{Week 7 (Unsupervised Learning)}
