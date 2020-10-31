@@ -412,7 +412,7 @@
                                 Project(InputOperator input, function<tuple<outputTypes...>(typename InputOperator::OutputType)> projections : input(input), projections(projections) {};
 
                                 Project(InputOperator input, set<pair<string, string>> projections : input(input), projections(projections) {};
-                            }
+                            };
 
                             void projectionExample {
                                 auto customer = createCustomerTable();
@@ -458,7 +458,7 @@
                             struct Column {
                                 string name;
                                 Column(string name) : name(name) {};
-                            }
+                            };
                             using Value = variant<string, int float>;
 
                             struct Condition {
@@ -467,7 +467,7 @@
                                 variant<Column, Value> rightHandSide;
 
                                 Condition(Column leftHandSide, Comparator compare, variant<Column, Value> rightHandSide): leftHandSide(leftHandSide), compare(compare), rightHandSide(rightHandSide) {};
-                            }
+                            };
                         \end{lstlisting}
                     \item \textbf{cross product} ($\times$)
                         \begin{itemize}
@@ -641,4 +641,477 @@
                 \end{itemize}
                 Since relational algebra is closed, operators can be combined as long as signatures are respected (cross product takes two inputs, whereas selections and projections take one);
                 $$\pi_~BookID~(\sigma_~Order.ID == OrderedItem.OrderID~(~Order~ \times ~OrderedItem~))$$
+        \subsection*{Lecture 2}
+            \subsubsection*{Architecture}
+                The logical plan is the relational algebra discussed last lecture and the database kernel actually interacts with the resources mentioned.
+                A database kernel is a library of core functionality, including I/O, memory management, operators, etc.
+                Generally, it provides an interface to subsystems (similar to an OS kernel).
+                A basic database kernel architecture is as follows (assuming both catalogue and data live in memory).
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=0.5cm]
+                        \draw
+                        (0, 0) -- (9, 0) -- (9, -5) -- (0, -5) -- cycle
+                        (1, -1) -- (4, -1) -- (4, -2) -- (1, -2) -- cycle
+                        (5, -1) -- (8, -1) -- (8, -2) -- (5, -2) -- cycle
+                        (-3, 0) -- (-1, 0) -- (-1, -2) -- (-3, -2) -- cycle
+                        (-3, -3) -- (-1, -3) -- (-1, -5) -- (-3, -5) -- cycle;
+
+                        \node at (2.5, -1.5) {storage manager};
+                        \node at (6.5, -1.5) {op. implementations};
+                        \node at (-2, -1) {catalogue};
+                        \node at (-2, -4) {data};
+                        \node at (4.5, -4) {database kernel};
+                        \draw
+                        (5, -1.5) edge[->] (4, -1.5)
+                        (1, -1.5) edge[->] (-1, -1.5)
+                        (2, -2) edge[->] (-1, -4.5);
+                    \end{tikzpicture}
+                \end{center}
+                The DBMS architecture is as follows;
+                \begin{center}
+                    \begin{tikzpicture}[y=0.75cm]
+                        \node (u) at (2, 1) {user};
+                        \node at (2, -0.5) {external interface};
+                        \node at (2, -2.5) {logical plan};
+                        \node at (2, -4.5) {physical plan};
+                        \node at (2, -6.5) {database kernel};
+                        \draw (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle;
+                        \draw (0, -2) -- (4, -2) -- (4, -3) -- (0, -3) -- cycle;
+                        \draw (0, -4) -- (4, -4) -- (4, -5) -- (0, -5) -- cycle;
+                        \draw (0, -6) -- (4, -6) -- (4, -7) -- (0, -7) -- cycle;
+                        \node (storage) at (-1, -8) {storage};
+                        \node (cpu) at (1, -8.5) {processor};
+                        \node (mem) at (3, -8.5) {memory};
+                        \node (cloud) at (5, -8) {cloud};
+                        \draw
+                        (u) edge[->] (2, 0)
+                        (2, -1) edge[->] (2, -2)
+                        (2, -3) edge[->] (2, -4)
+                        (2, -5) edge[->] (2, -6)
+                        (0.5, -7) edge[->] (storage)
+                        (1.5, -7) edge[->] (cpu)
+                        (2.5, -7) edge[->] (mem)
+                        (3.5, -7) edge[->] (cloud);
+                    \end{tikzpicture}
+                \end{center}
+                The kernel interface, in C++, would look like the following;
+                \begin{lstlisting}
+                    class StorageManager;
+                    class OperatorImplementations;
+
+                    // just provides an interface to the above
+                    class DatabaseKernel {
+                        StorageManager& getStorageManager();
+                        OperatorImplementations& getOperatorImplementations();
+                    }
+                \end{lstlisting}
+            \subsubsection*{Storage}
+                The first operation every database needs to support inserting new tuples.
+                These inserts are usually not optimised (generally) - they arrive at the storage layer as intact tuples.
+                Consider the following example, in SQL;
+                \begin{lstlisting}
+                    CREATE TABLE Employee (
+                        id int,
+                        name varchar,
+                        salary int,
+                        joiningDate int
+                    );
+
+                    INSERT INTO Employee VALUES(1, 'james', 100000, 43429342);
+                    SELECT * FROM Employee WHERE id=1;
+                    DELETE FROM Employee WHERE name='james';
+                \end{lstlisting}
+                The equivalent in C++ would be as follows;
+                \begin{lstlisting}
+                    StorageManager().getTable("Employee").insert({1, "james", 100000, 43429342});
+                    StorageManager().getTable("Employee").findTuplesWithAttributeValue(id, 4);
+                    StorageManager().getTable("Employee").deleteTuplesWithAttributeValue(name, "james");
+                \end{lstlisting}
+                The storage manager interface would be as follows;
+                \begin{lstlisting}
+                    struct Table;
+                    class StorageManager {
+                        map<string, Table> catalogue;
+
+                        public:
+                            Table& getTable(string name) {return catalogue[name]; };
+                    };
+                \end{lstlisting}
+                In order to store tuples, we need to decide where and how we store data.
+                Generally, for where we store it, we mainly consider disk or memory.
+                The way we store data can vary from being sorted, compressed, RLE-encoded, etc.
+                A simple table interface could be as follows;
+                \begin{lstlisting}
+                    struct Table {
+                        using AttributeValue = variant<int, float, string>;
+                        using Tuple = vector<AttributeValue>;
+
+                        void insert(Tuple) {};
+                        vector<Tuple> findTuplesWithAttributeValue(int attributePosition, AttributeValue value) {};
+                        void deleteTuplesWithAttributeValue(int attributePosition, AttributeValue value) {};
+                    };
+                \end{lstlisting}
+                There is a fundamental mismatch in storing tuples; relations are two-dimensional, whereas memory is one-dimensional, therefore tuples need to be linearized in one of the two mainstream strategies;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{The N-ary Storage Model} (NSM)
+                        \subitem
+                            In this model, the entries added are stored one after the other, in a one-to-one mapping onto memory.
+                            This is also referred to as a \textbf{row store}.
+                            An example of this is as follows;
+                            \begin{lstlisting}
+                                struct NSMTable : public Table {
+
+                                    // not the tuple exposed to the outside
+                                    struct InternalTuple {
+                                        Tuple actualTuple;
+                                        bool deleted = false;
+                                        InternalTuple(Tuple t) : actualTuple(t) {};
+                                    }
+                                    vector<InternalTuple> data;
+
+                                    void insert(Tuple);
+                                    vector<Tuple> findTuplesWithAttributeValue(int attributePosition, AttributeValue value) {};
+                                    void deleteTuplesWithAttributeValue(int attributePosition, AttributeValue value) {};
+                                };
+
+                                // declared as member of a class (just append to a vector)
+                                void NSMTable::insert(Tuple t) { data.push_back(t); }
+
+                                vector<Table::Tuple> NSMTable::findTuplesWithAttributeValue(int attributePosition, AttributeValue value) {
+                                    vector<Tuple> result;
+                                    for (size_t i = 0; i < data.size(); i++) {
+                                        if (data[i].actualTuple[attributePosition] == value && !data[i].deleted) {
+                                            result.push_back(data[i].actualTuple);
+                                        }
+                                    }
+                                    return result;
+                                }
+
+                                // we don't want to move everything therefore we just mark them as deleted
+                                void NSMTable::deleteTuplesWithAttributeValue(int attributePosition, AttributeValue value) {
+                                    for (size_t i = 0; i < data.size(); i++) {
+                                        if (data[i].actualTuple[attributePosition] == value) {
+                                            data[i].deleted = true;
+                                        }
+                                    }
+                                }
+                            \end{lstlisting}
+                            However, this may not always be a good idea, as operations will require us going over the entire vector.
+                            Recall that we are assuming everything is in memory, however locality still matters (since the data may be further apart depending on the size of the tuple).
+                            \medskip
+
+                            Memory is organised in \textbf{cache lines} (usually 64 bytes in size).
+                            When a core needs something, it asks L1, L2, and L3 cache first, before going to memory, and retrieves the entire cache line that the data resides on (and cache into L1 cache).
+                            If we then access something on the same cache line, then the access is almost free (in terms of time).
+                            More tuples will therefore fit on a single cache line if they are smaller.
+                            Cache lines can also be referred to as \textbf{blocks} or \textbf{pages}.
+                            \medskip
+
+                            N-ary storage works well in inserting a new tuple, when we are inserting a tuple onto the same cache line.
+                            It also works well when we want to retrieve a tuple by its index.
+                            On the other hand, it's suboptimal when we want to check every row, which in the worst case will be across different cache lines.
+                    \item \textbf{Decomposed Storage Model} (DSM)
+                        \subitem
+                            On the other hand, in this model, entries are stored with the columns one after the other.
+                            This is also referred to as \textbf{column store}.
+                            An example of this implementation is as follows;
+                            \begin{lstlisting}
+                                struct DSMTable : public Table {
+                                    using Column = vector<AttributeValue>;
+                                    vector<Column> data;
+                                    vector<bool> deleteMarkers;
+
+                                    void insert(Tuple);
+                                    vector<Tuple> findTuplesWithAttributeValue(int attributePosition, AttributeValue value) {};
+                                    void deleteTuplesWithAttributeValue(int attributePosition, AttributeValue value) {};
+                                };
+
+                                // inserts cause tuple decomposition
+                                void DSMTable::insert(Tuple tuple) {
+                                    for (int i = 0; i < tuple.size(); i++) {
+                                        data[i].push_back(tuple[i]);
+                                    }
+                                }
+
+                                // find requires tuple reconstruction
+                                vector<Table::Tuple> DSMTable::findTuplesWithAttributeValue(int attributePosition, AttributeValue value) {
+                                    vector<Tuple> result;
+                                    for (size_t i = 0; i < data[attributePosition].size(); i++) {
+                                        if (data[attributePosition][i] == value && !deleteMarkers[i]) {
+                                            Tuple reconstructedTuple;
+                                            for (int column = 0; column < data.size(); column++) {
+                                                reconstructedTuple.push_back(data[column][i]);
+                                            }
+                                            result.push_back(reconstructedTuple);
+                                        }
+                                    }
+                                    return result;
+                                }
+
+                                void DSMTable::deleteTuplesWithAttributeValue(int attributePosition, AttributeValue value) {
+                                    for (size_t i = 0; i < data.size(); i++) {
+                                        if (data[attributePosition][i] == value) {
+                                            deleteMarkers[i] = true;
+                                        }
+                                    }
+                                }
+                            \end{lstlisting}
+                            Decomposed storage works well in the case when we are iterating over one column of a tuple.
+                            However, if these entries are one after the other, there is perfect data locality, which minimises the number of cache lines we need.
+                            On the other hand, insertion is suboptimal as we need to spread a tuple over memory.
+                            Similarly, accessing a single tuple, even when we know where it is in memory is suboptimal, as the tuple will need to be reconstructed.
+                    \item Hybrid Delta / Main Storage
+                        \begin{lstlisting}
+                            struct HybridTable : public Table {
+                                DSMTable main; // every tuple will eventually end up here
+                                NSMTable delta; // will be inserted here then merged into main
+
+                                void insert(Tuple);
+                                vector<Tuple> findTuplesWithAttributeValue(int attributePosition, AttributeValue value) {};
+                                void deleteTuplesWithAttributeValue(int attributePosition, AttributeValue value) {};
+                                void merge();
+                            };
+
+                            void HybridTable::insert(Tuple t) {
+                                delta.insert(t);
+                            }
+
+                            vector<Table::Tuple> HybridTable::findTuplesWithAttributeValue(int attributePosition, AttributeValue value) {
+                                vector<Tuple> results = main.findTuplesWithAttributeValue(attributePosition, value);
+                                vector<Tuple> fromDelta = delta.findTuplesWithAttributeValue(attributePosition, value);
+                                results.insert(results.end(), fromDelta.begin(), fromDelta.end());
+                                return results;
+                            }
+
+                            void HybridTable::deleteTuplesWithAttributeValue(int attributePosition, AttributeValue value) {
+                                main.deleteTuplesWithAttributeValue(attributePosition, value);
+                                delta.deleteTuplesWithAttributeValue(attributePosition, value);
+                            }
+
+                            void HybridTable::merge() {
+                                for (auto i = 0u; i < delta.data.size(); i++) {
+                                    // these two operations need to atomic (otherwise we can return the same tuple multiple times)
+                                    main.insert(delta.data[i].actualTuple);
+                                    delta.data[i].deleted = true;
+                                }
+                            }
+                        \end{lstlisting}
+                \end{itemize}
+                In conclusion, \textbf{DSM} works well fro scan-heavy queries (accessing a lot of tuples but few columns).
+                This is common in analytical processing, and analytics mostly operate on historical data.
+                On the other hand \textbf{NSM} works well for lookups and inserts.
+                This is more common in transactional processing (inserting sales item, looking up products, etc).
+                Transactions mostly operate on recent data.
+                Hybrid exploits the aforementioned workloads, but it needs regular migrations (~merge()~) which may need to lock the database.
+            \subsubsection*{Catalogue}
+                The catalogue stores metadata.
+                The idea is that real-life data follows patterns, which if recognised and exploited, can lead to more efficiency.
+                However metadata will need to be stored and maintained.
+                Examples of metadata can be type, min / max values (if data is requested outside a range we know it doesn't exist), histograms, etc.
+                Two simple ones are \textbf{sortedness} and \textbf{denseness}.
+                Consider the following example, which is a common pattern (as the first column is often IDs);
+                \begin{lstlisting}
+                    class Table {
+                        vector<Tuple> storage;
+                        bool firstColumnIsSorted = true;
+                        bool firstColumnIsDense = true;
+
+                        public:
+                            void insert(Tuple t) {
+                                if (storage.size() > 0) {
+                                    firstColumnIsSorted &= (t[0] >= storage.back()[0]);
+                                    firstColumnIsDense &= (t[0] == storage.back()[0] + 1);
+                                }
+                                storage.push_back(t);
+                            }
+
+                            vector<Tuple> findTuplesWithAttributeValue(int attribute, AttributeValue value) {
+                                if (attribute == 0 && firstColumnIsDense) {
+                                    return { data[value - storage.front()[0]] };
+                                } else if (attribute == 0 && firstColumnIsSorted) {
+                                    if (binary_search(data, attribute, value)[0] == value) {
+                                        return { binary_search(data, attribute, value) };
+                                    }
+                                }
+                                ... // same scan as before
+                            }
+
+                            // we can also exploit the fact that order of rows doesn't matter, and therefore we can reorganise
+                            void analyse() {
+                                // this sort can be expensive (and therefore should be run regularly but not always)
+                                sort(storage.begin(), storage.end(), [](auto l, auto r) { return l[0] < r[0] });
+                                firstColumnIsSorted = true;
+                                firstColumnIsDense = true;
+                                for (size_t = 1; i < storage.size(); i++) {
+                                    firstColumnIsDense &= storage[i][0] == storage[i - 1][0] + 1;
+                                }
+                            }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Variable Length Data}
+                It's important to note that strings tend to have different lengths.
+                However, we'd like to maintain fixed tuple sizes, as it allows for random access to tuples by their position.
+                We can either overallocate space for ~varchars~ (for example, some system require a size parameter for maximum length), or we can store them out of place.
+                Overallocating leads to strings under the maximum length being padded with some sort of terminator.
+                This is good for locality and is simple to implement, however it's very wasteful for space (especially if they are too generous with lengths).
+                \medskip
+
+                On the other hand, out of place storage now contain an index into a dictionary, which contains the string (all null terminated).
+                However, retrieving a value will need an access to obtain the index and another to get the actual value (which has poor locality).
+                While this is better for space (and is what most programming languages do), it's also complicated (and causes difficult garbage-collection).
+                This gives an optimisation (\textbf{dictionary compression}) however - if we find a string that has already been used when we insert, we can use the address of the existing value for the insert.
+            \subsubsection*{Data Storage on Disk}
+                Disks are different from main memory in a number of ways;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{larger pages} \hfill kilobytes compared to bytes
+                    \item \textbf{higher latency} \hfill milliseconds compared to nanoseconds
+                    \item \textbf{lower throughput} \hfill hundreds of megabytes instead of tens of gigabytes per second
+                        \subitem this is why we consider DBMSs as I/O bound
+                    \item \textbf{OS gets in the way} \hfill filesize can be limited, therefore DMBS need to map files and offsets
+                \end{itemize}
+                Our goals also change slightly; disks now dominate cost, and therefore complicated I/O management strategies can pay off.
+                Due to larger pages, each page behaves like a mini-database in the case of N-ary storage.
+                The basic kernel now looks like the following (where the catalogue is in memory, but the data is in disk);
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=0.5cm]
+                        \draw
+                        (0, 0) -- (9, 0) -- (9, -5) -- (0, -5) -- cycle
+                        (1, -1) -- (4, -1) -- (4, -2) -- (1, -2) -- cycle
+                        (5, -1) -- (8, -1) -- (8, -2) -- (5, -2) -- cycle
+                        (1, -3) -- (4, -3) -- (4, -4) -- (1, -4) -- cycle
+                        (5, -1) -- (8, -1) -- (8, -2) -- (5, -2) -- cycle
+                        (-3, 0) -- (-1, 0) -- (-1, -2) -- (-3, -2) -- cycle
+                        (-3, -3) -- (-1, -3) -- (-1, -5) -- (-3, -5) -- cycle;
+
+                        \node at (2.5, -1.5) {storage manager};
+                        \node at (2.5, -3.5) {buffer manager};
+                        \node at (6.5, -1.5) {op. implementations};
+                        \node at (-2, -1) {catalogue};
+                        \node at (-2, -4) {data};
+                        \node at (6.5, -4) {database kernel};
+                        \draw
+                        (6, -2) edge[->] (3, -3)
+                        (2.5, -2) edge[->] (2.5, -3)
+                        (1, -1.5) edge[->] (-1, -1.5)
+                        (1, -3.5) edge[->] (-1, -3.5);
+                    \end{tikzpicture}
+                \end{center}
+                The \textbf{buffer manager} manages disk-resident data.
+                It maps unstructured files (large 'blobs of bytes') to structured tables for reading and writing.
+                Since DBs don't trust OSs, it makes sure files have a fixed size, and it also safely writes data to disk when necessary.
+                It also writes in \textbf{open (for writing) pages}.
+                An example implementation is as follows;
+                \begin{lstlisting}
+                    class BufferManager;
+                    class Table {
+                        BufferManager& bufferManager;
+                        string relationName = "Employee";
+
+                        public
+                            void insert(Tuple t) {
+                                bufferManager.getOpenPageForRelation(relationName).push_back(t);
+                                bufferManager.commitOpenPageForRelation(relationName);
+                            }
+
+                            vector<Tuple> findTuplesWithAttributeValue(int attribute, AttributeValue value) {
+                                vector<Tuple> result;
+                                auto pages = bufferManager.getPagesForRelation(relationName);
+                                for (size_t i = 0; i < pages.size(); i++) {
+                                    auto page = pages[i];
+                                    for (size_t i = 0; i < page.size(); i++) {
+                                        if (page[i][attribute] == value) {
+                                            result.push_back(page[i]);
+                                        }
+                                    }
+                                }
+                                return result;
+                            }
+                    }
+
+                    struct BufferManager {
+                        using Tuple = vector<AttributeValue>;
+                        using Page = vector<Tuple>;
+
+                        size_t tupleSize;
+                        map<string, vector<Tuple>> openPages;
+                        map<string, vector<string>> pagesOnDisk; // maps one relation to many pages on disk (filenames)
+                        size_t numberOfTuplesPerPage();
+
+                        vector<Tuple>& getOpenPageForRelation(string relationName);
+                        void commitOpenPageForRelation(string relationName);
+                        vector<Page> getPagesForRelation(string, relationName);
+                    }
+
+                    vector<Tuple>& BufferManager::getOpenPageForRelation(string relationName) {
+                        return openPages[relationName]; // creates one if needed
+                    }
+
+                    void BufferManager::commitOpenPageForRelation(string relationName) {
+                        while (openPages[relationName].size() >= numberOfTuplesPerPage(tupleSize)) {
+                            vector<Tuple> newPage;
+
+                            // move overflowing tuples to new page
+                            while (openPages[relationName].size() > numberOfTuplesPerPage(tupleSize)) {
+                                newPage.push_back(openPages[relationName].back());
+                                openPages[relationName].pop_back();
+                            }
+
+                            pagesOnDisk[relationName].push_back(writeToDisk(openPages[relationName]));
+                            openPages[relationName] = newPage; // contains tuples that didn't fit on disk
+                        }
+                    }
+
+                    vector<vector<Tuple>> BufferManager::getPagesForRelation(string relationName) {
+                        vector<vector<Tuple>> result = { openPages[relationName] };
+                        for (size_t i = 0; i < pagesOnDisk[relationName].size(); i++) {
+                            result.push_back(readFromDisk(pagesOnDisk[relationName][i]));
+                        }
+                        return result;
+                    }
+                \end{lstlisting}
+                However, we still need to determine ~numberOfTuplesPerPage~;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{unspanned pages} \hfill pages like mini-databases
+                        \subitem
+                            The goal of this is simplicity, and good random access performance; we want to find the record with a single page lookup, given a ~tuple\_id~.
+                            When we don't have enough space on a page for another tuple, we will write to disk (even when not full) and obtain a new page.
+                            However, we can quite easily infer which page a tuple will be on, since we know how many tuples are on each page.
+                            This cannot deal with large records (where the size is larger than a page), nor can we have in-page random access if the records are variable size.
+                            \begin{lstlisting}
+                                const long pageSizeInBytes = 4096;
+                                size_t BufferManager::numberOfTuplesPerPage() {
+                                    return floor(pageSizeInBytes / tupleSizeInBytes);
+                                }
+
+                                // space consumption of a relation of n tuples;
+                                ceil(data.size() / mnumberOfTuplesPerPage())
+                            \end{lstlisting}
+                    \item \textbf{spanned pages} \hfill optimising for space efficiency
+                        \subitem
+                            On the other hand, the goal here is to minimise space waste and to support large records.
+                            Spanned pages can have tuples existing across pages - this is complicated and also hurts random access performance, since we can no longer easily determine where a tuple is.
+                            We can calculate the number of pages per relation as follows;
+                            \begin{lstlisting}
+                                long dataSizeInBytes = tupleSizeInBytes * data.size();
+                                long numberOfPagesForTable = ceil(dataSizeInBytes / pageSizeInBytes);
+                            \end{lstlisting}
+                            However - we cannot determine the number of tuples per page as this is not constant.
+                    \item \textbf{slotted pages} \hfill random access for in-place NSM
+                        \subitem
+                            This is the most complicated method covered, but is also what is used by most systems.
+                            This stores tuples in in-place N-ary format, and stores the tuple count in the \textbf{page header} (at the start of the page).
+                            Offsets are also stored to every tuple, which are filled in from the \textbf{end} of the page (hence the index of the first tuple is the last item in the page and so on).
+                            Offsets need to be typed large enough to address page;
+                            \begin{itemize}
+                                \itemsep0em
+                                \item ~byte~s for pages smaller than 256 bytes
+                                \item ~short~s for pages smaller than 65,536 bytes
+                                \item ~int~s for pages smaller than 4 gigabytes
+                            \end{itemize}
+                \end{itemize}
+                Some disk-based database systems also keep a dictionary per page, which solves the problem of variable sized records (and allows for duplicate elimination, at the granularity of a single page, as previously mentioned).
+                A global dictionary is not used as it will lead to more accesses.
 \end{document}
