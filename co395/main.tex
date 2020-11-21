@@ -1101,6 +1101,454 @@
                     \item significant results are the ones where the p-value is smaller than the critical value
                 \end{enumerate}
         \subsection*{Week 5 (Artificial Neural Networks I)}
+            \subsubsection*{The Rise of Neural Networks}
+                \textbf{Artificial neural networks} are a class of machine learning algorithms, similar to \textbf{kNN} or \textbf{decision trees}.
+                They consist of connected neurons, normally optimised with \textbf{gradient descent}.
+                On the other hand \textbf{deep learning} refers to the use of neural network models with multiple hidden layers (hence deep) - they are usually trained on larger datasets for longer periods of time.
+                \medskip
+
+                Using neural network models, there was a large improvement in speech recognition.
+                \textit{AlphaGo} allows for board analysis to beat human players (an exhaustive search isn't feasible compared to chess).
+                Another example is realistic text generation, as well as video editing (see \textit{DeepFakes}) - automating what would take hours to do manually.
+                The aforementioned example of video editing works by sharing an encoder, and feeding it to a decoder which specialises in generating a single face.
+                To change a face, the encoded output from the first person is put into the decoder of the second.
+                Another application is combining different information mediums (such as images and text) - for example generating descriptive outputs for a given image.
+                \medskip
+
+                The theory for neural networks had already existed (perceptrons in 1958, backpropagation in 1964, convolutional neural networks and LSTMs in the 1990s).
+                However, today there is more data for training, as well as improved methods for storing and managing data.
+                Similarly, neural networks benefit from faster hardware for computation (especially GPUs, since the matrix computation can be easily parallelised on GPUs).
+                Finally, better software (such as automatic differentiation libraries) reduces the amount of work required (compared to manual calculation).
+            \subsubsection*{Linear Regression}
+                We can think of linear regression as a very simplified method of a neural network model.
+                This is a form of \textbf{supervised learning}, where we assume we have a dataset of input and output pairs;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{dataset} \hfill $\{\la x^{(1)}, y^{1} \ra, \la x^{(N)}, y^{N} \ra, \dots, \la x^{(N)}, y^{N} \ra\}$
+                    \item \textbf{input features} \hfill $X = \{x^{(1)}, x^{(2)}, \dots, x^{(N)}\}$
+                    \item \textbf{known (desired) outputs} \hfill $Y = \{y^{(1)}, y^{(2)}, \dots, y^{(N)}\}$
+                \end{itemize}
+                Our aim is to learn the mapping $f : X \to Y$, such that $\forall i \in [1, N]\ f(x^{(i)}) = y^{(i)}$.
+                In linear regression, $f$ is a linear function.
+                \medskip
+
+                It's important to note the difference between continuous and discrete problems;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{classification} \hfill desired labels are discrete
+                        \begin{itemize}
+                            \itemsep0em
+                            \item obtaining digit labels from handwriting
+                            \item obtaining sentiment from text
+                        \end{itemize}
+                    \item \textbf{regression} \hfill desired labels are continuous
+                        \begin{itemize}
+                            \itemsep0em
+                            \item obtaining price of a house depending on some features
+                            \item determining stock price from data on a company
+                        \end{itemize}
+                \end{itemize}
+                An example of simple linear regression, with one input variable can be modelled as $y = ax + b$.
+                $a$ denotes the slope, which controls the angle, $b$ denotes the intercept / bias (which controls the height) - with respect to a graph with the standard axes.
+                \medskip
+
+                Consider a dataset which contains GDP per capita ($x$) and enrolment rate ($y$).
+                To find the best values for $a$ and $b$ in $\hat{y} = ax + b$, we must first determine what we mean by best.
+            \subsubsection*{Loss Function}
+                A loss / cost function determines how well we are doing on our dataset, where a smaller value of $E$ means our predictions are close to our real values.
+                Consider the \textbf{sum-of-squares} loss function;
+                \begin{align*}
+                    E & = \frac{1}{2} \summation{i=1}{N} \left(\hat{y}^{(i)} - y^{(i)}\right)^2 \\
+                    & = \frac{1}{2} \summation{i=1}{N} \left(ax^{(i)} + b - y^{(i)}\right)^2
+                \end{align*}
+                Note that the division by two is optional, however it allows for easier differentiation since it cancels with the two that will come from the square.
+                By using a squared function, we are allowing for small errors that are close to the actual value, but we want to penalise the model for large errors.
+            \subsubsection*{Updating Parameters with Derivatives}
+                Working out the partial derivative of the previously mentioned loss function with respect to each of the parameters, we get the following;
+                \begin{align*}
+                    E & = \frac{1}{2} \summation{i=1}{N} \left(ax^{(i)} + b - y^{(i)}\right)^2 \\
+                    \pdif{E}{a} & = \pdif{}{a} \frac{1}{2} \summation{i=1}{N} \left(ax^{(i)} + b - y^{(i)}\right)^2 \\
+                    & = \frac{1}{2} \summation{i=1}{N} \pdif{}{a} \left(ax^{(i)} + b - y^{(i)}\right)^2 \\
+                    & = \summation{i=1}{N} \left(ax^{(i)} + b - y^{(i)}\right) x^{(i)} \\
+                    & = \summation{i=1}{N} \left(\hat{y}^{(i)} - y^{(i)}\right) x^{(i)} \\
+                    \pdif{E}{b} & = \pdif{}{b} \frac{1}{2} \summation{i=1}{N} \left(ax^{(i)} + b - y^{(i)}\right)^2 \\
+                    & = \frac{1}{2} \summation{i=1}{N} \pdif{}{b} \left(ax^{(i)} + b - y^{(i)}\right)^2 \\
+                    & = \summation{i=1}{N} \left(ax^{(i)} + b - y^{(i)}\right) \\
+                    & = \summation{i=1}{N} \left(\hat{y}^{(i)} - y^{(i)}\right)
+                \end{align*}
+            \subsubsection*{Gradient Descent}
+                \textbf{Gradient descent} is the process of repeated updating our parameters by taking small steps (of learning rate / step size $\alpha$) in the negative direction of the partial derivative (worked out above).
+                Note that we use $:=$ to denote a reassignment (not equality) in our \textbf{update rules}.
+                \begin{align*}
+                    a & := a - \alpha \pdif{E}{a} \\
+                    & := a - \alpha \summation{i=1}{N} \left(\hat{y}^{(i)} - y^{(i)}\right) x^{(i)} \\
+                    b & := b - \alpha \pdif{E}{b} \\
+                    & := b - \alpha \summation{i=1}{N} \left(\hat{y}^{(i)} - y^{(i)}\right)
+                \end{align*}
+                This can be implemented manually as follows;
+                \begin{lstlisting}
+                    X = data["GDP"].values
+                    Y = data["Enrolment Rate"].values
+
+                    a = 0.0
+                    b = 0.0
+                    learning_rate = 1e-11
+
+                    for epoch in range(5): # an epoch is a single iteration
+                        update_a = 0.0
+                        update_b = 0.0
+                        error = 0.0
+                        for i in range(len(Y)):
+                            y_pred = a * X[i] + b
+                            update_a += (y_predicted - Y[i]) * X[i]
+                            update_b += (y_predicted - Y[i])
+                            error += np.square(y_predicted - Y[i])
+
+                        # Update rule for gradient descent
+                        a = a - learning_rate * update_a
+                        b = b - learning_rate * update_b
+
+                        # the lines above can be shortened to the following
+                        y_predicted = a * X + b
+                        a = a - learning_rate * ((y_predicted - Y) * X).sum()
+                        b = b - learning_rate * (y_predicted - Y).sum()
+                        rmse = np.sqrt(np.square(y_predicted - Y).mean())
+                \end{lstlisting}
+                It can often be more convenient to work with vector notation.
+                The gradient is a vector of all the partial derivatives.
+                For a function $f : \mathbb{R}^K \to \mathbb{R}$ (where there are $K$ parameters) the gradient is;
+                $$\nabla_\theta f(\theta) = \begin{bmatrix}
+                    \pdif{f(\theta)}{\theta_1} \\
+                    \pdif{f(\theta)}{\theta_2} \\
+                    \vdots \\
+                    \pdif{f(\theta)}{\theta_K}
+                \end{bmatrix}$$
+                Using this, there is an \textbf{analytical solution} for solving a single variable linear regression;
+                \begin{align*}
+                    \mat{X} & = \begin{bmatrix}
+                        x^{(1)} & 1.0 \\
+                        x^{(2)} & 1.0 \\
+                        \vdots & \vdots \\
+                        x^{(N)} & 1.0
+                    \end{bmatrix} \\
+                    \vec{y} & = \begin{bmatrix}
+                        y^{(1)} \\ y^{(2)}\\ \vdots \\ y^{(N)}
+                    \end{bmatrix} \\
+                    \vec{\theta} & = \begin{bmatrix}
+                        a \\ b
+                    \end{bmatrix} \\
+                    \nabla_\theta E(\vec{\theta}) & = \mat{X}^\top (\mat{X}\vec{\theta} - y) \\
+                    & = 0 & \Rightarrow \\
+                    \vec{\theta^*} & = (\mat{X}^\top\mat{X})^{-1}\mat{X}^\top\vec{y}
+                \end{align*}
+                While this requires no iteration to directly find the optimal parameter values, it's not great for large problems as the matrix inversion has cubic complexity.
+                The analytical solution, presented here with \textit{Scikit-Learn}, has another benefit over gradient descent;
+                \begin{lstlisting}
+                    from sklearn.linear_model import LinearRegression
+
+                    model = LinearRegression(fit_intercept=True)
+                    X = data["GDP"].values.reshape(-1, 1)
+                    Y = data["Enrolment Rate"]
+                    model.fit(X, Y)
+
+                    mse = np.square(Y - model.predict(X)).mean()
+                \end{lstlisting}
+                The analytical method manages to find the \textbf{global minimum}, whereas gradient descent finds a \textbf{local minimum}.
+            \subsubsection*{Multiple Linear Regression}
+                The previous example only took into account a single feature, which likely is insufficient for most complex problems.
+                \textbf{multiple linear regression} considers many input features as follows, where \violet{each input feature has its own parameter} as well as an \teal{extra parameter which acts as a bias};
+                \begin{center}
+                    $y^{(i)} = \violet{\summation{j=1}{K} \theta_j x^{(i)}_j} + \teal{\theta_{K + 1}}$
+                \end{center}
+                Note that compared to before, when this is graphed on a two dimensional plane, it will be discontinuous, as it will exist in higher dimensions.
+            \subsubsection*{Artificial Neuron}
+                In the example below, we have the \textbf{features} $x_i$ and a corresponding weight (\textbf{parameter}) $\theta_i$.
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=1.25cm]
+                        \node (x1) at (-1.5, 1) {$x_1$};
+                        \node (x2) at (-1.5, 0) {$x_2$};
+                        \node (x3) at (-1.5, -1) {$x_3$};
+                        \node[inner sep=10pt, circle, draw=black, thick] (n) at (0, 0) {};
+                        \node (yh) at (1, 0) {$\hat{y}$};
+
+                        \draw
+                        (x1) edge[->, above] node{$\theta_1$} (n)
+                        (x2) edge[->, above] node{$\theta_2$} (n)
+                        (x3) edge[->, above] node{$\theta_3$} (n)
+                        (n) edge[->] (yh);
+                    \end{tikzpicture}
+                \end{center}
+                The output value of the neuron above is as follows, where $g$ is the \textbf{activation function} (this is what makes it a neuron instead of just linear regression) and $b$ is the \textbf{bias};
+                \begin{center}
+                    $\hat{y} = g(\underbrace{\theta_1 x_1 + \theta_2 x_2 + \theta_3 x_3 + b}_\text{linear regression})$
+                \end{center}
+                Note that the bias is often implicit, since we can simply add an extra input feature that has a value of 1.
+                Note that it's also possible to represent the weights as a vector $\vec{W}$, which simplifies the equation to be the following;
+                \begin{center}
+                    $\hat{y} = g(\vec{W}^\top\vec{x})$
+                \end{center}
+                Note that the part inside the activation function, concerning $W$ and $x$, can be written in any way (depending on the representation), as long as the dimensions line up to give a single scalar result.
+            \subsubsection*{Logistic Activation Function}
+                The \textbf{logistic function} is also known as the \textbf{sigmoid function};
+                \begin{align*}
+                    g(z) & = \frac{1}{1 + e^{-z}} \\
+                    z & \in \mathbb{R} \\
+                    \hat{y} & \in [0, 1]
+                \end{align*}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            no markers, domain=-7:7, samples=50,
+                            axis lines*=left, xlabel=$z$, ylabel=${g(z) = \hat{y}}$,
+                            height=5cm, width=10cm,
+                            enlargelimits=false,
+                            xtick={-7,-6,...,7},
+                            ytick={0,0.5,1},
+                            xmin=-7, xmax=7,
+                            ymin=0, ymax=1
+                        ]
+                            \addplot[violet, thick] {1 / (1 + exp(-1 * \x))};
+                        \end{axis}
+                    \end{tikzpicture}
+                \end{center}
+                In logistic regression (which actually isn't regression), we can pass the output of linear regression through a logistic function, allowing us to get either 0 or 1 (binary classification).
+                The model is optimised using gradient descent.
+            \subsubsection*{Perceptron}
+                This is another algorithm for supervised binary classification (similarly has the two classes 0 and 1).
+                It uses a threshold function as the activation function;
+                $$h(x) = f(\vec{W}^\top\vec{x}) = \begin{cases}
+                    1 & \text{if } \vec{W}^\top\vec{x} > 0 \\
+                    0 & \text{otherwise}
+                \end{cases}$$
+                The learning rule is as follows;
+                \begin{center}
+                    $\theta_i \leftarrow \theta_i + \alpha(y - h(x))x_i$
+                \end{center}
+                The reasoning is as follows; if the desired output ($y$) is equal to our prediction ($h(x)$), then the right hand side of the summation becomes 0, thus the parameter is unchanged - we don't fix it if it isn't broken.
+                On the other hand, if the true value is 1 and the prediction is 0, we want to make $\vec{W}^\top\vec{x}$ bigger since the desired output is bigger than our prediction (therefore our prediction is too small to be set to 1 by the activation function).
+                Since $y - h(x) = 1$ in this case, we increase $\theta_i$ if $x_i$ is positive, and decrease it if it is negative.
+                The reasoning holds the other way around, when the true value is 0 but we predict 1.
+                \medskip
+
+                Any linearly separable function can be learnt with a perceptron, such as logical ~OR~ or ~AND~, however something like ~XOR~ cannot be learnt.
+                The activation function is also very sharp (and also not differentiable) so it's not used in most complex neural networks.
+            \subsubsection*{Connecting Neurons}
+                We can connect multiple neurons in parallel and consider each one as a \textbf{feature detector};
+                \begin{center}
+                    \begin{tikzpicture}[x=3cm, y=1.5cm]
+                        \node (x1) at (-1, 1) {$x_1$};
+                        \node (x2) at (-1, 0) {$x_2$};
+                        \node (x3) at (-1, -1) {$x_3$};
+                        \node[inner sep=10pt, circle, draw=black, thick] (n1) at (0, 1) {};
+                        \node[inner sep=10pt, circle, draw=black, thick] (n2) at (0, 0) {};
+                        \node[inner sep=10pt, circle, draw=black, thick] (n3) at (0, -1) {};
+                        \node (o1) at (1, 1) {};
+                        \node (o2) at (1, 0) {};
+                        \node (o3) at (1, -1) {};
+
+                        \draw
+                        (x1) edge[->] (n1)
+                        (x1) edge[->] (n2)
+                        (x1) edge[->] (n3)
+                        (x2) edge[->] (n1)
+                        (x2) edge[->] (n2)
+                        (x2) edge[->] (n3)
+                        (x3) edge[->] (n1)
+                        (x3) edge[->] (n2)
+                        (x3) edge[->] (n3)
+                        (n1) edge[->] (o1)
+                        (n2) edge[->] (o2)
+                        (n3) edge[->] (o3);
+                    \end{tikzpicture}
+                \end{center}
+                Similarly, we can connect neurons in sequence to learn from higher-order features (this is a multilayer perceptron, which isn't actually a perceptron);
+                \begin{center}
+                    \begin{tikzpicture}[x=3cm, y=1.5cm]
+                        \node (x1) at (-1, 1) {$x_1$};
+                        \node (x2) at (-1, 0) {$x_2$};
+                        \node (x3) at (-1, -1) {$x_3$};
+                        \node[inner sep=10pt, circle, draw=black, thick] (n11) at (0, 1) {};
+                        \node[inner sep=10pt, circle, draw=black, thick] (n12) at (0, 0) {};
+                        \node[inner sep=10pt, circle, draw=black, thick] (n13) at (0, -1) {};
+                        \node[inner sep=10pt, circle, draw=black, thick] (n21) at (1, 1) {};
+                        \node[inner sep=10pt, circle, draw=black, thick] (n22) at (1, 0) {};
+                        \node[inner sep=10pt, circle, draw=black, thick] (n23) at (1, -1) {};
+                        \node (o1) at (2, 1) {};
+                        \node (o2) at (2, 0) {};
+                        \node (o3) at (2, -1) {};
+
+                        \draw
+                        (x1) edge[->] (n1)
+                        (x1) edge[->] (n2)
+                        (x1) edge[->] (n3)
+                        (x2) edge[->] (n1)
+                        (x2) edge[->] (n2)
+                        (x2) edge[->] (n3)
+                        (x3) edge[->] (n1)
+                        (x3) edge[->] (n2)
+                        (x3) edge[->] (n3)
+                        (n11) edge[->] (n21)
+                        (n11) edge[->] (n22)
+                        (n11) edge[->] (n23)
+                        (n12) edge[->] (n21)
+                        (n12) edge[->] (n22)
+                        (n12) edge[->] (n23)
+                        (n13) edge[->] (n21)
+                        (n13) edge[->] (n22)
+                        (n13) edge[->] (n23)
+                        (n21) edge[->] (o1)
+                        (n22) edge[->] (o2)
+                        (n23) edge[->] (o3);
+                    \end{tikzpicture}
+                \end{center}
+                A multilayer perceptron with a sufficient number of neurons can theoretically model an arbitrary function over an input.
+                However, drawing this can be tedious (and isn't even feasible for large networks), we can represent each layer as a block, and each fully connected matrix of weights as an arrow (the diagram below represents the diagram above);
+                \begin{center}
+                    \begin{tikzpicture}[x=3cm, y=1.5cm]
+                        \draw (-1.25, 1.25) -- (-0.75, 1.25) -- (-0.75, -1.25) -- (-1.25, -1.25) -- cycle;
+                        \node at (-1, 0) {$x$};
+                        \draw (-0.25, 1.25) -- (0.25, 1.25) -- (0.25, -1.25) -- (-0.25, -1.25) -- cycle;
+                        \node at (0, 0) {$h_1$};
+                        \draw (0.75, 1.25) -- (1.25, 1.25) -- (1.25, -1.25) -- (0.75, -1.25) -- cycle;
+                        \node at (1, 0) {$h_2$};
+
+                        \draw
+                        (-0.75, 0) edge[->] (-0.25, 0)
+                        (0.25, 0) edge[->] (0.75, 0)
+                        (1.25, 0) edge[->] (2, 0);
+                    \end{tikzpicture}
+                \end{center}
+                We typically refer to the first layer as the \textbf{input layer}, the final layer as the \textbf{output layer}, and everything in between the two as \textbf{hidden layers}.
+                Consider a network with an input layer $x$, an output layer $\hat{y}$, and a hidden layer $h$;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw (0, 0) -- (1, 0) -- (1, -2) -- (0, -2) -- cycle;
+                        \node at (0.5, -1) {$x$};
+                        \draw (2, 0) -- (3, 0) -- (3, -2) -- (2, -2) -- cycle;
+                        \node at (2.5, -1) {$h$};
+                        \draw (4, 0) -- (5, 0) -- (5, -2) -- (4, -2) -- cycle;
+                        \node at (4.5, -1) {$\hat{y}$};
+
+                        \node (he) at (2.5, 1) {$\vec{h} = g_{\vec{h}}(\vec{W_h}^\top \vec{x} + \vec{b_h})$};
+                        \node (ye) at (4.5, -3) {$\vec{\hat{y}} = g_{\vec{\hat{y}}}(\vec{W_{\hat{y}}}^\top \vec{h} + \vec{b_{\hat{y}}})$};
+
+                        \draw
+                        (he) edge[->, dashed] (2.5, 0)
+                        (ye) edge[->, dashed] (4.5, -2)
+                        (1, -1) edge[->, above] node{$\vec{W_h}$} (2, -1)
+                        (3, -1) edge[->, above] node{$\vec{W_{\hat{y}}}$} (4, -1);
+                    \end{tikzpicture}
+                \end{center}
+                When something doesn't work, it's often a good idea to verify the dimensions match up (possibly missing a transpose);
+                \begin{align*}
+                    \vec{x} & \in \mathbb{R}^{K \times 1} \\
+                    \vec{h} & \in \mathbb{R}^{H \times 1} \\
+                    \vec{W_h} & \in \mathbb{R}^{K \times H} \\
+                    \vec{b_h} & \in \mathbb{R}^{H \times 1} \\
+                    \vec{\hat{y}} & \in \mathbb{R}^{C \times 1} \\
+                    \vec{W_{\hat{y}}} & \in \mathbb{R}^{H \times C} \\
+                    \vec{b_{\hat{y}}} & \in \mathbb{R}^{C \times 1}
+                \end{align*}
+            \subsubsection*{Learning Representations and Features}
+                It's also important to note the difference between traditional pattern recognition and end-to-end training.
+                For example with image recognition, traditional pattern recognition would require someone to manually craft a feature extractor, which then goes into a trainable classifier to give an output.
+                This is in contrast to end-to-end training, where useful features are learnt from the data and trained with the classifier.
+                This is useful as the feature extractor (typically at the lower levels of the network) can change to help the higher levels of the network make better decisions.
+                \medskip
+
+                For example (at a very abstract level), a face detector would be structured as follows - note how the lower levels generally learn individual features, and the higher levels learn features of the features from lower levels);
+                \begin{itemize}
+                    \itemsep0em
+                    \item initially works on individual pixels
+                    \item detects edges
+                    \item detects components of a face
+                    \item detects full faces
+                \end{itemize}
+            \subsubsection*{Activation Functions}
+                If we are able to use a linear model to capture all the features of our data, then we should do so (use the simplest model we can).
+                However, more likely than not, our data will not be linearly separable, and therefore complex patterns cannot be captured with linear models.
+                For multilayer networks, activation functions become more important.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{linear activation} \hfill equivalent to having no activation function
+                        $$f(x) = x$$
+                        We cannot only use linear activation as multi-layer linear networks are equivalent to a single layer;
+                        \begin{align*}
+                            \mat{U} & = \mat{W_1}\mat{W_2} \\
+                            \vec{\hat{y}} & = \mat{W_1}(\mat{W_2}\vec{x}) \\
+                            & = \mat{U}\vec{x} & \text{becomes a single layer}
+                        \end{align*}
+                    \item \violet{\textbf{sigmoid activation}} \hfill smoothly compresses the output into $[0, 1]$
+                        $$f(x) = \sigma(x) = \frac{1}{1 + e^{-x}}$$
+                    \item \teal{\textbf{tanh activation}} \hfill similar shape to sigmoid, but range in $[-1, 1]$
+                        $$f(x) = \tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}$$
+                    \item \blue{\textbf{ReLU activation}} \hfill rectified linear unit (linear in positive part)
+                        $$f(x) = \text{ReLU}(x) = \begin{cases}
+                            0 & \text{if } x \leq 0 \\
+                            x & \text{otherwise}
+                        \end{cases} = \max(0, x)$$
+                    \item \textbf{softmax activation}
+                        \subitem scales inputs into a probability distribution (largest will be large, rest small), all output values sum to 1
+                        $$\text{softmax}(z_i) = \frac{e^{z_i}}{\summation{k}{} e^{z_k}}$$
+                        This acts as a differentiable version of the max function, as it pushes the highest values close to 1 and the lower (remaining) values to 0.
+                        It identifies the value with the highest confidence and assigns more probability to it - very useful for image classification.
+                \end{itemize}
+                We can see the functions graphically as follows;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            no markers, domain=-4:4, samples=50,
+                            axis lines*=left, xlabel=$x$, ylabel=$f(x)$,
+                            height=5cm, width=10cm,
+                            enlargelimits=false,
+                            xtick={-4,-3,...,4},
+                            ytick={-1,0,1},
+                            xmin=-4, xmax=4,
+                            ymin=-1, ymax=1
+                        ]
+                            \addplot[violet, thick] {1 / (1 + exp(-1 * \x))};
+                            \addplot[teal, thick] {tanh(\x)};
+                            \addplot[blue, thick, domain=-4:0] {0};
+                            \addplot[blue, thick, domain=0:4] {\x};
+                        \end{axis}
+                    \end{tikzpicture}
+                \end{center}
+                Note that most activation functions are applied \textbf{element-wise}, where each element is passed through the function independently (with the exception of softmax).
+                \medskip
+
+                ReLU is used commonly for very deep networks, however tanh and sigmoid also work well and can be argued to be more robust.
+                Those functions are more robust as ReLU is unbounded (if something is broken in the network, ReLU will give a large value which leads to more problems in the higher levels of the network).
+                Therefore, the activation functions used are also a hyperparameter.
+                The activation of the output layer should depend on the task (since it determines what the model can actually output);
+                \begin{itemize}
+                    \itemsep0em
+                    \item classifying into two classes \hfill sigmoid or tanh
+                    \item predicting an unbounded score \hfill linear
+                    \item predicting a probability distribution \hfill softmax
+                \end{itemize}
+            \subsubsection*{Feedforward Network in PyTorch}
+                \begin{lstlisting}
+                    import torch
+                    import torch.nn as nn
+
+                    class Net(nn.Module):
+                        def __init__(self):
+                            super(Net, self).__init__()
+                            self.layer_h = nn.Linear(10, 5) # input->hidden (input of size 10)
+                            self.layer_y = nn.Linear(5, 1) # hidden->output (hidden layer of size 5, gives 1 output)
+
+                        def forward(self, x):
+                            h = torch.tanh(self.layer_h(x)) # hidden layer with tanh activation
+                            y = torch.sigmoid(self.layer_y(h)) # output with sigmoid activation
+
+                    net = Net()
+                    input = torch.FloatTensor([x for x in range(10)]) # sample input
+                    output = net(input) # execution
+                \end{lstlisting}
         \subsection*{Week 6 (Artificial Neural Networks II)}
         \subsection*{Week 7 (Unsupervised Learning)}
         \subsection*{Week 8 (Genetic Algorithms)}
