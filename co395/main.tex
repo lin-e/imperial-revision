@@ -967,7 +967,7 @@
                     \item \textbf{interpretable} \hfill can explain predictions
                 \end{itemize}
             \subsubsection*{Imbalanced Datasets}
-                In a balanced dataset, we have an equal number of positive and negative data points.
+                In a balanced dataset, we have an equal number of positive and negative datapoints.
                 However, this will not always be the case, and we may have an unbalanced dataset where classes are not equally represented.
                 The accuracy goes down, as it tends to follow the majority class.
                 Additionally, the precision may also go down for the minority class.
@@ -1550,6 +1550,495 @@
                     output = net(input) # execution
                 \end{lstlisting}
         \subsection*{Week 6 (Artificial Neural Networks II)}
+            \subsubsection*{Loss Functions}
+                We need to define a loss function which we aim to minimise, a smaller loss function tells us that we are doing better on a particular task.
+                To optimise a neural network, we want to iteratively update parameters with gradient descent (taking small steps in the negative direction of the loss function), aiming to reduce the loss function.
+                The general formula is as follows;
+                $$\theta^{(t + 1)}_i = \theta^{(t)}_i - \alpha \pdif{E}{\theta^{(t)}_i}$$
+            \subsubsection*{Loss Function for Regression}
+                When we aim to predict a continuous variable, we often use linear activation (to avoid restricting the output).
+                This is also often optimised with \textbf{mean squared error} (or quadratic / L2 loss).
+                $$\text{MSE} = \frac{1}{N} \summation{i=1}{N} \left(\hat{y}_i - y_i\right)^2$$
+                If the value is 0, then we know that our predictions are equal to our target data.
+            \subsubsection*{Loss Function for Classification}
+                In contrast, for classification the model needs to choose between discrete (categorical) options;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{binary classification} \hfill one of two possible choices (e.g. disease diagnosis)
+                    \item \textbf{multi-class classification} \hfill an object can take one of many classes (e.g. detecting digits)
+                    \item \textbf{multi-label classification} \hfill an object can take multiple classes (e.g. detecting objects in an image)
+                \end{itemize}
+                In \textbf{cross-entropy}, we aim to maximise the likelihood of the network assigning the correct labels to all the inputs in our dataset;
+                $$\product{i=1}{N}P(y^{(i)}\ |\ x^{(i)}; \theta)$$
+                Also assume that the examples are independent and identically distributed;
+                $$P(A \land B) = P(A)P(B)$$
+                For binary classification, we can consider the output of the network as a parameter of a \textbf{Bernoulli distribution};
+                $$\product{i=1}{N} \left(\hat{y}^{(i)}\right)^{y^{(i)}}\left(1 - \hat{y}^{(i)}\right)^{\left(1 - y^{(i)}\right)}$$
+                If we always correctly assign all the probability to the correct label, we end up with an output of 1, and if we always incorrectly assign the probability we get 0.
+                \medskip
+
+                However, dealing with multiplication of small values (since all of our values will be between 0 and 1) can lead to rounding errors in computers, we want to take logarithms.
+                Since maximising the logarithm is identical;
+                $$\summation{i=1}{N} y^{(i)}\log\left(\hat{y}^{(i)}\right) + \left(1 - y^{(i)}\right)\log\left(1 - \hat{y}^{(i)}\right)$$
+                This can be turned into a loss (\textbf{binary cross-entropy}), which we aim to minimise.
+                The division by $N$ is optional, but it avoids the magnitude of the loss being affected by the number of datapoints;
+                $$L = -\frac{1}{N}\summation{i=1}{N} (\underbrace{y^{(i)}\log\left(\hat{y}^{(i)}\right)}_\text{class 1} + \underbrace{\left(1 - y^{(i)}\right)\log\left(1 - \hat{y}^{(i)}\right)}_\text{class 0})$$
+                Notice that the above refers to two distinct classes - we can generalise this to multiple classes in \textbf{categorical cross-entropy};
+                $$L = -\frac{1}{N}\summation{i=1}{N} \summation{c=1}{C} y^{(i)}_c\log\left(\hat{y}^{(i)}_c\right)$$
+                Here $C$ is the set of possible classes, and $\hat{y}^{(i)}_c$ is the predicted probability of class $c$ for datapoint $i$.
+                \medskip
+
+                For multi-class classification, it's common to use softmax activation with categorical cross-entropy loss.
+                Some examples are as follows;
+                \begin{center}
+                    \begin{tabular}{|l|l|l|l|}
+                        \hline
+                        \textbf{problem} & \textbf{type} & \textbf{output activation} & \textbf{loss} \\
+                        \hline
+                        future stock prices & regression & linear & MSE \\
+                        stock prices up or down & binary & sigmoid & binary cross-entropy \\
+                        speech recognition & multi-class & softmax & categorical cross-entropy \\
+                        chemical properties & multi-label & sigmoid & binary cross-entropy \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                Note that for the final example, the activation is sigmoid for \textbf{each} individual output and we optimise each output with binary cross-entropy (such that each output acts as its own binary classifier for that property).
+            \subsubsection*{Batching}
+                A common process is to combine the vectors of several datapoints into one matrix to improve speed and reduce noise.
+                The speed improvement comes from GPUs being able to handle parallel workloads such as matrix multiplication well, whereas more time will be spent copying vectors to the GPU without batching.
+                See the example below where datapoint 1 ($x_{1, i}$) and datapoint 2 ($x_{2, i}$) are multiplied by the same weight matrix;
+                \begin{align*}
+                    \begin{bmatrix}
+                        \blue{x_{1, 1}} & \blue{x_{1, 2}}
+                    \end{bmatrix} \begin{bmatrix}
+                        w_{1, 1} & w_{1, 2} & w_{1, 3} \\
+                        w_{2, 1} & w_{2, 2} & w_{2, 3}
+                    \end{bmatrix} & = \begin{bmatrix}
+                        \teal{x_{1, 1}w_{1, 1} + x_{1, 2}w_{2, 1}} & \teal{x_{1, 1}w_{1, 2} + x_{1, 2}w_{2, 2}} & \teal{x_{1, 1}w_{1, 3} + x_{1, 2}w_{2, 3}}
+                    \end{bmatrix} \\
+                    \begin{bmatrix}
+                        \red{x_{2, 1}} & \red{x_{2, 2}}
+                    \end{bmatrix} \begin{bmatrix}
+                        w_{1, 1} & w_{1, 2} & w_{1, 3} \\
+                        w_{2, 1} & w_{2, 2} & w_{2, 3}
+                    \end{bmatrix} & = \begin{bmatrix}
+                        \violet{x_{2, 1}w_{1, 1} + x_{2, 2}w_{2, 1}} & \violet{x_{2, 1}w_{1, 2} + x_{2, 2}w_{2, 2}} & \violet{x_{2, 1}w_{1, 3} + x_{2, 2}w_{2, 3}}
+                    \end{bmatrix} \\
+                    \begin{bmatrix}
+                        \blue{x_{1, 1}} & \blue{x_{1, 2}} \\
+                        \red{x_{2, 1}} & \red{x_{2, 2}}
+                    \end{bmatrix} \begin{bmatrix}
+                        w_{1, 1} & w_{1, 2} & w_{1, 3} \\
+                        w_{2, 1} & w_{2, 2} & w_{2, 3}
+                    \end{bmatrix} & = \begin{bmatrix}
+                        \teal{x_{1, 1}w_{1, 1} + x_{1, 2}w_{2, 1}} & \teal{x_{1, 1}w_{1, 2} + x_{1, 2}w_{2, 2}} & \teal{x_{1, 1}w_{1, 3} + x_{1, 2}w_{2, 3}} \\
+                        \violet{x_{2, 1}w_{1, 1} + x_{2, 2}w_{2, 1}} & \violet{x_{2, 1}w_{1, 2} + x_{2, 2}w_{2, 2}} & \violet{x_{2, 1}w_{1, 3} + x_{2, 2}w_{2, 3}}
+                    \end{bmatrix}
+                \end{align*}
+                This method is applied to the majority of neural network operations, such as addition, subtraction as well as application of activation functions.
+            \subsubsection*{Forward and Backward Pass}
+                The following process applies from the bottom up ($X$ progresses to $\hat{Y}$);
+                \begin{align*}
+                    \text{Loss} & = L(Y, \hat{Y}) \\
+                    \hat{Y} & = g_{o}\left(Z^{[3]}\right) \\
+                    Z^{[3]} & = A^{[2]}W^{[3]} + B^{[3]} \\
+                    A^{[2]} & = g_{h_2}\left(Z^{[2]}\right) \\
+                    Z^{[2]} & = A^{[1]}W^{[2]} + B^{[2]} \\
+                    A^{[1]} & = g_{h_1}\left(Z^{[1]}\right) \\
+                    Z^{[1]} & = XW^{[1]} + B^{[1]} \\
+                    X & \in \mathbb{R}^{N \times K} & \text{$N$ datapoints and $K$ features per datapoint}
+                \end{align*}
+                The idea of backpropagation reduces the work needed by splitting up the workload for calculating partial derivatives.
+                The partial derivative is obtained by using the partial derivative from the next layer (the next layer in the forward pass), which obtains it from the partial derivative of the loss function.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \draw (0, -2) -- (3, -2) -- (3, -3) -- (0, -3) -- cycle;
+                        \draw (0, -4) -- (3, -4) -- (3, -5) -- (0, -5) -- cycle;
+                        \draw (0, -6) -- (3, -6) -- (3, -7) -- (0, -7) -- cycle;
+
+                        \node at (1, -0.5) {$\hat{Y}$};
+                        \node at (1, -2.5) {$A^{[2]}$};
+                        \node at (1, -4.5) {$A^{[1]}$};
+                        \node at (1, -6.5) {$X$};
+
+                        \node at (2, -0.5) {$\violet{\pdif{\text{Loss}}{\hat{Y}}}$};
+                        \node at (2, -2.5) {$\violet{\pdif{\text{Loss}}{A^{[2]}}}$};
+                        \node at (2, -4.5) {$\violet{\pdif{\text{Loss}}{A^{[1]}}}$};
+                        \node at (2, -6.5) {$\violet{\pdif{\text{Loss}}{X}}$};
+
+                        \draw
+                        (-1, -6.5) edge[->, left] node{forward pass} (-1, -0.5)
+                        (4, -6.5) edge[<-, right, violet] node{backward pass} (4, -0.5)
+                        (1, -6) edge[->] (1, -5)
+                        (1, -4) edge[->] (1, -3)
+                        (1, -2) edge[->] (1, -1)
+                        (2, -6) edge[<-, violet] (2, -5)
+                        (2, -4) edge[<-, violet] (2, -3)
+                        (2, -2) edge[<-, violet] (2, -1);
+                    \end{tikzpicture}
+                \end{center}
+                By recalling the \textbf{chain rule} (for calculating derivatives of composite functions);
+                \begin{align*}
+                    z & = f(x) \\
+                    y & = g(z) \\
+                    \dif{y}{x} & = \dif{y}{z} \cdot \dif{z}{x}
+                \end{align*}
+                For example, assume we want to find the partial derivative with respect to the weight matrix $W^{[1]}$ (which we would want to do for gradient descent).
+                We can break down our derivatives as follows;
+                \begin{align*}
+                    \pdif{\text{Loss}}{Z^{[1]}} & = \pdif{\text{Loss}}{A^{[1]}} \cdot \pdif{A^{[1]}}{Z^{[1]}} \\
+                    \pdif{\text{Loss}}{W^{[1]}} & = \pdif{\text{Loss}}{Z^{[1]}} \cdot \pdif{Z^{[1]}}{W^{[1]}} \\
+                    & = \pdif{\text{Loss}}{\hat{Y}} \cdot \teal{\pdif{\hat{Y}}{Z^{[3]}}} \cdot \violet{\pdif{Z^{[3]}}{A^{[2]}}} \cdot \teal{\pdif{A^{[2]}}{Z^{[2]}}} \cdot \violet{\pdif{Z^{[2]}}{A^{[1]}}} \cdot \teal{\pdif{A^{[1]}}{Z^{[1]}}} \cdot \pdif{Z^{[1]}}{W^{[1]}}
+                \end{align*}
+                We can see the partial derivatives in \teal{teal} are the output of an activation function with respect to the inputs, whereas the ones in \violet{violet} are the output of a linear transformation with respect to the input of a linear transformation.
+                We cannot directly apply this on matrices, as they are 4D tensors.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[draw, circle] (o) at (0, 0) {$Z = XW$};
+
+                        \node[violet] at (-6, -1) {\shortstack{gradients we\\propagate back}};
+                        \node[violet] at (6, -1) {\shortstack{gradients coming\\our way}};
+                        \node[violet] at (4, -3) {\shortstack{local weights'\\gradient}};
+
+                        \draw
+                        (-4, 0.25) edge[->, bend left=15, above] node{$X$} (o)
+                        (-4, -0.25) edge[<-, bend right=15, below, violet] node{$\pdif{\text{Loss}}{X}$} (o)
+                        (o) edge[->, bend left=15, above] node{$Z$} (4, 0.25)
+                        (o) edge[<-, bend right=15, below, violet] node{$\pdif{\text{Loss}}{Z}$} (4, -0.25)
+                        (-0.25, -4) edge[->, bend left=15, left] node{$W$} (o)
+                        (0.25, -4) edge[<-, bend right=15, right, violet] node{$\pdif{\text{Loss}}{W}$} (o);
+                    \end{tikzpicture}
+                \end{center}
+                \begin{align*}
+                    X & \in \mathbb{R}^{N \times D} \\
+                    W & \in \mathbb{R}^{D \times M} \\
+                    B & \in \mathbb{R}^{N \times M} \\
+                    Z & \in \mathbb{R}^{N \times M} \\
+                    Z & = XW + B \\
+                    \intertext{consider a particular case, where;}
+                    N & = 2 \\
+                    D & = 2 \\
+                    M & = 3 \\
+                    X & = \begin{bmatrix}
+                        x_{1, 1} & x_{1, 2} \\
+                        x_{2, 1} & x_{2, 2}
+                    \end{bmatrix} \\
+                    W & = \begin{bmatrix}
+                        w_{1, 1} & w_{1, 2} & w_{1, 3} \\
+                        w_{2, 1} & w_{2, 2} & w_{2, 3}
+                    \end{bmatrix} \\
+                    B & = \begin{bmatrix}
+                        \vec{b} \\ \vec{b}
+                    \end{bmatrix} & \text{same bias} \\
+                    & = \begin{bmatrix}
+                        b_1 & b_2 & b_3 \\
+                        b_1 & b_2 & b_3
+                    \end{bmatrix} \\
+                    Z & = \begin{bmatrix}
+                        x_{1, 1}w_{1, 1} + x_{1, 2}w_{2, 1} + b_1 & x_{1, 1}w_{1, 2} + x_{1, 2}w_{2, 2} + b_2 & x_{1, 1}w_{1, 3} + x_{1, 2}w_{2, 3} + b_3 \\
+                        x_{2, 1}w_{1, 1} + x_{2, 2}w_{2, 1} + b_1 & x_{2, 1}w_{1, 2} + x_{2, 2}w_{2, 2} + b_2 & x_{2, 1}w_{1, 3} + x_{2, 2}w_{2, 3} + b_3
+                    \end{bmatrix} \\
+                    \intertext{assume we already receive the following through backpropagation (notice it has the same shape as $Z$ - generally the derivative of a scalar with respect to a matrix has the same shape as the matrix)}
+                    \pdif{\text{Loss}}{Z} & = \begin{bmatrix}
+                        \pdif{\text{Loss}}{z_{1, 1}} & \pdif{\text{Loss}}{z_{1, 2}} & \pdif{\text{Loss}}{z_{1, 3}} \\
+                        \pdif{\text{Loss}}{z_{2, 1}} & \pdif{\text{Loss}}{z_{2, 2}} & \pdif{\text{Loss}}{z_{2, 3}}
+                    \end{bmatrix} \\
+                    \intertext{to update weights, we need to calculate the following;}
+                    \pdif{\text{Loss}}{W} & = \pdif{\text{Loss}}{Z} \cdot \pdif{Z}{W} \\
+                    \pdif{\text{Loss}}{b} & = \pdif{\text{Loss}}{Z} \cdot \pdif{Z}{b} \\
+                    \intertext{the following is needed to pass the gradient on to the lower layer;}
+                    \pdif{\text{Loss}}{X} & = \pdif{\text{Loss}}{Z} \cdot \pdif{Z}{X}
+                \end{align*}
+                Looking at calculating this for a single value, we can visualise it as follows;
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm]
+                        \node[draw, circle] (x) at (0, 0) {$x_{1, 1}$};
+                        \node[draw, circle] (z1) at (3, 2) {$z_{1, 1}$};
+                        \node[draw, circle] (z2) at (3, 0) {$z_{1, 2}$};
+                        \node[draw, circle] (z3) at (3, -2) {$z_{1, 3}$};
+
+                        \draw
+                        (-3, 0.25) edge[->, bend left=15] (x)
+                        (-3, -0.25) edge[<-, bend right=15, below, violet] node{$\pdif{\text{Loss}}{x_{1, 1}}$} (x)
+                        (x) edge[->, above] node{$w_{1, 1}$} (z1)
+                        (x) edge[->, above] node{$w_{1, 2}$} (z2)
+                        (x) edge[->, above] node{$w_{1, 3}$} (z3)
+                        (z1) edge[->, bend left=15] (6, 2.25)
+                        (z1) edge[<-, bend right=15, below, violet] node{$\pdif{\text{Loss}}{z_{1, 1}}$} (6, 1.75)
+                        (z2) edge[->, bend left=15] (6, 0.25)
+                        (z2) edge[<-, bend right=15, below, violet] node{$\pdif{\text{Loss}}{z_{1, 2}}$} (6, -0.25)
+                        (z3) edge[->, bend left=15] (6, -1.75)
+                        (z3) edge[<-, bend right=15, below, violet] node{$\pdif{\text{Loss}}{z_{1, 3}}$} (6, -2.25);
+                    \end{tikzpicture}
+                \end{center}
+                This gives us the following result;
+                $$\pdif{L}{x_{1, 1}} = \pdif{L}{z_{1, 1}}w_{1, 1} + \pdif{L}{z_{1, 2}}w_{1, 2} + \pdif{L}{z_{1, 3}}w_{1, 3}$$
+                Note that the chain rule is already applied here, as we can think can think of the weights as derivatives;
+                $$w_{1, 1} = \pdif{z_{1, 1}}{x_{1, 1}}$$
+                Therefore, for all of $X$, using the result above for a single element;
+                \begin{align*}
+                    \pdif{\text{Loss}}{X} & = \begin{bmatrix}
+                        \pdif{L}{z_{1, 1}}w_{1, 1} + \pdif{L}{z_{1, 2}}w_{1, 2} + \pdif{L}{z_{1, 3}}w_{1, 3} & \pdif{L}{z_{1, 1}}w_{2, 1} + \pdif{L}{z_{1, 2}}w_{2, 2} + \pdif{L}{z_{1, 3}}w_{2, 3} \\
+                        \pdif{L}{z_{2, 1}}w_{1, 1} + \pdif{L}{z_{2, 2}}w_{1, 2} + \pdif{L}{z_{2, 3}}w_{1, 3} & \pdif{L}{z_{2, 1}}w_{2, 1} + \pdif{L}{z_{2, 2}}w_{2, 2} + \pdif{L}{z_{2, 3}}w_{2, 3}
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        \pdif{\text{Loss}}{z_{1, 1}} & \pdif{\text{Loss}}{z_{1, 2}} & \pdif{\text{Loss}}{z_{1, 3}} \\
+                        \pdif{\text{Loss}}{z_{2, 1}} & \pdif{\text{Loss}}{z_{2, 2}} & \pdif{\text{Loss}}{z_{2, 3}}
+                    \end{bmatrix} \begin{bmatrix}
+                        w_{1, 1} & w_{2, 1} \\
+                        w_{1, 2} & w_{2, 2} \\
+                        w_{1, 3} & w_{2, 3}
+                    \end{bmatrix} \\
+                    & = \pdif{\text{Loss}}{Z}W^\top
+                \end{align*}
+                A similar process can be applied to calculate the derivatives with respect to the weights;
+                \begin{align*}
+                    \pdif{L}{w_{1, 1}} & = \pdif{L}{z_{1, 1}}x_{1, 1} + \pdif{L}{z_{2, 1}}x_{2, 1} \\
+                    \pdif{\text{Loss}}{W} & = \begin{bmatrix}
+                        x_{1, 1} & x_{2, 1} \\
+                        x_{1, 2} & x_{2, 2}
+                    \end{bmatrix} \begin{bmatrix}
+                        \pdif{\text{Loss}}{z_{1, 1}} & \pdif{\text{Loss}}{z_{1, 2}} & \pdif{\text{Loss}}{z_{1, 3}} \\
+                        \pdif{\text{Loss}}{z_{2, 1}} & \pdif{\text{Loss}}{z_{2, 2}} & \pdif{\text{Loss}}{z_{2, 3}}
+                    \end{bmatrix} \\
+                    & = X^\top\pdif{\text{Loss}}{Z}
+                \end{align*}
+                Finally, we still need to calculate the bias, which can be done as follows (note that $\vec{1}$ is a column vector of ones, hence $\vec{1}^\top$ is a row vector of ones);
+                \begin{align*}
+                    \pdif{\text{Loss}}{b} & = \vec{1}^\top\pdif{\text{Loss}}{Z}
+                \end{align*}
+            \subsubsection*{Partial Derivatives for Vectors and Matrices}
+                Note that we do not need to remember these, but it can be helpful;
+                \begin{align*}
+                    \pdif{y}{\vec{x}} & = \begin{bmatrix}
+                        \pdif{y}{x_1} & \pdif{y}{x_2} & \cdots & \pdif{y}{x_n}
+                    \end{bmatrix} & \text{scalar-by-vector} \\
+                    \pdif{\vec{y}}{\vec{x}} & = \begin{bmatrix}
+                        \pdif{y_1}{x_1} & \pdif{y_1}{x_2} & \cdots & \pdif{y_1}{x_n} \\
+                        \vdots & \vdots & \ddots & \vdots \\
+                        \pdif{y_m}{x_1} & \pdif{y_m}{x_2} & \cdots & \pdif{y_m}{x_n} \\
+                    \end{bmatrix} & \text{vector-by-vector} \\ \\
+                    z & = Wx \\
+                    \pdif{z}{x} & = W \\ \\
+                    z & = x \\
+                    \pdif{z}{x} & = I \\ \\
+                    z & = xW \\
+                    \pdif{z}{x} & = W^\top \\ \\
+                    z & = Wx \\
+                    \delta & = \pdif{J}{z} \\
+                    \pdif{J}{W} & = \delta^\top x \\ \\
+                    z & = xW \\
+                    \delta & = \pdif{J}{z} \\
+                    \pdif{J}{W} & = x^\top \delta
+                \end{align*}
+            \subsubsection*{Backpropagation of Activation Functions}
+                Consider the following elementwise application of activation functions;
+                \begin{align*}
+                    A & = g(Z) \\
+                    & = \begin{bmatrix}
+                        g(z_{1, 1}) & g(z_{1, 2}) \\
+                        g(z_{2, 1}) & g(z_{2, 2})
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        a_{1, 1} & a_{1, 2} \\
+                        a_{2, 1} & a_{2, 2}
+                    \end{bmatrix}
+                \end{align*}
+                It's important to note that since the activation function doesn't take any other inputs, we can use the derivative $g^\prime$ of our activation function $g$ in the following;
+                $$\pdif{\text{Loss}}{z_{1, 1}} = \pdif{\text{Loss}}{a_{1, 1}} \cdot \pdif{a_{1, 1}}{z_{1, 1}} = \pdif{\text{Loss}}{a_{1, 1}} g^\prime(z_{1, 1})$$
+                Using this, we can generalise to matrix form (note that $\circ$ is the Hadamard product, which is element-wise multiplication);
+                \begin{align*}
+                    \pdif{\text{Loss}}{Z} & = \pdif{\text{Loss}}{A} \cdot \pdif{A}{Z} \\
+                    & = \begin{bmatrix}
+                        \pdif{\text{Loss}}{a_{1, 1}} g^\prime(z_{1, 1}) & \pdif{\text{Loss}}{a_{1, 2}} g^\prime(z_{1, 2}) \\
+                        \pdif{\text{Loss}}{a_{2, 1}} g^\prime(z_{2, 1}) & \pdif{\text{Loss}}{a_{2, 2}} g^\prime(z_{2, 2})
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        \pdif{\text{Loss}}{a_{1, 1}} & \pdif{\text{Loss}}{a_{1, 2}} \\
+                        \pdif{\text{Loss}}{a_{2, 1}} & \pdif{\text{Loss}}{a_{2, 2}}
+                    \end{bmatrix} \circ \begin{bmatrix}
+                        g^\prime(z_{1, 1}) & g^\prime(z_{1, 2}) \\
+                        g^\prime(z_{2, 1}) & g^\prime(z_{2, 2})
+                    \end{bmatrix} \\
+                    & = \pdif{\text{Loss}}{A} \circ g^\prime(Z)
+                \end{align*}
+                A reference of derivatives for common activation functions are as follows;
+                \begin{align*}
+                    g(z) & = z & \text{linear} \\
+                    g^\prime(z) & = 1 \\ \\
+                    g(z) & = \frac{1}{1 + e^{-z}} & \text{sigmoid} \\
+                    g^\prime(z) & = g(z)(1 - g(z)) \\ \\
+                    g(z) & = \frac{e^z - e^{-z}}{e^z + e^{-z}} & \text{tanh} \\
+                    g^\prime(z) & = 1 - g(z)^2 \\ \\
+                    g(z) & = \begin{cases}
+                        z & \text{if } z > 0 \\
+                        0 & \text{otherwise}
+                    \end{cases} & \text{ReLU} \\
+                    g^\prime(z) & = \begin{cases}
+                        1 & \text{if } z > 0 \\
+                        0 & \text{otherwise}
+                    \end{cases}
+                \end{align*}
+                Softmax is usually applied with cross-entropy loss in the output layer - their joint derivative has a nice form (note that $y_i$ is a vector and $y$ is a matrix / batch of vectors);
+                \begin{align*}
+                    \hat{y}_i & = \text{softmax}(z_i) \\
+                    \text{softmax}(z_{i, c}) & = \frac{e^{z_{i, c}}}{\summation{k}{} e^{z_{i, k}}} \\
+                    L & = -\frac{1}{N}\summation{i=1}{N} \summation{c=1}{C} y_{i, c}\log\left(\hat{y}_{i, c}\right) \\
+                    \pdif{L}{z} & = \frac{1}{N}\left(\hat{y} - y\right)
+                \end{align*}
+            \subsubsection*{Gradient Descent}
+                As before, the general formula for applying gradient descent is as follows (note that the equals does not refer to equality but rather an update of value);
+                $$W = W - \alpha \pdif{L}{W}$$
+                However, this assumes that all gradients can be computed, therefore all network functions and the losses need to be differentiable.
+                The general algorithm is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item initialise weights randomly
+                    \item loop until convergence;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item compute gradient based on \textbf{whole dataset}
+                            \item update weights
+                        \end{itemize}
+                    \item finish
+                \end{enumerate}
+                It's important to ensure we calculate \textbf{all} gradients \textbf{before} updating weights, otherwise we may have errors arising from the weights being changed before they are used in backpropagation.
+                Additionally, this algorithm for gradient descent isn't feasible for large datasets.
+                \medskip
+
+                In contrast, \textbf{stochastic} gradient descent updates the weights after each datapoint.
+                However, this can be noisy since there is very restricted information from a single point.
+                A balance between the two approaches is \textbf{mini-batched} gradient descent, which is what is mostly used in practice (this has less noise as the gradient is averaged out in a batch);
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item initialise weights randomly
+                    \item loop until convergence;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item shuffle dataset and split into batches
+                            \item loop over batches of datapoints;
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item compute gradient based on batch
+                                    \item update weights
+                                \end{itemize}
+                        \end{itemize}
+                    \item finish
+                \end{enumerate}
+            \subsubsection*{Learning Rates}
+                It's also important to consider the learning rate - if it is too low, it will take too long to converge.
+                On the other hand, if the learning rate is too high, we will likely step over the optimal values.
+                \medskip
+
+                An adaptive learning rate follows the intuition that each parameter has a different learning rate.
+                It takes bigger steps if a parameter hasn't been updated much, and smaller steps if it has been getting big updates.
+                Examples of this method that work quite well are \textit{Adam} and \textit{AdaDelta}.
+                \medskip
+
+                A very simple approach to an adaptive learning rate is to decay it, such that we have $\alpha \leftarrow \alpha d$, where $d \in [0, 1]$ is a decay factor.
+                This follows the intuition that we want to take smaller and smaller steps as we get closer to the minimum.
+                This can be updated on every epoch, after a certain number of epochs, or when performance on the validation set hasn't improved for multiple epochs.
+            \subsubsection*{Weight Initialisation}
+                In order to iteratively update our weights, we need to start them at some value.
+                Some approaches are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{zeroes}
+                        \smallskip
+
+                        It's common to set the biases to 0, since it makes sense for our network to have no bias to begin with.
+                        However, we shouldn't set all weights to 0.
+                    \item \textbf{normal}
+                        \smallskip
+
+                        We want to avoid setting all weights to 0, otherwise they will all learn the same updates.
+                        One option is to draw them \textbf{randomly} from a normal distribution, commonly with a mean of 0 and a variance of 1 or 0.1.
+                    \item \textbf{Xavier Glorot}
+                        \smallskip
+
+                        In this we draw values from a uniform distribution, where $n_j$ is the number neurons in the previous layer, and $n_{j + 1}$ is the number in the next layer;
+                        $$W \sim U \left[-\frac{\sqrt{6}}{\sqrt{n_j + n_{j + 1}}}, \frac{\sqrt{6}}{\sqrt{n_j + n_{j + 1}}}\right]$$
+                        If we have fewer neurons, we draw larger weights and vice versa.
+                \end{itemize}
+            \subsubsection*{Randomness}
+                Different random initialisations can lead to different results.
+                One solution would be to set the seeds for all random number generators.
+                However, another problem is that GPUs can finish jobs in a random order, which may lead to rounding issues adding up (something we can't control).
+                To solve this, we can embrace the randomness and report the average.
+            \subsubsection*{Normalisation}
+                We often want to normalise our values, since weight updates are proportional to the input.
+                These scaling values are calculated on the \textbf{training set only} (can lead to incorrect results if we normalise on test data too) and typically differently for each feature.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{min-max} \hfill scale smallest value to $a$ and largest to $b$
+                        $$X^\prime = a + \frac{(X - X_\text{min})(b - a)}{X_\text{max} - X_\text{min}}$$
+                    \item \textbf{standardisation (z-normalisation)} \hfill scale to have mean 0 and standard deviation 1
+                        $$X^\prime = \frac{X - \mu}{\sigma}$$
+                \end{itemize}
+            \subsubsection*{Gradient Checking}
+                We can check if our gradient descent is implemented correctly as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item from the weight difference before and after gradient descent
+                        $$w^{(t)} = w^{(t - 1)} - \alpha\pdif{L(w)}{w} \Rightarrow \pdif{L(w)}{w} = \frac{w^{(t - 1)} - w^{(t)}}{\alpha}$$
+                    \item actually changing the weight and measuring a change in loss
+                        $$\pdif{L(w)}{w} = \limit{\epsilon}{0} \frac{L(w + \epsilon) - L(w - \epsilon)}{2\epsilon}$$
+                \end{itemize}
+                Both should result in similar values.
+            \subsubsection*{Overfitting}
+                If a neural network has enough capacity, it can easily overfit to the training set.
+                For example, consider a network with 100 neurons and 100 datapoints - each neuron can simply memorise the answer for each datapoint.
+                For this reason, it's important to use \textbf{held-out} validation and test sets.
+                \medskip
+
+                There exists a correlation between the capacity of a neural network and its ability to overfit - if there are many parameters then the model can memorise the data instead of learning patterns.
+                If the network is underfitting, we can attempt to fix it by increasing the number of neurons / layers and vice versa for overfitting.
+                Ideally, we can fix overfitting by having \textbf{more data}, but this isn't always feasible.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            no markers, domain=0:10, samples=50,
+                            axis lines*=left, xlabel=epochs, ylabel=accuracy,
+                            height=5cm, width=10cm,
+                            enlargelimits=false,
+                            xticklabels={,,},
+                            yticklabels={,,},
+                            xmin=0, xmax=10,
+                            ymin=0, ymax=10
+                        ]
+                            \addplot[violet, thick] {-(\x - 10) * (\x - 10) / 9 + 11};
+                            \addplot[blue, thick] {-(\x - 6) * (\x - 6) / 7 + 5};
+                        \end{axis}
+                    \end{tikzpicture}
+                \end{center}
+                Note that the model will continue to become more accurate on the \violet{training data}, but accuracy on the \blue{validation data} will likely get worse as it overfits.
+                We want to validate on the validation data every epoch, storing the best model so far, and stop training when the performance hasn't improved for a number of epochs.
+                \medskip
+
+                Another approach is \textbf{regularisation}, where we add information or constraints to stop the model from overfitting.
+                An example of this is to restrict the weights of the model.
+                The forms of regularisation are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{L2 regularisation}
+                        \smallskip
+
+                        We add the squared weights to the loss function (our new loss function is now $J(\theta)$).
+                        We therefore penalise large weights, and push them towards 0 - this encourages sharing between features since small weights aren't penalised as much.
+                        $$J(\theta) = \text{Loss}(y, \hat{y}) + \lambda \summation{w}{} w^2 \Rightarrow w \leftarrow w - \alpha\left(\pdif{\text{Loss}}{w} + 2\lambda w\right)$$
+                        Since the weights are in the update, it reduces the weight on every update.
+                    \item \textbf{L1 regularisation}
+                        \smallskip
+
+                        Similar to the above, but using absolute weights - this encourages sparsity as the model only keeps the most important features (by encouraging unnecessary weights towards 0);
+                        $$J(\theta) = \text{Loss}(y, \hat{y}) + \lambda \summation{w}{} | w | \Rightarrow w \leftarrow w - \alpha\left(\pdif{\text{Loss}}{w} + \lambda \cdot \text{sign}(w)\right)$$
+                \end{itemize}
+                Another approach is \textbf{dropout}.
+                This sets some neural activations to 0, and typically we drop around half of the activations in a layer.
+                This prevents the network from relying on any one node.
         \subsection*{Week 7 (Unsupervised Learning)}
         \subsection*{Week 8 (Genetic Algorithms)}
 \end{document}
