@@ -1360,4 +1360,154 @@
                     \item since the BFS is degenerate, we can pivot on $y_{p, q} \neq 0$, corresponding to an artificial $\xi_p$ and original variable $x_q$, and keep $\zeta^* = 0$
                     \item all $\xi_i$ variables can therefore be removed from the basis, obtaining a BFS for the original LP
                 \end{enumerate}
+        \subsection*{Lecture 7}
+            \subsubsection*{Example}
+                We can modify the running example as follows;
+                \begin{maxi*}|l|
+                    {}{y = 3x_1 + 4x_2}
+                    {}{}
+                    \addConstraint{x_1 + x_2}{\leq 4}
+                    \addConstraint{2x_1 + x_2}{\leq 5}
+                    \addConstraint{x_2}{\geq 1}
+                    \addConstraint{x_1, x_2}{\geq 0}
+                \end{maxi*}
+                We can first transform this into the standard form as follows (by adding slack variables and subtracting an excess variable), and then adding \violet{artificial variables};
+                \begin{mini*}|l|
+                    {}{z = -3x_1 - 4x_2}
+                    {}{-}
+                    \addConstraint{x_1 + x_2 + x_3}{= 4}
+                    \addConstraint{2x_1 + x_2 + x_4}{= 5}
+                    \addConstraint{x_2 - x_5 + \violet{x_6}}{= 1}
+                    \addConstraint{x_1, x_2, x_3, x_4, x_5, \violet{x_6}}{\geq 0}
+                \end{mini*}
+                This forms the auxiliary LP, where we can take the initial index set $I = \{3, 4, 6\}$;
+                \begin{mini*}|l|
+                    {}{\zeta = x_6}
+                    {}{}
+                    \addConstraint{x_1 + x_2 + x_3}{= 4}
+                    \addConstraint{2x_1 + x_2 + x_4}{= 5}
+                    \addConstraint{x_2 - x_5 + x_6}{= 1}
+                    \addConstraint{x_1, x_2, x_3, x_4, x_5, x_6}{\geq 0}
+                \end{mini*}
+                We can now form the following simplex tableau (for phase 1);
+                \begin{center}
+                    \begin{tabular}{c|ccccccc|c}
+                        BV & $\zeta$ & $x_1$ & $x_2$ & $x_3$ & $x_4$ & $x_5$ & $x_6$ & RHS \\
+                        \hline
+                        $\zeta$ & 1 & 0 & 1 & 0 & 0 & $-1$ & 0 & 1 \\
+                        $x_3$ & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 4 \\
+                        $x_4$ & 0 & 2 & 1 & 0 & 1 & 0 & 0 & 5 \\
+                        $x_6$ & 0 & 0 & $\red{1}$ & 0 & 0 & $-1$ & 1 & 1 \\
+                        \hline
+                        $\zeta$ & 1 & 0 & 0 & 0 & 0 & 0 & $-1$ & 0 \\
+                        \teal{$x_3$} & \teal{0} & \teal{1} & \teal{0} & \teal{1} & \teal{0} & \teal{1} & $-1$ & \teal{3} \\
+                        \teal{$x_4$} & \teal{0} & \teal{2} & \teal{0} & \teal{0} & \teal{1} & \teal{1} & $-1$ & \teal{4} \\
+                        \teal{$x_2$} & \teal{0} & \teal{0} & \teal{1} & \teal{0} & \teal{0} & \teal{$-1$} & 1 & \teal{1}
+                    \end{tabular}
+                \end{center}
+                From this, we have $\zeta^* = 0$, with an index set of $I = \{3, 4, 2\}$ - also proving that the original LP is feasible.
+                Note that we can also use the part of the phase 1 tableau in \teal{teal} for our second phase.
+            \subsubsection*{Min-Max Problems}
+                Consider a family of linear functions: $y_i(x) = c(i)^\top x + d(i)$, and also set
+                $$\phi(x) = \max_{i = 1, \dots, I} \left\{ c(i)^\top x + d(i) \right\} \text{ for } c(i) \in \mathbb{R}^n, d(i) \in \mathbb{R}$$
+                Then the following is called a \textbf{min-max problem};
+                \begin{mini*}|l|
+                    {}{\phi(x)}
+                    {}{}
+                    \addConstraint{Ax}{= b}
+                    \addConstraint{x}{\geq 0}
+                \end{mini*}
+                Consider the following scalar case, where $n = 1$ (note that the lines have corresponding $c(i)$ gradients), and $\phi(x)$ is the line in \violet{violet};
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (0, 0) edge[->] (0, 5)
+                        (0, 0) edge[->] (8, 0);
+
+                        \draw
+                        (0, 4) edge[dashed] (2, 0)
+                        (0, 3) edge[dashed] (5, 0)
+                        (0, 2) edge[dashed] (8, 2)
+                        (0, 1) edge[dashed] (8, 4);
+
+                        \node at (-0.5, 4) {$d(1)$};
+                        \node at (-0.5, 3) {$d(2)$};
+                        \node at (-0.5, 1) {$d(I)$};
+
+                        \draw[thick, violet] (0, 4) -- (5/7, 18/7) -- (5/3, 2) -- (8/3, 2) -- (8, 4);
+                    \end{tikzpicture}
+                \end{center}
+                However, we can convert a Min-Max (MM) problem into a linear program (LP) as follows;
+                \begin{mini*}|l|
+                    {}{z}
+                    {}{}
+                    \addConstraint{z}{\geq c(i)^\top x + d(i)\ \ \ \forall i = 1, \dots, I}
+                    \addConstraint{Ax}{= b}
+                    \addConstraint{x}{\geq 0}
+                \end{mini*}
+                If $(x^*_{LP}, z^*_{LP})$ is an optimal solution of this LP, then $x^*_{LP}$ is also an optimal solution of Min-Max, and Min-Max has optimal value $\phi(x^*_{LP}) = z^*_{LP}$.
+                \medskip
+
+                We can first check that an optimal solution in LP, $(x^*_{LP}, z^*_{LP})$, is also feasible in MM.
+                It satisfies the constraint $Ax = b$, since it is also present in LP, and similarly will also satisfy $x \geq 0$, therefore it is feasible.
+                From here, we can form a proof by contradiction, that there exists a better solution in MM than the one obtained from $x^*_{LP}$;
+                $$\exists x^*_{MM}\ \left[\phi^*_{MM} = \phi(x^*_{MM}) < \phi(x^*_{LP})\right]$$
+                We can validate that this $x^*_{MM}$ also obviously satisfies the $Ax = b$ and $x \geq 0$ constraints in LP, since it is also present in MM.
+                However - we need to ensure that it satisfies the additional constraint in LP;
+                $$\phi^*_{MM} = \max_{j = 1, \dots, I} \left\{ c(j)^\top x^*_{MM} + d(j) \right\}$$
+                Since we are taking the maximal value, by definition of $\phi$, we can be certain it also satisfies that constraint.
+                Going back to our result for $z^*_{LP}$, we have the following;
+                $$z^*_{LP} \geq \max_{i = 1, \dots, I} \left\{ c(i)^\top x^*_{LP} + d(i) \right\} = \phi(x^*_{LP})$$
+                By our assumption, we have a better value in $\phi(x^*_{MM})$, therefore;
+                $$z^*_{LP} \geq \phi(x^*_{LP}) > \phi(x^*_{MM})$$
+                This however causes a contradiction, since we have also proven that $x^*_{MM}$ is also feasible in LP, hence it would be the optimal value, such that $z^*_{LP} = \phi(x^*_{MM})$.
+            \subsubsection*{Tutorial}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item It's a long worded question (hence not typing it out).
+                        \smallskip
+
+                        Note that the profits are divided by a thousand, and the hours are divided by 10 for brevity.
+                        \begin{maxi*}|l|
+                            {}{y = 6x_1 + 4x_2 + 3x_3}
+                            {}{}
+                            \addConstraint{4x_1 + 5x_2 + 3x_3}{\leq 12}
+                            \addConstraint{3x_1 + 4x_2 + 2x_3}{\leq 10}
+                            \addConstraint{4x_1 + 2x_2 + x_3}{\leq 8}
+                            \addConstraint{x_1, x_2, x_3}{\geq 0}
+                        \end{maxi*}
+                        This results in the following, after conversion to standard form;
+                        \begin{mini*}|l|
+                            {}{z = -6x_1 - 4x_2 - 3x_3}
+                            {}{-}
+                            \addConstraint{4x_1 + 5x_2 + 3x_3 + x_4}{= 12}
+                            \addConstraint{3x_1 + 4x_2 + 2x_3 + x_5}{= 10}
+                            \addConstraint{4x_1 + 2x_2 + x_3 + x_6}{= 8}
+                            \addConstraint{x_1, x_2, x_3, x_4, x_5, x_6}{\geq 0}
+                        \end{mini*}
+                        We can now use an all slack basis, hence $I = \{4, 5, 6\}$;
+                        \begin{center}
+                            \begin{tabular}{c|cccccc|c|c}
+                                BV & $x_1$ & $x_2$ & $x_3$ & $x_4$ & $x_5$ & $x_6$ & RHS & ratios \\
+                                \hline
+                                $z$ & 6 & 4 & 3 & 0 & 0 & 0 & 0 & \\
+                                $x_4$ & 4 & 5 & 3 & 1 & 0 & 0 & 12 & 3 \\
+                                $x_5$ & 3 & 4 & 2 & 0 & 1 & 0 & 10 & $\frac{10}{3}$ \\
+                                $x_6$ & $\red{4}$ & 2 & 1 & 0 & 0 & 1 & 8 & 2 \\
+                                \hline
+                                $z$ & 0 & 1 & $\frac{3}{2}$ & 0 & 0 & $-\frac{3}{2}$ & $-12$ & \\
+                                $x_4$ & 0 & 3 & $\red{2}$ & 1 & 0 & $-1$ & 4 & 2 \\
+                                $x_5$ & 0 & $\frac{5}{2}$ & $\frac{5}{4}$ & 0 & 1 & $-\frac{3}{4}$ & 4 & $\frac{16}{5}$ \\
+                                $x_1$ & 1 & $\frac{1}{2}$ & $\frac{1}{4}$ & 0 & 0 & $\frac{1}{4}$ & 2 & 8 \\
+                                \hline
+                                \multicolumn{9}{c}{$\vdots$}
+                            \end{tabular}
+                        \end{center}
+                        \begin{align*}
+                            \vec{x^*} & = \left(\frac{3}{2}, 0, 2, 0, \frac{3}{2}, 0\right) \\
+                            z^* & = -15 \\
+                            y^* & = \text{£}15,000
+                        \end{align*}
+                \end{enumerate}
+
 \end{document}
