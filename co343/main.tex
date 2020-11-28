@@ -18,6 +18,7 @@
 \usepackage{tipa}
 \usepackage{pgfplots}
 \usepackage{adjustbox}
+\usepackage[nocomma]{optidef}
 
 % tikz libraries
 \usetikzlibrary{
@@ -33,7 +34,7 @@
 }
 
 \pgfplotsset{compat=1.16}
-
+\usepgfplotslibrary{fillbetween}
 \pgfmathdeclarefunction{gauss}{2}{%
   \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
 }
@@ -43,8 +44,8 @@
 
 % shorthand for verbatim
 % this clashes with logicproof, so maybe fix this at some point?
-\catcode`~=\active
-\def~#1~{\texttt{#1}}
+% \catcode`~=\active
+% \def~#1~{\texttt{#1}}
 
 % code listing
 \lstdefinestyle{main}{
@@ -208,7 +209,7 @@
 
 % actual document
 \begin{document}
-    {\sc Computing $3^\text{rd}$ Year Notes} \hfill ~https://github.com/lin-e/imperial-revision~
+    {\sc Computing $3^\text{rd}$ Year Notes} \hfill \texttt{https://github.com/lin-e/imperial-revision}
     \rule{\textwidth}{0.1pt}
     \section*{CO343 - Operations Research \hfill (60016)}
         \subsection*{Lecture 1}
@@ -604,12 +605,13 @@
             The number of distinct BFS is usually less than that upper bound however, as $B(I)$ may be singular (non-invertible), or the corresponding BS may not be feasible.
             \subsubsection*{Example}
                 Consider the following optimisation problem;
-                $$\begin{matrix}
-                    \text{maximise} & y = 3x_1 + 4x_2 \\
-                    \text{subject to} & x_1 + x_2 \leq 4 \\
-                    & 2x_1 + x_2 \leq 5 \\
-                    & x_1, x_2 \geq 0
-                \end{matrix}$$
+                \begin{maxi*}|l|
+                    {}{y = 3x_1 + 4x_2}
+                    {}{}
+                    \addConstraint{x_1 + x_2}{\leq 4}
+                    \addConstraint{2x_1 + x_2}{\leq 5}
+                    \addConstraint{x_1, x_2}{\geq 0}
+                \end{maxi*}
                 This has the following graphical representation;
                 \begin{center}
                     \begin{tikzpicture}[x=1.5cm, y=0.75cm]
@@ -623,12 +625,13 @@
                     \end{tikzpicture}
                 \end{center}
                 We then want to convert this into standard form as follows;
-                $$\begin{matrix}
-                    \text{minimise} & z = -3x_1 - 4x_2 \\
-                    \text{subject to} & x_1 + x_2 + x_3 = 4 \\
-                    & 2x_1 + x_2 + x_4 = 5 \\
-                    & x_1, x_2, x_3, x_4 \geq 0
-                \end{matrix}$$
+                \begin{mini*}|l|
+                    {}{z = -3x_1 - 4x_2}
+                    {}{-}
+                    \addConstraint{x_1 + x_2 + x_3}{= 4}
+                    \addConstraint{2x_1 + x_2 + x_4}{= 5}
+                    \addConstraint{x_1, x_2, x_3, x_4}{\geq 0}
+                \end{mini*}
                 From this, we have 4 columns, and let us choose our index set $I = \{1, 2\}$.
                 Therefore;
                 \begin{align*}
@@ -710,12 +713,13 @@
                 \medskip
 
                 Referring back to the previous example;
-                $$\begin{matrix}
-                    \text{minimise} & z = -3x_1 - 4x_2 \\
-                    \text{subject to} & x_1 + x_2 + x_3 = 4 \\
-                    & 2x_1 + x_2 + x_4 = 5 \\
-                    & x_1, x_2, x_3, x_4 \geq 0
-                \end{matrix}$$
+                \begin{mini*}|l|
+                    {}{z = -3x_1 - 4x_2}
+                    {}{-}
+                    \addConstraint{x_1 + x_2 + x_3}{= 4}
+                    \addConstraint{2x_1 + x_2 + x_4}{= 5}
+                    \addConstraint{x_1, x_2, x_3, x_4}{\geq 0}
+                \end{mini*}
                 Consider the solution we get when;
                 \begin{align*}
                     I & = \{3, 4\} \\
@@ -746,4 +750,325 @@
                     \red{x_2} & = \red{4 - x_1 - x_3}
                 \end{align*}
                 We can see, by looking at the coefficients, that $x_1$ and $x_3$ will cause the minimal solution to increase if they weren't zero.
+        \subsection*{Lecture 4}
+            \subsubsection*{Simplex Tableau}
+                If we consider a basic representation of the following form, where the reduced cost vector $\vec{r} = \vec{c_N} - \mat{N}^\top\mat{B}^{-\top}\vec{c_B}$;
+                \begin{align*}
+                    z - \vec{r}^\top\vec{x_N} & = \vec{c_B}^\top\mat{B}^{-1}\vec{b} \\
+                    \vec{x_B} + \mat{B}^{-1}\mat{N}\vec{x_N} & = \mat{B}^{-1}\vec{b}
+                \end{align*}
+                We can represent it in the following \textbf{tableau};
+                \begin{center}
+                    \begin{tabular}{c|ccc|c}
+                        BV & $z$ & $\vec{x_B}^\top$ & $\vec{x_N}^\top$ & RHS \\
+                        \hline
+                        $z$ & 1 & $\vec{0}^\top$ & $-\vec{r}^\top$ & $\vec{c_B}^\top\mat{B}^{-1}\vec{b}$ \\
+                        $\vec{x_B}$ & $\vec{0}$ & $\mat{I}$ & $\mat{B}^{-1}\mat{N}$ & $\mat{B}^{-1}\vec{b}$
+                    \end{tabular}
+                \end{center}
+                Note that here $\mat{I} \in \mathbb{R}^{m \times m}$ is an identity matrix.
+                Also note the separation of the basic and non-basic variables for the tableau - typically we will simply write it in lexicographical order.
+                If $\mat{B}^{-1}\vec{b} \geq 0$ then we can denote it as a BFS.
+                \medskip
+
+                Consider the previous example;
+                \begin{align*}
+                    z & = -3x_1 - 4x_2 \\
+                    x_3 & = 4 - x_1 - x_2 \\
+                    x_4 & = 5 - 2x_1 - x_2
+                \end{align*}
+                Note that the basic variables have a specific property where they are 0s in the columns, other than a 1 in its respective row;
+                \begin{center}
+                    \begin{tabular}{c|ccccc|c}
+                        BV & $z$ & $x_1$ & $x_2$ & $x_3$ & $x_4$ & RHS \\
+                        \hline
+                        $z$ & 1 & 3 & 4 & 0 & 0 & 0 \\
+                        $x_3$ & 0 & 1 & 1 & 1 & 0 & 4 \\
+                        $x_4$ & 0 & 2 & 1 & 0 & 1 & 5
+                    \end{tabular}
+                \end{center}
+                Consider the basic representation from the example, with the index set $I = \{1, 2, 5\}$, with the following explicit formulation;
+                \begin{align*}
+                    z - \frac{2}{5}x_3 - \frac{1}{5}x_4 & = -8 \\
+                    x_2 - \frac{1}{5}x_3 + \frac{2}{5}x_4 & = 5 \\
+                    -\frac{3}{5}x_3 + \frac{1}{5}x_4 + x_5 & = 1 \\
+                    x_1 + \frac{3}{5}x_3 - \frac{1}{5}x_4 & = 3
+                \end{align*}
+                This can now be set in the tableau as;
+                \begin{center}
+                    \begin{tabular}{c|cccccc|c}
+                        BV & $z$ & $x_1$ & $x_2$ & $x_3$ & $x_4$ & $x_5$ & RHS \\
+                        \hline
+                        $z$ & 1 & 0 & 0 & $-\frac{2}{5}$ & $-\frac{1}{5}$ & 0 & -8 \\
+                        $x_2$ & 0 & 0 & 1 & $-\frac{1}{5}$ & $\frac{2}{5}$ & 0 & 5 \\
+                        $x_5$ & 0 & 0 & 0 & $-\frac{3}{5}$ & $\frac{1}{5}$ & 1 & 1 \\
+                        $x_1$ & 0 & 1 & 0 & $\frac{3}{5}$ & $-\frac{1}{5}$ & 0 & 3
+                    \end{tabular}
+                \end{center}
+                The tableau is a practical way to analyse the basic solution associated to the basic representation;
+                \begin{itemize}
+                    \itemsep0em
+                    \item the RHS of the objective row is the objective \textbf{value} of the current basic solution
+                    \item the RHS's of the other rows are the values of the basic variables at the current basic solution
+                    \item the coefficients of the non-basic variables in the \textbf{objective row} are the \textbf{negative reduced costs}
+                    \item the current basic solution is feasible iff all the RHS's are $\geq 0$ (but the objective row can be negative)
+                \end{itemize}
+                The general tableau for a feasible index set $I$, with $p \in I, q \notin I$;
+                \begin{center}
+                    \begin{tabular}{c|cccccccc|c}
+                        BV & $z$ & $x_1$ & $\cdots$ & $x_p$ & $\cdots$ & $x_q$ & $\cdots$ & $x_n$ & RHS \\
+                        \hline
+                        $z$ & 1 & $\beta_1$ & $\cdots$ & $\beta_p \violet{(= 0)}$ & $\cdots$ & $\beta_q$ & $\cdots$ & $\beta_n$ & $\beta_0$ \\
+                        $\vdots$ & $\vdots$ & $\vdots$ & & $\vdots$ & & $\vdots$ & & $\vdots$ & $\vdots$ \\
+                        $x_p$ & 0 & $y_{p, 1}$ & $\cdots$ & $y_{p, p}$ & $\cdots$ & $y_{p, q}$ & $\cdots$ & $y_{p, n}$ & $y_{p, 0}$ \\
+                        $\vdots$ & $\vdots$ & $\vdots$ & & $\vdots$ & & $\vdots$ & & $\vdots$ & $\vdots$ \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                This has the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\forall i \in I\ y_{i, i} = 1$, and $\forall i \in I, j \in I \setminus \{i\}\ y_{j, i} = 0$
+                    \item $\forall i \notin I, i \neq 0\ \beta_i = -r_i$ \hfill negative reduced cost
+                    \item $\forall i \in I\ \beta_i = 0$
+                \end{itemize}
+            \subsubsection*{Pivoting}
+                The idea of the Simplex algorithm is that if a vertex $x$ for the index set $I$ is not optimal, then one of its neighbouring vertices will have a \textbf{better objective value}.
+                Neighbouring are obtained by swapping a basic variable $x_p$ with a non-basic variable $x_q$, to obtain a new index set $I^\prime$ - $x_p$ \textbf{leaves} the basis and $x_q$ \textbf{enters} the basis.
+                The technique called \textbf{pivoting} is used to efficiently compute the new basic representation by updating $I$ to $I^\prime$.
+                This is similar to applying elementary row operations in Gaussian elimination, and the pair $(p, q)$ is referred to as the \textbf{pivot}.
+                \medskip
+
+                While it's possible to pivot to something that isn't feasible, in this algorithm we will only look at pivots to feasible solutions.
+                Consider the following, starting with the basic solution for the index set $I = \{1, 2, 4\}$;
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \draw
+                        (0, -1) edge[->, left] node{$x_2$} (0, 15)
+                        (-1, 0) edge[->, below] node{$x_1$} (20, 0);
+
+                        \draw[fill=black!20] (0, 0) -- (0, 6) -- (3, 5) -- (4, 3) -- (4, 0) -- cycle;
+
+                        \draw
+                        (0, 0) edge[line width=1.5pt] (0, 14)
+                        (0, 0) edge[line width=1.5pt] (19, 0)
+                        (0, 11) edge[line width=1.5pt] (5.5, 0)
+                        (0, 6) edge[line width=1.5pt] (18, 0)
+                        (4, 0) edge[line width=1.5pt] (4, 14);
+
+                        \node[rbtb] (a) at (0, 0) {};
+                        \node[rbtb] (b) at (0, 6) {};
+                        \node[rbtb] (c) at (3, 5) {};
+                        \node[rbtb] (d) at (4, 3) {};
+                        \node[rbtb] (e) at (4, 0) {};
+
+                        \node[rbtr] (f) at (0, 11) {};
+                        \node[rbtr] (g) at (4, 14/3) {};
+                        \node[rbtr] (h) at (5.5, 0) {};
+                        \node[rbtr] (i) at (18, 0) {};
+
+                        \node (bsi) at (6, 3) {$I$};
+                        \node (bsig) at (10, 6) {\shortstack{$(x_p, x_q) = (x_4, x_3)$\\$\Rightarrow I^\prime = \{1, 2, 3\}$}};
+                        \node (bsih) at (10, -3) {\shortstack{$(x_p, x_q) = (x_2, x_5)$\\$\Rightarrow I^\prime = \{1, 5, 4\}$}};
+                        \node (bsie) at (1, -3) {\shortstack{$(x_p, x_q) = (x_2, x_3)$\\$\Rightarrow I^\prime = \{1, 4, 3\}$}};
+                        \node (bsic) at (10, 10) {\shortstack{$(x_p, x_q) = (x_4, x_5)$\\$\Rightarrow I^\prime = \{1, 2, 5\}$}};
+
+                        \draw
+                        (bsi) edge[->, dashed] (d)
+                        (bsig) edge[->, dashed] (g)
+                        (bsih) edge[->, dashed] (h)
+                        (bsie) edge[->, dashed] (e)
+                        (bsic) edge[->, dashed] (c);
+                    \end{tikzpicture}
+                \end{center}
+                In order to swap $x_p$ and $x_q$ we perform the following steps;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{divide} row $p$ by the pivot element $y_{p, q}$ and relabel it as row $q$;
+                        $$\forall j = 0, \dots, n\ \left[y^\prime_{q, j} = \frac{y_{p, j}}{y_{p, q}}\right]$$
+                    \item \textbf{subtract} row $p$ multiplied by $\frac{y_{i, q}}{y_{p, q}}$ from row $i \in I \setminus \{p\}$
+                        $$\forall j = 0, \dots, n\ \left[y^\prime_{i, j} = y_{i, j}  \frac{y_{i, q}}{y_{p, q}}y_{p, j}\right]$$
+                    \item \textbf{subtract} row $p$ multiplied by $\frac{\beta_q}{y_{p, q}}$ from the objective row
+                        $$\forall j = 0, \dots, n\ \left[\beta^\prime_j = \beta_j - \frac{\beta_q}{y_{p, q}}y_{p, j}\right]$$
+                \end{enumerate}
+                Applying the following steps to the example table (note that a new horizontal line denotes a new table).
+                Note that we are swapping out $x_4$ for $x_1$, hence $y_{p, q} = y_{4, 1} = 2$;
+                \begin{center}
+                    \begin{tabular}{c|ccccc|c}
+                        BV & $z$ & $x_1$ & $x_2$ & $x_3$ & $x_4$ & RHS \\
+                        \hline
+                        $z$ & 1 & 3 & 4 & 0 & 0 & 0 \\
+                        $x_3$ & 0 & 1 & 1 & 1 & 0 & 4 \\
+                        $x_4$ & 0 & 2 & 1 & 0 & 1 & 5 \\
+                        \hline
+                        $z$ & 1 & 0 & $\frac{5}{2}$ & 0 & $-\frac{3}{2}$ & $-\frac{15}{2}$ \\
+                        $x_3$ & 0 & 0 & $\frac{1}{2}$ & 1 & $-\frac{1}{2}$ & $\frac{3}{2}$ \\
+                        $x_4$ & 0 & 1 & $\frac{1}{2}$ & 0 & $\frac{1}{2}$ & $\frac{5}{2}$ \\
+                    \end{tabular}
+                \end{center}
+                Note that both the RHS's of the basic variables are non-negative, hence we have a BFS.
+                However, since there are positive coefficients for the nonbasic variables in the objective row, we can still improve this value.
+                \medskip
+
+                We need a way to choose the variable $x_q$, which enters the basis.
+                Consider that the objective row is equivalent to;
+                $$z + \summation{i = 1}{n} \beta_i x_i = \beta_0 \Leftrightarrow z = \beta_0 - \summation{i \notin I}{} \beta_i x_i$$
+                We also know the following, by definition;
+                $$\beta_i = \begin{cases}
+                    0 & \text{if } i \in I \text{\hspace{20pt} (basic variables)} \\
+                    -r_i & \text{if } i \notin I \text{\hspace{20pt} (nonbasic variables)}
+                \end{cases}$$
+                Any nonbasic $x_i$ with $\beta_i > 0$ can enter the basis and become $x_q$, since each of them will decrease $z$, however, we can use the following steps to choose one;
+                \begin{itemize}
+                    \itemsep0em
+                    \item if there only exists a single $x_i$ with $\beta_i > 0$, pick this as $x_q$
+                    \item if several $x_i$ have $\beta_i > 0$, pick $x_i$ with \textbf{largest} $\beta_i$
+                    \item if several $x_i$ have the same largest $\beta_i$, pick the \textbf{smallest} index $x_i$
+                \end{itemize}
+                Similarly, we also need to choose which basic variable $x_p$ to leave the basis.
+                We need to ensure the following for all variables $x_i$ in the index set $I$;
+                $$x_i = y_{i, 0} - y_{i, q} x_q \geq 0 \Leftrightarrow \begin{cases}
+                    x_q \leq \bar{x}_{i, q} \triangleq \dfrac{y_{i, 0}}{y_{i, q}}& \text{if } y_{i, q} > 0 \\
+                    x_q \leq \bar{x}_{i, q} \triangleq \infty & \text{if } y_{i, q} \leq 0 \\
+                \end{cases}$$
+                This means that if $y_{i, q}$ is positive, we have an upper bound, however if it's negative (or zero), it is unbounded (hence $\infty$).
+                For this to be feasible, we want to ensure that $x_q$ is set such that all bounds are simultaneously satisfied;
+                $$x_q \leq \min_{i \in I} \bar{x}_{i, q}$$
+                There are two cases for picking the variable $x_p$ to leave the basis;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{trivial bounds} ($\min_{i \in I} \bar{x}_{i, q} = \infty$)
+                        \smallskip
+
+                        In this case, the entering variables $x_q$ can grow indefinitely.
+                        Since we have $\beta_q > 0$, the objective value $z = \beta_0 - \beta_q x_q$ can drop indefinitely, hence the LP is unbounded.
+                        In this case, we don't need to choose an $x_p$ variable.
+                    \item \textbf{non-trivial}
+                        \smallskip
+
+                        Here the best value of the objective is obtained by maximising $x_q$, hence setting;
+                        $$x_q = \min_{i \in I} \bar{x}_{i, q}$$
+                        We can call $p$ the row such that $\bar{x}_{p, q} = \min_{i \in I} \bar{x}_{i, q}$, which is the row that constraints the most the increase in value of $x_q$.
+                        Similarly, if there are multiple $p$ satisfying this, we can choose the one with the smallest index.
+                \end{itemize}
+                In summary, the simplex algorithm (minimisation) is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item find initial BFS and its basic representation
+                    \item if $\beta_i \leq 0$ for all $i \notin I$; we can stop, the current BFS is optimal
+                    \item if $\exists j \notin I$ with $\beta_j > 0$ and $y_{i, j} \leq 0$ for all $i \in I$; we can stop, no finite minimum exists
+                    \item choose $x_q$ with the largest $\beta_q > 0$ ($x_q$ enters the basis)
+                    \item choose $p \in \argmin_{i \in I} \bar{x}_{i, q}$ ($x_p$ leaves the basis)
+                    \item pivot on $y_{p, q}$ and repeat from step 2
+                \end{enumerate}
+                In the example below, I will denote the $\beta_i$ chosen for $x_q$ in \violet{violet}, the pivot in \teal{teal}, and calculations for $\bar{x}_{i, q}$ in \blue{blue}.
+                \begin{center}
+                    \begin{tabular}{c|ccccc|c}
+                        BV & $z$ & $x_1$ & $x_2$ & $x_3$ & $x_4$ & RHS \\
+                        \hline
+                        $z$ & 1 & 3 & \violet{4} & 0 & 0 & 0 \\
+                        $x_3$ & 0 & 1 & \teal{1} & 1 & 0 & 4 \blue{$\frac{4}{1} = \bar{x}_{3, 2}$} \\
+                        $x_4$ & 0 & 2 & 1 & 0 & 1 & 5 \blue{$\frac{5}{1} = \bar{x}_{4, 2}$} \\
+                        \hline
+                        $z$ & 1 & $-1$ & 0 & $-4$ & 0 & $-16$ \\
+                        $x_2$ & 0 & 1 & 1 & 1 & 0 & 4 \\
+                        $x_4$ & 0 & 1 & 0 & $-1$ & 1 & 1 \\
+                    \end{tabular}
+                \end{center}
+                Note that both the coefficients are negative in the objective row, we have the following optimal solution;
+                \begin{align*}
+                    z^* & = -16 \\
+                    y^* & = 16 \\
+                    x^* & = (0, 4, 0, 1)
+                \end{align*}
+            \subsubsection*{Tutorial}
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \setcounter{enumi}{1}
+                    \item Consider the following optimisation problem;
+                        \begin{maxi*}|l|
+                            {}{y = x_1 + 3x_2}
+                            {}{}
+                            \addConstraint{2x_1 + x_2}{\leq 4}
+                            \addConstraint{x_1 + 2x_2}{\leq 4}
+                            \addConstraint{x_1, x_2}{\geq 0}
+                        \end{maxi*}
+                        \begin{enumerate}[(a)]
+                            \item Bring the problem into standard form by introducing slack variables $s_1$ and $s_2$.
+                                \begin{mini*}|l|
+                                    {}{z = -x_1 - 3x_2}
+                                    {}{-}
+                                    \addConstraint{2x_1 + x_2 + s_1}{= 4}
+                                    \addConstraint{x_1 + 2x_2 + s_2}{= 4}
+                                    \addConstraint{x_1, x_2, s_1, s_2}{\geq 0}
+                                \end{mini*}
+                            \item
+                                For the problem in standard form, determine all basic solutions.
+                                Which of these problems are feasible, and what are their objective values?
+                                \begin{align*}
+                                    \text{BV} & = \{x_1, x_2\} \\
+                                    \text{NBV} & = \{s_1, s_2\} \\
+                                    2x_1 + x_2 & = 4 \\
+                                    x_1 + 2x_2 & = 4 \\
+                                    -3x_1 & = -4 & \Rightarrow \\
+                                    x_1 & = \frac{4}{3} & \Rightarrow \\
+                                    x_2 & = \frac{4}{3} & \Rightarrow \\
+                                    D & = \left(\frac{4}{3}, \frac{4}{3}, 0, 0\right) & \text{feasible} \\
+                                    z & = -\frac{16}{3} \\ \\
+                                    \text{BV} & = \{x_2, s_1\} \\
+                                    \text{NBV} & = \{x_1, s_2\} \\
+                                    x_2 + s_1 & = 4 \\
+                                    2x_2 & = 4 \\
+                                    x_2 & = 2 & \Rightarrow \\
+                                    s_1 & = 2 & \Rightarrow \\
+                                    D & = (0, 2, 2, 0) & \text{feasible} \\
+                                    z & = -6
+                                \end{align*}
+                            \item
+                                Draw the feasible region of problem 1 in the $(x_1,x_2)$-plane.
+                                Where are the basic solutions from part (b)?
+                                Which feasible solutions satisfy $s_1 = 0$?
+                                Which feasible solutions satisfy $s_2 = 0$?
+
+                                \begin{center}
+                                    \begin{tikzpicture}
+                                        \begin{axis}[
+                                            axis on top=true,
+                                            axis line style=thick,
+                                            no markers, domain=0:8, samples=10,
+                                            axis lines*=left, xlabel=$x_1$, ylabel=$x_2$,
+                                            height=5cm, width=5cm,
+                                            enlargelimits=false,
+                                            xtick={0,1,...,5},
+                                            ytick={0,1,...,5},
+                                            xmin=0, xmax=5,
+                                            ymin=0, ymax=5
+                                        ]
+                                            \addplot[fill=black!20, draw=none] {1.995} \closedcycle;
+
+                                            \addplot[fill=white!20, draw=none] {4 - 2*\x} |- (current plot begin);
+                                            \addplot[fill=white!20, draw=none] {2 - 0.5*\x} |- (current plot begin);
+
+                                            \addplot[thick] {4 - 2*\x};
+                                            \addplot[thick] {2 - 0.5*\x};
+
+                                            \addplot[thick, dashed, violet] {1.9 - \x/3};
+                                        \end{axis}
+                                    \end{tikzpicture}
+                                \end{center}
+                        \end{enumerate}
+                    \item Consider the basic solution from exercise 2 (b) that has $x_1$ and $x_2$ as basic variables.
+                        \begin{enumerate}[(a)]
+                            \itemsep0em
+                            \item Determine the basic representation for this basic solution.
+                            \item d
+                                Is this basic solution optimal?
+                                Justify your answer both graphically (see exercise 2 (c)) and from the basic representation.
+                            \item d
+                                Find a non-basic variable such that increasing its value improves the objective value.
+                                How much can we increase the value of this basic variable without leaving the frasible region?
+                                Which is the resulting basic solution?
+                                Is this solution optimal?
+                        \end{enumerate}
+                \end{enumerate}
 \end{document}

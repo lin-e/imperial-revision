@@ -15,7 +15,7 @@ def partition(lines):
 if len(sys.argv) < 2:
   print("Usage: " + sys.argv[0] + " <directory prefix>")
 else:
-  template = lines("/home/line/etc/ic/template.tex")
+  template = lines("/home/line/etc/static/ic/template.tex")
   template = template[:partition(template)]
   for d in filter(lambda x : os.path.isdir(x), os.listdir(".")):
     if d.startswith(sys.argv[1]):
