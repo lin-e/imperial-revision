@@ -1689,4 +1689,142 @@
                             & < 0
                         \end{align*}
                 \end{enumerate}
+        \subsection*{Lecture 9}
+            \subsubsection*{Introduction to Duality}
+                For every optimisation problem we encounter, duality allows us to construct another optimisation problem.
+                The first problem is the primal problem, and the constructed one the dual problem.
+            \subsubsection*{Dual Problem}
+                This starts with a flow diagram, but that will take too long to draw out.
+                The first optimisation problem is to work out the maximum flow from a source node to a termination node, and in this example the answer was 11 (from identifying bottlenecks).
+                The dual problem was to minimum cost to disrupt all flow from the source to the destination (the cost is equal to the flow of a path) - which was also 11.
+                \medskip
+
+                Another motivation is the following problem;
+                \begin{maxi!}|l|
+                    {}{z = x_1 + 6x_2}
+                    {}{}
+                    \addConstraint{x_1}{\leq 200}
+                    \addConstraint{x_2}{\leq 300}
+                    \addConstraint{x_1 + x_2}{\leq 400}
+                    \addConstraint{x_1, x_2}{\geq 0}
+                \end{maxi!}
+                As a sanity check, by adding 1 of equation 1b and 6 of equation 1c, we have $x_1 + x_2 \leq 2000$.
+                However, if we wanted to bring the upper bound further, we can take some linear combination of equation 1b, 1c, and 1d.
+                In this example, the best combination is to take 5 times 1c and 6 times 1d, which gives us the lowest upper bound of 1900.
+                \medskip
+
+                If we were to introduce a multiplier for each constraint, $(y_1, y_2, y_3)$ for equations 1b, 1c, and 1d respectively, we can do the following.
+                Note that $y_1, y_2, y_3 \geq 0$ to preserve inequalities.
+                \medskip
+
+                By multiplying the constraints, and summing them, we obtain the following;
+                $$\violet{x_1 + 6x_2 \leq}\ (y_1 + y_3)x_1 + (y_2 + y_3)x_3 \leq 200y_1 + 300y_2 + 400y_3$$
+                This also needs to form an upper bound on our objective function;
+                \begin{align*}
+                    y_1 + y_3 & \geq 1 \\
+                    y_2 + y_3 & \geq 6
+                \end{align*}
+                From this, we have created the dual LP;
+                \begin{mini*}|l|
+                    {}{200y_1 + 300y_2 + 400y_3}
+                    {}{}
+                    \addConstraint{y_1 + y_3}{\geq 1}
+                    \addConstraint{y_2 + y_3}{\geq 6}
+                    \addConstraint{y_1, y_2, y_3}{\geq 0}
+                \end{mini*}
+                It's important to observe the following results;
+                \begin{align*}
+                    (x_1, x_2) & = (100, 300) & \text{primal} \\
+                    \text{primal optimal} & = 1900 \\
+                    (y_1, y_2, y_3) & = (0, 5, 1) & \text{dual} \\
+                    \text{dual optimal} & = 1900
+                \end{align*}
+                Note that the number of constraints in the primal becomes the number of variables in the dual, and similarly the number of variables in the primal becomes the number of constraints in the dual.
+                \medskip
+
+                We have the following symmetric definition (note that the dual of (D) is (P));
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{primal problem} (P) \hfill $\vec{c}, \vec{x} \in \mathbb{R}^n, \mat{A} \in \mathbb{R}^{m \times n}, \vec{b} \in \mathbb{R}^m$
+                        $$\max\{ \vec{c}^\top\vec{x} : \mat{A}\vec{x} \leq \vec{b}, \vec{x} \geq 0 \}$$
+                    \item \textbf{dual problem} (D) \hfill $\vec{c}, \mat{A}, \vec{b} \text{ same as (P)}, \vec{y} \in \mathbb{R}^m$
+                        $$\min\{ \vec{b}^\top\vec{y} : \mat{A}^\top\vec{y} \geq \vec{c}, \vec{y} \geq 0 \}$$
+                \end{itemize}
+            \subsubsection*{Weak Duality}
+                Weak duality holds for any programming, whether it is linear or non-linear.
+                Assume that both the problems (P) and (D), as described above, are both feasible.
+                Let $\vec{x} \in \mathbb{R}^n$ be feasible for (P), and $\vec{y} \in \mathbb{R}^m$ be feasible for (D), then we have the result that;
+                $$\vec{c}^\top\vec{x} \leq \vec{b}^\top\vec{y}$$
+                The above inequality holds for \textbf{any feasible solution}, not just the optimal solutions.
+                \medskip
+
+                The proof is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item (P) requires that $\mat{A}\vec{x} \leq \vec{b} \Rightarrow \vec{y}^\top\mat{A}\vec{x} \leq \vec{y}^\top\vec{b}$ (since $\vec{y} \geq 0$)
+                    \item similarly (D) implies that $\left(\mat{A}^\top \vec{y}\right)^\top \geq \vec{c}^\top \Rightarrow \vec{y}^\top\mat{A}\vec{x} \geq \vec{c}^\top\vec{x}$ (since $\vec{x} \geq 0$)
+                \end{itemize}
+                Then if both are feasible, we obtain the following;
+                $$\vec{c}^\top\vec{x} \leq \vec{y}^\top\mat{A}\vec{x} \leq \underbrace{\vec{y}^\top\vec{b} = \vec{b}^\top\vec{y}}_\text{becomes a scalar}$$
+                This states that the value of the primal is always upper bounded by the value of the dual.
+            \subsubsection*{Strong Duality}
+                For linear programs (generally convex), under a few assumptions, the optimal values for the dual and primal are equal.
+                \medskip
+
+                Assume the problem (P) is feasible with a bounded optimum.
+                Let $B$ be the optimal basis for (P), with an optimal basic solution $(x^*_B, x^*_N)$, we then have the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\vec{y^*} = \left(\mat{B}^{-1}\right)^\top\vec{c_B}$ is an \textbf{optimal} solution for (D)
+                    \item $\vec{c}^\top\vec{x^*} = \vec{b}^\top\vec{y^*}$ - the objective values coincide
+                \end{itemize}
+                Note that if (P) is unbounded, then (D) is infeasible (and vice versa).
+                \medskip
+
+                Note that we also refer to the optimal solution of the dual problem, $\vec{y^*} = \left(\mat{B}^{-1}\right)^\top\vec{c_B}$, as the shadow price of the primal problem;
+                $$\Pi = \vec{y^*} = \left(\mat{B}^{-1}\right)^\top\vec{c_B}$$
+                \medskip
+
+                Consider the following forms of the primal and dual;
+                \begin{center}
+                    \hfill
+                    \begin{minipage}[t]{0.3\textwidth}
+                        Primal (P):
+                        \begin{maxi*}|l|
+                            {}{\vec{c}^\top\vec{x}}
+                            {}{}
+                            \addConstraint{\mat{A}\vec{x}}{\leq \vec{b}}
+                            \addConstraint{\vec{x}}{\geq 0}
+                        \end{maxi*}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.3\textwidth}
+                        Dual (D):
+                        \begin{mini*}|l|
+                            {}{\vec{b}^\top\vec{y}}
+                            {}{}
+                            \addConstraint{\mat{A}^\top\vec{y}}{\leq \vec{c}}
+                            \addConstraint{\vec{y}}{\geq 0}
+                        \end{mini*}
+                    \end{minipage}
+                    \hfill \phantom{}
+                \end{center}
+                Consider the following possibilities with a primal / dual pair;
+                \begin{center}
+                    \begin{tabular}{|cc|ccc|}
+                        \hline
+                        & & \multicolumn{3}{c|}{primal} \\
+                        & & finite optimal & unbounded & infeasible \\
+                        \hline
+                        \multirow{3}{*}{dual} & finite optimal & yes, possible & no, by strong duality & no, by strong duality \\
+                        & unbounded & no, by strong duality & no, by weak duality (1) & \\
+                        & infeasible & no, by strong duality & & \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item imagine the drawing of the line; for both to be unbounded, they will cross over - dual goes to $-\infty$, whereas primal goes to $\infty$
+                \end{enumerate}
+            \subsubsection*{Characterisation of Duality}
 \end{document}
