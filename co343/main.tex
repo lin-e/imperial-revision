@@ -1061,14 +1061,176 @@
                         \begin{enumerate}[(a)]
                             \itemsep0em
                             \item Determine the basic representation for this basic solution.
-                            \item d
+                            \item
                                 Is this basic solution optimal?
                                 Justify your answer both graphically (see exercise 2 (c)) and from the basic representation.
-                            \item d
+                            \item
                                 Find a non-basic variable such that increasing its value improves the objective value.
-                                How much can we increase the value of this basic variable without leaving the frasible region?
+                                How much can we increase the value of this basic variable without leaving the feasible region?
                                 Which is the resulting basic solution?
                                 Is this solution optimal?
                         \end{enumerate}
                 \end{enumerate}
+        \subsection*{Lecture 5}
+            \subsubsection*{Degenerate Basic Solutions}
+                Consider a variation of our first example, where the $x \leq 4$ constraint has changed to $x \leq 3$.
+                One property we can quickly see is that there are now three lines intersecting a specific point $(3, 5)$, compared to the two of standard points.
+                Essentially, the coordinates of this point are determined by more constraints than strictly necessary, and the three index sets that would typically identify different points now identify the same point.
+                This can cause some of the basic variables to also be set to zero, in this case $x_3 = x_4 = x_5 = 0$.
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \draw
+                        (0, -1) edge[->, left] node{$x_2$} (0, 15)
+                        (-1, 0) edge[->, below] node{$x_1$} (20, 0);
+
+                        \draw[fill=black!20] (0, 0) -- (0, 6) -- (3, 5) -- (3, 0) -- cycle;
+
+                        \draw
+                        (0, 0) edge[line width=1.5pt] (0, 14)
+                        (0, 0) edge[line width=1.5pt] (19, 0)
+                        (0, 11) edge[line width=1.5pt] (5.5, 0)
+                        (0, 6) edge[line width=1.5pt] (18, 0)
+                        (3, 0) edge[line width=1.5pt] (3, 14);
+
+                        \node[rbtb] (a) at (0, 0) {};
+                        \node[rbtb] (b) at (0, 6) {};
+                        \node[rbtb] (c) at (3, 5) {};
+                        \node[rbtb] (e) at (3, 0) {};
+
+                        \node[rbtr] (f) at (0, 11) {};
+                        \node[rbtr] (h) at (5.5, 0) {};
+                        \node[rbtr] (i) at (18, 0) {};
+                    \end{tikzpicture}
+                \end{center}
+                We can define a basic solution as \textbf{degenerate} if one or more basic variables are zero.
+                This means that a degenerate basic solution has more than $n - m$ zero-valued variables, therefore if we look at the tableau, there exists at least a basic variable such that $i \in I$ and $y_{i, 0} = 0$.
+                \medskip
+
+                On the other hand, we can define a basic solution as \textbf{non-degenerate} if all of its basic variables are different from zero.
+            \subsubsection*{Finite Termination Theorem}
+                The theorem states that if all basic feasible solutions are \textbf{non-degenerate}, then the simplex algorithm must terminate after a \textbf{finite} number of steps, either with an optimal solution, or a proof that the problem is unbounded.
+                The proof is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item Due to non-degeneracy, we have $\forall i \in I\ [y_{i, 0} > 0]$
+                    \item Unless we find an optimal solution, or detect unboundedness in steps 1 or 2, we have;
+                        $$\beta^\prime_0 = \beta_0 - \frac{\beta_q}{y_{p, q}}y_{p_0} < \beta_0$$
+                        Looking at the signs, we know that $\beta_q > 0$ (from how we choose the variable $x_q$ entering the basis).
+                        Similarly, we know that $y_{p, q} > 0$, otherwise we have an unbounded LP (since we choose the minimum value, and if all the bounds are $\infty$, we will encounter the unbounded case).
+                        Finally, we also know that $y_{p, 0}$ must also be positive, hence the entire product is strictly positive.
+                    \item As such, we have a strictly decreasing sequence of objective values;
+                        $$\beta_0 > \beta^\prime_0 > \beta^{\prime\prime}_0 > \dots$$
+                        This results in no basic solution being repeated.
+                    \item Since there are $\binom{n}{m}$ ways to pick $m$ columns out of $n$ to form an index set $I$, we can say that there are $\leq \binom{n}{m}$ basic solutions
+                    \item As such, the process cannot continue indefinitely and must terminate at either step 1 or 2 after a finite number of iterations
+                \end{itemize}
+            \subsubsection*{Degeneracy}
+                We have the following lemma; assuming that $\forall i \in [1, n]$, there exists a basic solution $\hat{x}$, with $\hat{x}_i \neq 0$.
+                Then a basic solution $x$ is \textbf{degenerate} iff it is associated with \textbf{more than one index set}.
+                The proof is as follows (proving that if the basic solution $x$ has more than one index set $\Rightarrow$ the basic solution $x$ is degenerate);
+                \begin{itemize}
+                    \itemsep0em
+                    \item Suppose $x$ corresponds to the index sets $I_1$ and $I_2$, where $I_1 \neq I_2$
+                    \item Then $x_i = 0$ for all nonbasic variables $x_i$, and $i \notin I_1$, $i \notin I_2$ (or both)
+                    \item Since $I_1 \neq I_2$, there must be a nonbasic variable $x_i$ in $I_1$, which is a basic variable in $I_2$, and since the two sets describe the same basic solution $x$, $x_i$ must be 0 in $I_2$ where it is basic (note that this also holds the other way around)
+                    \item Therefore, $x$ is a degenerate basic solution
+                \end{itemize}
+                For example, consider the basic solution $x$ corresponding to index sets $I_1 = \{1, 2, 3\}$ and $I_2 = \{1, 2, 4\}$.
+                Therefore $x_4 = 0$ due to $I_1$, and $x_3 = 0$ due to $I_2$.
+                \medskip
+
+                The steps to prove the other direction of the implication (where a degenerate basic solution $x$ $\Rightarrow$ the basic solution has more than one index set) is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item Consider the corresponding simplex tableau, where $x$ is a degenerate basic solution corresponding to the index set $I$
+                    \item Due to degeneracy, we have $\exists p \in I\ [y_{p, 0} = 0]$
+                    \item There must also $\exists q \notin I\ [y_{p, q} \neq 0]$, otherwise we would always have $x_p = 0$ in all the feasible set (impossible with the theorem statement)
+                        \smallskip
+
+                        Consider the following table;
+                        \begin{center}
+                            \begin{tabular}{c|ccccc|c}
+                                BS & $\cdots$ & $x_p$ & $\cdots$ & $x_q$ & $\cdots$ & RHS \\
+                                \hline
+                                $x_p$ & $\cdots$ & 1 & $\cdots$ & $y_{p, q}$ & $\cdots$ & 0
+                            \end{tabular}
+                        \end{center}
+                        Note that if $y_{p, q} = 0$ (such that the only non-zero element in the row is $y_{p, p} = 1$), we would have $x_p = 0$.
+                    \item Since we know this exists, we can pivot on $(p, q)$, which gives a new basic solution;
+                        $$\violet{y^\prime_{q, 0}} = \frac{y_{p, 0}}{y_{p, q}} = 0 = \violet{y_{p, 0}} \text{   and also   } \forall i \in I \setminus \{p\} \left[\teal{y^\prime_{i, 0}} = y_{i, 0} - \frac{y_{i, q}}{y_{p, q}}\violet{y_{p, 0}} = \teal{y_{i, 0}}\right]$$
+                        This basic solution is identical to the current one
+                    \item Therefore, $x$ corresponds to both the index set $I$ and $(I \setminus \{p\}) \cup \{q\}$
+                \end{itemize}
+                This breaks the finite termination of the simplex algorithm since;
+                \begin{itemize}
+                    \itemsep0em
+                    \item The index sets $I$ and $(I \setminus \{p\}) \cup \{q\}$ produce the same basic feasible solution, but with different basic representations
+                    \item If we pivot on $(p, q)$, when $y_{p, 0} = 0$, the new basic feasible solution is identical to the old one
+                    \item Therefore, we have no strict monotonic improvement of the objective value since;
+                        $$\violet{\beta^\prime_0} = \beta_0 - \frac{\beta_q}{y_{p, q}}y_{p, 0} = \beta_0 - \frac{\beta_q}{y_{p, q}}0 = \violet{\beta_0}$$
+                    \item We denote a pivot step $(p, q)$ as \textbf{degenerate} if $y_{p, 0} = 0$, and \textbf{non-degenerate} otherwise
+                \end{itemize}
+                We can then decompose the simplex algorithm into a \violet{sequence of degenerate pivots}, followed by a non-degenerate pivot, followed by a \violet{sequence of degenerate pivots}.
+                Note that some / all of these degenerate pivot sequences can be empty.
+                Geometrically, the basic feasible solution remains unchanged through a sequence of degenerate pivots, and only moves to a different BFS on a non-degenerate pivot.
+            \subsubsection*{Cycling}
+                We know that there is a finite number of index sets if \textbf{no index set is repeated}, as the number of index sets is $\leq \binom{n}{m}$.
+                However, pivoting can result in cycling behaviour in some rare instances.
+                Generally, choosing degenerate pivots is a necessary condition, but not a sufficient one, for cycling.
+                After a sequence of pivots we return to the same index set, causing cycling.
+                \medskip
+
+                Consider the following example;
+                \begin{mini*}|l|
+                    {}{z = -\frac{3}{4}x_4 + 20x_5 - \frac{1}{2}x_6 + 6x_7}
+                    {}{}
+                    \addConstraint{x_1 + \frac{1}{4}x_4 - 8x_5 - x_6 + 9x_7}{= 0}
+                    \addConstraint{x_2 + \frac{1}{2}x_4 - 12x_5 - \frac{1}{2}x_6 + 3x_7}{= 0}
+                    \addConstraint{x_3 + x_6}{= 1}
+                \end{mini*}
+                When $I = \{1, 2, 3\}$, we have the following tableau;
+                \begin{center}
+                    \begin{tabular}{c|ccccccc|c}
+                        BV & $x_1$ & $x_2$ & $x_3$ & $x_4$ & $x_5$ & $x_6$ & $x_7$ & RHS \\
+                        \hline
+                        $z$ & 0 & 0 & 0 & $\frac{3}{4}$ & $-20$ & $\frac{1}{2}$ & $-6$ & 0 \\
+                        $x_1$ & 1 & 0 & 0 & $\red{\frac{1}{4}}$ & $-8$ & $-1$ & 9 & 0 \\
+                        $x_2$ & 0 & 1 & 0 & $\frac{1}{2}$ & $-12$ & $-\frac{1}{2}$ & 3 & 0 \\
+                        $x_3$ & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 1 \\
+                        \hline
+                        $z$ & $-3$ & 0 & 0 & 0 & 4 & $\frac{7}{2}$ & $-33$ & 0 \\
+                        $x_4$ & 4 & 0 & 0 & 1 & $-32$ & $-4$ & 36 & 0 \\
+                        $x_2$ & $-2$ & 1 & 0 & 0 & $\red{4}$ & $\frac{3}{2}$ & $-15$ & 0 \\
+                        $x_3$ & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 1 \\
+                        \hline
+                        $z$ & $-1$ & $-1$ & 0 & 0 & 0 & 2 & $-18$ & 0 \\
+                        $x_4$ & $-12$ & 8 & 0 & 1 & 0 & $\red{8}$ & $-84$ & 0 \\
+                        $x_5$ & $-\frac{1}{2}$ & $\frac{1}{4}$ & 0 & 0 & 1 & $\frac{3}{8}$ & $-\frac{15}{4}$ & 0 \\
+                        $x_3$ & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 1 \\
+                        \hline
+                        $z$ & 2 & $-3$ & 0 & $-\frac{1}{4}$ & 0 & 0 & 3 & 0 \\
+                        $x_4$ & $-\frac{3}{2}$ & 1 & 0 & $\frac{1}{8}$ & 0 & 1 & -$\frac{21}{2}$ & 0 \\
+                        $x_2$ & $\frac{1}{16}$ & $-\frac{1}{8}$ & 0 & $\frac{3}{64}$ & 1 & 0 & $\frac{3}{16}$ & 0 \\
+                        $x_3$ & $\frac{3}{2}$ & $-1$ & 1 & $\frac{1}{8}$ & 0 & 0 & $\frac{21}{2}$ & 1 \\
+                        \hline
+                        \multicolumn{9}{c}{$\vdots$} \\
+                        \hline
+                        $z$ & 0 & 0 & 0 & $\frac{3}{4}$ & $-20$ & $\frac{1}{2}$ & $-6$ & 0 \\
+                        $x_1$ & 1 & 0 & 0 & $\red{\frac{1}{4}}$ & $-8$ & $-1$ & 9 & 0 \\
+                        $x_2$ & 0 & 1 & 0 & $\frac{1}{2}$ & $-12$ & $-\frac{1}{2}$ & 3 & 0 \\
+                        $x_3$ & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 1
+                    \end{tabular}
+                \end{center}
+                We can avoid cycling by amending the pivoting convention.
+                Bland's rule states the following (with this rule, the algorithm cannot cycle and is therefore finite);
+                \begin{enumerate}[(i)]
+                    \itemsep0em
+                    \item choose the \textbf{lowest-numbered} (leftmost) nonbasic column $q$ with a positive cost (instead of choosing the largest $\beta$);
+                        $$q = \min \{ j \neq 0\ \vline\ \beta_j > 0 \}$$
+                    \item Denote as $p$ the row with minimal $\bar{x}_{i, q}$, choosing the smallest index in the case of a tie (same as standard convention)
+                \end{enumerate}
+            \subsubsection*{Degeneracy in Practice}
+                More recent experience with larger problems indicates that cycling occurs (while still being a rare event).
+                Remedies such as Bland's rule are not satisfactory as it increases the number of iterations (and therefore time) in problems where cycles do not occur.
+                In practice, it's possible to introduce a small perturbation by \textbf{replacing} a $y_{i, 0} = 0$ with $y_{i, 0} = \epsilon > 0$, and continue from there.
 \end{document}
