@@ -953,13 +953,14 @@
                 \end{itemize}
                 In summary, the simplex algorithm (minimisation) is as follows;
                 \begin{enumerate}[1.]
+                    \setcounter{enumi}{-1}
                     \itemsep0em
                     \item find initial BFS and its basic representation
                     \item if $\beta_i \leq 0$ for all $i \notin I$; we can stop, the current BFS is optimal
                     \item if $\exists j \notin I$ with $\beta_j > 0$ and $y_{i, j} \leq 0$ for all $i \in I$; we can stop, no finite minimum exists
                     \item choose $x_q$ with the largest $\beta_q > 0$ ($x_q$ enters the basis)
                     \item choose $p \in \argmin_{i \in I} \bar{x}_{i, q}$ ($x_p$ leaves the basis)
-                    \item pivot on $y_{p, q}$ and repeat from step 2
+                    \item pivot on $y_{p, q}$ and repeat from step 1
                 \end{enumerate}
                 In the example below, I will denote the $\beta_i$ chosen for $x_q$ in \violet{violet}, the pivot in \teal{teal}, and calculations for $\bar{x}_{i, q}$ in \blue{blue}.
                 \begin{center}
@@ -1233,4 +1234,130 @@
                 More recent experience with larger problems indicates that cycling occurs (while still being a rare event).
                 Remedies such as Bland's rule are not satisfactory as it increases the number of iterations (and therefore time) in problems where cycles do not occur.
                 In practice, it's possible to introduce a small perturbation by \textbf{replacing} a $y_{i, 0} = 0$ with $y_{i, 0} = \epsilon > 0$, and continue from there.
+        \subsection*{Lecture 6}
+            \subsubsection*{Initial Basic Feasible Solution}
+                In the initial step (step 0) of the simplex algorithm, we require an \textbf{initial} BFS and the corresponding basic representation.
+                \medskip
+
+                We can consider the ``all slack basis'';
+                \begin{mini*}|l|
+                    {}{z = c_1x_1 + c_2x_2 + \dots + c_nx_n}
+                    {}{}
+                    \addConstraint{a_{1, 1}x_1 + a_{1, 2}x_2 + \dots + a_{1, n}x_n + \red{x_{n + 1}}}{= b_1}
+                    \addConstraint{a_{2, 1}x_1 + a_{2, 2}x_2 + \dots + a_{2, n}x_n + \red{x_{n + 2}}}{= b_2}
+                    \addConstraint{\vdots}{}
+                    \addConstraint{a_{m, 1}x_1 + a_{m, 2}x_2 + \dots + a_{m, n}x_n + \red{x_{n + m}}}{= b_m}
+                    \addConstraint{x_1, \dots, x_n, \red{x_{n + 1}, \dots, x_{n + m}}}{\geq 0}
+                \end{mini*}
+                Therefore we can take a basic representation for $I = {n + 1, \dots, n + m}$, which is feasible of $\forall i \in [1, m]\ b_i \geq 0$.
+                However, this is not always the case.
+                \medskip
+
+                If we now consider an example without an obvious initial BFS, a system with equalities and inequalities in both direction, assuming all variables and RHS's are non-negative;
+                \begin{align*}
+                    x_1 + x_2 + x_3 & = 10 \\
+                    2x_1 - x_2 & \geq 2 \\
+                    x_1 - 2x_2 + x_3 \leq 6 \\
+                    x_1, x_2, x_3 & \geq 0
+                \end{align*}
+                We can now standardise it by adding slack variables and subtracting surplus variables.
+                Note that here we denote \red{slack variables in red} and \blue{surplus variables in blue};
+                \begin{align*}
+                    x_1 + x_2 + x_3 & = 10 \\
+                    2x_1 - x_2 - \blue{x_4} & = 2 \\
+                    x_1 - 2x_2 + x_3 + \red{x_5} & \leq 6 \\
+                    x_1, x_2, x_3, \blue{x_4}, \red{x_5} & \geq 0
+                \end{align*}
+                Here we have no basic feasible representation, since only slack variables behave like basic variables.
+                Another approach to the above is to introduce \violet{artificial variables} to the original equalities and $\geq$ inequalities;
+                \begin{align*}
+                    x_1 + x_2 + x_3 + \violet{\xi_1} & = 10 \\
+                    2x_1 - x_2 - \blue{x_4} + \violet{\xi_2} & = 2 \\
+                    x_1 - 2x_2 + x_3 + \red{x_5} & \leq 6 \\
+                    x_1, x_2, x_3, \blue{x_4}, \red{x_5}, \violet{\xi_1}, \violet{\xi_2} & \geq 0
+                \end{align*}
+                The artificial variables behave like basic variables, and therefore we have a basic feasible representation.
+                However, this system is not equivalent to the original one - when the artificial variables are zero the set of solutions is the same, however when they are strictly positive we will have more solutions.
+                If we can find a basic feasible solution such that $\xi_1, \xi_2 = 0$, then we have found a basic feasible solution for the original LP.
+                \medskip
+
+                To find such a solution, we solve the \textbf{auxiliary LP};
+                \begin{mini*}|l|
+                    {}{\zeta = \xi_1 + \xi_2}
+                    {}{}
+                    \addConstraint{x_1 + x_2 + x_3 + \xi_1}{= 10}
+                    \addConstraint{2x_1 - x_2 - x_4 + \xi_2}{= 2}
+                    \addConstraint{x_1 - x_2 + x_3 + x_5}{= 6}
+                    \addConstraint{x_1, x_2, x_3, x_4, x_5, \xi_1, \xi_2}{\geq 0}
+                \end{mini*}
+                Clearly, the minimum value we can achieve for $\zeta$ is 0.
+                The initial BFS for this LP is given by $\xi_1 = 10, \xi_2 = 2, x_5 = 6$.
+                If we are able to minimise $\zeta$ to 0, we have a basic feasible solution for the original LP, and if not, we cannot satisfy the original LP (it is infeasible).
+                \medskip
+
+                However, we need a basic representation for the initial BFS.
+                The objective function $\zeta = \xi_1 + \xi_2$ is expressed in terms of the basic variables.
+                To express $\zeta$ as a function of the nonbasic variables we add all equations with artificial variables to the objective;
+                \begin{align*}
+                    \zeta - \xi_1 - \xi_2 & = 0 & (+) \\
+                    x_1 + x_2 + x_3 + \xi_1 & = 10 & (+) \\
+                    2x_1 - x_2 - x_4 + \xi_2 & = 2 & (=) \\
+                    \zeta + 3x_1 + x_3 - x_4 & = 12
+                \end{align*}
+                This auxiliary LP is feasible and bounded by construction, therefore the algorithm must terminate in step 1 with an optimal BFS, in one of two cases;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\zeta = 0$ - this implies $\xi_1 = \xi_2 = 0$, and the optimal BFS of the auxiliary LP is a BFS for the original LP
+                    \item $\zeta > 0$ - the auxiliary LP has no feasible solution with $\xi_1 = \xi_2 = 0$, hence the original system has no BFS, therefore it is infeasible
+                \end{itemize}
+                We can solve the auxiliary LP as follows;
+                \begin{center}
+                    \begin{tabular}{c|ccccccc|c}
+                        BV & $x_1$ & $x_2$ & $x_3$ & $x_4$ & $x_5$ & $\xi_1$ & $\xi_2$ & RHS \\
+                        \hline
+                        $\zeta$ & 3 & 0 & 1 & $-1$ & 0 & 0 & 0 & 12 \\
+                        $\xi_1$ & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 10 \\
+                        $\xi_2$ & $\red{2}$ & $-1$ & 0 & $-1$ & 0 & 0 & 1 & 2 \\
+                        $x_5$ & 1 & $-2$ & 1 & 0 & 1 & 0 & 0 & 6 \\
+                        \hline
+                        $\zeta$ & 0 & $\frac{3}{2}$ & 1 & $\frac{1}{2}$ & 0 & 0 & $-\frac{3}{2}$ & 9 \\
+                        $\xi_1$ & 0 & $\red{\frac{3}{2}}$ & 1 & $\frac{1}{2}$ & 0 & 1 & $-\frac{1}{2}$ & 9 \\
+                        $x_1$ & 1 & $-\frac{1}{2}$ & 0 & $-\frac{1}{2}$ & 0 & 0 & $\frac{1}{2}$ & 1 \\
+                        $x_5$ & 0 & $-\frac{3}{2}$ & 1 & $\frac{1}{2}$ & 1 & 0 & $-\frac{1}{2}$ & 5 \\
+                        \hline
+                        $\zeta$ & 0 & 0 & 0 & 0 & 0 & $-1$ & $-1$ & 0 \\
+                        $x_2$ & 0 & 1 & $\frac{2}{3}$ & $\frac{1}{3}$ & 0 & $\frac{2}{3}$ & $-\frac{1}{3}$ & 6 \\
+                        $x_1$ & 1 & 0 & $\frac{1}{3}$ & $-\frac{1}{3}$ & 0 & $\frac{1}{3}$ & $\frac{1}{3}$ & 4 \\
+                        $x_5$ & 0 & 0 & 2 & 1 & 1 & 1 & $-1$ & 14
+                    \end{tabular}
+                \end{center}
+                Since we've now found an optimal solution, and confirmed that $\zeta = 0$ at this point, we have $I = \{2, 1, 5\}$ as a BFS for the original system.
+                We can also take the basic representation and omit $\zeta, \xi_1, \xi_2$ for phase 2.
+            \subsubsection*{Two Phase Simplex Algorithm}
+                The first phase is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item modify the constraints so that all RHS's are non-negative (multiply by $-1$ if a constraint has a negative RHS)
+                    \item identify all equality and $\geq$ constraints
+                    \item standardise inequalities (add slacks for $\leq$, subtract excesses for $\geq$)
+                    \item add artificial constraints $\xi_i$ to the constraints identified in step 2
+                    \item let $\zeta$ be the sum of all artificial variables and derive the basic representation for $\zeta$
+                    \item find the minimum of $\zeta$ using the simplex algorithm
+                \end{enumerate}
+                There are three cases for the second phase, the trivial of which is when $\zeta^* > 0$, from which we can state that the original LP is infeasible.
+                However, for the non-trivial case (when all $\xi_i$ are nonbasic at optimality), we perform the following steps;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item remove all artificial columns from the optimal phase 1 tableau
+                    \item derive the basic representation for $z$ (original objective) with respect to the optimal index set from phase 1
+                    \item solve the original LP with the simplex algorithms, using the final basis of phase 1 as the initial basis of phase 2 - the optimal of phase 2 is the optimal of the original LP
+                \end{enumerate}
+                On the other hand, when there is at least one basic $\xi_i$ at optimality;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item as $\zeta^* = 0$, we can conclude all $\xi_i = 0$, and therefore we have some basic variables equal to zero
+                    \item we have found a degenerate BFS for the original LP, and a basic representation for the auxiliary problem
+                    \item since the BFS is degenerate, we can pivot on $y_{p, q} \neq 0$, corresponding to an artificial $\xi_p$ and original variable $x_q$, and keep $\zeta^* = 0$
+                    \item all $\xi_i$ variables can therefore be removed from the basis, obtaining a BFS for the original LP
+                \end{enumerate}
 \end{document}
