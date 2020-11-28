@@ -1509,5 +1509,184 @@
                             y^* & = \text{£}15,000
                         \end{align*}
                 \end{enumerate}
+        \subsection*{Lecture 8}
+            \subsubsection*{Example of Min-Max}
+                \begin{mini*}|l|
+                    {}{\phi(\vec{x})}
+                    {}{}
+                    \addConstraint{\mat{A}\vec{x}}{= \vec{b}}
+                    \addConstraint{\vec{x}}{\geq 0}
+                \end{mini*}
+                Where we have the following;
+                \begin{align*}
+                    \phi(\vec{x}) & = \max_{i = 1, \dots, I} \{\vec{c(i)}^\top \vec{x}\} \\
+                    \vec{c(i)} & \in \mathbb{R}^m \\
+                    \mat{A} & \in \mathbb{R}^{m \times m} \\
+                    \vec{b} & \in \mathbb{R}^m \\
+                    \intertext{in the specific case;}
+                    \mat{A} & = \begin{bmatrix}
+                        10 & 5 \\
+                        5 & 9
+                    \end{bmatrix} \\
+                    \vec{b} & = \begin{bmatrix}
+                        -2 \\ 5
+                    \end{bmatrix} \\
+                    \vec{c(i)} & = \begin{bmatrix}
+                        5 - i \\
+                        3 - i
+                    \end{bmatrix}
+                \end{align*}
+                Converted to the LP equivalent, we have the following;
+                \begin{mini*}|l|
+                    {}{z}
+                    {}{}
+                    \addConstraint{z}{\geq 4x_1 + 2x_2}
+                    \addConstraint{z}{\geq 3x_1 + x_2}
+                    \addConstraint{10x_1 + 5x_2}{= -2}
+                    \addConstraint{5x_1 + 9x_2}{= 5}
+                    \addConstraint{x1, x2}{\geq 0}
+                \end{mini*}
+            \subsubsection*{Min-Min Problems}
+                Similarly, we can set the following (with a family of linear equations);
+                $$\psi(x) = \min_{i = 1, \dots, I} \left\{ c(i)^\top x + d(i) \right\} \text{ for } c(i) \in \mathbb{R}^n, d(i) \in \mathbb{R}$$
+                Then the following is called a \textbf{min-min problem};
+                \begin{mini*}|l|
+                    {}{\psi(x)}
+                    {}{}
+                    \addConstraint{Ax}{= b}
+                    \addConstraint{x}{\geq 0}
+                \end{mini*}
+                Consider the following scalar case, where $n = 1$ (note that the lines have corresponding $c(i)$ gradients), and $\psi(x)$ is the line in \violet{violet};
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (0, 0) edge[->] (0, 5)
+                        (0, 0) edge[->] (8, 0);
 
+                        \draw
+                        (0, 1) edge[dashed] (3, 5)
+                        (0, 2) edge[dashed] (8, 5)
+                        (0, 3) edge[dashed] (8, 3)
+                        (0, 4) edge[dashed] (8, 2);
+
+                        \node at (-0.5, 4) {$d(I)$};
+                        \node at (-0.5, 3) {$d(2)$};
+                        \node at (-0.5, 1) {$d(1)$};
+
+                        \draw[thick, violet] (0, 1) -- (24/23, 55/23) -- (8/3, 3) -- (4, 3) -- (8, 2);
+                    \end{tikzpicture}
+                \end{center}
+                Consider a set of $I$ linear programs, $LP(1), \dots, LP(I)$, with $LP(i)$ defined as;
+                \begin{mini*}|l|
+                    {}{z_i = c(i)^\top x(i) + d(i)}
+                    {}{}
+                    \addConstraint{Ax(i)}{= b}
+                    \addConstraint{x(i)}{\geq 0}
+                \end{mini*}
+                Denote $z^*_i$ as the optimal solution for $LP(i)$, and let $LP(j)$ be the LP that has the minimal objective;
+                $$z^*_j = \min_{i = 1, \dots, I} z^*_i$$
+                Let $x^*(j)$ be its optimal solution, then it is optimal in MM (min-min), and we have the following result;
+                $$\psi^* = \psi(x^*(j)) = z^*_j$$
+            \subsubsection*{Interchangeability of Min-Operations}
+                We observe the following lemma; let $X$ and $Y$ be arbitrary sets, and let $f : X \times Y \to \mathbb{R}$ and arbitrary function defined on $X \times Y$, then we have;
+                $$\min_{x \in X} \min_{y \in Y} f(x, y) = \min_{y \in Y} \min_{x \in X} f(x, y)$$
+                The lemma then implies that by finding the minimum of each of the individual linear equations, the minimum of which is the same as finding the minimum of $\psi$.
+            \subsubsection*{Fractional Linear Programming}
+                Consider the following fractional linear program (FLP);
+                $$\min \left\{\frac{\alpha_0 + \alpha_1x_1 + \dots + \alpha_nx_n}{\beta_0 + \beta_1x_1 + \dots + \beta_nx_n}\ \vline\ \mat{A}\vec{x} = \vec{b}; \vec{x} \geq 0 \right\}$$
+                We make the following assumptions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item the feasible set of the FLP is bounded;
+                        $$\forall \vec{x} : \mat{A}\vec{x} = \vec{b}; \vec{x} \geq 0\ \left[\exists L > 0\ \left[\ || x || \leq L\ \right]\right]$$
+                    \item the denominator of the objective function is strictly positive (the following holds for all feasible $\vec{x}$)
+                        $$\beta_0 + \beta_1x_1 + \dots + \beta_nx_n > 0$$
+                \end{itemize}
+            \subsubsection*{Homogenisation}
+                Let us introduce new variables $y_i \geq 0$ for $i = 1, \dots, n$ and $y_0 > 0$.
+                Adding the new variable $y_0$ gives us an additional degree of freedom.
+                If we set $x_i = \frac{y_i}{y_0}$, we can \textbf{homogenise} the FLP as follows;
+                \begin{mini*}|l|
+                    {}{\frac{\alpha_0y_0 + \alpha_1y_1 + \dots + \alpha_ny_n}{\beta_0y_0 + \beta_1y_1 + \dots + \beta_ny_n}}
+                    {}{}
+                    \addConstraint{b_iy_0 - \summation{j = 1}{n} a_{i, j}y_j}{= 0 \ \ \ \forall i = 1, \dots, m}
+                    \addConstraint{y_0}{> 0}
+                    \addConstraint{y_1, \dots, y_n}{\geq 0}
+                \end{mini*}
+                For any $(y_0, y_1, \dots, y_n)$ feasible in HFLP, $\lambda(y_0, y_1, \dots, y_n)$ is also feasible (with $\lambda > 0$) - and it will have the same objective value.
+                For each $(y_0, \dots, y_n)$, we can find a $\lambda$ that satisfies the following;
+                $$\beta_0y_0 + \dots + \beta_ny_n = 1$$
+                The scaled point will have identical objective, thus we can restrict our attention to those points and find an optimal solution, hence the denominator in the objective of HFLP can always be \textbf{normalised} to unity.
+                The \textbf{normalised problem} is as follows;
+                \begin{mini*}|l|
+                    {}{\alpha_0y_0 + \alpha_1y_1 + \dots + \alpha_ny_n}
+                    {}{}
+                    \addConstraint{\beta_0y_0 + \summation{j = 1}{n}\beta_jy_j}{= 1}
+                    \addConstraint{b_iy_0 - \summation{j = 1}{n} a_{i, j}y_j}{= 0 \ \ \ \forall i = 1, \dots, m}
+                    \addConstraint{y_0}{> 0}
+                    \addConstraint{y_1, \dots, y_n}{\geq 0}
+                \end{mini*}
+                The first constraint forces the denominator of the objective of HFLP to be equal to 1.
+                \medskip
+
+                We denote the optimal solution of the normalised problem as; $(y^*_0, y^*_1, \dots, y^*_n)$.
+                The optimal solution for FLP is (construction only works if $y^*_0 \neq 0$);
+                $$\left(\frac{y^*_1}{y^*_0}, \dots, \frac{y^*_n}{y^*_0}\right)$$
+                There is also a derivation for relaxing the lower bound on $y_0$, however we do not need to know it.
+            \subsubsection*{Example of FLP}
+                \begin{mini*}|l|
+                    {}{\frac{x_1 + 2x_2}{4x_1 + 3x_2 + 3}}
+                    {}{}
+                    \addConstraint{x_1 + x_2}{\leq 2}
+                    \addConstraint{-x_1 + x_2 \leq 1}
+                    \addConstraint{x_1, x_2}{\geq 0}
+                \end{mini*}
+                We can first argue that it is certainly bounded, due to the first constraint (upper bound), and a lower bound from the non-negativity constraint.
+                Converting to HFLP, we use the following;
+                $$x_1 = \frac{y_1}{y_0} \text{ and } x_2 = \frac{y_2}{y_0}$$
+                \begin{mini*}|l|
+                    {}{\frac{y_1 + 2y_2}{4y_1 + 3y_2 + 3y_0}}
+                    {}{}
+                    \addConstraint{y_1 + y_2}{\leq 2y_0}
+                    \addConstraint{-y_1 + y_2}{\leq 1y_0}
+                    \addConstraint{y_1, y_2}{\geq 0}
+                    \addConstraint{y_0}{> 0}
+                \end{mini*}
+                Converting, and setting the denominator to 1, we get the following;
+                \begin{mini*}|l|
+                    {}{y_1 + 2y_2}
+                    {}{}
+                    \addConstraint{4y_1 + 3y_2 + 3y_0}{= 1}
+                    \addConstraint{y_1 + y_2 + s_1}{= 2y_0}
+                    \addConstraint{-y_1 + y_2 + s_2}{= 1y_0}
+                    \addConstraint{y_1, y_2, s_1, s_2}{\geq 0}
+                    \addConstraint{y_0}{> 0}
+                \end{mini*}
+                Finally, we also need to state the following;
+                $$x^* = \left(\frac{y^*_1}{y^*_0}, \frac{y^*_2}{y^*_0}\right)$$
+            \subsubsection*{GLPK}
+                This looks at Klee-Minty cubes.
+                There is a technique called steepest edge that calculates the angle between the edge and the objective function.
+                However this is more computationally expensive, and since we've noticed that there are points in which we might not move in the simplex algorithm, there is preference for moving faster than being precise.
+                \medskip
+
+                Case study 4 is also mentioned, regarding a dataset concerning Italian wines.
+            \subsubsection*{Tutorial}
+                \begin{enumerate}[1.]
+                    \item
+                        In linear programming show that a variable that becomes nonbasic in one iteration of the simplex method cannot become basic in the next iteration.
+                        Consider the sign of the coefficient in the objective row for the variable that becomes nonbasic.
+                        \smallskip
+
+                        We have $x_i$ being basic at iteration $k$, and $x_i$ being nonbasic at iteration $k + 1$.
+                        The variable that became basic (after pivoting) is $x_j$ at iteration $k + 1$, with a pivot of $(i, j)$.
+                        At iteration $k$, we have $\beta^{(k)}_i = 0$, since it was a basic variable, hence has zeroes in the entire column other than its corresponding row.
+                        Similarly, we also know that $y^{(k)}_{i, j} > 0$ by the simplex algorithm.
+                        Looking at iteration $k + 1$;
+                        \begin{align*}
+                            \beta^{(k + 1)}_i & = \beta^{(k)}_i - \frac{y^{(k)}_{i, i}}{y^{(k)}_{i, j}}\beta^{(k)}_j \\
+                            & = 0 - \frac{1}{y^{(k)}_{i, j}\beta^{(k)}_j} \\
+                            & < 0
+                        \end{align*}
+                \end{enumerate}
 \end{document}
