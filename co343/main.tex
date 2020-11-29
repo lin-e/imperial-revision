@@ -2573,4 +2573,163 @@
                         The second constraint says that each item is in exactly one bin.
                     \item (and more)
                 \end{itemize}
+        \subsection*{Lecture 13}
+            \subsubsection*{Mixed Integer Linear Programming}
+                Note that we often omit linear, especially in the context of this course.
+                There are several subareas of independent interest;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Pure Integer Linear Programming} - all variables (including slack and objective) are integer
+                    \item \textbf{Binary Linear Programming} - all variables are binary
+                    \item \textbf{Mixed Integer Binary Programming} - MILP but integer variables are binary
+                \end{itemize}
+                The MILP standard for is similar to LPs, in particular $\vec{b} \geq 0$.
+                It's also important to note that slack and excess variables in MILPs are continuous.
+                On the other hand, with pure IP in standard form, we have integer-valued slack and excess variables;
+                \begin{enumerate}[1.]
+                    \setcounter{enumi}{-1}
+                    \itemsep0em
+                    \item apply LP standard form transformations, except addition of slack and excess variables;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item minimisation
+                            \item non-negative RHS
+                            \item free variables
+                        \end{itemize}
+                        \begin{mini*}|l|
+                            {}{z = -\frac{1}{3}x_1 - \frac{1}{2}x_2}
+                            {}{}
+                            \addConstraint{\frac{2}{3}x_1 + \frac{1}{3}x_2}{\leq \frac{4}{3}}
+                            \addConstraint{\frac{1}{2}x_1 - \frac{3}{2}x_2}{\leq \frac{2}{3}}
+                            \addConstraint{x_1, x_2}{\geq 0}
+                            \addConstraint{x_1, x_2}{\in \mathbb{N}_0}
+                        \end{mini*}
+                    \item scale equations of the model so all coefficients are integers
+                        \begin{mini*}|l|
+                            {}{z^\prime = -2x_1 - 3x_2}
+                            {}{}
+                            \addConstraint{2x_1 + x_2}{\leq 4}
+                            \addConstraint{3x_1 - 9x_2}{\leq 4}
+                            \addConstraint{x_1, x_2}{\geq 0}
+                            \addConstraint{x_1, x_2}{\in \mathbb{N}_0}
+                        \end{mini*}
+                        Note that in this example $z = \frac{z^\prime}{6}$.
+                    \item insert integer slack / excess variables
+                        \begin{mini*}|l|
+                            {}{z^\prime = -2x_1 - 3x_2}
+                            {}{}
+                            \addConstraint{2x_1 + x_2 + s_3}{= 4}
+                            \addConstraint{3x_1 - 9x_2 + s_4}{= 4}
+                            \addConstraint{x_1, x_2, s_3, s_4}{\geq 0}
+                            \addConstraint{x_1, x_2, s_3, s_4}{\in \mathbb{N}_0}
+                        \end{mini*}
+                        We can do this, as the difference between two integers is still an integer.
+                \end{enumerate}
+            \subsubsection*{Logical Operations}
+                We can model logical operations on the constraints via integer variables, consider the expression;
+                $$\vec{a_1}^\top\vec{x} \leq b_1 \lor \vec{a_2}^\top\vec{x} \leq b_2$$
+                We can express this as follows, where $M$ is a large enough constant referred to as big-$M$;
+                \begin{align*}
+                    \vec{a_1}^\top\vec{x} & \leq b_1 + M\delta \\
+                    \vec{a_2}^\top\vec{x} & \leq b_2 + M(1 - \delta) \\
+                    \delta & \in \{0, 1\}
+                \end{align*}
+                This also allows us to define a feasible set which isn't connected.
+                Consider the following; assume we want to find the minimum $x$ that satisfies $x \in [0, 1] \lor x \in [2, 4]$.
+                We can model it as follows;
+                \begin{mini*}|l|
+                    {}{x}
+                    {}{}
+                    \addConstraint{x}{\geq 0}
+                    \addConstraint{x}{\leq 4}
+                    \addConstraint{x}{\leq 1 + M\delta}
+                    \addConstraint{x}{\geq 2 - M(1 - \delta)}
+                \end{mini*}
+                Note that we want to choose the smallest possible big-$M$ - one that is big enough to allow program to work, but not too large as to cause numerical instability (badly conditioned).
+                \medskip
+
+                Another constraint that we'd often like to satisfy is to satisfy $k$-out-of-$m$;
+                $$\vec{a_1}^\top\vec{x} \leq b_1, \vec{a_2}^\top\vec{x} \leq b_2, \dots, \vec{a_m}^\top\vec{x} \leq b_m$$
+                We can then express this as follows (note when $\delta_j = 1$, that constraint does \textbf{not} play a role);
+                \begin{align*}
+                    \vec{a_1}^\top\vec{x} & \leq b_1 \\
+                    \vec{a_2}^\top\vec{x} & \leq b_2 \\
+                    \vdots \\
+                    \vec{a_m}^\top\vec{x} & \leq b_m \\
+                    \summation{j = 1}{m} \delta_j & \leq m - k & \text{at least $k$ zeroes} \\
+                    \delta_j & \in \{0, 1\} & \forall j \in \{1, \dots, m\}
+                \end{align*}
+            \subsubsection*{Finite-Valued Variables}
+                Assume a variable $x_j$ can only take a finite number of values, such that  $x_j \in \{p_1, \dots, p_m\}$.
+                We can then introduce the variables $z_{j, 1}, \dots, z_{j, m} \in \{0, 1\}$, where each variable ``toggles'' on one of the finite values.
+                We also need to add the constraint to ensure that only one value is taken at a time;
+                $$z_{j, 1} + \dots + z_{j, m} = 1$$
+                We can then do the following replacement in the objective function and all constraints;
+                $$x_j = p_1 z_{j, 1} + \dots + p_m {z_j, m}$$
+            \subsubsection*{Tutorial}
+                \begin{enumerate}[1.]
+                    \setcounter{enumi}{2}
+                    \itemsep0em
+                    \item Consider the following Two-Player Zero-Sum game;
+                        \begin{center}
+                            \begin{tabular}{|cc|ccccc|}
+                                \hline
+                                & & \multicolumn{5}{c|}{CP} \\
+                                & & $c_1$ & $c_2$ & $c_3$ & $c_4$ & $c_5$ \\
+                                \hline
+                                \multirow{5}{*}{RP} & $r_1$ & $-4$ & $0$ & $5$ & $-1$ & $2$ \\
+                                & $r_2$ & $4$ & $9$ & $-5$ & $1$ & $-5$ \\
+                                & $r_3$ & $3$ & $-3$ & $0$ & $-7$ & $5$ \\
+                                & $r_4$ & $7$ & $2$ & $6$ & $0$ & $5$ \\
+                                & $r_5$ & $-7$ & $-4$ & $8$ & $-5$ & $9$ \\
+                                \hline
+                            \end{tabular}
+                        \end{center}
+                        \begin{enumerate}[1.]
+                            \item
+                                Is there a dominant strategy equilibrium?
+                                If so, find it.
+                                If not, can we at least remove dominated strategies from the problem?
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item $r_4$ dominates $r_3$
+                                    \item $r_4$ dominates $r_1$
+                                    \item $c_4$ dominates $c_2$
+                                \end{itemize}
+                                \begin{center}
+                                    \begin{tabular}{|cc|cccc|}
+                                        \hline
+                                        & & \multicolumn{4}{c|}{CP} \\
+                                        & & $c_1$ & $c_3$ & $c_4$ & $c_5$ \\
+                                        \hline
+                                        \multirow{3}{*}{RP} & $r_2$ & $4$ & $-5$ & $1$ & $-5$ \\
+                                        & $r_4$ & $7$ & $6$ & $0$ & $5$ \\
+                                        & $r_5$ & $-7$ & $8$ & $-5$ & $9$ \\
+                                        \hline
+                                    \end{tabular}
+                                \end{center}
+                            \item
+                                Is there a pure Nash equilibrium?
+                                If so, find it.
+                                \begin{center}
+                                    \begin{tabular}{|cc|ccccc|c|}
+                                        \hline
+                                        & & \multicolumn{5}{c|}{CP} & \\
+                                        & & $c_1$ & $c_2$ & $c_3$ & $c_4$ & $c_5$ & $\alpha_i$ \\
+                                        \hline
+                                        \multirow{5}{*}{RP} & $r_1$ & $-4$ & $0$ & $5$ & $-1$ & $2$ & $-4$ \\
+                                        & $r_2$ & $4$ & $9$ & $-5$ & $1$ & $-5$ & $-5$ \\
+                                        & $r_3$ & $3$ & $-3$ & $0$ & $-7$ & $5$ & $-7$ \\
+                                        & $r_4$ & $7$ & $2$ & $6$ & $0$ & $5$ & $0$ \\
+                                        & $r_5$ & $-7$ & $-4$ & $8$ & $-5$ & $9$ & $-7$ \\
+                                        \hline
+                                        & $\beta_j$ & $7$ & $9$ & $8$ & $1$ & $9$ & \\
+                                        \hline
+                                    \end{tabular}
+                                \end{center}
+                                Note that this could be solved with more ease with the previous result (removed dominated).
+                                The best-worst case choice is $(r_4, c_4)$.
+                                However, this is not a pure Nash equilibrium, as players would want to deviate from that (RP could go to $r_2$).
+                        \end{enumerate}
+                \end{enumerate}
 \end{document}
