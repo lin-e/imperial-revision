@@ -1782,7 +1782,7 @@
                 \medskip
 
                 Note that we also refer to the optimal solution of the dual problem, $\vec{y^*} = \left(\mat{B}^{-1}\right)^\top\vec{c_B}$, as the shadow price of the primal problem;
-                $$\Pi = \vec{y^*} = \left(\mat{B}^{-1}\right)^\top\vec{c_B}$$
+                $$\vec{\Pi} = \vec{y^*} = \left(\mat{B}^{-1}\right)^\top\vec{c_B}$$
                 \medskip
 
                 Consider the following forms of the primal and dual;
@@ -1803,7 +1803,7 @@
                         \begin{mini*}|l|
                             {}{\vec{b}^\top\vec{y}}
                             {}{}
-                            \addConstraint{\mat{A}^\top\vec{y}}{\leq \vec{c}}
+                            \addConstraint{\mat{A}^\top\vec{y}}{\geq \vec{c}}
                             \addConstraint{\vec{y}}{\geq 0}
                         \end{mini*}
                     \end{minipage}
@@ -1826,5 +1826,315 @@
                     \itemsep0em
                     \item imagine the drawing of the line; for both to be unbounded, they will cross over - dual goes to $-\infty$, whereas primal goes to $\infty$
                 \end{enumerate}
-            \subsubsection*{Characterisation of Duality}
+        \subsection*{Lecture 10}
+            \subsubsection*{Indirect Way}
+                The approach here is to take an original problem, convert it to the primal problem we've seen before, convert it to the dual;
+                $$(P^\prime) \to (P) \to (D) \to (D^\prime)$$
+                For this, we will be working with the following example (where we attempt to find the dual);
+                \begin{maxi*}|l|
+                    {}{2x_1 + x_2}
+                    {}{}
+                    \addConstraint{x_1 + x_2}{= 2}
+                    \addConstraint{2x_1 - x_2}{\geq 3}
+                    \addConstraint{x_1 - x_2}{\leq 1}
+                    \addConstraint{x_1}{\geq 0}
+                    \addConstraint{x_2}{\in \mathbb{R}}
+                \end{maxi*}
+                The algorithm is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item bring LP to either (P) or (D)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item replace any unbounded variables (not positive) $x_i \in \mathbb{R}$ with $(x^+_i - x^-_i)$, where $x^+_i, x^-_i \geq 0$
+                                \begin{maxi*}|l|
+                                    {}{2x_1 + \violet{x^+_2 - x^-_2}}
+                                    {}{}
+                                    \addConstraint{x_1 + \violet{x^+_2 - x^-_2}}{= 2}
+                                    \addConstraint{2x_1 - \violet{x^+_2 + x^-_2}}{\geq 3}
+                                    \addConstraint{x_1 - \violet{x^+_2 + x^-_2}}{\leq 1}
+                                    \addConstraint{x_1, \violet{x^+_2}, \violet{x^-_2}}{\geq 0}
+                                \end{maxi*}
+                            \item replace any equality constraints with two inequality constraints
+                                \begin{maxi*}|l|
+                                    {}{2x_1 + x^+_2 - x^-_2}
+                                    {}{}
+                                    \addConstraint{\violet{x_1 + x^+_2 - x^-_2}}{\ \violet{\leq 2}}
+                                    \addConstraint{\violet{x_1 + x^+_2 - x^-_2}}{\ \violet{\geq 2}}
+                                    \addConstraint{2x_1 - x^+_2 + x^-_2}{\geq 3}
+                                    \addConstraint{x_1 - x^+_2 + x^-_2}{\leq 1}
+                                    \addConstraint{x_1, x^+_2, x^-_2}{\geq 0}
+                                \end{maxi*}
+                            \item change any constraint directions with negation if necessary
+                                \begin{maxi*}|l|
+                                    {}{2x_1 + x^+_2 - x^-_2}
+                                    {}{}
+                                    \addConstraint{x_1 + x^+_2 - x^-_2}{\leq 2}
+                                    \addConstraint{\violet{-x_1 - x^+_2 + x^-_2}}{\ \violet{\leq -2}}
+                                    \addConstraint{\violet{-2x_1 + x^+_2 - x^-_2}}{\ \violet{\leq -3}}
+                                    \addConstraint{x_1 - x^+_2 + x^-_2}{\leq 1}
+                                    \addConstraint{x_1, x^+_2, x^-_2}{\geq 0}
+                                \end{maxi*}
+                            \item change direction of objective function with negation if necessary
+                        \end{itemize}
+                    \item obtain dual according to definition
+                        \begin{itemize}
+                            \item if LP is now in form (P), dual is (D)
+                                \smallskip
+
+                                With this, we have the following primal problem;
+                                \begin{align*}
+                                    \vec{c} & = \begin{bmatrix}
+                                        2 \\ 1 \\ -1
+                                    \end{bmatrix} \\
+                                    \vec{x} & = \begin{bmatrix}
+                                        x_1 \\ x^+_2 \\ x^-_2
+                                    \end{bmatrix} \\
+                                    \mat{A} & = \begin{bmatrix}
+                                        1 & 1 & -1 \\
+                                        -1 & -1 & 1 \\
+                                        -2 & 1 & -1 \\
+                                        1 & -1 & 1
+                                    \end{bmatrix} \\
+                                    \vec{b} & = \begin{bmatrix}
+                                        2 \\ -2 \\ -3 \\ 1
+                                    \end{bmatrix}
+                                    \intertext{by the definition, we have the the following;}
+                                    \vec{y} & = \begin{bmatrix}
+                                        y_1 \\ y_2 \\ y_3 \\ y_4
+                                    \end{bmatrix} \\
+                                    \mat{A}^\top & = \begin{bmatrix}
+                                        1 & -1 & -2 & 1 \\
+                                        1 & -1 & 1 & -1 \\
+                                        -1 & 1 & -1 & 1
+                                    \end{bmatrix}
+                                \end{align*}
+                                Therefore, our dual problem is;
+                                \begin{mini*}|l|
+                                    {}{2y_1 - 2y_2 - 3y_3 + y_4}
+                                    {}{}
+                                    \addConstraint{y_1 - y_2 - 2y_3 + y_4}{\geq 2}
+                                    \addConstraint{y_1 - y_2 + y_3 - y_4}{\geq 1}
+                                    \addConstraint{-y_1 + y_2 - y_3 + y_4}{\geq -1}
+                                    \addConstraint{y_1, y_2, y_3, y_4}{\geq 0}
+                                \end{mini*}
+                            \item vice versa; if LP is in form (D), dual is (P)
+                        \end{itemize}
+                    \item simplify dual problem (optional)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item replace variable pairs $y_i, y_j \geq 0, i \neq j$ that occur in \textbf{all} functions as $\alpha y_i - \alpha y_j$ with $y_k \in \mathbb{R}$
+                            \item replace matching inequality constraints with a single equality constraint
+                        \end{itemize}
+
+                        Note that in the example above, we notice that $y_1, y_2$ always show up in pairs, and therefore we can replace it with $y^\prime_1 \in \mathbb{R}$, where $y^\prime_1 = y_1 - y_2$.
+                        Similarly, after negation of the third constraint, we have a matching inequality pair, thus we end up with the following simplified problem;
+                        \begin{mini*}|l|
+                            {}{2y^\prime_1 - 3y_3 + y_4}
+                            {}{}
+                            \addConstraint{y^\prime_1 - 2y_3 + y_4}{\geq 2}
+                            \addConstraint{y^\prime_1 + y_3 - y_4}{= 1}
+                            \addConstraint{y_3, y_4}{\geq 0}
+                            \addConstraint{y^\prime_1}{\in \mathbb{R}}
+                        \end{mini*}
+                \end{enumerate}
+            \subsubsection*{Direct Way}
+                Since the detour to transform to (P) and then to (D) may be tedious, there is a way to apply duality without the detour.
+                We need to recall the rules from the transformation;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item for every primal constraint, create one dual variable, and for every primal variable, create one dual constraint
+                    \item the dual coefficient matrix is $\mat{A}^\top$, the former right-hand sides $\vec{b}$ now become the new costs, and the former costs $\vec{c}$ become the new new RHS's
+                    \item if the primal is a maximisation problem, then the dual is a minimisation problem
+                        \begin{itemize}
+                            \itemsep0em
+                            \item if the $i^\text{th}$ primal constraint is $\geq, =, \leq$, the $i^\text{th}$ dual variable becomes $y_i \leq 0, y_i \in \mathbb{R}, y_i \geq 0$ respectively
+                            \item if the $j^\text{th}$ primal variable is $x_j \geq 0, x_j \in \mathbb{R}, x_j \leq 0$, the $j^\text{th}$ dual constraint becomes $\geq, =, \leq$ respectively
+                        \end{itemize}
+                    \item if the primal is a minimisation problem, then the dual is a maximisation problem (note the different directions of the inequalities in the dual)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item if the $i^\text{th}$ primal constraint is $\geq, =, \leq$, the $i^\text{th}$ dual variable becomes $y_i \geq 0, y_i \in \mathbb{R}, y_i \leq 0$ respectively
+                            \item if the $j^\text{th}$ primal variable is $x_j \geq 0, x_j \in \mathbb{R}, x_j \leq 0$, the $j^\text{th}$ dual constraint becomes $\leq, =, \geq$ respectively
+                        \end{itemize}
+                \end{enumerate}
+            \subsubsection*{Sensitivity Analysis}
+                Sensitivity is about understanding how the solution of the linear program depends on certain parameters.
+                Note that so far we've assumed that we know all the constraints, although this isn't always the case.
+                Consider the following maximisation problem, where the constraints are the availability of $X$, the availability of $Y$, and the demand of $x_1$.
+                In this case, we do not know the precise availability of $X$, hence we call it $p_1$;
+                \begin{maxi*}|l|
+                    {}{y = x_1 + x_2}
+                    {}{}
+                    \addConstraint{2x_1 + x_2}{\leq p_1}
+                    \addConstraint{x_1 + 3x_2}{\leq 18}
+                    \addConstraint{x_1}{\leq 4}
+                    \addConstraint{x_1, x_2}{\geq 0}
+                \end{maxi*}
+                In standard form;
+                \begin{mini*}|l|
+                    {}{z = -x_1 - x_2}
+                    {}{-}
+                    \addConstraint{2x_1 + x_2 + x_3}{= p_1}
+                    \addConstraint{x_1 + 3x_2 + x_4}{= 18}
+                    \addConstraint{x_1 + x_5}{= 4}
+                    \addConstraint{x_1, x_2, x_3, x_4, x_5}{\geq 0}
+                \end{mini*}
+                We can introduce the idea of a value function, $v(p_1)$, which expresses the optimal value of the LP as a function of the unknown parameter.
+                If we graphically consider the above example;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            no markers, domain=0:20, samples=20,
+                            axis lines*=left, xlabel=$x_1$, ylabel=$x_2$,
+                            height=7cm, width=14cm,
+                            enlargelimits=false,
+                            xtick={0,1,...,20},
+                            ytick={0,1,...,10},
+                            xmin=0, xmax=20,
+                            ymin=0, ymax=10
+                        ]
+                            \addplot[fill=black!20, draw=none, domain=0:4] {6 - \x/3} \closedcycle;
+
+                            \addplot[thick] {6 - \x/3};
+                            \addplot[thick] coordinates {(4, 0) (4, 10)};
+
+                            \addplot[thick, violet] {38/3 - 2*\x};
+                            \addplot[thick, teal] {6 - 2*\x};
+                        \end{axis}
+                    \end{tikzpicture}
+                \end{center}
+                Note the that when $p_1 < 0$, the problem is infeasible.
+                In this case, the important points to consider are when $p_1 = \violet{\frac{38}{3}}$ and $p_1 = \teal{6}$.
+                We can also graph $v(p_1)$ as follows;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            no markers, domain=0:15, samples=45,
+                            axis lines*=left, xlabel=$p_1$, ylabel=$v(p_1)$,
+                            height=7cm, width=14cm,
+                            enlargelimits=false,
+                            xtick={0,1,...,20},
+                            ytick={-10,-9,...,1},
+                            xmin=0, xmax=15,
+                            ymin=-10, ymax=1
+                        ]
+                            \addplot[thick] coordinates {(0, 0) (6, -6) (38/3, -26/3) (15, -26/3)};
+                        \end{axis}
+                    \end{tikzpicture}
+                \end{center}
+                Let $\vec{p} \in \mathbb{R}^m$ denote a general RHS, and define the value function $v(\vec{p}) : \mathbb{R}^m \to \mathbb{R}$ as;
+                $$v(\vec{p}) = \min \left\{z = \vec{c}^\top\vec{x}\ |\ \mat{A}\vec{x} = \vec{p}; \vec{x} \geq 0\right\}$$
+                Therefore, if we were to solve the original LP (\textbf{reference problem}), we would compute $v(\vec{b})$.
+                \medskip
+
+                Suppose we have solved the reference problem, where $\vec{p} = \vec{b}$, and found an optimal basis which satisfies the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{feasibility} \hfill $\vec{x_B} = \mat{B}^{-1}\vec{b} \geq 0$
+                    \item \textbf{optimality} \hfill $\vec{r} = \vec{c_N} - \mat{N}^\top\left(\mat{B}^{-1}\right)^\top\vec{c_B} \geq 0$
+                \end{itemize}
+                Suppose we are given $\vec{p} \in \mathbb{R}^m$.
+                If $\mat{B}^{-1}\vec{p} \geq 0$, we therefore know that $\mat{B}$ is also feasible for $\vec{p}$; we also know that it is \textbf{optimal}, since the reduced cost vector ($\vec{r}$) does not depend on $\vec{b}$.
+                This gives us $x_B(\vec{p}) = \mat{B}^{-1}\vec{p}$.
+                \medskip
+
+                Recall the vector of shadow prices, $\vec{\Pi} \in \mathbb{R}^m$, defined as;
+                $$\vec{\Pi} = \left(\mat{B}^{-1}\right)^\top\vec{c_B}$$
+                Note that since there can be more than one optimal basis, the shadow prices \textbf{do not need to be unique}.
+                The shadow prices give us information about the sensitivity of the value function $v(\vec{p})$ at $\vec{p} = \vec{b}$.
+            \subsubsection*{Behaviour of Value Function}
+                The theorem states the following, for all $\vec{p} \in \mathbb{R}^m$ with $\mat{B}^{-1}\vec{p} \geq 0$;
+                $$v(\vec{p}) = v(\vec{b}) + \vec{\Pi}^\top(\vec{p} - \vec{b})$$
+                We can prove this by first stating that if $\mat{B}^{-1}\vec{p} \geq 0$, then $\mat{B}$ remains as the optimal basis since $\vec{r}$ is not affected by the change from $\vec{b}$ to $\vec{p}$ (see above).
+                Therefore we find the following;
+                \begin{align*}
+                    v(\vec{p}) & = \vec{c_B}^\top\mat{B}^{-1}\vec{p} \\
+                    & = \vec{c_B}^\top\mat{B}^{-1}\vec{b} + \vec{c_B}^\top\mat{B}^{-1}(\vec{p} - \vec{b}) \\
+                    & = v(\vec{b}) - \vec{c_B}^\top\mat{B}^{-1}(\vec{p} - \vec{b})
+                \end{align*}
+                More generally, we have the following theorem, for all $\vec{p} \in \mathbb{R}^m$;
+                $$v(\vec{p}) \geq v(\vec{b}) + \vec{\Pi}^\top(\vec{p} - \vec{b})$$
+                The proof is as follows;
+                \begin{align*}
+                    v(\vec{p}) & = \min \left\{\vec{c}^\top\vec{x}\ |\ \mat{A}\vec{x} = \vec{p}; \vec{x} \geq 0\right\} \\
+                    & = \min \left\{\vec{c}^\top\vec{x} - \vec{\Pi}^\top(\mat{A}\vec{x} - \vec{p})\ |\ \mat{A}\vec{x} = \vec{p}; \vec{x} \geq 0\right\} & \text{note that $\mat{A}\vec{x} - \vec{p} = \vec{0}$} \\
+                    & \geq \min \left\{\vec{c}^\top\vec{x} - \vec{\Pi}^\top(\mat{A}\vec{x} - \vec{p})\ |\ \vec{x} \geq 0\right\} & \text{relaxed constraint on feasible set} \\
+                    & = \min \left\{\left(\vec{c}^\top - \vec{\Pi}^\top\mat{A}\right)\vec{x} + \vec{\Pi}^\top\vec{p}\ |\ \vec{x} \geq 0\right\} \\
+                    & = \vec{\Pi}^\top\vec{p} + \underbrace{\min \left\{\left(\vec{c}^\top - \vec{\Pi}^\top\mat{A}\right)\vec{x}\ |\ \vec{x} \geq 0\right\}}_\text{always $\geq 0$} \\
+                    & \geq \vec{\Pi}^\top\vec{p} \\
+                    & = \vec{\Pi}^\top\vec{b} + \vec{\Pi}^\top(\vec{p} - \vec{b}) \\
+                    & = \vec{c_B}^\top\mat{B}^{-1}\vec{b} + \vec{\Pi}^\top(\vec{p} - \vec{b}) \\
+                    & = v(\vec{b}) - \vec{\Pi}^\top(\vec{p} - \vec{b})
+                \end{align*}
+                It's important to note that the shadow price ($\vec{\Pi}$) is computed for the specific value of $\vec{b}$.
+                Recall the graph of $v(p_1)$;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            no markers, domain=0:15, samples=45,
+                            axis lines*=left, xlabel=$p_1$, ylabel=$v(p_1)$,
+                            height=7cm, width=14cm,
+                            enlargelimits=false,
+                            xtick={0,1,...,20},
+                            ytick={-10,-9,...,1},
+                            xmin=0, xmax=15,
+                            ymin=-10, ymax=1
+                        ]
+                            \addplot[thick] coordinates {(0, 0) (6, -6)};
+                            \addplot[thick, violet] coordinates {(6, -6) (38/3, -26/3)};
+                            \addplot[thick] coordinates {(38/3, -26/3) (15, -26/3)};
+
+                            \addplot[dashed] coordinates {(0, -6) (6, -6)};
+                            \addplot[dashed] coordinates {(6, -10) (6, -6)};
+
+                            \addplot[dashed] coordinates {(0, -26/3) (38/3, -26/3)};
+                            \addplot[dashed] coordinates {(38/3, -10) (38/3, -26/3)};
+                        \end{axis}
+                    \end{tikzpicture}
+                \end{center}
+                Let $p_1 = b_1 = 11$.
+                If the optimal basis stays the same (in the region in \violet{violet}), the optimal costs change by $\Pi_1 = -\frac{2}{5}$ if the availability of $X$ increases by 1.
+                Therefore, we can state that the derivative of the value function at that point is equal to the shadow price, which is true in general (other than at the degenerate points).
+                \medskip
+
+                We can apply this to the real example as follows.
+                If the company can buy an additional amount of time on machine $X$, at a price of $\mu_1$ per unit, there are two cases;
+                \begin{itemize}
+                    \itemsep0em
+                    \item if $\mu_1 + \Pi_1 < 0$, the overall cost \textbf{decreases}, and therefore it is worthwhile
+                    \item if $\mu_1 + \Pi_1 > 0$, the overall cost \textbf{increases}, and therefore it is not worthwhile
+                \end{itemize}
+                As such, we can conclude that $-\Pi_1$ is the maximum price one should pay for a unit of time on machine $X$.
+                Similarly, the maximum amount of money a worker should ask from a company is equal to the shadow price, as otherwise it wouldn't make sense.
+                \medskip
+
+                We can also write the new constraints' RHS as;
+                $$\vec{p} = \vec{b} + \xi\vec{e_t}$$
+                Where $\vec{e_t}$ is a vector with all 0, except for a single 1 at the $t^\text{th}$ row / position.
+                Accepting the offer causes the total production cost to become;
+                $$v(\vec{b}) + \mu_t\xi \begin{cases}
+                    = v(\vec{b}) + \Pi_t\xi & \text{if } \mat{B}^{-1}(\vec{b} + \xi e_t) \geq 0 \\
+                    \geq v(\vec{b}) + \Pi_t\xi & \text{in general}
+                \end{cases}$$
+                For the equality case, we can accept the offer if $\mu_t + \Pi_t < 0$, and reject it otherwise.
+                We cannot threshold this simply in the case where we encounter a different optimal basis.
+            \subsubsection*{Evaluation of Shadow Prices}
+                We have the following lemma.
+                Suppose that row $t$ is initially a $\leq$-constraint, and a slack variable $x_s$ had been added.
+                Then we have $\Pi_t = \beta_s$, where $\beta_s$ is the objective coefficient of $x_s$ in the optimal tableau.
+                \begin{center}
+                    \begin{tabular}{c|ccc|c}
+                        BV & $z$ & $\vec{x_B}^\top$ & $\vec{x_N}^\top$ & RHS \\
+                        \hline
+                        $z$ & 1 & $\vec{0}^\top$ & $-\vec{r}^\top$ & $\times$ \\
+                        $\vec{x_B}$ & $\vec{0}$ & $\mat{I}$ & $\mat{B}^{-1}\mat{N}$ & $\times$
+                    \end{tabular}
+                \end{center}
 \end{document}
