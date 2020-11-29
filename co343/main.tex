@@ -2732,4 +2732,161 @@
                                 However, this is not a pure Nash equilibrium, as players would want to deviate from that (RP could go to $r_2$).
                         \end{enumerate}
                 \end{enumerate}
+        \subsection*{Lecture 14}
+            The ``simplest'' possible ILP, feasibility with binary decisions, is NP-complete; there is no polynomial time algorithm to solve it.
+            \subsubsection*{Continuous Relaxation}
+                LP relaxation is the linear program obtained by replacing all integer variables $x_j \in \mathbb{N}_0$ in an ILP with continuous variables $x_j \in \mathbb{R}$.
+                This will have a better or same optimal value as the ILP.
+                \medskip
+
+                The procedure is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item solve a LP relaxation (this contains all original feasible solutions, as well as others)
+                    \item if the optimal solution is integer, we are done
+                    \item otherwise, tighten the LP relaxation and repeat
+                        \smallskip
+
+                        Tightening is to restrict the feasible set of the LP relaxation without excluding the optimum solution of the ILP.
+                \end{itemize}
+            \subsubsection*{Cutting Plane Algorithm}
+                The algorithm terminates after a finite number of iterations - the resulting $x^*$ is integer and optimal.
+                \begin{enumerate}[1.]
+                    \setcounter{enumi}{-1}
+                    \itemsep0em
+                    \item write the ILP in standard form
+                    \item solve the LP relaxation
+                    \item if the resulting optimal solution $x^*$ is integer, stop as we've found the optimal
+                    \item generate a \textbf{cut} - a constraint satisfied by all feasible integer solutions but not by previous solution $x^*$ with non-integer components
+                    \item add cut to the LP relaxation and go back to step 1
+                \end{enumerate}
+                Consider the following problem;
+                \begin{maxi*}|l|
+                    {}{y = 5x_1 + 8x_2}
+                    {}{}
+                    \addConstraint{x_1 + x_2}{\leq 6}
+                    \addConstraint{5x_1 + 9x_2}{\leq 45}
+                    \addConstraint{x_1, x_2}{\geq 0}
+                    \addConstraint{x_1, x_2}{\in \mathbb{N}_0}
+                \end{maxi*}
+                We can then add a cut $2x_1 + 3x_2 \leq 15$ - it excludes the LP optimum, without removing any feasible integer points.
+                This is added to the LP relaxation, and we now obtain an optimal solution in $x^* = (3, 3)$ (this is actually wrong).
+            \subsubsection*{Gomory Cut}
+                Assume that $x_1, \dots, x_n \geq 0$ and integer.
+                We can define the floor function as follows;
+                $$\floor{c} = \max \{a \in \mathbb{Z} : a \leq c\}$$
+                \begin{align*}
+                    \floor{-2.7} & = -3 \\
+                    \floor{3.2} & = \floor{3} \\
+                    & = 3
+                \end{align*}
+                This allows any real number $c$ to be written as;
+                $$c = \floor{c} + \left(c - \floor{c}\right)$$
+                This has two properties, $\floor{c}$ is obviously always an integer, and $c - \floor{c}$ is always \textbf{strictly} less than 1.
+                \medskip
+
+                Assume we have computed a non-integer $x^*$, and it lives on the boundary of the polytope.
+                We show how to construct a Gomory Cut for the following, where $a_j, b \in \mathbb{R}$ (not always integer);
+                $$a_1 x_1 + \dots + a_n x_n = b$$
+                The constraint can then be written as;
+                $$(\floor{a_1} + \underbrace{(a_1 - \floor{a_1})}_{f_1})x_1 + \dots + (\floor{a_n} + \underbrace{(a_n - \floor{a_n})}_{f_n})x_n = \floor{b} + \underbrace{(b - \floor{b})}_f$$
+                By rearranging terms, we can obtain the following;
+                $$f_1 x_1 + \dots + f_n x_n - f = \floor{b} - \floor{a_1} x_1 - \dots - \floor{a_n} x_n$$
+                The theorem is as follows, for all $\vec{x} \in \mathbb{N}^n_0$, satisfying $a_1 x_1 + \dots + a_n x_n = b$;
+                $$f_1 x_1 + \dots + f_n x_n \geq f$$
+                Since we know the RHS of the rearranged equation is an integer (all integer coefficients, and all $x_i$ are integers), the LHS must also be an integer.
+                Since $x \geq 0$, $0 \leq f_i \leq 1$;
+                $$f_1 x_1 + \dots + f_n x_n - f \geq 0 + \dots + 0 - f > -1$$
+                Since the LHS can only take integer values, it must be $\geq 0$.
+                Therefore, we can say;
+                $$f_1 x_1 + \dots + f_n x_n - f \geq 0$$
+                Because we assumed a non-integer solution, we have a row in the optimal simplex tableau containing the following result (the summation is over the non-basic variables), with $y_{i, 0} \notin \mathbb{N}_0$;
+                $$x^*_i + \summation{j \notin I}{} y_{i, j} x^*_k = y_{i, 0}$$
+                We can set $f_j = y_{i, j} - \floor{y_{i, j}}$ and $f = y_{i, 0} - \floor{y_{i, 0}}$ (and we know that $f > 0$, since it is strictly non-integer).
+                As such, our Gomory Cut is as follows (violated by a non-integer $x^*$, since $x^*_j = 0$ if $j \notin I$);
+                $$\summation{j \notin I}{} f_j x_j \geq f$$
+            \subsubsection*{Worked Example}
+                The following concerns this example;
+                \begin{maxi*}|l|
+                    {}{y = 3x_1 + 4x_2}
+                    {}{}
+                    \addConstraint{\frac{2}{5}x_1 + x_2}{\leq 3}
+                    \addConstraint{\frac{2}{5}x_1 - \frac{2}{5}x_2}{\leq 1}
+                    \addConstraint{x_1, x_2}{\geq 0}
+                    \addConstraint{x_1, x_2}{\in \mathbb{N}_0}
+                \end{maxi*}
+                We convert this to a minimisation problem (and scale the coefficients when needed), and add integer slack variables ($x_3, x_4$);
+                \begin{mini*}|l|
+                    {}{z = -3x_1 + -4x_2}
+                    {}{}
+                    \addConstraint{2x_1 + 5x_2 + x_3}{= 15}
+                    \addConstraint{2x_1 - 2x_2 + x_4}{= 5}
+                    \addConstraint{x_1, x_2, x_3, x_4}{\geq 0}
+                    \addConstraint{x_1, x_2, x_3, x_4}{\in \mathbb{N}_0}
+                \end{mini*}
+                Now solve the LP relaxation (remove the $\in \mathbb{N}_0$ constraint);
+                \begin{center}
+                    \begin{tabular}{c|cccc|c}
+                        BV & $x_1$ & $x_2$ & $x_3$ & $x_4$ & RHS \\
+                        \hline
+                        $z$ & $0$ & $0$ & $-1$ & $-\frac{1}{2}$ & $-\frac{35}{2}$ \\
+                      $x_2$ & $0$ & $1$ & $\frac{1}{7}$ & $-\frac{1}{7}$ & $\frac{10}{7}$ \\
+                      $x_1$ & $1$ & $0$ & $\frac{1}{7}$ & $\frac{5}{14}$ & $\frac{55}{14}$
+                    \end{tabular}
+                \end{center}
+                Let us generate a cut based on the $x_1$ row (either works);
+                $$x_1 + \frac{1}{7}x_3 + \frac{5}{14}x_4 = \frac{55}{14}$$
+                We compute the $f$ values as follows;
+                \begin{align*}
+                    f_1 & = 1 - \floor{1} \\
+                    & = 0 \\
+                    f_3 & = \frac{1}{7} \\
+                    f_4 & = \frac{5}{14} \\
+                    f & = \frac{55}{14} - \floor{\frac{55}{14}} \\
+                    & = \frac{13}{14}
+                \end{align*}
+                The Gomory Cut (GC1) is then formulated as;
+                $$\frac{1}{7}x_3 + \frac{5}{14}x_4 \geq \frac{13}{14} \Rightarrow 2x_3 + 5x_4 \geq 13$$
+                We add the cut to the LP relaxation, which means to standardise it with an excess variable (note that the previous relaxation solution gives zeroes on the LHS, hence (GC1) becomes infeasible as expected);
+                $$2x_3 + 5x_4 - x_5 = 13$$
+                Since we've added a $\geq$ constraint, we now need to perform simplex phase 1, and add an artificial variable $\xi_1$;
+                $$2x_3 + 5x_4 - x_5 + \xi_1 = 13$$
+                This is then repeated until we have an integer solution.
+            \subsubsection*{Knapsack Cover Cuts}
+                Consider the following problem, derived from logic about packing problems;
+                \begin{align*}
+                    3x_1 + 5x_2 + 4x_3 + 2x_4 + 7x_5 & \leq 8 \\
+                    x_1, x_2, x_3, x_4, x_5 & \in \{0, 1\}
+                \end{align*}
+                One example is that we both $x_2$ and $x_3$ cannot be simultaneously equal to 1, otherwise we'd end up with $5 + 4$ on the RHS, which exceeds the constraint.
+                We add the following cover cut;
+                $$x_2 + x_3 \leq 1$$
+                A set $S$ of items in a knapsack problem is called a \textbf{cover} (exceeds capacity) if;
+                $$\summation{j \in S}{} w_j > W$$
+                If $S$ is a cover, then the corresponding knapsack cover cut is;
+                $$\summation{j \in S}{} x_j \leq | S | - 1$$
+                Usually, we want a minimal cover constraint, a cover constraint such that for all proper subsets $T$ of $S$;
+                $$\summation{j \in T}{} w_j \leq W$$
+                Note that for it to be minimal, if we turned off one of the values, it would be feasible again.
+            \subsubsection*{Branch and Bound}
+                This divides a problem into smaller parts and prunes out certain branches - we structure our search to scan only through a subset of solutions.
+                Our notation for this is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $P_i$ \hfill $i^\text{th}$ subproblem
+                    \item $x^*(P_i)$ \hfill optimal solution to the $i^\text{th}$ subproblem
+                \end{itemize}
+                The application to MILP is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item solve LP relaxation of the problem $P_0 \Rightarrow x^*(P_0)$
+                    \item if this satisfies integrality constraints, we can stop
+                    \item otherwise choose non-integer $x^*_p \in x^*(P_0), p \in Z$
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{divide} - create two subproblems $P_1$ and $P_2$ by adding the constraints $x_p \leq \floor{x^*_p}$ and $x_p \geq \ceil{x^*_p}$, respectively, to $P_0$
+                            \item \textbf{conquer} - recursively solve the new subproblems, if the optimal solution of the continuous relaxation of $P_1$ is worse than any known feasible solution for $P_0$, disregard $P_1$ (and same for $P_2$)
+                        \end{itemize}
+                \end{enumerate}
+                Any solution of $P_0$ which satisfies integrality constraints is feasible in one of $P_1$ and $P_2$ - hence we can solve $P_0$ by solving both $P_1$ and $P_2$.
 \end{document}
