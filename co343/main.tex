@@ -2364,4 +2364,213 @@
                             \addConstraint{y_1, y_2}{\geq 0}
                         \end{maxi*}
                 \end{enumerate}
+        \subsection*{Lecture 12}
+            \subsubsection*{Mixed Strategies}
+                Note that this example has no Nash equilibrium in a pure strategy.
+                Consider the odds-and-evens game, with the following simple payoff matrix;
+                \begin{center}
+                    \begin{tabular}{|cc|cc|}
+                        \hline
+                        & & \multicolumn{2}{c|}{CP} \\
+                        & & $1$ & $2$ \\
+                        \hline
+                        \multirow{2}{*}{RP} & $1$ & $-1$ & $1$ \\
+                        & $2$ & $1$ & $-1$ \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                To argue that it has no pure Nash equilibrium, we can choose a point, and from there we will be able to find an improvement for one of the players, and this will cycle.
+                \medskip
+
+                If we allow players to randomly pick strategies with equal probabilities, we have each strategy pair being played with probability $0.25$.
+                The expected value of the game is 0 for both players.
+                There is no reason to unilaterally change probabilities, and is an example of Nash equilibrium in mixed strategies.
+                \medskip
+
+                We can formally define this as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item In a mixed strategy, we have $(p_1, \dots, p_m; q_1, \dots, q_n)$;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item RP plays strategy $i$ with probability $p_i \geq 0$ \hfill $\summation{i = 1}{m} p_i = 1$
+                            \item CP plays strategy $j$ with probability $q_j \geq 0$ \hfill $\summation{j = 1}{n} q_j = 1$
+                        \end{itemize}
+                    \item If $p_k = 1$ or $q_k = 1$, then $k$ is a pure strategy
+                    \item We can define the payoff of the mixed strategy $(\vec{p}, \vec{q})$ as;
+                        $$V(\vec{p}, \vec{q}) = \underbrace{\summation{i = 1}{m} \summation{j = 1}{n} p_i q_j a_{i, j}}_\text{expected payoff / cost}$$
+                    \item RP seeks probabilities that maximise payoff ($p^*_1, \dots, p^*_m$)
+                    \item CP seekers probabilities that minimise payoff ($q^*_1, \dots, q^*_n$)
+                \end{itemize}
+                We define a \textbf{mixed Nash equilibrium} as a pair of mixed strategies $(\vec{p^*}, \vec{q^*})$ such that for all other mixed strategies $(\vec{p}, \vec{q})$;
+                $$V(\vec{p}, \vec{q^*}) \leq V(\vec{p^*}, \vec{q^*}) \leq V(\vec{p^*}, \vec{q})$$
+                Neither agent has any incentive in unilaterally deviating, as RP cannot increase payoff by changing $\vec{p}$, and similarly CP cannot reduce cost by changing $\vec{q}$.
+                This is also called a saddle-point equilibrium.
+                Note that a pure Nash equilibrium is a \textbf{subset} of a mixed Nash equilibrium.
+            \subsubsection*{Column Player's Perspective}
+                From CP's perspective, they expect RP to respond with optimal $p_i$ for any choice of $q_j$, how should CP choose $q_j$'s?
+                $$V_{CP} = \min_{q_1, \dots, q_n} \overbrace{\max_{p_1, \dots, p_m} \underbrace{\summation{i = 1}{m} \summation{j = 1}{n} p_i q_j a_{i, j}}_{V(\vec{p}, \vec{q})}}^{V^{in}_{CP}(\vec{q})}$$
+                If we only consider the inner problem, it is a function of $q_j$, call the problem $V^{in}_{CP}$.
+                We can focus on the inner problem as follows;
+                \begin{mini*}|l|
+                    {}{V_{CP} = V^{in}_{CP}(q_1, \dots, q_n)}
+                    {}{}
+                    \addConstraint{\summation{j = 1}{n} q_j}{= 1}
+                    \addConstraint{q_j}{\geq 0}
+                \end{mini*}
+                For any choice of $q_j$'s, let $\alpha_i = \summation{j = 1}{n} q_j a_{i, j}$ be row payoffs.
+                The inner maximisation problem then becomes the following;
+                \begin{maxi*}|l|
+                    {}{V^{in}_{CP}(q_1, \dots, q_n) = \summation{i = 1}{m} p_i \alpha_i}
+                    {}{}
+                    \addConstraint{\summation{i = 1}{m} p_i}{= 1}
+                    \addConstraint{p_i}{\geq 0}
+                \end{maxi*}
+                However, the solution is trivial, as we can set $p_i = 1$ for the largest $\alpha_i$, and $p_k = 0$ when $k \neq i$.
+                From this, we have the inner maximisation optimal value as;
+                $$V^{in}_{CP}(q_1, \dots, q_n) = \max \{\alpha_1, \dots, \alpha_m\}$$
+                By expanding the definition of $\alpha_i$, we conclude CP is solving a min-max problem;
+                $$V_{CP} = \min_{q_1, \dots, q_n} \max \left\{\summation{j = 1}{n} q_j a_{1, j}, \dots, \summation{j = 1}{n} q_j a_{m, j}\right\}$$
+                Subject to the probability constraints on $q_j$.
+                This simplification removes $p_i$ from the problem entirely.
+                \begin{mini*}|l|
+                    {}{\tau}
+                    {}{}
+                    \addConstraint{\tau}{\geq \summation{j = 1}{n} q_j a_{i, j}\ \ \ \forall i = 1, \dots, m}
+                    \addConstraint{\summation{j = 1}{n} q_j}{= 1}
+                    \addConstraint{q_j}{\geq 0}
+                \end{mini*}
+                As such, we have the optimal $q^*_j$'s being independent of $p^*_i$'s.
+            \subsubsection*{Row Player's Perspective}
+                Similar reasoning applies to the choice of the row player;
+                $$V_{RP} = \max_{p_1, \dots, p_m} \min_{q_1, \dots, q_n} \summation{i = 1}{m} \summation{j = 1}{n} p_i q_j a_{i, j}$$
+                \begin{maxi*}|l|
+                    {}{\tau}
+                    {}{}
+                    \addConstraint{\tau}{\leq \summation{i = 1}{m} p_i a_{i, j}\ \ \ \forall j = 1, \dots, n}
+                    \addConstraint{\summation{i = 1}{m} p_i}{= 1}
+                    \addConstraint{p_i}{\geq 0}
+                \end{maxi*}
+            \subsubsection*{Minimax Theorem}
+                With the following payoff matrix;
+                \begin{center}
+                    \begin{tabular}{|cc|ccc|}
+                        \hline
+                        & & \multicolumn{3}{c|}{CP} \\
+                        & & L & B & S \\
+                        \hline
+                        \multirow{3}{*}{RP} & L & $0$ & $-1$ & $2$ \\
+                        & B & $5$ & $4$ & $-3$ \\
+                        & S & $2$ & $3$ & $-4$ \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                This leads to the following results, for $\vec{p^*}$ and $\vec{q^*}$;
+                \begin{center}
+                    \vspace{-\baselineskip}
+                    \hfill
+                    \begin{minipage}[t]{0.4\textwidth}
+                        \begin{align*}
+                            p^*_L & = \frac{7}{10} \\
+                            p^*_B & = \frac{3}{10} \\
+                            p^*_S & = 0 & \Rightarrow \\
+                            V^*_{RP} & = \frac{1}{2}
+                        \end{align*}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.4\textwidth}
+                        \begin{align*}
+                            q^*_L & = 0 \\
+                            q^*_B & = \frac{1}{2} \\
+                            q^*_S & = \frac{1}{2} & \Rightarrow \\
+                            V^*_{CP} & = \frac{1}{2}
+                        \end{align*}
+                    \end{minipage}
+                    \hfill \phantom{}
+                \end{center}
+                The theorem is that for every two-person zero-sum game, the RP and CP linear programs have the same optimal value;
+                $$V_{RP} = \max_{p_1, \dots, p_m} \min_{q_1, \dots, q_n} \summation{i = 1}{m} \summation{j = 1}{n} p_i q_j a_{i, j} = \min_{q_1, \dots, q_n} \max_{p_1, \dots, p_m} \summation{i = 1}{m} \summation{j = 1}{n} p_i q_j a_{i, j} = V_{CP}$$
+                This can be proven by duality, and we know that the problems are feasible and bounded.
+                As a consequence, we know that a Nash equilibrium will always exist in mixed strategies, where players expect identical payoffs and neither player has an incentive to change $p_i$ or $q_j$.
+                The statement also generalises to $M$ players.
+            \subsubsection*{Integer Programming}
+                Integer programming is a mathematical programming problem where one or more variables are integer valued;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{binary variables} (yes / no) \hfill $x_j \in \{0, 1\}$
+                    \item \textbf{integer variables} (e.g. discrete amounts) \hfill $x_j \in \{0, \dots, n\}$
+                    \item mix of integer and real (MILP - mixed integer linear programming)
+                \end{itemize}
+                If we name the minimum objective values at the MILP and LP as $f(x^*_{MILP})$ and $f(x^*_{LP})$, respectively, we can say;
+                $$f(x^*_{LP}) \leq f(x^*_{MILP})$$
+                This comes from the subset constraints being lifted, and therefore in the worst case the LP value can take the MILP value.
+                \medskip
+
+                Consider the following optimisation;
+                \begin{maxi*}|l|
+                    {}{x + y}
+                    {}{}
+                    \addConstraint{-2x + 2y}{\geq 1}
+                    \addConstraint{-8x + 10y}{\leq 13}
+                    \addConstraint{x, y}{\geq 0}
+                    \addConstraint{x, y}{\in \mathbb{N}_0}
+                \end{maxi*}
+                In this case, the optimal integer solution is far from the optimal real solution, since it is entirely possible to construct such a problem where the feasible region intersects very few integer points.
+                \medskip
+
+                It's important to note that it's often more difficult to solve integer linear programs than linear programs, since we don't have continuity of the loss function.
+            \subsubsection*{Example}
+                A company has resources $i \in \{1, \dots, m\}$, and resource $i$ has a limited availability of $b_i$.
+                A company can undertake projects $j \in \{1, \dots, n\}$, and project $j$ requires $a_{i, j}$ units of resource $i$ and gives revenue $c_j$.
+                Which projects should be undertaken?
+                \begin{maxi*}|l|
+                    {}{z = \summation{j = 1}{n} c_j x_j}
+                    {}{}
+                    \addConstraint{\summation{j = 1}{n} a_{i, j} x_j}{\leq b_j}{\ \ \ \forall i \in \{1, \dots, m\}}
+                    \addConstraint{x_j}{\in \{0, 1\}}{\ \ \ \forall j \in \{1, \dots, n\}}
+                \end{maxi*}
+                Consider another example where a company has $m$ potential distribution sites, labelled $i \in \{1, \dots, m\}$, and building site $i$ costs $f_i$.
+                The company has $n$ customers, labelled $j \in \{1, \dots, n\}$, whose demands $d_j$ need to be satisfied from one or more distribution centres.
+                The cost to satisfy an amount $x_{i, j}$ of a customer $j$'s demand from distribution centre $i$ is $c_{i, j}$ if $i$ is built.
+                Which centres should be built, and how should the demand be satisfied, to minimise cost?
+                \begin{mini*}|l|
+                    {}{\underbrace{\summation{i = 1}{m} f_i y_i}_\text{build} + \underbrace{\summation{i = 1}{m} \summation{j = 1}{n} c_{i, j} x_{i, j}}_\text{dispatch}}
+                    {}{}
+                    \addConstraint{\summation{i = 1}{m} x_{i, j}}{= d_j}{\ \ \ \forall j \in {1, \dots, n}}
+                    \addConstraint{x_{i, j}}{\leq d_j y_i}{\ \ \ \forall i \in {1, \dots, m}, j \in {1, \dots, n}}
+                    \addConstraint{x_{i, j}}{\geq 0}{\ \ \ \forall i \in {1, \dots, m}, j \in {1, \dots, n}}
+                    \addConstraint{y_i}{\in \{0, 1\}}{\ \ \ \forall i \in {1, \dots, m}}
+                \end{mini*}
+                Constraint one states that the demand must be satisfied and constraint two states that $x_{i, j}$ can only exist if the facility is built.
+            \subsubsection*{Combinatorial Optimisation}
+                Combinatorial optimisation problems involving finding an optimal object from a finite set of objects - enumeration becomes intractable as the problem size grows.
+                These problems are often reducible to a few categories;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{knapsack problem}
+                        \smallskip
+
+                        Consider $n$ items of weight $w_j$, $j \in \{1, \dots, n\}$, and a knapsack of capacity $W$.
+                        Item $j$ has value $v_j$, but not all items may fit the knapsack - we want to optimise this value.
+                        \begin{maxi*}|l|
+                            {}{z = \summation{j = 1}{n} v_j x_j}
+                            {}{}
+                            \addConstraint{\summation{j = 1}{n} w_j x_j}{\leq W}
+                            \addConstraint{x_j}{\in \{0, 1\}}
+                        \end{maxi*}
+                    \item \textbf{bin-packing problem}
+                        \smallskip
+
+                        Similarly, consider $n$ items of weight $w_j$, $j \in \{1, \dots, n\}$, and $k$ bins of capacity $W$.
+                        Our goal is to minimise the number of bins needed to store all items.
+                        \begin{mini*}|l|
+                            {}{z = \summation{i = 1}{k} y_i}
+                            {}{}
+                            \addConstraint{\summation{j = 1}{n} w_j x_{i, j}}{\leq Wy_i}
+                            \addConstraint{\summation{i = 1}{k} x_{i, j}}{= 1}
+                            \addConstraint{x_{i, j}, y_i}{\in \{0, 1\}}
+                        \end{mini*}
+                        The second constraint says that each item is in exactly one bin.
+                    \item (and more)
+                \end{itemize}
 \end{document}
