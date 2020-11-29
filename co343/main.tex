@@ -2137,4 +2137,231 @@
                         $\vec{x_B}$ & $\vec{0}$ & $\mat{I}$ & $\mat{B}^{-1}\mat{N}$ & $\times$
                     \end{tabular}
                 \end{center}
+                If $x_s$ is nonbasic in the final tableau, we have;
+                \begin{align*}
+                    \beta_s & = -r_s \\
+                    & = -\vec{c_N}^\top\vec{e_s} + \vec{c_B}^\top\left(\mat{B}^{-1}\right)\mat{N}\vec{e_s} \\
+                    & = -c_s + \vec{\Pi}^\top\vec{e_t} \\
+                    & = 0 + \vec{\Pi}^\top\vec{e_t} \\
+                    & = \Pi_t
+                \end{align*}
+                Note that we are able to obtain $\mat{N}\vec{e_s} = \vec{e_t}$.
+                The multiplication by $\vec{e_s}$ gives us the $s^\text{th}$ column, however by construction (since it is a slack variable), we will get $\vec{e_t}$.
+                \medskip
+
+                On the other hand, if $x_s$ is basic, we take the following steps;
+                \begin{align*}
+                    \beta_s & = 0 \\
+                    & = c_s \\
+                    & = \vec{e_s}^\top\vec{c_B} \\
+                    & = \vec{e_s}^\top\mat{B}^\top\vec{\Pi} & \vec{\Pi} = \left(\mat{B}^{-1}\right)^\top\vec{c_B} \Rightarrow \vec{c_B} = \mat{B}^\top\vec{\Pi} \\
+                    & = \vec{e_t}^\top\vec{\Pi} \\
+                    & = \Pi_t
+                \end{align*}
+                Another lemma we have is as follows.
+                Suppose we row $t$ is a $\geq$-constraint, and a surplus $x_s$ has been added.
+                Then $\Pi_t = -\beta_s$, where $\beta_s$ is the objective coefficient of $x_s$ in the final tableau.
+        \subsection*{Lecture 11}
+            This starts with the continuation of the proof started in the previous lecture.
+            \subsubsection*{Game Theory}
+                We can think of game theory as an extension of single agent optimisation (the optimisation we've looked at), to a problem with multiple decision-makers.
+                Often times, when agents act in their own best interest, the overall performance of the system is very poor.
+                \medskip
+
+                In a ``game'', every player takes their own decision and the payoff each player receives depends on the choice of all players.
+                Mathematically, we can formalise it as;
+                \begin{itemize}
+                    \itemsep0em
+                    \item each player $i = 1, \dots, n$ has a set of actions $x_i \in \mathcal{X}_i$ (in a single agent optimisation problem, we have $n = 1$)
+                    \item player $i$ receives a payoff $J_i(x_1, \dots, x_i, \dots, x_n)$
+                \end{itemize}
+                A special class of this is a two-person zero-sum game, with finite actions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item two players, a row player (RP), and a column player (CP)
+                    \item RP can choose one out of $m$ strategies (row strategies)
+                    \item CP can choose one out of $n$ strategies (column strategies)
+                    \item zero-sum means that if RP wins, then CP looses (and vice versa)
+                \end{itemize}
+            \subsubsection*{Payoff Matrix}
+                We can describe a two-player zero-sum game as a payoff matrix.
+                If RP was to play strategy $i$, and CP was to play strategy $j$, then CP pays $a_{i, j}$ to RP;
+                \begin{center}
+                    \begin{tabular}{|cc|cccc|}
+                        \hline
+                        & & \multicolumn{4}{c|}{CP} \\
+                        & & strategy 1 & strategy 2 & $\cdots$ & strategy $n$ \\
+                        \hline
+                        \multirow{4}{*}{RP} & strategy 1 & $a_{1, 1}$ & $a_{1, 2}$ & $\cdots$ & $a_{1, n}$ \\
+                        & strategy 2 & $a_{2, 1}$ & $a_{2, 2}$ & $\cdots$ & $a_{2, n}$ \\
+                        & $\vdots$ & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
+                        & strategy $m$ & $a_{m, 1}$ & $a_{m, 2}$ & $\cdots$ & $a_{m, n}$ \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                For rock-paper-scissors, we can create the payoff matrix as follows (if a player loses, they pay 1 unit to the other);
+                \begin{center}
+                    \begin{tabular}{|cc|ccc|}
+                        \hline
+                        & & \multicolumn{3}{c|}{CP} \\
+                        & & R & P & S \\
+                        \hline
+                        \multirow{3}{*}{RP} & R & $0$ & $-1$ & $1$ \\
+                        & P & $1$ & $0$ & $-1$ \\
+                        & S & $-1$ & $1$ & $0$ \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Two-Person Zero-Sum Games}
+                We make the following assumptions about these games;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item each player knows the game setting (available strategies and the values of the payoff matrix)
+                    \item both players simultaneously choose their strategy, without knowing what their opponent chooses
+                    \item each players chooses a strategy that enables them to do their best, reasoning as if the opponent could anticipate their strategy
+                    \item both players are rational; they try to maximise their utility and show no compassion for the opponent
+                \end{enumerate}
+                Consider this running example, where we have the following election;
+                \begin{itemize}
+                    \itemsep0em
+                    \item two players; RP and CP
+                    \item both players have three strategies;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item L - campaign the last two days in London
+                            \item B - campaign the last two days in Birmingham
+                            \item S - split the last two days, campaign one day in London and the other in Birmingham
+                        \end{itemize}
+                    \item the payoff is how many voters does RP acquire from CP
+                        \begin{center}
+                            \begin{tabular}{|cc|ccc|}
+                                \hline
+                                & & \multicolumn{3}{c|}{CP} \\
+                                & & L & B & S \\
+                                \hline
+                                \multirow{3}{*}{RP} & L & $1$ & $2$ & $4$ \\
+                                & B & $1$ & $0$ & $5$ \\
+                                & S & $0$ & $1$ & $-1$ \\
+                                \hline
+                            \end{tabular}
+                        \end{center}
+                \end{itemize}
+                We observe that L will always be better than S for RP, and therefore we can conclude that RP will never play strategy S.
+                Since both players will realise this, we can ignore it.
+                \begin{center}
+                    \begin{tabular}{|cc|ccc|}
+                        \hline
+                        & & \multicolumn{3}{c|}{CP} \\
+                        & & L & B & S \\
+                        \hline
+                        \multirow{2}{*}{RP} & L & $1$ & $2$ & $4$ \\
+                        & B & $1$ & $0$ & $5$ \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                Similarly, since CP is attempting to minimise, we know that CP will never play S (since L is always better) thus we can eliminate it with the same reasoning as above.
+                \begin{center}
+                    \begin{tabular}{|cc|cc|}
+                        \hline
+                        & & \multicolumn{2}{c|}{CP} \\
+                        & & L & B \\
+                        \hline
+                        \multirow{2}{*}{RP} & L & $1$ & $2$ \\
+                        & B & $1$ & $0$ \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                Similar to the first observation, RP will never play B, and thus it can be eliminated.
+                After that row is eliminated, we can see that CP will never play B either (since it will be 1 versus 2, and CP aims to minimise).
+                This allows us to conclude, with \textbf{dominant strategy equilibrium} that both players will go for strategy L.
+            \subsubsection*{Dominance}
+                We can formalise our definition of dominance as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{dominated row strategy}
+                        \smallskip
+
+                        Row strategy $i$ is dominated by row strategy $i^\prime$ if $a_{i^\prime, j} \geq a_{i, j}$ for all column strategies $j = 1, \dots, n$ , and $a_{i^\prime, j} > a_{i, j}$ for at least one $j$
+                    \item \textbf{dominated column strategy}
+                        \smallskip
+
+                        Column strategy $j$ is dominated by column strategy $j^\prime$ if $a_{i, j^\prime} \leq a_{i, j}$ for all row strategies $i = 1, \dots, m$ , and $a_{i, j^\prime} < a_{i, j}$ for at least one $i$
+                    \item \textbf{dominant strategy equilibrium}
+                        \smallskip
+
+                        If repeated removal of dominated strategies leads to a game where each player only has one strategy left, this strategy pair is a dominated strategy equilibrium
+                        \begin{itemize}
+                            \itemsep0em
+                            \item if one exists, it is unique
+                            \item if one exists, then rational players will play the associated equilibrium strategies
+                        \end{itemize}
+                \end{itemize}
+                A rational player will never play a dominated strategy.
+            \subsubsection*{Nash Equilibrium}
+                We assume that each player chooses a strategy that enables them to do the best in face of a worst-case opponent (security strategy).
+                We define $\alpha_i$ as the payoff of row strategy $i$, when facing the worst case opponent.
+                The worst-case is when the column player is minimising the gain of the row player;
+                $$\alpha_i = \min_{j = 1, \dots, n} a_{i, j}$$
+                Therefore, the row player should choose the strategy $i$ that maximises the worst-case payoff;
+                $$\max_{i = 1, \dots, m} \min_{j = 1, \dots, n} a_{i, j}$$
+                Similarly, we can perform the same reasoning for the column player, where $\beta_j$ is the cost of column strategy $j$;
+                $$\beta_j = \max_{i = 1, \dots, m} a_{i, j}$$
+                And the minimised worst-case payoff is (security strategy over columns);
+                $$\min_{j = 1, \dots, n} \max_{i = 1, \dots, m} a_{i, j}$$
+                \begin{center}
+                    \begin{tabular}{|cc|ccc|c|}
+                        \hline
+                        & & \multicolumn{3}{c|}{CP} & \\
+                        & & L & B & S & $\alpha_i$\\
+                        \hline
+                        \multirow{3}{*}{RP} & L & $-3$ & $-2$ & $6$ & $-3$ \\
+                        & B & $2$ & $0$ & $2$ & $0$\\
+                        & S & $5$ & $-2$ & $-4$ & $-4$\\
+                        \hline
+                        & $\beta_j$ & $5$ & $0$ & $6$ & \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                The rational outcome is for both players to play (B, B).
+                This strategy pair is called a \textbf{pure Nash equilibrium}, the corresponding payoff is referred to as the \textbf{value of the game}.
+                \medskip
+
+                Formally, we can define a \textbf{Nash Equilibrium} as a strategy pair $(i^\star, j^\star)$ such that no player has an incentive to unilaterally (only one changes, with no coordination) deviate from their chosen strategy if told the strategy of the other player.
+                A Nash equilibrium may not always exist in pure strategies.
+                If $(i^\star, j^\star)$ is a Nash equilibrium, then $\alpha_{i^\star} = \beta_{j^\star}$.
+                The payoff of the strategy pair $\alpha_{i^\star} = \beta_{j^\star}$ is called the value of the game.
+            \subsubsection*{Tutorial}
+                \begin{enumerate}[1.]
+                    \setcounter{enumi}{1}
+                    \itemsep0em
+                    \item Write the dual formulation of the following (primal) linear program;
+                        \begin{mini*}|l|
+                            {}{-x_1 + x_2}
+                            {}{}
+                            \addConstraint{2x_1 + x_2}{\leq 10}
+                            \addConstraint{3x_1 + 7x_2}{\geq 20}
+                            \addConstraint{x_1, x_2}{\geq 0}
+                        \end{mini*}
+                        By changing the sign of the first constraint, we obtain the following;
+                        \begin{align*}
+                            \vec{b} & = \begin{bmatrix}
+                                -1 \\ 1
+                            \end{bmatrix} \\
+                            \mat{A}^\top & = \begin{bmatrix}
+                                -2 & -1 \\
+                                3 & 7
+                            \end{bmatrix} \\
+                            \vec{c} & = \begin{bmatrix}
+                                -10 \\ 20
+                            \end{bmatrix}
+                        \end{align*}
+                        This allows us to obtain the dual problem as follows;
+                        \begin{maxi*}|l|
+                            {}{-10y_1 + 20y_2}
+                            {}{}
+                            \addConstraint{-2y_1 + 3y_2}{\leq -1}
+                            \addConstraint{-y_1 + 7y_2}{\leq 1}
+                            \addConstraint{y_1, y_2}{\geq 0}
+                        \end{maxi*}
+                \end{enumerate}
 \end{document}
