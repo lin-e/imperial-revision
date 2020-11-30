@@ -1697,4 +1697,537 @@
 
                             Generally there are very few downsides - they cause insignificant work under updates, they do not cost much more space, and doesn't take more effort for query optimisation.
                 \end{itemize}
+        \subsection*{Lecture 4}
+            \subsubsection*{Processing Model}
+                A processing model is the mechanism used to connect different operators.
+                This matters since different storage models are optimised for different bottlenecks, such as data access, CPU, query compilation, etc.
+            \subsubsection*{Function Objects}
+                These can be referred to in different ways, such as lambdas, function pointers, etc.
+                On a higher level, they are pieces of code that are treated like data (basically just pointers to an instruction) - they can be assigned to variables, invoked with arguments, and will return a value.
+                \begin{lstlisting}
+                    Python: aggregate = lambda v, t : v + t[0]
+                    C++:    function<int(int, Tuple)> aggregate = [](int v, Tuple t) {
+                              return v + (int)t[0];
+                            };
+                \end{lstlisting}
+            \subsubsection*{Volcano Processing}
+                This influential system was built in the 80s, and focused strongly on design practices, with less of a focus on performance.
+                It contained components such as the cascades query optimiser, a non-relational physical algebra, and a query processing model.
+                This was designed with flexibility, clean design, maintainability, developer productivity, and a fair bit of tunability in mind.
+                \medskip
+
+                The operator interface provided is as follows - they are connected using pointers (in our case the ~unique\_ptr~ smart pointer);
+                \begin{lstlisting}
+                    struct Operator {
+                      virtual void open() = 0;
+                      virtual optional<Tuple> next() = 0;
+                      virtual void close() = 0;
+                    }
+                \end{lstlisting}
+                Looking at the operators;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{scan} \hfill read a table and return contained tuples one by one
+                        \begin{lstlisting}
+                            struct Scan : Operator {
+                              Table input;
+                              size_t nextTupleIndex = 0; // operators are stateful
+                              Scan(Table input) : input(input){};
+                              void open(){}; // no work to be done at the start
+                              optional<Tuple> next() {
+                                return nextTupleIndex < input.size()
+                                           ? input[nextTupleIndex++]
+                                           : {}; // empty value marks end
+                              };
+                              void close(){};
+                            };
+                        \end{lstlisting}
+                    \item \textbf{projection} \hfill transform one tuple into another using a projection function
+                        \begin{lstlisting}
+                            struct Project : Operator {
+                              using Projection = function<Tuple(Tuple)>;
+                              Projection projection;
+                              unique_ptr<Operator> child;
+                              void open() { child->open(); };
+                              optional<Tuple> next() { return projection(child->next()); };
+                              void close() { child->close(); };
+                            };
+                        \end{lstlisting}
+                    \item \textbf{selection} \hfill return all tuples satisfying a boolean predicate
+                        \begin{lstlisting}
+                            struct Select : Operator {
+                              using Predicate = function<bool(Tuple)>;
+                              unique_ptr<Operator> child;
+                              Predicate predicate;
+
+                              Select(unique_ptr<Operator> child, Predicate predicate)
+                                  : child(move(child)), predicate(predicate) {};
+
+                              void open() { child->open(); };
+                              optional<Tuple> next() {
+                                // iterate until matches or cannot find a tuple
+                                for (auto candidate = child->next(); candidate.has_value(); candidate = child->next()) {
+                                  if (predicate(candidate)) {
+                                    return candidate;
+                                  }
+                                }
+                                return {};
+                              };
+                              void close() { child->close(); };
+                            };
+                        \end{lstlisting}
+                    \item \textbf{union} \hfill return all tuples from one child followed by all tuples from another
+                        \begin{lstlisting}
+                            struct Union : Operator {
+                              unique_ptr<Operator> leftChild;
+                              unique_ptr<Operator> rightChild;
+                              void open() {
+                                leftChild->open();
+                                rightChild->open();
+                              };
+                              optional<Tuple> next() {
+                                auto candidate = leftChild->next();
+                                return candidate.has_value() ? candidate : rightChild->next();
+                              };
+                              void close() {
+                                leftChild->close();
+                                rightChild->close();
+                              };
+                            };
+                        \end{lstlisting}
+                    \item \textbf{difference} \hfill return all tuples from the left that are not in the right (buffer right first)
+                        \begin{lstlisting}
+                            struct Difference : Operator {
+                              unique_ptr<Operator> leftChild;
+                              unique_ptr<Operator> rightChild;
+                              vector<Tuple> bufferedRight;
+
+                              void open() {
+                                leftChild->open();
+                                rightChild->open();
+                                for (auto rightTuple = rightChild->next(); rightTuple.has_value(); rightTuple = rightChild->next()) {
+                                  bufferedRight.push_back(rightTuple);
+                                }
+                              };
+                              optional<Tuple> next() {
+                                for (auto candidate = leftChild->next(); candidate.has_value(); candidate = leftChild->next()) {
+                                  if (find(bufferedRight.begin(), bufferedRight.end(), candidate) == bufferedRight.end()) {
+                                    return candidate;
+                                  }
+                                }
+                                return {};
+                              };
+                              void close() {
+                                leftChild->close();
+                                rightChild->close();
+                              };
+                            };
+                        \end{lstlisting}
+                        Note that this is an example of a \textbf{pipeline breaker}; an operator that produces the first output tuple after \textbf{all} input tuples from one of the sides have been processed.
+                    \item \textbf{cross product}
+                        \begin{lstlisting}
+                            struct Cross : Operator {
+                              unique_ptr<Operator> leftChild;
+                              unique_ptr<Operator> rightChild;
+                              Tuple currentLeftTuple{};
+                              vector<Tuple> bufferedRightTuples;
+                              size_t currentBufferedRightOffset = 0;
+
+                              void open() {
+                                leftChild->open();
+                                rightChild->open();
+                                currentLeftTuple = leftChild->next();
+                              };
+                              optional<Tuple> next() {
+                                // some processing moved from open() phase to next() phase
+                                auto currentRightTuple = rightChild->next();
+                                if (currentRightTuple.has_value()) {
+                                  bufferedRightTuples.push_back(currentRightTuple);
+                                }
+                                if (currentBufferedRightOffset == bufferedRightTuples.size()) {
+                                  currentBufferedRightOffset = 0;
+                                  currentLeftTuple = leftChild->next();
+                                }
+                                return currentLeftTuple.concat(bufferedRightTuples[currentBufferedRightOffset++]);
+                              };
+                              void close() {
+                                leftChild->close();
+                                rightChild->close();
+                              };
+                            };
+                        \end{lstlisting}
+                        Since we are able to implement this without breaking the pipeline, the implementation of an operator determines whether an operator is a pipeline breaker.
+                        Some operators do not have pipelineable implementations.
+                    \item \textbf{grouped aggregation} \hfill group tuples that are equal and calculate per-group aggregate(s)
+                        \begin{lstlisting}
+                            using SupportedDatatype = variant<int, float>;
+                            using AggregationFunction = function<SupportedDatatype(SupportedDatatype, Tuple)>;
+
+                            struct GroupBy : Operator {
+                              unique_ptr<Operator> child;
+                              vector<optional<Tuple>> hashTable;
+                              Projection getGroupKeys;
+                              vector<AggregationFunction> aggregateFunctions;
+
+                              size_t nextSlot(size_t value);
+                              size_t hashTuple(Tuple t);
+                              // simplified for single attribute groups
+                              void open() {
+                                child->open();
+
+                                auto inputTuple = child->next();
+                                while (inputTuple.has_value()) {
+                                  auto slot = hashTuple(inputTuple[groupAttribute]);
+                                  while (hashTable[slot].has_value() && inputTuple[groupAttribute] != hashTable[slot][0]) {
+                                      slot = nextSlot(slot);
+                                  }
+
+                                  // new entry created
+                                  if (!hashTable[slot].has_value()) {
+                                    hashTable[slot][0] = { inputTuple[groupAttribute] };
+                                    hashTable[slot].resize(aggregateFunctions.size() + 1)
+                                  }
+
+                                  for (size_t j = 0; j < aggregateFunctions.size(); j++) {
+                                    hashTable[slot].data[j + 1] = aggregateFunctions[j](hashTable[slot][j + 1], inputTuple);
+                                  }
+                                  inputTuple = child->next();
+                                }
+                              }
+
+                              int outputCursor = 0;
+                              // all the work is done in the open() phase, just iterate here
+                              optional<Tuple> next() {
+                                while (outputCursor < hashTable.size()) {
+                                  auto slot = hashTable[outputCursor++];
+                                  if (slot.has_value()) {
+                                    return slot.value();
+                                  }
+                                }
+                                return {};
+                              };
+
+                              void close() { child->close(); };
+                            };
+                        \end{lstlisting}
+                \end{itemize}
+                This can be used as follows, to execute a plan;
+                \begin{lstlisting}
+                    Table input{
+                      {1l, "James", "1 Main Street"},
+                      {2l, "Jacob", "4 Second Street"},
+                      {3l, "Peter", "1 Main Street"}
+                    };
+
+                    auto plan = make_unique<GroupBy>(
+                        make_unique<Select>(
+                          make_unique<Scan>(input),
+                          [](auto t) { return t[2] == string("1 Main Street"); }
+                        ),
+                        [](auto t) { return Tuple{t[1]}; },
+                        vector<AggregationFunction>{
+                          [](auto v, auto t) { return long(v) + 1 }
+                        }
+                    );
+
+                    plan->open();
+                    for (auto t = plan->next(); t; t = plan->next()) {
+                        cout << t << endl;
+                    }
+                \end{lstlisting}
+                Volcano has a number of advantages;
+                \begin{itemize}
+                    \itemsep0em
+                    \item short, roughly 200 lines for our implementation
+                    \item object-oriented design
+                    \item easily extensible (adhere to the interface)
+                    \item good I/O behaviour (tuples consumed as soon as they are produced)
+                \end{itemize}
+            \subsubsection*{Estimating Buffer I/O in Volcano}
+                The following plan has the pipeline fragments highlighted (note that the build side is below the node);
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=1.25cm]
+                        \node (user) at (0, 0) {user};
+                        \node[draw] (agg) at (0, -1) {$\Gamma_{~market, min(order.data)~}$};
+                        \node[draw] (j1) at (0, -2) {$\bowtie_{~customer.nation\_id = nation.id~}$};
+                        \node[draw] (n) at (0, -3) {$~nation(100)~$};
+                        \node[draw] (j2) at (-3, -3) {$\bowtie_{~order.customer\_id = customer.id~}$};
+                        \node[draw] (c) at (-3, -4) {$~customer(10K)~$};
+                        \node[draw] (s1) at (-6, -4) {$\sigma_{~priority = "urgent"~}$};
+                        \node[draw] (s2) at (-6, -5) {$\sigma_{~status = "pending"~}$};
+                        \node[draw] (o) at (-6, -6) {$~order(5M)~$};
+                        \draw[violet] (user) -- (agg);
+                        \draw[red] (agg) -- (j1) -- (j2) -- (s1) -- (s2) -- (o);
+                        \draw[blue] (j2) -- (c);
+                        \draw[teal] (j1) -- (n);
+                    \end{tikzpicture}
+                \end{center}
+                Scans read all pages of the relation and can therefore be calculated in the same way as before (see storage lecture).
+                However, in the case of a pipeline breaker, we have to consider the following cases;
+                \begin{itemize}
+                    \itemsep0em
+                    \item buffer and all other buffers in pipeline fragment fit in memory \hfill no I/O
+                    \item otherwise
+                        \begin{itemize}
+                            \itemsep0em
+                            \item buffer accessed sequentially (cross product) \hfill number of occupied pages (per pass)
+                            \item buffer accessed randomly / out-of-order (hash aggregation) \hfill one page access per tuple
+                                \subitem note that this is the worst case, when it isn't in memory
+                        \end{itemize}
+                \end{itemize}
+                On the first point, we need to consider all the buffers in the pipeline fragment.
+                For example, if we look at the \red{red} pipeline, there are three hash tables constructed, one for the aggregation, and one for each of the two joins, and we will need to consider all of them, since they must all live in memory at the same time.
+                \medskip
+
+                We can also use the following rules to know whether a buffer fits in memory;
+                \begin{itemize}
+                    \itemsep0em
+                    \item buffers need to hold data according to their algorithm and input;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item nested loop buffers and sorted relations take exactly their input (the number of tuples multiplied by the size of each tuple) - we also assume spanned pages
+                            \item hashtables are overallocated by a factor (default to two if we aren't told)
+                        \end{itemize}
+                    \item we also assume perfect knowledge about the input and output cardinalities
+                        \begin{itemize}
+                            \itemsep0em
+                            \item input buffer size is the input cardinality multiplied by the tuple size
+                            \item output buffer size is the output cardinality multiplied by the tuple size
+                        \end{itemize}
+                    \item we know the memory / buffer pool size (bytes or number pages)
+                \end{itemize}
+            \subsubsection*{Example of Buffer I/O Estimation}
+                Consider the following scenario, where we have a selection selectivity of 30\% (the number of tuples being selected), grouping cardinality of 9 (number of groups is 9), an overallocation factor of 2, a buffer pool of 512KB, and a page size of 64 bytes.
+                \medskip
+
+                Our customer table has 10,000 tuples, with the following attributes;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~id~ \hfill  ~int32~
+                    \item ~name~ \hfill dictionary compressed (~int32~ keys)
+                    \item ~address~ \hfill dictionary compressed (~int32~ keys)
+                    \item ~nation~ \hfill  ~int32~
+                    \item ~phone~ \hfill  ~int32~
+                    \item ~accountNumber~ \hfill ~int32~
+                \end{itemize}
+                Our pipeline is as follows;
+                \begin{center}
+                    \begin{tikzpicture}[y=1.25cm]
+                        \node (user) at (0, 0) {user};
+                        \node[draw] (a) at (0, -1) {$\Gamma_~[1], count~$};
+                        \node[draw] (s) at (0, -2) {$\sigma_~[1] > 250~$};
+                        \node[draw] (c) at (0, -3) {~customer~};
+
+                        \draw (user) -- (a) -- (s) -- (c);
+                    \end{tikzpicture}
+                \end{center}
+                From here we can do the following calculations;
+                \begin{align*}
+                    ~CustomerTableSize~ & = ~no. attributes~ \cdot ~no. bytes~ \cdot ~no. tuples~ \\
+                    & = 6 \cdot 4 \cdot 10000 \\
+                    & = 240000 \\
+                    ~CustomerTablePages~ & = \ceil{\frac{~CustomerTableSize~}{~bytes per page~}} \\
+                    & = \ceil{\frac{240000}{64}} \\
+                    & = 3750 \\
+                    ~CustomerScanCosts~ & = ~CustomerTablePages~ \\
+                    ~GroupingCardinality~ & = 9 \\
+                    ~NumberOfAttributesInGroupingTable~ & = 2
+                \end{align*}
+                From here, we can work out the number size of the grouping hash table;
+                $$~GroupingHashTableSize~ = \ceil{2 \cdot ~GroupingCardinality~ \cdot ~NumberOfAttributesInGroupingTable~ \cdot 4}$$
+                This gives us a result of 144 bytes, which is less than the buffer pool size and therefore can be ignored.
+                Therefore, our total page I/O is just the customer scan costs (hence 3750).
+                Note that the cost of selection is ignored, as it's not a pipeline breaker.
+            \subsubsection*{Problems with Volcano}
+                However, there are some problems with Volcano;
+                \begin{itemize}
+                    \itemsep0em
+                    \item CPU efficiency
+                        \smallskip
+
+                        Consider the cost of a sequential memory access.
+                        Assume a laptop's memory bandwidth is 37.5 GB/s, and has 4 cores at 2.9 GHz.
+                        This gives 9.375 GB/s per core, which comes to $\approx 3.23$ bytes per cycle (round to one integer for simplicity).
+                        We therefore need to ensure we can process an integer per cycle for maximum efficiency.
+                    \item Function pointers
+                        \smallskip
+
+                        The steps for the CPU (roughly) to evaluate a function call are as follows;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item CPU stores current instruction pointer (the ~call~)
+                            \item arguments for the function are put on the execution stack
+                            \item CPU instruction pointer is set to the address of the first instruction of the function code (called a jump; ~JMP~)
+                            \item function is executed until a return
+                            \item instruction pointer is set to instruction after ~call~
+                        \end{itemize}
+                        The modern CPU executes instructions in stages; such as ~fetch~, ~decode~, ~execute~, ~memory read~, ~write result~.
+                        For simplicity, assume instructions spend exactly one cycle in each stage (actually spends \textbf{at least} one in each stage).
+                        Let's also assume that it moves on to the next stage after every cycle.
+                        \medskip
+
+                        Function pointers however cause pipeline bubbles (actually called control hazards).
+                        Since the jump instruction sets the instruction pointer to an arbitrary address, the next instruction can only be read after the jump is complete, since the CPU needs to read the next instruction from this address.
+                        This leads to the pipeline not being filled (hence not fully utilised).
+                        The cost of this is dependent on the number of stages in the CPU.
+                        The number of function calls can be counted as follows (per-tuple);
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{scan} \hfill none, tuples are read straight from buffer
+                            \item \textbf{selections / projections} \hfill one to read input, one to apply predicate
+                            \item \textbf{cross product inner / outer} \hfill one to read the input
+                            \item \textbf{join} \hfill one to read the input (inline hash function for HJ and comparison for SMJ)
+                            \item \textbf{group-by} \hfill one to read input, one to calculate each new aggregate value
+                            \item \textbf{output} \hfill one to extract for output
+                        \end{itemize}
+                        Working through the same example as before, we have the following;
+                        \begin{align*}
+                            ~SelectFunctionCalls~ & = ~no. tuples~ \cdot 2 & \text{read and apply} \\
+                            & = 20000 \\
+                            ~GroupingFunctionCalls~ & = ~no. tuples~ \cdot ~Selectivity~ \cdot 2 & \text{read and aggregate} \\
+                            & = 12000 \\
+                            ~FinalOutputExtraction~ & = 9 & \text{one per group} \\
+                            ~FunctionCalls~ & = \text{total of above} \\
+                            & = 26009
+                        \end{align*}
+                \end{itemize}
+                Looking at the results above, assuming that a function call costs 15 cycles, and we can read one integer per cycle, we have the following;
+                \begin{center}
+                    \begin{tabular}{lrrr}
+                        metric & number & cycles per value & total cycles \\
+                        \hline
+                        function calls & 26009 & 15 & 390135 \\
+                        accessed 64-byte pages & 3750 & 16 & 60000
+                    \end{tabular}
+                \end{center}
+                From these numbers, we can say that this is a CPU bound operation, which gets worse as the queries become more complex.
+            \subsubsection*{Bulk Processing}
+                Since the CPU is the bottleneck, and function calls dominate the CPU cost, we want to process queries with as few function calls as possible.
+                The idea is to turn \textbf{Control Dependencies} into \textbf{Data Dependencies}.
+                Instead of processing tuples right away, we buffer them (fill the buffer with lots of tuples), and pass the buffer to the next operator.
+                \medskip
+
+                For example, selection can be written as follows;
+                \begin{lstlisting}
+                    int select(Table& outputBuffer, Table const& input, int predicate, int attributeOffset) {
+                      for (size_t i = 0; i < input.size(); i++) {
+                        if (input[i][attributeOffset] == predicate) {
+                          outputBuffer.push_back(input[i]);
+                        }
+                      }
+                      return outputBuffer.size();
+                    }
+                \end{lstlisting}
+                Consider a small section of the pipeline example;
+                \begin{center}
+                    \begin{tikzpicture}[y=1.25cm]
+                        \node (user) at (0, 0) {user};
+                        \node[draw] (s1) at (0, -1) {$\sigma_{~priority = "urgent"~}$};
+                        \node[draw] (s2) at (0, -2) {$\sigma_{~status = "pending"~}$};
+                        \node[draw] (o) at (0, -3) {$~order(5M)~$};
+
+                        \draw (user) -- (s1) -- (s2) -- (o);
+                    \end{tikzpicture}
+                \end{center}
+                The implementation, with the previously defined selection, would be as follows;
+                \begin{lstlisting}
+                    Table order, buffer1, buffer2;
+                    int pendingCode = 5, urgentCode = 7;
+                    select(buffer1, order, pendingCode, 1);
+                    select(buffer2, buffer1, urgentCode, 2);
+                \end{lstlisting}
+                This causes a tight loop, with no function calls nor jumps.
+                This is very CPU efficient, but every operator is now a pipeline breaker, and the calculation rules are similar - each operator reads and writes all of its inputs and outputs (respectively) sequentially, and the number of pages is calculated the same as before (in the storage lecture).
+                \medskip
+
+                The calculations are quite similar to Volcano, however there's one difference in that all operators are cost-estimated completely independently, since everything is its own pipeline fragment.
+                \medskip
+
+                Consider an example with a selectivity of 25\%, 1 million tuples each with 9 32-bit attributes.
+                Similarly, we have a 512 KB cache, and pages of 64 bytes.
+                \begin{align*}
+                    ~Selectivity~ & = 0.25 \\
+                    ~CachelineSize~ & = 64 \\
+                    ~BufferPoolCapacityInPages~ & = \frac{512 \cdot 1024}{64} \\
+                    ~TableSizeInTuples~ & = 1000000 \\
+                    ~TableTupleSize~ & = 9 \cdot 4 \\
+                    ~TableSize~ & = ~TableSizeInTuples~ \cdot ~TableTupleSize~ \\
+                    ~TablePages~ & = \ceil{\frac{~TableSize~}{~CachelineSize~}} \\
+                    ~SelectionInputInPages~ & = ~TablePages~ \\
+                    ~SelectionOutputInPages~ & = \ceil{\frac{~TableSize~ \cdot ~Selectivity~}{~CachelineSize~}} \\
+                    ~SelectionIO~ & = ~SelectionInputInPages~ + ~SelectionOutputInPages~ \\
+                    & = 703125
+                \end{align*}
+            \subsubsection*{Bulk Processing and Decomposed Storage}
+                The idea of \textbf{By-Reference Bulk Processing} is to save bandwidth by avoiding copying data.
+                Instead of producing tuples, we produce IDs (32-bit positions in their buffers).
+                When we process a tuple, we use the ID to look up actual values - this is basically a hashtable without conflicts.
+                \begin{lstlisting}
+                    int select(vector<int>& outputBuffer, optional<vector<int>> const& candidatePositions, int predicate, int attributeOffset, vector<Tuple> const& underlyingRelation) {
+                      // case where we are the first selection in the plan (all are candidates)
+                      if (!candidatePositions.has_value()) {
+                        for (size_t i = 0; i < underlyingRelation.size(); i++) {
+                          if (underlyingRelation[i][attributeOffset] == predicate) {
+                            outputBuffer.push_back(i);
+                          }
+                        }
+                      } else {
+                        for (size_t i = 0; i < candidatePositions->size(); i++) {
+                          if (underlyingRelation[(*candidatePositions)[i]][attributeOffset] == predicate) {
+                            outputBuffer[outputCursor++] = (*candidatePositions)[i];
+                          }
+                        }
+                      }
+                      return outputCursor;
+                    }
+                \end{lstlisting}
+                The implementation of our previous result would now be as follows (note that the code above might be \textit{slightly} incorrect);
+                \begin{lstlisting}
+                    vector<Tuple> order;
+                    vector<int> buffer1, buffer2;
+                    int pendingCode = 5, urgentCode = 7;
+                    auto buffer1Size = select(buffer1, {}, pendingCode, 1, order);
+                    auto buffer2Size = select(buffer2, buffer1, urgentCode, 2, order);
+                \end{lstlisting}
+                The rules for estimating buffer I/O are slightly different; we now read all of its \textbf{candidate buffer} and write all of its candidate buffer sequentially, although the calculation remains the same.
+                In addition, each operator resolves the candidate references by looking up the values in the base relation.
+                The rules for temporary buffers are the same (again).
+            \subsubsection*{Page Access Probability}
+                If we define the selectivity $s$ as the percentage of tuples being touched, and $n$ the number of tuples on a page, and also assume uniformly distributed values, we can define the probability of any one of them being touched as;
+                $$p(s, n) = 1 - (1 - s)^n$$
+                We can then estimate the number of page faults as;
+                $$p(~FirstSelectSelectivity~, ~AverageBaseTableTuplesPerPage~) \cdot ~BaseTablePages~$$
+            \subsubsection*{By-Reference Bulk Processing of Decomposed Data}
+                We can save even more bandwidth.
+                We know that every operator processes exactly one column of a tuple.
+                As such, N-ary storage is quite wasteful (since values of a tuple are co-located on a page), therefore we will pay the cost to access all values on a page, even if we only process one (this will also occupy space in the buffer pool).
+                DSM fixes this; this was introduced as a consequence of bulk processing.
+                Using the same example as before, with the selectivity of 30\%;
+                \begin{align*}
+                    ~SelectSelectivity~ & = 0.3 \\
+                    ~CachelineSize~ & = 64 \\
+                    ~BufferPoolCapacityInPages~ & = \frac{512 \cdot 1024}{64} \\
+                    ~OrderTableSizeInTuples~ & = 10000 \\
+                    ~OrderTupleAttributeSize~ & = 1 \cdot 4 & \text{only one attribute}
+                \end{align*}
+                We can then work out the sizes for the order table;
+                \begin{align*}
+                    ~OrderTableColumnSize~ & = ~OrderTupleAttributeSize~ \cdot ~OrderTableSizeInTuples~ \\
+                    ~OrderTableColumnPages~ & = \ceil{\frac{~OrderTableColumnSize~}{~CachelineSize~}}
+                \end{align*}
+                Now we can look at the sizes for the selection - note that the output is actually the candidate positions, however we don't need to even consider it in our calculation (last line);
+                \begin{align*}
+                    ~SelectionInputInPages~ & = ~OrderTableColumnPages~ \\
+                    ~SelectionOutputInTuples~ & = ~OrderTableSizeInTuples~ \cdot ~SelectSelectivity~ \\
+                    ~SelectionOutputInPages~ & = \ceil{\frac{~SelectionOutputInTuples~ \cdot 4}{~CachelineSize~}} \\
+                    ~SelectionIO~ & = ~SelectionInputInPages~
+                \end{align*}
+                For the grouping, we need to first calculate the hash table size (note that this combined with the selection output is still smaller than the buffer pool capacity, hence we can ignore it again);
+                $$~GroupingHashTableSize~ = \ceil{2 \cdot ~GroupingCardinality~ \cdot ~NumberOfAttributesInGroupingTable~ \cdot 4}$$
+                \begin{align*}
+                    ~OrderTuplesPerPage~ & = \frac{~CachelineSize~}{~OrderTupleAttributeSize~} \\
+                    ~GroupingIO~ & = \ceil{p(~SelectSelectivity~, ~OrderTuplesPerPage~) \cdot ~OrderTableColumnPages~} \\
+                    & + \ceil{\frac{9 \cdot 2 \cdot 4}{~CachelineSize~}}
+                \end{align*}
+                Therefore our total IO is 1438.
 \end{document}
