@@ -2597,4 +2597,74 @@
                     \item Pig Latin \hfill high level scripting language to write Hadoop applications
                     \item HBase \hfill Java API to provide big table, provides scalable read / write access
                 \end{itemize}
+        \subsection*{Topic 3 - Pig Latin (RA)}
+            \subsubsection*{Accessing Data}
+                The ~LOAD~ operator reads in a TSV (by default) file as a relation.
+                \begin{lstlisting}
+                    account =
+                        LOAD '/path/to/account.tsv'
+                        AS (no:int, type:chararray, cname:chararray, rate:float, sortcode:int);
+                \end{lstlisting}
+            \subsubsection*{Relational Algebra}
+                Some of the basic components of the relational algebra are implemented in Pig Latin as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item project ($\pi$) \hfill $\pi_{~sortcode~}$ - ~FOREACH <ALIAS> GENERATE <COLNAME>, ...~
+                        \begin{lstlisting}
+                            account_sortcode_bag =
+                                FOREACH account
+                                GENERATE sortcode;
+
+                            account_sortcode =
+                                DISTINCT account_sortcode_bag; # set
+                        \end{lstlisting}
+                    \item select ($\sigma$) \hfill $\sigma_{~rate>0~}$ - ~FILTER <ALIAS> BY <PREDICATE>~
+                        \begin{lstlisting}
+                            account_with_rate =
+                                FILTER account
+                                BY rate > 0.0;
+                        \end{lstlisting}
+                    \item product ($\times$) \hfill ~CROSS <ALIAS> <ALIAS>~
+                        \begin{lstlisting}
+                            branch_account_with_rate =
+                                CROSS branch, account_with_rate;
+                        \end{lstlisting}
+                    \item join ($\bowtie$) - only performs equi-joins \hfill ~JOIN <ALIAS> BY <COLNAME>, <ALIAS> BY <COLNAME>~
+                        \begin{lstlisting}
+                            branch_with_interest_account =
+                                JOIN branch by branch::sortcode,
+                                     account_with_rate BY account_with_rate::sortcode;
+                        \end{lstlisting}
+                    \item union ($\cup$) \hfill $\pi_~sortcode~~branch~ \cup \pi_~no~~account~$ - ~UNION <ALIAS>, <ALIAS>~
+                        \begin{lstlisting}
+                            branch_sortcode =
+                                FOREACH branch
+                                GENERATE sortcode;
+                            account_no =
+                                FOREACH account
+                                GENERATE no;
+                            all_ids_bag =
+                                UNION branch_sortcode, account_no;
+                            all_ids =
+                                DISTINCT all_ids_bag;
+                        \end{lstlisting}
+                    \item difference ($-$)
+                        \subitem
+
+                        Note that here there is no direct implementation.
+                        It has be to done by performing a left join and then keeping rows with null values.
+                        For example, performing the following;
+                        $$\pi_~no~~account~ - \pi_~no~~movement~$$
+                        \begin{lstlisting}
+                            account_and_movement =
+                                JOIN account BY no LEFT,
+                                movement BY no;
+                            account_without_movement =
+                                FILTER account_and_movement
+                                BY movement::no IS NULL;
+                            account_no_without_movement =
+                                FOREACH account_without_movement
+                                GENERATE no;
+                        \end{lstlisting}
+                \end{itemize}
 \end{document}
