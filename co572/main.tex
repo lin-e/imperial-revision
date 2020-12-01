@@ -2230,7 +2230,7 @@
                     & + \ceil{\frac{9 \cdot 2 \cdot 4}{~CachelineSize~}}
                 \end{align*}
                 Therefore our total IO is 1438.
-        \subsection*{Topic 00 - Introduction}
+        \subsection*{Topic 0 - Introduction}
             A distributed database is several databases at different sites, connected by server racks, LAN, or the Internet.
             This adds considerations such as network bottlenecks and failures.
             \medskip
@@ -2349,4 +2349,106 @@
                         (es1) edge[->] (gs0);
                     \end{tikzpicture}
                 \end{center}
+        \subsection*{Topic 1 - Data Distribution}
+            A running example for this are the following tables;
+            \begin{itemize}
+                \itemsep0em
+                \item ~branch~
+                    \begin{itemize}
+                        \itemsep0em
+                        \item ~sortcode~ (key)
+                        \item ~bname~ (key)
+                        \item ~cash~
+                    \end{itemize}
+                \item ~account~
+                    \begin{itemize}
+                        \itemsep0em
+                        \item ~no~ (key)
+                        \item ~type~
+                        \item ~cname~
+                        \item ~rate?~
+                        \item ~sortcode~ (foreign key to ~branch(sortcode)~)
+                    \end{itemize}
+                \item ~movement~
+                    \begin{itemize}
+                        \itemsep0em
+                        \item ~mid~ (key)
+                        \item ~no~ (foreign key to ~account(no)~)
+                        \item ~amount~
+                        \item ~date~
+                    \end{itemize}
+            \end{itemize}
+            We can briefly look at the types of data distribution as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{remote tables}
+                    \smallskip
+
+                    Consider a global schema $G$ with the tables $R, T, U, V$.
+                    This is split into sites $S_1, S_2, S_3$ with tables $(R), (T, U), (V)$ respectively.
+                    Therefore reads $r$ and writes $w$ must be distributed correspondingly.
+                    For example, a $r[R], w[R], r[T], r[U]$ on $G$ becomes $r[R], w[R]$ on $S_1$, and $r[T], r[U]$ on $S_2$.
+                \item \textbf{fragmentation}
+                    \smallskip
+
+                    Consider a similar global schema with the same sites.
+                    The idea of fragmentation is to split objects $o_a, o_b, \dots$ of a relation $R$ between sites.
+                    The distribution is similar to before, but on an object level.
+                    \medskip
+
+                    There are a few approaches to this;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item \textbf{horizontal fragmentation} \hfill $R_1 = \sigma_{P_1}R, \dots, R_n = \sigma_{P_n}R$
+                            \smallskip
+
+                            In this case, we split the table by rows, via a rule that \textbf{partitions} the data (prevents a row from being in multiple sites) and is roughly even.
+                            For example, the original ~account~ table can be split into the following;
+                            \begin{align*}
+                                ~account~_~1~ & = \sigma_{~type == current~}~account~ \\
+                                ~account~_~2~ & = \sigma_{~type != current~}~account~
+                            \end{align*}
+                            Compared to a single site version, the DDB is faster (since we can run multiple of the same query in parallel across the sites), but less reliable (since the chance of one of the sites failing during a long query is higher).
+                            \medskip
+
+                            The worst attribute to fragment on something that would change over time, in our example it would be ~rate~.
+                        \item \textbf{derived horizontal fragmentation} \hfill $R_1 = R \ltimes S_1, \dots, R_n \ltimes S_n$
+                            \smallskip
+
+                            For this, we need to look at the semi-join;
+                            $$R \ltimes T = R \bowtie \pi_{attr(R) \cap attr(T)}T$$
+                            This gives us the same columns as $R$, but only with the rows that have a value in $T$.
+                            For our running example, we might not have all accounts in the table $~account~ \ltimes ~movement~$, if it has nothing in ~movement~.
+                            \medskip
+
+                            This allows us to fragment the ~movement~ table as follows, thus storing the movements at the same site as the respective accounts;
+                            $$~movement~_~i~ = ~movement~ \ltimes ~account~_~i~$$
+                        \item \textbf{vertical fragmentation} \hfill $R_1 = \pi_{attrs_1}R, \dots, R_n = \pi_{attrs_n}R$
+                            \smallskip
+
+                            In this case we split by columns, simply with projections (however each attribute must be represented in at least one site, and there must be a key which we can join on, in this case ~no~);
+                            \begin{align*}
+                                ~account~_~1~ & = \pi_{~no, type, rate, sortcode~}~account~ \\
+                                ~account~_~2~ & = \pi_{~no, cname~}~account~
+                            \end{align*}
+                        \item \textbf{hybrid fragmentation}
+                            \smallskip
+
+                            We can also combine the methods to fragment it further.
+                    \end{itemize}
+                \item \textbf{replication}
+                    \smallskip
+
+                    Consider \textbf{objects} $o_a, o_b, \dots$ on a global schema $G$.
+                    We can copy the data to all the sites, such that all sites $S_1, S_2, \dots$ have a full copy of all objects.
+                    This allows queries to be run on \textbf{any} site, however updates will now need to write to \textbf{all} sites.
+                    \medskip
+
+                    A query on this is faster (in the parallel case) and is more reliable (due to site redundancy) than a single site.
+                    On the other hand, writes are slower but still more reliable.
+                    The writes need to be coordinated, thus causing it to be slower.
+                    However, the reliability of this depends on the implementation - if we do a synchronisation and one site goes down, the entire query fails.
+                    On the other hand, if we are able to recover from failure (and allow the rest of the query to continue after a site has been marked down), it can be more reliable with a recovery mechanism.
+                \item \textbf{migration}
+            \end{itemize}
 \end{document}
