@@ -2784,4 +2784,150 @@
                         FILTER customer_balance_all
                         BY balance > 200
                 \end{lstlisting}
+        \subsection*{Lecture 5 - Pig Latin (MapReduce)}
+            Pig scripts are interpreted into a sequence of Hadoop Map, Combine, Shuffle, and Reduce operations.
+            Typically, Map and Combine processes are run on the nodes which contain data.
+            The number of Reduce nodes is specified in Pig script, and defaults to 1.
+            Temporary files are used to allow output of one MapReduce process to be fed into another.
+            The only optimisation that is done by the Pig interpreter is to automatically push projections (from ~GENERATE~ in Pig) inside joins, anything else should be done by the script author.
+            The translations are as follows;
+            \begin{center}
+                \begin{tabular}{ll}
+                    Pig operator & map / reduce \\
+                    \hline
+                    $~FILTER ~ R ~ BY ~ A == val$ & map \\
+                    $~FOREACH ~ R ~ GENERATE ~ A, B, \dots$ & map \\
+                    $~CROSS ~ R, S$ & reduce \\
+                    $~GROUP ~ R ~ BY ~ A$ & combine (if possible), reduce \\
+                    $~JOIN ~ R ~ BY ~ A, S ~ BY ~ B$ & reduce \\
+                    $~JOIN ~ R ~ BY ~ A ~ LEFT OUTER~, S ~ BY ~ B$ & reduce \\
+                    $~JOIN ~ R ~ BY ~ A ~ RIGHT OUTER~, S ~ BY ~ B$ & reduce \\
+                    $~UNION ~ R, S$ & reduce
+                \end{tabular}
+            \end{center}
+            The number of reduce nodes can be controlled by a ~PARALLEL~ option at the end of the reduce operator.
+            \subsubsection*{Distributed Hash Join}
+                The standard ~JOIN~ will hash the value and send it to the correct hash bucket, note that for three reduce nodes, there are three corresponding buckets.
+                The following diagram represents ~JOIN r BY a, s BY b~ with three reduce nodes.
+                \begin{center}
+                    \begin{tikzpicture}[y=1.5cm]
+                        \node[draw] (m5) at (0, 0) {\shortstack{$M_5$\\$s_2$}};
+                        \node[draw] (m4) at (0, -1) {\shortstack{$M_4$\\$s_1$}};
+                        \node[draw] (m3) at (0, -2) {\shortstack{$M_3$\\$r_3$}};
+                        \node[draw] (m2) at (0, -3) {\shortstack{$M_2$\\$r_2$}};
+                        \node[draw] (m1) at (0, -4) {\shortstack{$M_1$\\$r_1$}};
+
+                        \node[draw] (r3) at (10, -0.5) {\shortstack{$R_3$\\$h(r.a) \in K_3$\\$h(s.b) \in K_3$}};
+                        \node[draw] (r2) at (10, -2) {\shortstack{$R_2$\\$h(r.a) \in K_2$\\$h(s.b) \in K_2$}};
+                        \node[draw] (r1) at (10, -3.5) {\shortstack{$R_1$\\$h(r.a) \in K_1$\\$h(s.b) \in K_1$}};
+
+                        \draw
+                        (m5) edge[->] (r3)
+                        (m5) edge[->] (r2)
+                        (m5) edge[->] (r1)
+                        (m4) edge[->] (r3)
+                        (m4) edge[->] (r2)
+                        (m4) edge[->] (r1)
+                        (m3) edge[->] (r3)
+                        (m3) edge[->] (r2)
+                        (m3) edge[->] (r1)
+                        (m2) edge[->] (r3)
+                        (m2) edge[->] (r2)
+                        (m2) edge[->] (r1)
+                        (m1) edge[->] (r3)
+                        (m1) edge[->] (r2)
+                        (m1) edge[->] (r1);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Replicated Join}
+                In a replicated join, the entire right hand table can be copied to all the map nodes holding the left hand table.
+                These replicated joins are then executed as a Map process.
+                The following diagram represents ~JOIN r BY a, s BY b USING 'replicated'~, where ~s~ only resides on one map node;
+                \begin{center}
+                    \begin{tikzpicture}[y=1.5cm]
+                        \node[draw] (m5) at (0, 0) {\shortstack{$M_5$\\$s_1$}};
+                        \node[draw] (m4) at (0, -1) {\shortstack{$M_4$\\$r_4$}};
+                        \node[draw] (m3) at (0, -2) {\shortstack{$M_3$\\$r_3$}};
+                        \node[draw] (m2) at (0, -3) {\shortstack{$M_2$\\$r_2$}};
+                        \node[draw] (m1) at (0, -4) {\shortstack{$M_1$\\$r_1$}};
+
+                        \draw
+                        (1, 0) -- (1, -4)
+                        (1, 0) -- (m5)
+                        (1, -1) edge[->] (m4)
+                        (1, -2) edge[->] (m3)
+                        (1, -3) edge[->] (m2)
+                        (1, -4) edge[->] (m1);
+                    \end{tikzpicture}
+                \end{center}
+                Note that a ~RIGHT~ join cannot be done, since we cannot determine whether it joins or not on a particular node.
+                For example, if we had a row in table $s$ that doesn't join on anything; each of the map nodes can be certain it doesn't join, however it doesn't know if it joins on another node.
+            \subsubsection*{Skewed Join}
+                In a skewed join, a histogram of the various join keys in $r$ is first generated.
+                If a key has a high frequency in $r$, the rows of $r$ are distributed in a round robin fashion, and the rows of $s$ are duplicated.
+                The following diagram represents ~JOIN r BY a, s BY b USING 'skewed'~;
+                \begin{center}
+                    \begin{tikzpicture}[y=1.5cm]
+                        \node[draw] (m5) at (0, 0) {\shortstack{$M_5$\\$r_2$}};
+                        \node[draw] (m4) at (0, -1) {\shortstack{$M_4$\\$r_1$}};
+                        \node[draw] (m3) at (0, -2) {\shortstack{$M_3$\\$s_3$}};
+                        \node[draw] (m2) at (0, -3) {\shortstack{$M_2$\\$s_2$}};
+                        \node[draw] (m1) at (0, -4) {\shortstack{$M_1$\\$s_1$}};
+
+                        \node[draw] (r4) at (10, 1) {\shortstack{$R_4$\\$r.a \in K_3$\\$s.b \in K_3$}};
+                        \node[draw] (r3) at (10, -1) {\shortstack{$R_3$\\$\text{some } r.a \in K_2$\\$s.b \in K_2$}};
+                        \node[draw] (r2) at (10, -3) {\shortstack{$R_2$\\$\text{some } r.a \in K_2$\\$s.b \in K_2$}};
+                        \node[draw] (r1) at (10, -5) {\shortstack{$R_1$\\$r.a \in K_1$\\$s.b \in K_1$}};
+
+                        \draw
+                        (m5) edge[->] (r4)
+                        (m5) edge[->, dashed] (r3)
+                        (m5) edge[->, dashed] (r2)
+                        (m5) edge[->] (r1)
+                        (m4) edge[->] (r4)
+                        (m4) edge[->, dashed] (r3)
+                        (m4) edge[->, dashed] (r2)
+                        (m4) edge[->] (r1)
+                        (m3) edge[->] (r4)
+                        (m3) edge[->] (r3)
+                        (m3) edge[->] (r2)
+                        (m3) edge[->] (r1)
+                        (m2) edge[->] (r4)
+                        (m2) edge[->] (r3)
+                        (m2) edge[->] (r2)
+                        (m2) edge[->] (r1)
+                        (m1) edge[->] (r4)
+                        (m1) edge[->] (r3)
+                        (m1) edge[->] (r2)
+                        (m1) edge[->] (r1);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Merge Join}
+                This is a variation of SMJ, where it's assumed both inputs are already sorted.
+                The first record of each block of $s$ are sampled to determine the layout.
+                The map nodes of $r$ load $s$ blocks as required.
+                The following diagram represents ~JOIN r BY a, s BY b USING 'merge'~;
+                \begin{center}
+                    \begin{tikzpicture}[y=1.5cm]
+                        \node[draw] (m6) at (0, 0) {\shortstack{$M_6$\\$s_3$}};
+                        \node[draw] (m5) at (0, -1) {\shortstack{$M_5$\\$s_2$}};
+                        \node[draw] (m4) at (0, -2) {\shortstack{$M_4$\\$s_1$}};
+                        \node[draw] (m3) at (0, -3) {\shortstack{$M_3$\\$r_3$}};
+                        \node[draw] (m2) at (0, -4) {\shortstack{$M_2$\\$r_2$}};
+                        \node[draw] (m1) at (0, -5) {\shortstack{$M_1$\\$r_1$}};
+
+                        \draw
+                        (1, -2) -- (1, -2.75)
+                        (1, -2) -- (m4)
+                        (1, -2.75) edge[->] (m3)
+                        (1.5, -1) -- (1.5, -3.75)
+                        (1.5, -1) -- (m5)
+                        (1.5, -3.25) edge[->] (m3)
+                        (1.5, -3.75) edge[->] (m2)
+                        (2, 0) -- (2, -5)
+                        (2, 0) -- (m6)
+                        (2, -4.25) edge[->] (m2)
+                        (2, -5) edge[->] (m1);
+                    \end{tikzpicture}
+                \end{center}
 \end{document}
