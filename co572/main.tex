@@ -2667,4 +2667,121 @@
                                 GENERATE no;
                         \end{lstlisting}
                 \end{itemize}
+        \subsection*{Topic 4 - Pig Latin (Aggregation)}
+            For this, we need to look at ~GROUP~ and ~FLATTEN~ (which reverts a ~GROUP~).
+            Note that when a group is made, it creates two columns ~group~ (which contains the attribute key we're grouping on), and ~<ALIAS>~, which contains a bag of tuples (from the original relation).
+            \begin{lstlisting}
+                accounts_movement =
+                    GROUP movement
+                    BY no;
+
+                movement_copy =
+                    FOREACH account_movements
+                    GENERATE FLATTEN(movement)
+
+                account_balance =
+                    FOREACH account_movements
+                    GENERATE group AS no, # rename
+                             SUM(movement.amount) AS balance; # accesses bag structure
+            \end{lstlisting}
+            The aggregation operators available to us are as follows;
+            \begin{center}
+                \begin{tabular}{l|l}
+                    function & result \\
+                    \hline
+                    ~int COUNT(bag)~ & returns the number of \textbf{not null} values in the bag \\
+                    ~int COUNT\_STAR(bag)~ & returns the number of values in the bag (\textbf{including null}) \\
+                    ~double AVG(bag)~ & returns the average of the values in the bag \\
+                    ~double MAX(bag)~ & returns the maximum value in the bag \\
+                    ~double MIN(bag)~ & returns the minimum value in the bag \\
+                    ~double SUM(bag)~ & returns the sum of the values in the bag \\
+                    ~bag DIFF(bag a, bag b)~ & returns tuples in ~a~ that do not appear in ~b~
+                \end{tabular}
+            \end{center}
+            To achieve something similar to SQL, we need to use the ~GROUP~ operator, and then apply the aggregation operators to the bag of tuples.
+            \medskip
+
+            To optimise the previous query, we can reduce the amount of elements we store (if we aren't using them);
+            \begin{lstlisting}
+                movement_data =
+                    FOREACH movement,
+                    GENERATE no, amount;
+
+                accounts_movement =
+                    GROUP movement_data
+                    BY no;
+
+                account_balance =
+                    FOREACH account_movements
+                    GENERATE group AS no,
+                             SUM(movement.amount) AS balance;
+            \end{lstlisting}
+            The above will give the same result, but the ~accounts\_movement~ relation will be much smaller, we will only preserve the ~amount~ field.
+            \subsubsection*{Nested Statements}
+                The following is a statement in SQL;
+                \begin{lstlisting}
+                    SELECT   account.no
+                             COUNT(movement.mid) AS no_trans,
+                             SUM(CASE WHEN amount > 0.0 THEN amount ELSE 0.0 END) AS credit,
+                             SUM(CASE WHEN amount < 0.0 THEN amount ELSE 0.0 END) AS debit,
+                    FROM     account LEFT JOIN movement ON account.no=movement.no
+                    GROUP BY account.no
+                \end{lstlisting}
+                Converted to Pig Script, we have the following;
+                \begin{lstlisting}
+                    account_and_movement =
+                        JOIN account BY no LEFT,
+                             movement BY no;
+                    account_detail =
+                        GROUP account_and_movement BY account::no;
+                    account_credits_and_debits =
+                        FOREACH account_detail {
+                            credit =
+                                FILTER account_and_movement
+                                BY     amount > 0.0;
+                            debit =
+                                FILTER account_and_movement
+                                BY     amount < 0.0;
+                            GENERATE group AS no,
+                                     COUNT(account_and_movement) AS no_trans,
+                                     SUM(credit.amount) AS credit,
+                                     SUM(debit.amount) AS debit;
+                        }
+                \end{lstlisting}
+            \subsubsection*{WHERE and HAVING}
+                Consider the following example in SQL;
+                \begin{lstlisting}
+                    SELECT account.cname,
+                           SUM(movement.amount) AS balance
+                    FROM account
+                         JOIN movement ON account.no=movement.no
+                    WHERE ABS(movement.amount)>100
+                    GROUP BY account.cname
+                    HAVING SUM(movement.amount)>200
+                \end{lstlisting}
+                In Pig, the same query would be done as follows;
+                \begin{lstlisting}
+                    account_movement_join =
+                        JOIN account BY no, movement BY no;
+
+                    account_movement_large =
+                        FILTER account_movement_join
+                        BY ABS(amount) > 100;
+
+                    # optimisation
+                    account_movement =
+                        FOREACH account_movement_large
+                        GENERATE cname, amount;
+
+                    customer_details =
+                        GROUP account_movement BY account::cname;
+
+                    customer_balance_all =
+                        FOREACH customer_details
+                        GENERATE group AS cname, SUM(account_movement.movement::amount) AS balance;
+
+                    customer_balance_large =
+                        FILTER customer_balance_all
+                        BY balance > 200
+                \end{lstlisting}
 \end{document}
