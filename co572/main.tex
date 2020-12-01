@@ -2930,4 +2930,100 @@
                         (2, -5) edge[->] (m1);
                     \end{tikzpicture}
                 \end{center}
+        \subsection*{Topic 6 - Distributing Queries}
+            A traditional DBMS consists of the following three components;
+            \begin{itemize}
+                \itemsep0em
+                \item transaction manager
+                    \smallskip
+
+                    Translates queries from a higher level language to a set of primitive operations, possibly optimising them in the process.
+                \item scheduler
+                    \smallskip
+
+                    Decides how to execute the aforementioned sequence of tasks concurrently to ensure the highest throughput.
+                \item data manager
+                    \smallskip
+
+                    Ensures that data is sent and read from disk in the most efficient way, and maintains durability of transactions.
+            \end{itemize}
+            In a distributed system, each site runs a local transaction manager (LTM), scheduler and data manager.
+            There can be one or more sites with a global transaction manager, which dispatches the queries (and returns any data if required) based on predefined rules.
+            The slowest part of distributed query processing is the communication between sites, and we'd like to minimise the amount of data sent between sites.
+            \subsubsection*{Global Transaction Manager Execution Plan}
+                The GTM must transform transactions into sub-transactions for each site.
+                If the table is fragmented, the transaction should be broken up into fragments (for example moving money between accounts, where the accounts reside on different databases can be done in two queries, one decrementing in the first table, another incrementing in the second).
+                In the case of replicated tables, a read transaction only needs to go to one site, however any writing transactions will need to go to all sites.
+                \medskip
+
+                In this example, assuming a horizontally fragmented relation;
+                \begin{lstlisting}
+                    -- from GTM
+                    BEGIN TRANSACTION T4
+                      SELECT SUM(cash)
+                      FROM branch
+                    COMMIT TRANSACTION T4
+
+                    -- sent to LTM1 (sortcode<50)
+                    BEGIN TRANSACTION T4_1
+                      SELECT @X=SUM(cash)
+                      FROM branch
+                    COMMIT TRANSACTION T4_1
+
+                    -- sent to LTM2 (sortcode>=50)
+                    BEGIN TRANSACTION T4_2
+                      SELECT @Y=SUM(cash)
+                      FROM branch
+                    COMMIT TRANSACTION T4_2
+
+                    -- combined at GTM
+                    BEGIN TRANSACTION T4
+                      SELECT @X + @Y
+                    COMMIT TRANSACTION T4
+                \end{lstlisting}
+            \subsubsection*{RA Equivalences}
+                We can use some equivalences in RA to improve our performance.
+                Assume at $S_1$ we have $R_1(A, B, C)$ and $T_1(A, D, E)$, and at $S_2$ we have $R_2(A, B, C)$ and $T_2(A, D, E)$.
+                At $S_3$, we want $\sigma_{A = n}R$.
+                We can consider $R = R_1 \cup R_2$, hence the two are equivalent;
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_n$};
+                        \node[draw] (ns) at (0, -1) {$\sigma_{A = n}$};
+                        \node[draw] (nu) at (0, -2) {$\cup$};
+                        \node[draw] (n1) at (-1, -3) {$R_1$};
+                        \node[draw] (n2) at (1, -3) {$R_2$};
+
+                        \draw
+                        (n1) edge[->] (nu)
+                        (n2) edge[->] (nu)
+                        (nu) edge[->] (ns);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_o$};
+                        \node[draw] (nu) at (0, -1) {$\cup$};
+                        \node[draw] (ns1) at (-1, -2) {$\sigma_{A = n}$};
+                        \node[draw] (ns2) at (1, -2) {$\sigma_{A = n}$};
+                        \node[draw] (n1) at (-1, -3) {$R_1$};
+                        \node[draw] (n2) at (1, -3) {$R_2$};
+
+                        \draw
+                        (n1) edge[->] (ns1)
+                        (n2) edge[->] (ns2)
+                        (ns1) edge[->] (nu)
+                        (ns2) edge[->] (nu);
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                The cost of these can be analysed as follows;
+                \begin{align*}
+                    NDB(P_n) & = |R| \cdot \text{RowSize}(R) \\
+                    NDB(P_o) & = |\sigma_{A = n}R| \cdot \text{RowSize}(R)
+                \end{align*}
+                If the attribute we are selecting over, in this case $n$, is part of the partition rule (such that we have $n \in K_1$, and $R_1 = \sigma_{A \in K_1}R$ and $R_2 = \sigma_{A \in K_2}R$), we can optimise even further by only considering $R_1$.
+                \medskip
+
+                Similar logic can be applied in the case of vertical fragmentation; we can optimise a query if the columns we are considering are all in the same fragment (and therefore can ignore any other fragments).
 \end{document}
