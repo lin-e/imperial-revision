@@ -2451,4 +2451,150 @@
                     On the other hand, if we are able to recover from failure (and allow the rest of the query to continue after a site has been marked down), it can be more reliable with a recovery mechanism.
                 \item \textbf{migration}
             \end{itemize}
+        \subsection*{Topic 2 - Big Data}
+            The traditional approach to dealing with larger amounts of data was to scale up (with larger, more powerful computers).
+            However, this becomes increasingly more expensive, and will often require specialist hardware.
+            The more modern approach is to scale out, which is to increase the number of commodity computers to spread the data.
+            \subsubsection*{Big Data System}
+                A big data system is able to handle more data than fits on a single commodity computer and data that is spread over hundreds or thousands of servers.
+                It must also handle the failures of nodes without any loss of data.
+                As a consequence of the CAP theorem, availability is prioritised over consistency.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (0, 1) edge[above] node{LAN} (14, 1)
+                        (1, 1) -- (1, 0)
+                        (4, 1) -- (4, 0)
+                        (10, 1) -- (10, 0)
+                        (13, 1) -- (13, 0);
+                        \begin{scope}[shift={(0, 0)}]
+                            \draw (0, 0) -- (2, 0) -- (2, -3) -- (0, -3) -- cycle;
+                            \draw (0.5, -0.5) -- (1.5, -0.5) -- (1.5, -2) -- (0.5, -2) -- cycle;
+                            \node at (1, -1.25) {$S_1$};
+                            \node at (1, -2.5) {$H_1$};
+                        \end{scope}
+                        \begin{scope}[shift={(3, 0)}]
+                            \draw (0, 0) -- (2, 0) -- (2, -3) -- (0, -3) -- cycle;
+                            \draw (0.5, -0.5) -- (1.5, -0.5) -- (1.5, -2) -- (0.5, -2) -- cycle;
+                            \node at (1, -1.25) {$S_2$};
+                            \node at (1, -2.5) {$H_2$};
+                        \end{scope}
+                        \begin{scope}[shift={(6, 0)}]
+                            \node at (1, -1.5) {$\cdots$};
+                        \end{scope}
+                        \begin{scope}[shift={(9, 0)}]
+                            \draw (0, 0) -- (2, 0) -- (2, -3) -- (0, -3) -- cycle;
+                            \draw (0.5, -0.5) -- (1.5, -0.5) -- (1.5, -2) -- (0.5, -2) -- cycle;
+                            \node at (1, -1.25) {$S_{n-1}$};
+                            \node at (1, -2.5) {$H_{n-1}$};
+                        \end{scope}
+                        \begin{scope}[shift={(12, 0)}]
+                            \draw (0, 0) -- (2, 0) -- (2, -3) -- (0, -3) -- cycle;
+                            \draw (0.5, -0.5) -- (1.5, -0.5) -- (1.5, -2) -- (0.5, -2) -- cycle;
+                            \node at (1, -1.25) {$S_n$};
+                            \node at (1, -2.5) {$H_n$};
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Data Models and MapReduce}
+                Before we look at MapReduce, we should consider the different data models;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Key-Value}
+                        \smallskip
+
+                        In this model data is stored as key-value pairs.
+                        This is schema-less, and has very limited querying capabilities (but useful for implementing cache).
+                        Examples of this are \textit{Memcache} or \textit{Redis}.
+                    \item \textbf{Document}
+                        \smallskip
+
+                        While this has some structure to it, such as JSON, it's still schema-less as we aren't forced to a single structure.
+                        This supports some queries for searching fields within a document, but cannot perform queries such as joins.
+                        As such, MapReduce is used for OLAP.
+                        Some examples of this are \textit{CouchDB} or \textit{MongoDB}.
+                    \item \textbf{Wide Column}
+                        \smallskip
+
+                        Table data model with easy addition of new columns, and columns are put into families (allowing for vertical fragmentation on families).
+                        Also schema-less, and supports queries searching field values.
+                        MapReduce is also used for OLAP.
+                    \item \textbf{Relational}
+                        \smallskip
+
+                        Schema based, and supports queries for searching fields and joins.
+                        Has ACID properties.
+                    \item \textbf{Graph} \hfill schema-less
+                \end{itemize}
+                The general structure of MapReduce is as follows;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (d4) at (0, 0) {$D_4$};
+                        \node (d3) at (0, -1.333) {$D_3$};
+                        \node (d2) at (0, -2.666) {$D_2$};
+                        \node (d1) at (0, -4) {$D_1$};
+                        \node (m5) at (2, 0) {$M_5$};
+                        \node (m4) at (2, -1) {$M_4$};
+                        \node (m3) at (2, -2) {$M_3$};
+                        \node (m2) at (2, -3) {$M_2$};
+                        \node (m1) at (2, -4) {$M_1$};
+                        \node (r3) at (4, -1) {$R_3$};
+                        \node (r2) at (4, -2) {$R_2$};
+                        \node (r1) at (4, -3) {$R_1$};
+
+                        \draw
+                        (d4) edge[->, bend left=10] (m5)
+                        (d4) edge[->, bend right=10] (m5)
+                        (d4) edge[->] (m4)
+                        (d3) edge[->, bend left=10] (m3)
+                        (d3) edge[->, bend right=10] (m3)
+                        (d3) edge[->] (m4)
+                        (d2) edge[->, bend left=10] (m2)
+                        (d2) edge[->, bend right=10] (m2)
+                        (d2) edge[->] (m3)
+                        (d1) edge[->, bend left=10] (m1)
+                        (d1) edge[->, bend right=10] (m1)
+                        (m5) edge[->] (r3)
+                        (m5) edge[->] (r2)
+                        (m5) edge[->] (r1)
+                        (m4) edge[->] (r3)
+                        (m4) edge[->] (r2)
+                        (m4) edge[->] (r1)
+                        (m3) edge[->] (r3)
+                        (m3) edge[->] (r2)
+                        (m3) edge[->] (r1)
+                        (m2) edge[->] (r3)
+                        (m2) edge[->] (r2)
+                        (m2) edge[->] (r1)
+                        (m1) edge[->] (r3)
+                        (m1) edge[->] (r2)
+                        (m1) edge[->] (r1);
+                    \end{tikzpicture}
+                \end{center}
+                Between the data nodes and the map nodes is the load phase, and between the map nodes and the reduce nodes is the shuffle phase.
+                A hash function is used by the map nodes to decide which reduce nodes to to pass the data into in the shuffle phase (or some sort of rule that is known by all the map nodes).
+                \medskip
+
+                We might notice that some of the work can be done in the map nodes (for example counting words), and this introduces the \textbf{combine} operation, which is a partial reduction, this reduces the inefficiency between the map nodes and the reduce nodes.
+                \medskip
+
+                In the word count example, we have the following actions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item map \hfill obtain all words as a pair with a 1 (count)
+                    \item combine \hfill partially reduce to give a word with a frequency
+                    \item reduce \hfill fully reduce with all map nodes
+                \end{itemize}
+                MapReduce was originally reported by Google, and an open source implementation with the Hadoop family is as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item Hadoop Distributed File System (HDFS)
+                        \smallskip
+
+                        Standard storage by Hadoop applications, fragmentation by default in 128MB blocks, and defaults to three nodes of replication.
+                    \item Hadoop \hfill  Java implementation of MapReduce
+                    \item Hive \hfill SQL language translated into Hadoop applications
+                    \item Pig Latin \hfill high level scripting language to write Hadoop applications
+                    \item HBase \hfill Java API to provide big table, provides scalable read / write access
+                \end{itemize}
 \end{document}
