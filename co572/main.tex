@@ -2230,4 +2230,123 @@
                     & + \ceil{\frac{9 \cdot 2 \cdot 4}{~CachelineSize~}}
                 \end{align*}
                 Therefore our total IO is 1438.
+        \subsection*{Topic 00 - Introduction}
+            A distributed database is several databases at different sites, connected by server racks, LAN, or the Internet.
+            This adds considerations such as network bottlenecks and failures.
+            \medskip
+
+            We can prove that there's no finite protocol where we can be certain that two sites agree on an update to a value.
+            If we assume some finite chain, of $n$ messages, then the final one is not needed (since that may be unreliable), hence we have $n - 1$, and so on until we can show there are no messages in this protocol.
+            \subsubsection*{CAP Theorem}
+                This leads to the CAP theorem, where no distributed system can contain \textbf{all three} of the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{consistency} \hfill all nodes see the same version of data
+                    \item \textbf{availability} \hfill the system always responds within a fixed upper limit of time
+                    \item \textbf{partition tolerance}
+                        \subitem system always gives correct responses even when messages are lost or network failures occur
+                \end{itemize}
+                We can have \textbf{CA} with a single system (a centralised database), \textbf{CP} with a traditional distributed RDBMS.
+                The latter waits if the network becomes partitioned (until it recovers), therefore we lose availability.
+                \textbf{AP} is available in some Internet protocols such as DNS, where we sacrifice consistency.
+            \subsubsection*{Approaches to Distributed Databases}
+                There are generally two approaches to DDB;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Heterogeneous}
+                        \smallskip
+
+                        These vary in database technologies (and are managed by different database administrators), and are designed at different times.
+                        Some example technologies are ODBC or JDBC.
+                        \medskip
+
+                        One consideration for this is that there may be different structures between the databases (for example RDBMS queried with SQL versus a CSV file queried by reading the file), and therefore a common data model (CDM) is required between them.
+                        Another consideration is a semantic difference, for example a table for bank branches may have different names for the fields, and may omit the prefix of a sort code - this requires \textbf{schema integration}.
+                        \medskip
+
+                        The diagram for the heterogeneous
+                    \item \textbf{Homogeneous}
+                        \smallskip
+
+                        On the other hand, this is designed at the same time, and all use the same database technology.
+                        An example of this is an RDBMS cluster, or Map Reduce (e.g. Hadoop).
+                        \begin{center}
+                            \begin{tikzpicture}[x=3cm]
+                                \node (gs) at (0, 0) {\shortstack{global\\schema}};
+                                \node (ls1) at (-1.5, -2) {\shortstack{local\\schema$_1$}};
+                                \node (ls2) at (-0.5, -2) {\shortstack{local\\schema$_2$}};
+                                \node at (0.5, -2) {$\cdots$};
+                                \node (lsn) at (1.5, -2) {\shortstack{local\\schema$_n$}};
+                                \node (es1) at (-1.5, 2) {\shortstack{external\\schema$_1$}};
+                                \node (es2) at (-0.5, 2) {\shortstack{external\\schema$_2$}};
+                                \node at (0.5, 2) {$\cdots$};
+                                \node (esm) at (1.5, 2) {\shortstack{external\\schema$_m$}};
+
+                                \draw
+                                (ls1) edge[->] (gs)
+                                (ls2) edge[->] (gs)
+                                (lsn) edge[->] (gs)
+                                (es1) edge[<-] (gs)
+                                (es2) edge[<-] (gs)
+                                (esm) edge[<-] (gs);
+                            \end{tikzpicture}
+                        \end{center}
+                \end{itemize}
+            \subsubsection*{Operational Model}
+                In the mediator architecture, we have the following, where virtual data is represented in \teal{teal} and materialised data is represented in \violet{violet} - note that the mediators are the two that are virtual data, and the three wrappers are the materialised data.
+                \medskip
+
+                On the other hand, in the data warehouse approach, they are all materialised data (and the two that were previously teal are the data warehouses).
+                Note that mediators request from the source, whereas database warehouses store the data from the source (hence materialised).
+                \medskip
+
+                Both approaches have advantages and disadvantages, but it's important to note that the global schema in a data warehouse is essentially a cache and therefore needs to be updated.
+                On the other hand, using virtual data increases the traffic and load since more queries have to be made to the local schemas (and wrappers).
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}[shift={(0, 0)}]
+                            \draw[teal] (-1.5, 1.5) -- (1.5, 1.5) -- (1.5, -1.5) -- (-1.5, -1.5) -- cycle;
+                            \node (es0) at (0, 0.75) {\shortstack{external\\schema}};
+                            \node (gs0) at (0, -0.75) {\shortstack{global\\schema}};
+                            \draw (gs0) edge[->] (es0);
+                        \end{scope}
+                        \begin{scope}[shift={(-2, -4)}]
+                            \draw[teal] (-1.5, 1.5) -- (1.5, 1.5) -- (1.5, -1.5) -- (-1.5, -1.5) -- cycle;
+                            \node (es1) at (0, 0.75) {\shortstack{external\\schema}};
+                            \node (gs1) at (0, -0.75) {\shortstack{global\\schema}};
+                            \draw (gs1) edge[->] (es1);
+                        \end{scope}
+                        \begin{scope}[shift={(-4, -8)}]
+                            \draw[violet] (-1.5, 1.5) -- (1.5, 1.5) -- (1.5, -1.5) -- (-1.5, -1.5) -- cycle;
+                            \node (es2) at (0, 0.75) {\shortstack{external\\schema}};
+                            \node (gs2) at (0, -0.75) {\shortstack{global\\schema}};
+                            \draw (gs2) edge[->] (es2);
+                        \end{scope}
+                        \begin{scope}[shift={(0, -8)}]
+                            \draw[violet] (-1.5, 1.5) -- (1.5, 1.5) -- (1.5, -1.5) -- (-1.5, -1.5) -- cycle;
+                            \node (es3) at (0, 0.75) {\shortstack{external\\schema}};
+                            \node (gs3) at (0, -0.75) {\shortstack{global\\schema}};
+                            \draw (gs3) edge[->] (es3);
+                        \end{scope}
+                        \begin{scope}[shift={(4, -8)}]
+                            \draw[violet] (-1.5, 1.5) -- (1.5, 1.5) -- (1.5, -1.5) -- (-1.5, -1.5) -- cycle;
+                            \node (es4) at (0, 0.75) {\shortstack{external\\schema}};
+                            \node (gs4) at (0, -0.75) {\shortstack{global\\schema}};
+                            \draw (gs4) edge[->] (es4);
+                        \end{scope}
+
+                        \node (ls2) at (-4, -10.5) {\shortstack{local\\schema}};
+                        \node (ls3) at (0, -10.5) {\shortstack{local\\schema}};
+                        \node (ls4) at (4, -10.5) {\shortstack{local\\schema}};
+
+                        \draw
+                        (ls2) edge[->] (gs2)
+                        (ls3) edge[->] (gs3)
+                        (ls4) edge[->] (gs4)
+                        (es2) edge[->] (gs1)
+                        (es3) edge[->] (gs1)
+                        (es4) edge[->] (gs0)
+                        (es1) edge[->] (gs0);
+                    \end{tikzpicture}
+                \end{center}
 \end{document}
