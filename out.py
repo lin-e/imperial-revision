@@ -20,13 +20,13 @@ def scan(p, pre):
         if not (d[0:2] == "co" and d[2].isdigit()) or d in exclude:
             continue
         print("Copying " + p + "/" + d)
-        year = "y" + get_year(d) + "/"
-        shutil.copy(os.path.realpath(p + "/" + d) + "/main.pdf", output_path + year + pre + d + ".pdf")
+        year = "y" + get_year(d)
+        shutil.copy(os.path.realpath(p + "/" + d) + "/main.pdf", output_path + year + "/" + pre + d + ".pdf")
         cmd = "pdfinfo " + p + "/" + d + "/main.pdf | grep 'Pages' | awk '{print $2}'"
         pages = int(os.popen(cmd).read().strip())
         lines = sum(1 for line in open(os.path.realpath(p + "/" + d) + "/main.tex"))
-        total_pages[pre + "y" + get_year(d)] = total_pages.get(pre + "y" + get_year(d), 0) + pages
-        total_lines[pre + "y" + get_year(d)] = total_lines.get(pre + "y" + get_year(d), 0) + lines
+        total_pages[pre + year] = total_pages.get(pre + year, 0) + pages
+        total_lines[pre + year] = total_lines.get(pre + year, 0) + lines
         print(d + ": " + str(pages) + " pages")
         print(d + ": " + str(lines) + " lines")
 
