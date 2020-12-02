@@ -3243,4 +3243,168 @@
                 However, if derived horizontal fragmentation had been used, such that we have $R_i = R \ltimes S_i$, we require \textbf{no intersite communication};
                 $$R \bowtie S \equiv (R_1 \bowtie S_1) \cup \dots \cup (R_i \bowtie S_i)$$
                 As such, the design of a DDB schema should use derived horizontal fragmentation to avoid intersite communication for commonly used joins.
+        \subsection*{Topic 8 - Serialisability and Recoverability}
+            This lecture starts with ACID properties of transactions, which I won't go over again.
+            \subsubsection*{Histories}
+                Note that we will denote read operations on objects as $r_n[o_j]$ and writes as $w_n[o_j]$.
+                At the end of the transaction, it will either result in $c_n$ for commitment, or $a_n$ if the transaction is aborted (undo all parts of the transaction).
+                If $b_n$ is at the start, it denotes the start of a transaction (not always given).
+                For example;
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \vspace{-\baselineskip}
+                        \begin{lstlisting}
+                            BEGIN TRANSACTION
+                              UPDATE branch
+                              SET    cash = cash - 10000.00
+                              WHERE  sortcode = 56
+
+                              UPDATE branch
+                              SET    cash = cash + 10000.00
+                              WHERE  sortcode = 34
+                            COMMIT TRANSACTION
+                        \end{lstlisting}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        Would be converted into the following ($H_1 =$)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $r_1[b_{56}], ~cash=94340.45~$
+                            \item $w_1[b_{56}], ~cash=84340.45~$
+                            \item $r_1[b_{34}], ~cash=8900.67~$
+                            \item $w_1[b_{34}], ~cash=18900.67~$
+                            \item $c_1$
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+                Note that the same pattern of transaction code will give the same pattern of operations;
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        \vspace{-\baselineskip}
+                        \begin{lstlisting}
+                            BEGIN TRANSACTION
+                              UPDATE branch
+                              SET    cash = cash - 2000.00
+                              WHERE  sortcode = 34
+
+                              UPDATE branch
+                              SET    cash = cash + 2000.00
+                              WHERE  sortcode = 67
+                            COMMIT TRANSACTION
+                        \end{lstlisting}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        Would be converted into the following ($H_2 =$)
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $r_2[b_{34}], ~cash=18900.67~$
+                            \item $w_2[b_{34}], ~cash=16900.67~$
+                            \item $r_2[b_{67}], ~cash=34005.00~$
+                            \item $w_2[b_{67}], ~cash=36005.00~$
+                            \item $c_2$
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+                In a concurrent execution, the order of operations within each history is preserved, however interleaving can occur.
+                \medskip
+
+                \textbf{Serialisability} means that a concurrent execution of transaction should have the same end result as a serial execution of the same transactions.
+                \textbf{Recoverability} means that no transaction commits depending on data that has been produced by another transaction which hasn't yet committed.
+                The latter can be clarified with an example; if the $b_{34}$ read and write in $H_2$ is done first, before $H_1$, and then $c_2$ happens \textbf{before} $c_1$, we have something that is serialisable and recoverable.
+            \subsubsection*{Anomalies}
+                We can have a number of anomalies occurring;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{lost updates}
+                        \smallskip
+
+                        If we were to have some sort of execution in the order $r_2[b_{34}], r_1[b_{34}], w_1[b_{34}], w_2[b_{34}]$, notice that the same value is read in for both, and therefore the first write ($w_1[b_{34}]$) will be lost.
+                        This is not serialisable, however it is recoverable since neither are reading a result that was changed by the other.
+                    \item \textbf{inconsistent analysis}
+                        \smallskip
+
+                        This is the example at the start of the lecture, where we take the sum of the balances of the branches, which happens between a transaction (money is removed from one branch but \textbf{not} yet added to another).
+                        Note that the order of the commits at the end determine if it is recoverable (if $c_1$ commits first, then it is fine, since the sum transaction depends on the transfer).
+                    \item \textbf{dirty reads}
+                        \smallskip
+
+                        A dirty read occurs when a transaction reads from data that another transaction has not yet committed.
+                        The example given for this is that $w_2[b_{34}]$ occurs before $r_1[b_{34}]$, and then $c_1$ occurs (after the write) and $a_2$ happens at the end, this is serialisable, but not recoverable.
+                    \item \textbf{dirty write}
+                        \smallskip
+
+                        In this example, an updates are done on the same field on multiple accounts.
+                        If there is an interleaving between these two transactions, it results in some updates being applied from the first transaction and some being applied from the second.
+                    \item \textbf{phantom reads}
+                        \smallskip
+
+                        The example given for this is an update on a rule (~rate < 5.5~), and then a new row gets inserted which would've satisfied that, which is then updated by another update in the first transaction.
+                    \item \textbf{write skew}
+                        \smallskip
+
+                        This performs two different write operations based on overlapping information, where it could not have been performed if it were executed in a serial order.
+                \end{itemize}
+                We can summarise it as follows, where $e_i$ means either $c_i$ or $a_i$ occurs, and $op_a \prec op_b$ means that $op_a$ occurs before $op_b$ in a history;
+                \begin{center}
+                    \begin{tabular}{ll}
+                        anomaly & pattern \\
+                        \hline
+                        dirty write & $w_1[o] \prec w_2[o] \prec e_1$ \\
+                        dirty read & $w_1[o] \prec r_2[o] \prec e_1$ \\
+                        inconsistent analysis & $r_1[o_a] \prec w_2[o_a], w_2[o_b] \prec r_1[o_b]$ \\
+                        lost update & $r_1[o] \prec w_2[o] \prec w_1[o]$
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Serialisability}
+                If we notice in some history ($H$) of anomalies a transaction that has been aborted, we can omit it and only look at the \textbf{committed projection} ($C(H)$).
+                \medskip
+
+                A \textbf{conflict} occurs when there is an interaction between two transaction.
+                The cases are when $r_x[o]$ and $w_y[o]$ are both in $H$, with $x \neq y$, or both $w_x[o]$ and $w_y[o]$ are in $H$, with $x \neq y$ again.
+                \medskip
+
+                We define two histories $H_i$ and $H_j$ to be \textbf{conflict equivalent} ($H_i \equiv_{CE} H_j$) if they contain the same set of operations and order conflicts (of non-aborted transactions) in the same way.
+                A history $H$ is \textbf{conflict serialisable} if $C(H) \equiv_{CE}$ a serial history.
+                \medskip
+
+                We can draw a \textbf{serialisation graph} $SG(H)$ which contains a node for each transaction in $H$, and an edge $T_i \to T_j$ if there exist some object $o$, for which a conflict $rw_i[o] \to rw_j[o]$ exists in $H$.
+                If this graph is acyclic, then $H$ is conflict serialisable.
+                For example, consider the following history;
+                $$H_{cp} = \red{r_1[b_{56}]}, \teal{r_2[b_{34}]}, \teal{w_2[b_{34}]}, \red{w_1[b_{56}]}, \violet{r_4[b_{56}]}, \red{r_1[b_{34}]}, \red{w_1[b_{34}]}, \red{c_1}, \violet{r_4[b_{34}]}, \teal{r_2[b_{67}]}, \teal{w_2[b_{67}]}, \teal{c_2}, \violet{r_4[b_{67}]}, \violet{c_4}$$
+                From this, we obtain the following conflicts;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item $\teal{w_2[b_{34}]} \to \red{r_1[b_{34}]}$
+                    \item $\red{w_1[b_{56}]} \to \violet{r_4[b_{56}]}$
+                    \item $\red{w_1[b_{34}]} \to \violet{r_4[b_{34}]}$
+                    \item $\teal{w_2[b_{67}]} \to \violet{r_4[b_{67}]}$
+                \end{enumerate}
+                Using this, we can draw the following acyclic graph, $S(H_{cp})$, hence we can say that $H_{cp}$ is conflict serialisable, with an order $T_2, T_1, T_4$;
+                \begin{center}
+                    \begin{tikzpicture}[y=1.5cm]
+                        \node[circle, draw, fill=teal!20] (t2) at (0, 0) {$T_2$};
+                        \node[circle, draw, fill=red!20] (t1) at (2, 0) {$T_1$};
+                        \node[circle, draw, fill=violet!20] (t4) at (4, 0) {$T_4$};
+
+                        \draw
+                        (t2) edge[->, below] node{1} (t1)
+                        (t1) edge[->, below] node{2, 3} (t4)
+                        (t2) edge[->, above, bend left=30] node{4} (t4);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Recoverability}
+                Serialisability is necessary for isolation and consistency of committed transaction, whereas recoverability is necessary for isolation and consistency when there are also aborted transactions.
+                Some categories of histories are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{recoverable execution (RC)}
+                        \subitem a history $H$ has no transaction committing before another transaction from which it read
+                    \item \textbf{execution avoiding cascading aborts (ACA)}
+                        \subitem does not read from a non-committed transaction (does not allow any dirty reads to occur)
+                    \item \textbf{strict execution (ST)}
+                        \subitem does not read from a non-committed transaction, nor write over a non-committed transaction (no dirty reads nor writes)
+                \end{itemize}
+                There's some examples in the lecture slides, but they're quite tedious to copy out.
 \end{document}
