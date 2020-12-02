@@ -2996,8 +2996,8 @@
                         \node[draw] (n2) at (1, -3) {$R_2$};
 
                         \draw
-                        (n1) edge[->] (nu)
-                        (n2) edge[->] (nu)
+                        (n1) edge[violet, ->] (nu)
+                        (n2) edge[violet, ->] (nu)
                         (nu) edge[->] (ns);
                     \end{tikzpicture}
                     \hfill
@@ -3012,12 +3012,12 @@
                         \draw
                         (n1) edge[->] (ns1)
                         (n2) edge[->] (ns2)
-                        (ns1) edge[->] (nu)
-                        (ns2) edge[->] (nu);
+                        (ns1) edge[violet, ->] (nu)
+                        (ns2) edge[violet, ->] (nu);
                     \end{tikzpicture}
                     \hfill \phantom{}
                 \end{center}
-                The cost of these can be analysed as follows;
+                The cost of these can be analysed as follows (note that the lines in \violet{violet} represent network transfers, and NDB stands for network data bytes);
                 \begin{align*}
                     NDB(P_n) & = |R| \cdot \text{RowSize}(R) \\
                     NDB(P_o) & = |\sigma_{A = n}R| \cdot \text{RowSize}(R)
@@ -3026,4 +3026,221 @@
                 \medskip
 
                 Similar logic can be applied in the case of vertical fragmentation; we can optimise a query if the columns we are considering are all in the same fragment (and therefore can ignore any other fragments).
+        \subsection*{Topic 7 - Distributed Joins}
+            \subsubsection*{RA Equivalences Continued}
+                Assume at $S_1$ we have $R(A, B, C)$, and at $S_2$ we have $T(A, D, E)$.
+                We want to obtain $\pi_{A, B, D}(R \bowtie T)$ on $S_1$ (hence we only need stuff from $S_2$ to be sent over);
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_n$};
+                        \node[draw, fill=teal!20] (np) at (0, -1) {$\pi_{A, B, D}$};
+                        \node[draw, fill=teal!20] (nj) at (0, -2) {$\bowtie$};
+                        \node[draw, fill=teal!20] (n1) at (-1, -3) {$R$};
+                        \node[draw, fill=red!20] (n2) at (1, -3) {$T$};
+
+                        \draw
+                        (n1) edge[->] (nj)
+                        (n2) edge[violet, ->] (nj)
+                        (nj) edge[->] (np);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_o$};
+                        \node[draw, fill=teal!20] (np) at (0, -1) {$\pi_{A, B, D}$};
+                        \node[draw, fill=teal!20] (nj) at (0, -2) {$\bowtie$};
+                        \node[draw, fill=teal!20] (n1) at (-1, -3) {$R$};
+                        \node[draw, fill=red!20] (n2p) at (1, -3) {$\pi_{A, D}$};
+                        \node[draw, fill=red!20] (n2) at (1, -4) {$T$};
+
+                        \draw
+                        (n1) edge[->] (nj)
+                        (n2) edge[->] (n2p)
+                        (n2p) edge[violet, ->] (nj)
+                        (nj) edge[->] (np);
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                The cost of these can be analysed as follows;
+                \begin{align*}
+                    NDB(P_n) & = |T| \cdot \text{RowSize}(T) \\
+                    NDB(P_o) & = |\pi_{A, D}T| \cdot \text{RowSize}(\pi_{A, D}T)
+                \end{align*}
+                Using the same structure, assume we now want to perform $S_1 : \sigma_{D = n}(R \bowtie T)$;
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_n$};
+                        \node[draw, fill=teal!20] (ns) at (0, -1) {$\sigma_{D = n}$};
+                        \node[draw, fill=teal!20] (nj) at (0, -2) {$\bowtie$};
+                        \node[draw, fill=teal!20] (n1) at (-1, -3) {$R$};
+                        \node[draw, fill=red!20] (n2) at (1, -3) {$T$};
+
+                        \draw
+                        (n1) edge[->] (nj)
+                        (n2) edge[violet, ->] (nj)
+                        (nj) edge[->] (ns);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_o$};
+                        \node[draw, fill=teal!20] (nj) at (0, -1) {$\bowtie$};
+                        \node[draw, fill=teal!20] (n1) at (-1, -2) {$R$};
+                        \node[draw, fill=red!20] (n2s) at (1, -2) {$\sigma_{D = n}$};
+                        \node[draw, fill=red!20] (n2) at (1, -3) {$T$};
+
+                        \draw
+                        (n1) edge[->] (nj)
+                        (n2) edge[->] (n2s)
+                        (n2s) edge[violet, ->] (nj);
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                Similarly, we can notice that the optimised query sends less traffic (since we are reducing the number of rows we send);
+                \begin{align*}
+                    NDB(P_n) & = |T| \cdot \text{RowSize}(T) \\
+                    NDB(P_o) & = |\sigma_{D = n}T| \cdot \text{RowSize}(T)
+                \end{align*}
+                Another equivalence we can consider are direct and semi joins.
+                For this scenario, we want to get $R \bowtie T$ at $S_1$.
+                To do so, we can ensure that we only send over the rows of $T$ that join with $R$, by first sending over the projection of $T$ that has the joining attributes.
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_d$};
+                        \node[draw, fill=teal!20] (nj) at (0, -1) {$\bowtie$};
+                        \node[draw, fill=teal!20] (n1) at (-1, -2) {$R$};
+                        \node[draw, fill=red!20] (n2) at (1, -2) {$T$};
+
+                        \draw
+                        (n1) edge[->] (nj)
+                        (n2) edge[violet, ->] (nj);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_s$};
+                        \node[draw, fill=teal!20] (nj) at (0, -1) {$\bowtie$};
+                        \node[draw, fill=teal!20] (n1) at (-1, -2) {$R$};
+                        \node[draw, fill=red!20] (pj) at (1, -2) {$\ltimes$};
+                        \node[draw, fill=red!20] (n2) at (0, -3) {$T$};
+                        \node[draw, fill=teal!20] (p) at (2, -3) {$\pi_{attr(R) \cap attr(T)}R$};
+                        \node[draw, fill=teal!20] (n12) at (2, -4) {$R$};
+
+                        \draw
+                        (n1) edge[->] (nj)
+                        (pj) edge[violet, ->] (nj)
+                        (n2) edge[->] (pj)
+                        (p) edge[violet, ->] (pj)
+                        (n12) edge[->] (p);
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                This gives us a resultant NDB as follows;
+                \begin{align*}
+                    NDB(P_d) & = |T| \cdot \text{RowSize}(T) \\
+                    NDB(P_s) & = |\pi_{attr(R) \cap attr(T)}R| \cdot \text{RowSize}(\pi_{attr(R) \cap attr(T)}R) + |T \ltimes R| \cdot \text{RowSize}(T)
+                \end{align*}
+                It's important to note that this isn't always optimal, and therefore shouldn't always be applied (doing the first transfer can be wasteful).
+                \medskip
+
+                For this example, where we consider \textbf{local and remote} joins, we have another relation in $S_2$, which is $U(E, F, G)$.
+                Our goal is to obtain $S_1 : R \bowtie T \bowtie U$;
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_l$};
+                        \node[draw, fill=teal!20] (nj0) at (0, -1) {$\bowtie$};
+                        \node[draw, fill=teal!20] (n1) at (-1, -2) {$R$};
+                        \node[draw, fill=teal!20] (nj1) at (1, -2) {$\bowtie$};
+                        \node[draw, fill=red!20] (n2) at (0, -3) {$T$};
+                        \node[draw, fill=red!20] (n3) at (2, -3) {$U$};
+
+                        \draw
+                        (n1) edge[->] (nj0)
+                        (nj1) edge[->] (nj0)
+                        (n2) edge[violet, ->] (nj1)
+                        (n3) edge[violet, ->] (nj1);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_r$};
+                        \node[draw, fill=teal!20] (nj0) at (0, -1) {$\bowtie$};
+                        \node[draw, fill=teal!20] (n1) at (-1, -2) {$R$};
+                        \node[draw, fill=red!20] (nj1) at (1, -2) {$\bowtie$};
+                        \node[draw, fill=red!20] (n2) at (0, -3) {$T$};
+                        \node[draw, fill=red!20] (n3) at (2, -3) {$U$};
+
+                        \draw
+                        (n1) edge[->] (nj0)
+                        (nj1) edge[violet, ->] (nj0)
+                        (n2) edge[->] (nj1)
+                        (n3) edge[->] (nj1);
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                If we move the one of the joins onto the local server, we have the following;
+                \begin{align*}
+                    NDB(P_l) & = |T| \cdot \text{RowSize}(T) + |U| \cdot \text{RowSize}(U) \\
+                    NDB(P_r) & = |T \bowtie U| \cdot \text{RowSize}(T \bowtie U)
+                \end{align*}
+                Similar to before, we cannot always be certain that this will offer an improvement.
+                \medskip
+
+                Another equivalence to consider is a join over a derived horizontal fragmentation.
+                Assume we wanted to obtain $\blue{S_3 : R \bowtie T}$ and $T_n = T \ltimes R_n$, with $R_n(A, B, C)$ and $T_n(A, D, E)$ at \teal{$S_1$} and \red{$S_2$}.
+                Instead of performing the join after taking the union ($R_1 \cup R_2$ and $T_1 \cup T_2$), the join could be done on each of the remotes;
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_l$};
+                        \node[draw, fill=blue!20] (j) at (0, -1) {$\bowtie$};
+                        \node[draw, fill=blue!20] (u1) at (-1, -2) {$\cup$};
+                        \node[draw, fill=blue!20] (u2) at (1, -2) {$\cup$};
+                        \node[draw, fill=teal!20] (r1) at (-1.5, -3) {$R_1$};
+                        \node[draw, fill=red!20] (r2) at (-0.5, -3) {$R_2$};
+                        \node[draw, fill=teal!20] (t1) at (0.5, -3) {$T_1$};
+                        \node[draw, fill=red!20] (t2) at (1.5, -3) {$T_2$};
+
+                        \draw
+                        (r1) edge[violet, ->] (u1)
+                        (r2) edge[violet, ->] (u1)
+                        (t1) edge[violet, ->] (u2)
+                        (t2) edge[violet, ->] (u2)
+                        (u1) edge[->] (j)
+                        (u2) edge[->] (j);
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \node at (0, 0) {$P_r$};
+                        \node[draw, fill=blue!20] (u) at (0, -1) {$\cup$};
+                        \node[draw, fill=teal!20] (j1) at (-1, -2) {$\bowtie$};
+                        \node[draw, fill=red!20] (j2) at (1, -2) {$\bowtie$};
+                        \node[draw, fill=teal!20] (r1) at (-1.5, -3) {$R_1$};
+                        \node[draw, fill=teal!20] (t1) at (-0.5, -3) {$T_1$};
+                        \node[draw, fill=red!20] (r2) at (0.5, -3) {$R_2$};
+                        \node[draw, fill=red!20] (t2) at (1.5, -3) {$T_2$};
+
+                        \draw
+                        (r1) edge[->] (j1)
+                        (t1) edge[->] (j1)
+                        (r2) edge[->] (j2)
+                        (t2) edge[->] (j2)
+                        (j1) edge[violet, ->] (u)
+                        (j2) edge[violet, ->] (u);
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                This gives us the following query costs;
+                \begin{align*}
+                    NDB(P_l) & = |R| \cdot \text{RowSize}(R) + |T| \cdot \text{RowSize}(T) \\
+                    NDB(P_r) & = |R \bowtie T| \cdot \text{RowSize}(R \bowtie T)
+                \end{align*}
+            \subsubsection*{Intersite Communication}
+                If two relations are horizontally fragment, such that we have;
+                $$R = R_1 \cup \dots \cup R_i, S = S_1 \cup \dots \cup S_i$$
+                To perform a join on $R$ and $S$ will require intersite communication;
+                $$R \bowtie S = (R_1 \bowtie (S_1 \cup \dots \cup S_i)) \cup \dots (R_i \bowtie (S_1 \cup \dots \cup S_i))$$
+                However, if derived horizontal fragmentation had been used, such that we have $R_i = R \ltimes S_i$, we require \textbf{no intersite communication};
+                $$R \bowtie S \equiv (R_1 \bowtie S_1) \cup \dots \cup (R_i \bowtie S_i)$$
+                As such, the design of a DDB schema should use derived horizontal fragmentation to avoid intersite communication for commonly used joins.
 \end{document}
