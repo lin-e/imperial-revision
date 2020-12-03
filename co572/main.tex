@@ -3513,4 +3513,73 @@
 
                         This allows inserts to tables which are already read, and prevents everything other than phantom reads.
                 \end{itemize}
+        \subsection*{Topic 10 - Distributed Transactions}
+            \subsubsection*{Distributed 2PL}
+                With 2PL, we have the issue of synchronising the two phases across the different sites.
+                Adopting a strong strict locking approach will amount to coordinating committment of transactions, which is the standard approach.
+                If we're fragmenting data, we simply fragment the lock to the site where the relavent fragment of the data is present.
+                Replication means that we need to, to some extent, copy the locks across the different sites.
+            \subsubsection*{WFG}
+                We can convert a centralised WFG to sub-transactions by introducing bidirectional spawning edges;
+                \begin{center}
+                    \begin{tikzpicture}[y=0.5cm]
+                        \node[draw, circle] (h1a) at (0, 0) {$H_1$};
+                        \node[draw, circle] (h9a) at (4, 0) {$H_9$};
+                        \draw
+                        (h1a) edge[->, above, bend left=30] node{$rl_1[b_{34}]$} (h9a)
+                        (h9a) edge[->, below, bend left=30] node{$rl_9[b_{56}]$} (h1a);
+
+                        \node[draw, circle] (h1b) at (8, 4) {$H_1$};
+                        \node[draw, circle] (h12) at (12, 4) {$H_{1.2}$};
+                        \node[draw, circle] (h11) at (8, 0) {$H_{1.1}$};
+                        \node[draw, circle] (h92) at (12, 0) {$H_{9.2}$};
+                        \node[draw, circle] (h91) at (8, -4) {$H_{9.1}$};
+                        \node[draw, circle] (h9b) at (12, -4) {$H_9$};
+
+                        \draw
+                        (h1b) edge[<->, left] node{spawn} (h11)
+                        (h1b) edge[<->, above] node{spawn} (h12)
+                        (h9b) edge[<->, below] node{spawn} (h91)
+                        (h9b) edge[<->, right] node{spawn} (h92)
+                        (h11) edge[->, left] node{$rl_1[b_{34}]$} (h91)
+                        (h92) edge[->, right] node{$rl_9[b_{56}]$} (h12);
+                    \end{tikzpicture}
+                \end{center}
+                When a local cycle is detected, the remote WFG is fetched and recombined to see if a cycle has been formed in the global WFG.
+                If that the case, one of the transactions are aborted.
+                Deadlock might have ocurred once a cycle has appeared at any node executing a distributed transaction.
+            \subsubsection*{Global 2PL and 2PC}
+                The incorrect approach for performing 2PL globally would be to execute 2PL at each site.
+                The correct approach would be to adopt strong strict locking at each site, and then the transactions can be ended with an global atomic commit.
+                \medskip
+
+                In two-phase commit (2PC), we have the following (note that the coordinator could also operate from one of the servers, doesn't have to be a separate host);
+                \begin{center}
+                    \begin{tabular}{lll}
+                        service element & source & semantics \\
+                        \hline
+                        ~C-PREPARE~ & coordinator & get ready to commit \\
+                        ~C-READY~ & server & ready to commit \\
+                        ~C-REFUSE~ & server & not ready to commit \\
+                        ~C-COMMIT~ & coordinator & commit the transaction \\
+                        ~C-ROLLBACK~ & server & rollback the transaction \\
+                        ~C-RESTART~ & either & try to return to start of transaction
+                    \end{tabular}
+                \end{center}
+                If either of the servers sends a ~C-REFUSE.request~ (instead of ~C-READY.request~) after a ~C-PREPARE.request~ from the server, a ~C-ROLLBACK.request~ is sent from the coordinator to both the servers, and a ~C-ROLLBACK.response~ is sent from the server \textbf{not} requesting the refusal.
+                On the other hand, if both send ~C-READY~, a ~C-COMMIT~ is sent from the coordinator.
+                \medskip
+
+                If one of the servers crashes however, it can lead to blocking, since the non-crashed server will not know whether to commit or to abort.
+            \subsubsection*{Sending Locks}
+                If we have fragmented data, the locks $wl_x[o]$ or $rl_x[o]$ must be sent to the host containing $o$.
+                On the other hand, if we have replicated data, $w_x[o]$ must be sent to all hosts containing $o$.
+                Similarly we can send send $r_w[o]$ to any host containing $o$.
+                \medskip
+
+                As long as we send locks to the \textbf{majority} of sites, we will detect a write-write conflict.
+                Therefore the number of locks we send;
+                $$j \geq \ceil{\frac{n + 1}{2}}$$
+                On the other hand, to detect a read-write conflict, the number of locks we send, where $k$ is the number of read locks, and $j$ the number of write locks;
+                $$j \geq n - k + 1$$
 \end{document}
