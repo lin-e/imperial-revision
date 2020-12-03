@@ -3516,8 +3516,8 @@
         \subsection*{Topic 10 - Distributed Transactions}
             \subsubsection*{Distributed 2PL}
                 With 2PL, we have the issue of synchronising the two phases across the different sites.
-                Adopting a strong strict locking approach will amount to coordinating committment of transactions, which is the standard approach.
-                If we're fragmenting data, we simply fragment the lock to the site where the relavent fragment of the data is present.
+                Adopting a strong strict locking approach will amount to coordinating commitment of transactions, which is the standard approach.
+                If we're fragmenting data, we simply fragment the lock to the site where the relevant fragment of the data is present.
                 Replication means that we need to, to some extent, copy the locks across the different sites.
             \subsubsection*{WFG}
                 We can convert a centralised WFG to sub-transactions by introducing bidirectional spawning edges;
@@ -3547,7 +3547,7 @@
                 \end{center}
                 When a local cycle is detected, the remote WFG is fetched and recombined to see if a cycle has been formed in the global WFG.
                 If that the case, one of the transactions are aborted.
-                Deadlock might have ocurred once a cycle has appeared at any node executing a distributed transaction.
+                Deadlock might have occurred once a cycle has appeared at any node executing a distributed transaction.
             \subsubsection*{Global 2PL and 2PC}
                 The incorrect approach for performing 2PL globally would be to execute 2PL at each site.
                 The correct approach would be to adopt strong strict locking at each site, and then the transactions can be ended with an global atomic commit.
@@ -3582,4 +3582,91 @@
                 $$j \geq \ceil{\frac{n + 1}{2}}$$
                 On the other hand, to detect a read-write conflict, the number of locks we send, where $k$ is the number of read locks, and $j$ the number of write locks;
                 $$j \geq n - k + 1$$
+        \subsection*{Topic 11 - US Logic}
+            \subsubsection*{Temporal Databases}
+                A temporal database is a database that supports holding information over time, and some way of querying that data.
+                \medskip
+
+                There are two types of time (temporal dimensions) we'd want to store;
+                \begin{itemize}
+                    \itemsep0em
+                    \item valid time \hfill time data valid in the real world
+                        \subitem such as time a payment / withdrawal movement was made in a branch
+                    \item transaction time \hfill time data valid in the DBMS
+                        \subitem time the clerk entered the payment or withdrawal into the DBMS
+                \end{itemize}
+                A temporal database may store either one, or both, and each type of time can be called a \textbf{flow of time}.
+                The same query language can be used on either flow, and a two dimensional query language is required if both types are stored in the same database.
+                There are several choices to make, when modelling a flow of time;
+                \begin{center}
+                    \begin{minipage}[t]{0.485\textwidth}
+                        Simple method;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{discrete}
+                                \smallskip
+
+                                fixed \textbf{chronons}, and have a next and previous time
+                            \item \textbf{bounded}
+                                \smallskip
+
+                                there exists a first and last time
+                            \item \textbf{linear}
+                                \smallskip
+
+                                one view of each time
+                        \end{itemize}
+                    \end{minipage}
+                    \hfill
+                    \begin{minipage}[t]{0.485\textwidth}
+                        Complex method;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{continuous}
+                                \smallskip
+
+                                always add a new time point between two other points
+                            \item \textbf{unbounded}
+                                \smallskip
+
+                                all times can be represented
+                            \item \textbf{branching}
+                                \smallskip
+
+                                multiple views of each time
+                        \end{itemize}
+                    \end{minipage}
+                \end{center}
+            \subsubsection*{Temporal Structure}
+                In lieu of drawing out the tables, assume that for each chronon there is a snapshot of the table, which has a corresponding time.
+                To get a snapshot of a table ~account~, we would use $eval(~account~, 1)$.
+                \medskip
+            \subsubsection*{US-Logic}
+                US stands for Until, Since.
+                $A$ until $B$ has the interpretation $A$ will hold at every time up to and including the time when $B$ holds.
+                \begin{center}
+                    \begin{center}
+                        \begin{tabular}{c|c|c|c|c|c|c|c|c|c|c}
+                            & $t = 0$ & $t = 1$ & $t = 2$ & $t = 3$ & $t = 4$ & $t = 5$ & $t = 6$ & $t = 7$ & $t = 8$ & $t = 9$ \\
+                            \hline
+                            $A$ until $B$ & & $\times$ & $\times$ & $\times$ & & $\times$ & $\times$ & & & \\
+                            $B$ & & & & & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+                            $A$ & & & $\times$ & $\times$ & $\times$ & & $\times$ & $\times$ & & \\
+                            $B$ until $A$ & & & & $\times$ & $\times$ & $\times$ & $\times$ & & &
+                        \end{tabular}
+                    \end{center}
+                \end{center}
+                Similarly, $A$ since $B$ has the interpretation that $A$ has held at every time since and including the time when $B$ held;
+                \begin{center}
+                    \begin{center}
+                        \begin{tabular}{c|c|c|c|c|c|c|c|c|c|c}
+                            & $t = 0$ & $t = 1$ & $t = 2$ & $t = 3$ & $t = 4$ & $t = 5$ & $t = 6$ & $t = 7$ & $t = 8$ & $t = 9$ \\
+                            \hline
+                            $A$ since $B$ & & & & & & $\times$ & & $\times$ & $\times$ & \\
+                            $B$ & & & & & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+                            $A$ & & & $\times$ & $\times$ & $\times$ & & $\times$ & $\times$ & & \\
+                            $B$ since $A$ & & & & & & $\times$ & $\times$ & $\times$ & $\times$ & $\times$
+                        \end{tabular}
+                    \end{center}
+                \end{center}
 \end{document}
