@@ -3407,4 +3407,110 @@
                         \subitem does not read from a non-committed transaction, nor write over a non-committed transaction (no dirty reads nor writes)
                 \end{itemize}
                 There's some examples in the lecture slides, but they're quite tedious to copy out.
+        \subsection*{Topic 9 - Concurrency Control}
+            The main approach we cover in this course is \textbf{two-phase locking (2PL)}, which directly implements the ideas of conflict previously mentioned.
+            This approach uses locks to prevent problematic patterns.
+            \medskip
+
+            Other approaches include time-stamping / version control, which only reads or writes objects with earlier timestamps, and aborts any changes when the object has a newer timestamp.
+            Another approach is optimistic concurrency control which does nothing until the commit, at which point the history is inspected for problems.
+            \subsubsection*{2PL Protocol}
+                The protocol is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item read locks $rl[o], \dots, r[o], \dots, ru[o]$
+                    \item write locks $wl[o], \dots, w[o], \dots, wu[o]$
+                    \item has two phases
+                        \begin{enumerate}[i.]
+                            \itemsep0em
+                            \item growing phase
+                            \item shrinking phase
+                        \end{enumerate}
+                        Note that more locks cannot be acquired during the shrinking phase.
+                    \item refuse $rl_i[o]$ if $wl_j[o]$ is already held, and refuse $wl_i[o]$ if $rl_j[o]$ \textbf{or} $wl_j[o]$ are already held
+                    \item if $rl_i[o]$ or $wl_i[o]$ is refused, then delay $T_i$
+                \end{enumerate}
+                2PL works because we can re-time the history to have all operations occurring during the maximum lock period.
+                This is CSR since all conflicts must be prevented during the maximum lock period.
+                \medskip
+
+                Revisiting the phantom read anomaly, naive 2PL has an issue with inserting.
+                Since no lock would be acquired for the new object (from the insert), the insert is able to happen without any refusal.
+                The lock should've been done on the predicate, rather than the individual objects.
+                There are some solutions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{table lock}
+                        \smallskip
+
+                        The problem with a phantom read is due to the changing the data which matches a query, and here we acquire a read lock when performing a `scan' of the table.
+                        This can produce needless conflicts, however it can be quite efficient of large parts of the table are being updated.
+                        As such, it would lock the entire table, for example $wl_7[a]$, rather than $wl_7[a_{101}]$ and $wl_7[a_{119}]$.
+                    \item \textbf{predicate locking / range locking}
+                        \smallskip
+
+                        As the name implies, this locks on a predicate, which is more difficult to implement than the table lock.
+                        In this example, it would first acquire a read lock on the predicate, and then acquire individual write locks on each of the rows.
+                \end{itemize}
+            \subsubsection*{Scheduling}
+                An \textbf{aggressive scheduler} delays taking locks as long as possible (only acquires the relevant lock before an operation).
+                This is simple to implement, and maximises concurrency, however it may suffer delays later on.
+                For example, if we needed to acquire a lock right at the end of our transaction (before all the other locks are released), but something else is holding it, any transaction waiting for the locks we're currently holding will also be delayed.
+                \medskip
+
+                A \textbf{strict locking} variation prevents write locks from being released before the transaction ends (however read locks can be).
+                This allows for deadlocks.
+                Since write locks cannot be released, dirt reads / writes are avoided, and it is recoverable.
+
+                On the other hand a \textbf{strong strict locking} variation prevents any locks from being released before the transaction ends.
+                This is simple to implement, and is also suitable for distributed transactions.
+                \medskip
+
+                On the other hand, a \textbf{conservative scheduler} takes locks as soon as possible, and then releases them as it finishes.
+                This removes the risk of delays later on, however the transaction may refuse to start (since it relies on all the locks being available).
+                This prevents deadlock, but the problem is to figure out when to release locks.
+                It is also not recoverable.
+                \medskip
+
+                We can detect deadlocks with a WFG (waits-for graph).
+                If a cycle is present in the graph, that means the database is in a deadlock state, and something must be aborted.
+            \subsubsection*{Anomalies Summarised}
+                Using the same notation as before, we now have the following;
+                \begin{center}
+                    \begin{tabular}{lll}
+                        anomaly & pattern & prevented by \\
+                        \hline
+                        dirty write & $w_1[o] \prec w_2[o], w_2[o] \prec e_1$ & strict 2PL \\
+                        dirty read & $w_1[o] \prec r_2[o], r_2[o] \prec e_1$ &  strict 2PL \\
+                        inconsistent analysis & $r_1[o_a] \prec w_2[o_a], w_2[o_b] \prec r_1[o_b]$ & 2PL \\
+                        lost update & $r_1[o] \prec w_2[o], \prec w_2[o] \prec w_1[o]$ & 2PL \\
+                        simple write skew & $r_1[o_a] \prec w_2[o_b], r_1[o_b] \prec w_2[o_a]$ & 2PL \\
+                        write skew & $r_1[P_1] \prec w_2[x \in P_2], r_2[P_2] \prec w_1[y \in P_1]$ & 2PL (with pred. locks) \\
+                        phantom read & $r_1[P_1] \prec w_2[x \in P_1], w_2[y \in P_2] \prec r_1[P_2]$ & 2PL (with pred. locks)
+                    \end{tabular}
+                \end{center}
+            \subsubsection*{Isolation Levels}
+                Note that we don't \textbf{always} need ACID properties.
+                If we are doing something with an approximate result, such as obtaining an estimate, or some sort of overview, we can execute these transactions at a lower level of concurrency control.
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~READ UNCOMMITTED~
+                        \smallskip
+
+                        This is the weakest level, which only prevents dirty writes.
+                    \item ~READ COMMITTED~
+                        \smallskip
+
+                        Prevents dirty reads and writes, which allows transactions to only read committed data.
+                        This is recoverable, but can still suffer inconsistent analysis.
+                    \item ~SNAPSHOT~
+                        \smallskip
+
+                        Allows transactions to see a view of the data at the start of the transaction, and write all data at the end of the transaction.
+                        This prevents every anomaly, other than write skew.
+                    \item ~REPEATABLE READ~
+                        \smallskip
+
+                        This allows inserts to tables which are already read, and prevents everything other than phantom reads.
+                \end{itemize}
 \end{document}
