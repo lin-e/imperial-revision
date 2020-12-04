@@ -203,6 +203,16 @@
 \newcommand\ljoin{\stackrel{\mathclap{\normalfont\mbox{\tiny L}}}{\bowtie}}
 \newcommand\rjoin{\stackrel{\mathclap{\normalfont\mbox{\tiny R}}}{\bowtie}}
 \newcommand\ojoin{\stackrel{\mathclap{\normalfont\mbox{\tiny O}}}{\bowtie}}
+\newcommand\sjoin{\stackrel{\mathclap{\normalfont\mbox{\tiny S}}}{\bowtie}}
+\newcommand\ujoin{\stackrel{\mathclap{\normalfont\mbox{\tiny U}}}{\bowtie}}
+
+% TRA
+\newcommand\sprod{\stackrel{\mathclap{\normalfont\mbox{\tiny S}}}{\times}}
+\newcommand\uprod{\stackrel{\mathclap{\normalfont\mbox{\tiny U}}}{\times}}
+\newcommand\fcirc{\tikz[baseline=-0.8ex]\draw[black,fill=black,radius=5pt] (0,0) circle ;}
+\newcommand\ecirc{\tikz[baseline=-0.8ex]\draw[black,fill=none,radius=5pt] (0,0) circle ;}
+\newcommand\fdiamond{\rotatebox[origin=c]{45}{$\blacksquare$}}
+\newcommand\ediamond{\rotatebox[origin=c]{45}{$\square$}}
 
 \setcounter{MaxMatrixCols}{100}
 
@@ -3669,4 +3679,99 @@
                         \end{tabular}
                     \end{center}
                 \end{center}
+        \subsection*{Topic 12 - Temporal Relational Algebra}
+            The since product is defined as follows;
+            $$eval(R \sprod S, t) = eval((R \times S) \cup ((R \sprod S) \ltimes R), t - 1)$$
+            We can also define aliases of a table ~t~ as $~t~_~a~, ~t~_~b~, \dots$.
+            Additionally, we have the time predicate, and therefore we can have $~time(t)~$ for a snapshot ~t~.
+            \medskip
+
+            I'm really not sure what else there was to write about this lecture, it was quite confusing.
+        \subsection*{Topic 13 - Derived TRA Operators}
+            Similar to the Cartesian product, the since-product and until-product aren't very useful by themselves, however they form a basis for defining other operators.
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{since-join} \hfill $\sjoin$
+                    $$eval(R \sjoin S, t) = eval(\sigma_{R.A = S.A}(R \sprod S), t)$$
+                    For example, if we wanted to find the movements of accounts still open until yesterday, the following could be done;
+                    $$\pi_{~no~, ~mid~, ~account~}(\pi_{~no~}~account~ \sjoin ~movement~)$$
+                \item \textbf{until-join} \hfill $\ujoin$
+                    $$eval(R \ujoin S, t) = eval(\sigma_{R.A = S.A}(R \uprod S), t)$$
+            \end{itemize}
+            We also have the following derived operators;
+            \begin{itemize}
+                \itemsep0em
+                \item \ecirc $ A \equiv A \text{ until } \top$ \hfill means is $A$ true at the next time
+                \item \fcirc $ A \equiv A \text{ since } \top$ \hfill means is $A$ true at the previous time
+                \item \ediamond $ A \equiv \top \text{ until } A$ \hfill means is $A$ true at some point in the future
+                \item \fdiamond $ A \equiv \top \text{ since } A$ \hfill means is $A$ true at some point in the past
+                \item $\square$ $ A \equiv A \text{ until } \neg $ \ecirc $ \top$ \hfill means is $A$ always true in the future
+                \item $\blacksquare$ $ A \equiv A \text{ until } \neg $ \fcirc $ \top$ \hfill means is $A$ always true in the past
+            \end{itemize}
+            This can be tabulated as follows, for an example;
+            \begin{center}
+                \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+                    \hline
+                    & $t = 0$ & $t = 1$ & $t = 2$ & $t = 3$ & $t = 4$ & $t = 5$ & $t = 6$ & $t = 7$ & $t = 8$ & $t = 9$ \\
+                    \hline
+                    \hline
+                    \fcirc $B$ & & & & & & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+                    \fcirc $A$ & & & & $\times$ & $\times$ & $\times$ & & $\times$ & $\times$ & \\
+                    \ecirc $B$ & & & & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & \\
+                    \ecirc $A$ & & $\times$ & $\times$ & $\times$ & & $\times$ & $\times$ & & & \\
+                    \hline
+                    $\top$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+                    $B$ & & & & & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+                    $A$ & & & $\times$ & $\times$ & $\times$ & & $\times$ & $\times$ & & \\
+                    \hline
+                    \fdiamond $B$ & & & & & & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+                    \fdiamond $A$ & & & & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+                    \ediamond $B$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & \\
+                    \ediamond $A$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & & & \\
+                    \hline
+                    $\blacksquare$ $B$ & & & & & & & & & & \\
+                    $\square$ $B$ & & & & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & \\
+                    $\neg$ \fcirc $\top$ & $\times$ & & & & & & & & & \\
+                    $\neg$ \ecirc $\top$ & & & & & & & & & & $\times$ \\
+                    \hline
+                \end{tabular}
+            \end{center}
+            The derived relational modal operators, and their equivalences with products are as follows;
+            \begin{center}
+                \begin{tabular}{lll}
+                    temporal operator & name & equivalent \\
+                    \hline
+                    \fcirc $R$ & previous & $R \sprod I$ \\
+                    \fdiamond $R$ & sometime in past & $I \sprod R$ \\
+                    $\blacksquare$ $R$ & always in past & $\pi_R(R \sprod \sigma_{~time=0~}~time~)$ \\
+                    \ecirc $R$ & next & $R \uprod I$ \\
+                    \ediamond $R$ & sometime in future & $I \uprod R$ \\
+                    $\square$ $R$ & always in future & $\pi_R(R \uprod \sigma_{~time=n~}~time~)$
+                \end{tabular}
+            \end{center}
+            Once again, look at the lecture slides for full examples.
+            \subsubsection*{Using Derived Operators}
+                \begin{itemize}
+                    \itemsep0em
+                    \item we can use $\blacksquare$ to find things things that are always true
+                        \begin{itemize}
+                            \itemsep0em
+                            \item find accounts that have always existed \hfill $\blacksquare \pi_{~no~}~account~$
+                        \end{itemize}
+                    \item we can use \fdiamond\ to search the past for data
+                        \begin{itemize}
+                            \itemsep0em
+                            \item find accounts that have made a withdrawal in the past \hfill \fdiamond $\pi_{~no~}\sigma_{~amount<0~}~movement~$
+                            \item list the open accounts which have not made a withdrawal
+                                \begin{center}
+                                    $\pi_{~no~}~account~ - $ \fdiamond $\pi_{~no~}\sigma_{~amount<0~}~movement~$
+                                \end{center}
+                            \item list accounts which have opened for the first time \hfill $\pi_{~no~}~account~ - $ \fdiamond $\pi_{~no~}~account~$
+                        \end{itemize}
+                    \item we can use \fcirc\ to check what has just occurred
+                        \begin{itemize}
+                            \itemsep0em
+                            \item list accounts which have just opened or reopened \hfill $\pi_{~no~}~account~ - $ \fcirc $\pi_{~no~}~account~$
+                        \end{itemize}
+                \end{itemize}
 \end{document}
