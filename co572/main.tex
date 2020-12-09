@@ -2422,7 +2422,7 @@
                             \medskip
 
                             The worst attribute to fragment on something that would change over time, in our example it would be ~rate~.
-                        \item \textbf{derived horizontal fragmentation} \hfill $R_1 = R \ltimes S_1, \dots, R_n \ltimes S_n$
+                        \item \textbf{derived horizontal fragmentation} \hfill $R_1 = R \ltimes S_1, \dots, R_n = R \ltimes S_n$
                             \smallskip
 
                             For this, we need to look at the semi-join;
@@ -2642,7 +2642,7 @@
                     \item join ($\bowtie$) - only performs equi-joins \hfill ~JOIN <ALIAS> BY <COLNAME>, <ALIAS> BY <COLNAME>~
                         \begin{lstlisting}
                             branch_with_interest_account =
-                                JOIN branch by branch::sortcode,
+                                JOIN branch BY branch::sortcode,
                                      account_with_rate BY account_with_rate::sortcode;
                         \end{lstlisting}
                     \item union ($\cup$) \hfill $\pi_~sortcode~~branch~ \cup \pi_~no~~account~$ - ~UNION <ALIAS>, <ALIAS>~
