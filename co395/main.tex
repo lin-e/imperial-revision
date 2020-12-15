@@ -211,8 +211,8 @@
     {\sc Computing $3^\text{rd}$ Year Notes} \hfill ~https://github.com/lin-e/imperial-revision~
     \rule{\textwidth}{0.1pt}
     \section*{CO395 - Introduction to Machine Learning \hfill (70050)}
-        \subsection*{Week 2 (Introduction to ML)}
-        \subsection*{Week 3 (Instance-based Learning + Decision Trees)}
+        \subsection*{Module 1 (Introduction to ML)}
+        \subsection*{Module 2 (Instance-based Learning + Decision Trees)}
             The \textbf{k Nearest Neighbours (k-NN)} classifier is classified as a \textbf{lazy learner}.
             A lazy learner stores all the training examples in the data set, and postpone any processing until a request is made (such as a prediction).
             On the other hand, \textbf{decision trees} are classified as a \textbf{eager learner}.
@@ -751,7 +751,7 @@
 
                 Decision trees can also be used for regression (\textbf{regression trees}).
                 Instead of class labels, each leaf node predicts a real-valued number.
-        \subsection*{Week 4 (Machine Learning Evaluation)}
+        \subsection*{Module 3 (Machine Learning Evaluation)}
             \subsubsection*{Evaluation Set-up}
                 The goal is to create models and algorithms that can generalise to unseen data.
                 We have good accuracy for the training set, since we trained the model for that, however we care more about the accuracy of unknown data.
@@ -1100,7 +1100,7 @@
                         $$z_i = 0.05 \frac{i}{M}$$
                     \item significant results are the ones where the p-value is smaller than the critical value
                 \end{enumerate}
-        \subsection*{Week 5 (Artificial Neural Networks I)}
+        \subsection*{Module 4 (Artificial Neural Networks I)}
             \subsubsection*{The Rise of Neural Networks}
                 \textbf{Artificial neural networks} are a class of machine learning algorithms, similar to \textbf{kNN} or \textbf{decision trees}.
                 They consist of connected neurons, normally optimised with \textbf{gradient descent}.
@@ -1549,7 +1549,7 @@
                     input = torch.FloatTensor([x for x in range(10)]) # sample input
                     output = net(input) # execution
                 \end{lstlisting}
-        \subsection*{Week 6 (Artificial Neural Networks II)}
+        \subsection*{Module 5 (Artificial Neural Networks II)}
             \subsubsection*{Loss Functions}
                 We need to define a loss function which we aim to minimise, a smaller loss function tells us that we are doing better on a particular task.
                 To optimise a neural network, we want to iteratively update parameters with gradient descent (taking small steps in the negative direction of the loss function), aiming to reduce the loss function.
@@ -2039,7 +2039,7 @@
                 Another approach is \textbf{dropout}.
                 This sets some neural activations to 0, and typically we drop around half of the activations in a layer.
                 This prevents the network from relying on any one node.
-        \subsection*{Week 7 (Unsupervised Learning)}
+        \subsection*{Module 6 (Unsupervised Learning)}
             \subsubsection*{Unsupervised Learning}
                 In supervised learning, our training data is in the form of $\left\{\left(X^{(1)}, y^{(1)}\right), \dots, \left(X^{(N)}, y^{(N)}\right)\right\}$, where we have a pair consisting of a set of features $X$ and a label $y$, hence we have \textbf{ground truth}.
                 On the other hand, in unsupervised learning, we only have sets of features $\left\{X^{(1)}, \dots, X^{(N)}\right\}$.
@@ -2357,5 +2357,5 @@
                                 can be used for non-spherical clusters and can generate clusters with different probabilities
                         \end{itemize}
                 \end{itemize}
-        \subsection*{Week 8 (Genetic Algorithms)}
+        \subsection*{Module 7 (Genetic Algorithms)}
 \end{document}
