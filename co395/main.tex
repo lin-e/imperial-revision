@@ -2040,5 +2040,322 @@
                 This sets some neural activations to 0, and typically we drop around half of the activations in a layer.
                 This prevents the network from relying on any one node.
         \subsection*{Week 7 (Unsupervised Learning)}
+            \subsubsection*{Unsupervised Learning}
+                In supervised learning, our training data is in the form of $\left\{\left(X^{(1)}, y^{(1)}\right), \dots, \left(X^{(N)}, y^{(N)}\right)\right\}$, where we have a pair consisting of a set of features $X$ and a label $y$, hence we have \textbf{ground truth}.
+                On the other hand, in unsupervised learning, we only have sets of features $\left\{X^{(1)}, \dots, X^{(N)}\right\}$.
+                Here the task becomes more challenging, as we want to determine groups from the features alone.
+                \medskip
+
+                Some examples of unsupervised learning are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{clustering}
+                    \item \textbf{density estimation}
+                    \item \textbf{dimensionality reduction}
+                \end{itemize}
+            \subsubsection*{Clustering}
+                A cluster is a set of instances that are \textbf{similar} (low intra-cluster variance) to each other, and \textbf{dissimilar} to instances in other clusters.
+                Clustering is the process of defining these sets.
+                \medskip
+
+                This can be applied for image compression (by clustering pixel values together), as well as for \textbf{vector quantisation}, which groups continuous features into prototypes.
+                For example, in a video there may be very similar frames of wheels on a car, which can be replaced with a single instance.
+                Another application is to create \textbf{superpixels}, which group similar-looking pixels as an intermediate stage of processing.
+            \subsubsection*{K-means}
+                Similar to $k$-NN, the $k$ is a hyperparameter which refers to the number of clusters.
+                The general algorithm is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{initialise}
+                        \smallskip
+
+                        The idea is to randomly initialise the locations of the $k$ cluster centres (referred to as \textbf{centroids}).
+                        An improvement to this is to randomly select $k$ instances, which avoids the issue of empty clusters.
+                    \item \textbf{assignment} \hfill minimise $L$ with respect to $c$, by fixing $\mu$
+                        \smallskip
+
+                        Here we can assign each of the instances to be part of the nearest cluster, based on some distance metric.
+                        \medskip
+
+                        For each $i \in \{1, \dots, N\}$, we want to do the following (where $c^{(i)} \in \{1, \dots, K\}$ refers to which cluster training example $x^{(i)}$ is assigned to), by looking at the distance between the training example $(i)$ and the cluster mean $\mu_k$;
+                        $$c^{(i)} = \argmin_{k \in \{1, \dots, K\}} || x^{(i)} - \mu_k ||^2$$
+                    \item \textbf{update} \hfill minimise $L$ with respect to $\mu$, by fixing $c$
+                        \smallskip
+
+                        Move the position of the centroid by computing the average location of the instances associated with a given centroid.
+                        \medskip
+
+                        For each cluster $k \in \{1, \dots, K\}$, we want to compute the mean of the cluster $k$ ($\mu_k$), using the indicator function $1(a)$, which is 0 when $a$ is false, and 1 if $a$ is true;
+                        $$\mu_k = \frac{\summation{i = 1}{N} 1(c^{(i)} = k) \cdot x^{(i)}}{\summation{i = 1}{N} 1(c^{(i)} = k)}$$
+                    \item finish if \textbf{converged}, otherwise go back to step 2
+                        \smallskip
+
+                        Observe the distance the centroid moves - if it is below a given threshold, we can conclude it has converged.
+                        \medskip
+
+                        To test for convergence, we simply check all values against some threshold $\epsilon$;
+                        $$\forall k \left| \mu_k^{t} - \mu_k^{(t - 1)} \right| < \epsilon$$
+                \end{enumerate}
+                This creates decision boundaries, in this case a \textbf{Voronoi diagram}, where every line in the diagram is at equal distance between two points.
+                We can also look at this as an optimisation objective, where we aim to minimise;
+                $$L(c^{(1)}, \dots, c^{(N)}, \mu_1, \dots, \mu_k) = \frac{1}{N} \summation{i = 1}{N} || x^{(i)} - \mu_{c^{(i)}} ||^2$$
+                Therefore, we are aiming to minimise the average distance between each training sample to the mean of its assigned cluster.
+                \medskip
+
+                However, the choice of $k$ is important, and we can select it with a number of methods;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{elbow method}
+                        \smallskip
+
+                        The idea here is to run $k$-means multiple times, with different $k$ values, and track the cost $L(\theta)$ for each $k$.
+                        We want to select the $k$ value where the rate of decrease sharply shifts (becomes slower).
+                        One important consideration is that the score alone cannot be used, since it will \textbf{always} converge to 0, when $k$ is equal to the number of datapoints.
+                    \item \textbf{cross-validation}
+                        \smallskip
+
+                        This is used less often than the elbow method, but is able to capture behaviour on unseen data.
+                        As before, with cross validation, the dataset is split into $N$ folds, with $N - 1$ folds being used to compute the centroid positions.
+                        The average score is then computed as before on the validation datasets, and the best value of $k$ is picked.
+                        We want to select a $k$ where any further increase in the number of clusters leads to a only a small improvement in the average score.
+                \end{itemize}
+                This is a simple algorithm, both to understand and implement, and is also popular.
+                It's also efficient (linear complexity since $K << N$ and $T << N$), with complexity $O(TKN)$, where $T$ is the number of iterations, $K$ is the number of clusters, and we have $N$ examples.
+                \medskip
+
+                However, there are a few weaknesses, one in that we have to define $k$, it finds a local optimum, and is also sensitive to the initial centroid positions (and also to outliers, which can be solved with $k$-medoid).
+                \medskip
+
+                Additionally, $k$-means is only applicable if there is some distance function - a variant, $k$-mode, exists for categorical data, where the centroids represent the most frequent values.
+                It is also not suitable for discovering clusters that are not hyper-ellipsoids / hyper-spheres (has a continuous and convex shape).
+            \subsubsection*{Probability Density Estimation}
+                A probability density function $p(x)$ models how likely a continuous variable is to be observed within a particular \textbf{interval}.
+                This has the following constraints, note that there is only a lower bound (and therefore can be greater than 1);
+                \begin{align*}
+                    p(x) & \geq 0 \\
+                    \defint{a}{b}{p(x)}{x} & = 1
+                \end{align*}
+                Density estimation is to estimate $p(x)$ from data.
+                \medskip
+
+                An example of this is for anomaly detection, where we we calculate the probabilities for a given task (for example CPU usage versus memory usage in a data-centre), and if a point lies in a region of low probability (below a given threshold) - we can classify it as abnormal.
+                \medskip
+
+                Another application is a \textbf{generative model}, where we model the distribution of a given class, as $p(X\ |\ y)$ - this allows us to generate new samples (such as images).
+                This is in contrast to \textbf{discriminative models}, which directly model $p(y\ |\ X)$, which is used in neural networks, linear regression, decision trees, etc.
+                \medskip
+
+                Using the following, we can convert a generative model into a discriminative classifier;
+                $$p(y\ |\ X) = \frac{p(X\ |\ y)p(y)}{p(X)}$$
+                \medskip
+
+                There are two approaches for these models;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{non-parametric approach}
+                        \smallskip
+
+                        A non-parametric model makes no assumptions about the form.
+                        This simply follows the data (has low bias, therefore we get high variance), and the number of parameters grow with data.
+                        \medskip
+
+                        One example of a density estimation, which we have likely encountered, is a histogram.
+                        Here data is grouped into contiguous bins, and the number of occurrences in each bins is counted (and then normalised, to ensure a sum to 1).
+                        By decreasing the number of bins, we are able to smooth out $p(x)$ - it will suffer from high variance, but will not be biased.
+                        \medskip
+
+                        Another approach is \textbf{kernel / Parzen density estimation}, where we compute $\hat{p}(x)$ by observing training examples within a kernel function $H$ (or a Parzen window);
+                        $$\hat{p}(x) = \frac{1}{N} \summation{i = 1}{N} \frac{1}{h^D} H\left(\frac{x - x^{(i)}}{h}\right)$$
+                        In the example above, we have $h$ as the bandwidth / window size, and $D$ as the number of dimensions (and $h^D$ as the volume of the window).
+                        The Parzen window we can use is defined as follows;
+                        $$H(u) = \begin{cases}
+                            1 & \text{if } | u_j | < \frac{1}{2}; j = 1, \dots, D \\
+                            0 & \text{otherwise}
+                        \end{cases}$$
+                        Another way would be to define the kernel function $H$ as a Gaussian, which gives us a smoother $\hat{p}(x)$;
+                        $$\hat{p}(x) = \frac{1}{N} \summation{i = 1}{N} \frac{1}{(2\pi h^2)^\frac{D}{2}} e^{-\frac{|| x - x^{(i) ||^2}}{2h^2}}$$
+                        Increasing $h$ gives a smoother $\hat{p}(x)$.
+                    \item \textbf{parametric approach}
+                        \smallskip
+
+                        In contrast, a parametric method makes simplified assumptions about the form (which leads to high bias, and low variance), and the number of parameters is fixed (doesn't grow with the data).
+                        \medskip
+
+                        Similar to before, we have likely encountered such an example - a \textbf{univariate Gaussian (normal) distribution};
+                        $$\mathcal{N}(x\ |\ \mu, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x - \mu)^2}{2\sigma^2}}$$
+                        $\hat{p}(x)$ is computed by fitting the parameters to the training examples;
+                        \begin{align*}
+                            \hat{\mu} & = \frac{1}{N} \summation{i = 1}{N} x^{(i)} \\
+                            \hat{\sigma}^2 & = \frac{1}{N} \summation{i = 1}{N} (x^{(i)} - \hat{\mu})^2 \\
+                            \hat{p}(x) & = \mathcal{N}(x\ |\ \hat{\mu}, \hat{\sigma}^2)
+                        \end{align*}
+                        An extension to this is a multivariate Gaussian distribution.
+                        This is largely similar, however we now instead have a covariance matrix $\mat{\Sigma}$;
+                        $$\mathcal{N}(\vec{x}\ |\ \vec{\mu}, \mat{\Sigma}) = \frac{1}{\sqrt{(2\pi)^D | \mat{\Sigma} |}}e^{-\frac{1}{2}(\vec{x} - \vec{\mu})^\top \mat{\Sigma}^{-1} (\vec{x} - \vec{\mu})}$$
+                        Similarly, the parameters are fitted to the training example as follows;
+                        \begin{align*}
+                            \hat{\vec{\mu}} & = \frac{1}{N} \summation{i = 1}{N} \vec{x^{(i)}} \\
+                            \hat{\mat{\Sigma}} & = \frac{1}{N} \summation{i = 1}{N} (\vec{x^{(i)}} - \hat{\vec{\mu}})(\vec{x^{(i)}} - \hat{\vec{\mu}})^\top \\
+                            \hat{p}(\vec{x}) & = \mathcal{N}(\vec{x}\ |\ \hat{\vec{\mu}}, \hat{\mat{\Sigma}})
+                        \end{align*}
+                        To quantify how good a fitted model is, we use \textbf{likelihood}.
+                        Our goal is to have a model that captures the probability of generating or observing data $x$ within an interval.
+                        The likelihood measures the probability of observing data $x$ from a dataset $\mathcal{X}$, where $\theta$ are the model parameters, assuming iid;
+                        $$p(\mathcal{X}\ |\ \theta) = \product{i = 1}{N} p(x^{(i)}\ |\ \theta)$$
+                        We often use the \textbf{negative log-likelihood}, which becomes a minimisation problem;
+                        $$\mathcal{L} = -\log p(\mathcal{X}\ |\ \theta) = \summation{i = 1}{N} \log p(x^{(i)}\ |\ \theta)$$
+                        By taking logarithms, we improve numerical stability as the multiplication of small probabilities is bad.
+                        The proof for a univariate Gaussian distribution is as follows;
+                        \begin{align*}
+                            \mathcal{L} & = -\summation{i = 1}{N} \log p(x^{(i)}\ |\ \theta) \\
+                            & = -\summation{i = 1}{N} \log \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x^{(i)} - \mu)^2}{2\sigma^2}} \\
+                            & = \frac{N}{2} \log 2 \pi + \frac{N}{2} \log \sigma^2 + \frac{1}{2\sigma^2} \summation{i = 1}{N} (x^{(i)} - \mu)^2
+                        \end{align*}
+                        We know that $\mathcal{L}$ is minimum when the derivatives are zero;
+                        \begin{align*}
+                            \pdif{\mathcal{L}}{\mu} & = 0 \\
+                            \pdif{\mathcal{L}}{\sigma^2} & = 0 \\
+                            \pdif{\mathcal{L}}{\mu} & = \frac{1}{\sigma^2} \summation{i = 1}{N} (x^{(i)} - \mu) \\
+                            & = \frac{1}{\sigma^2} \left(\summation{i = 1}{N} x^{(i)} - N\mu\right) \\
+                            \pdif{\mathcal{L}}{\sigma^2} & = \frac{N}{2} \frac{1}{\sigma^2} - \frac{1}{2(\sigma^2)^2} \summation{i = 1}{N} (x^{(i)} - \mu)^2
+                        \end{align*}
+                        When these are set to zero, it gives us the solutions as $\hat{\mu}$ and $\hat{\sigma}^2$.
+                        \medskip
+
+                        However, a Gaussian distribution is insufficient for modelling densities, for example if we have multiple classes.
+                        An improvement on this is to use \textbf{mixture models};
+                        \begin{align*}
+                            p(x) & = \summation{k = 1}{K} \pi_k p_k(x) \\
+                            0 \leq p_k & \leq 1 \\
+                            \summation{k = 1}{K} \pi_k & = 1
+                        \end{align*}
+                        A Gaussian Mixture Model (GMM) is defined as the following;
+                        $$p(\vec{x}\ |\ \theta) = \summation{k = 1}{K} \pi_k \mathcal{N}(\vec{x}\ |\ \vec{\mu_k}, \mat{\Sigma_k})$$
+                        Where we have $\theta$ defined as; $\theta = \{ \pi_k, \vec{\mu_k}, \mat{\Sigma_k} : k = 1, \dots, K \}$
+                \end{itemize}
+            \subsubsection*{GMM-EM}
+                As previously mentioned, a \textbf{Gaussian Mixture Model} is a weighted mixture of Gaussian distributions.
+                Because of the constraints we have on our weights, the mixture of probability density functions stays as a PDF.
+                \medskip
+
+                GMM's can model complicated data distributions, however due to the increased complexity, there are more parameters to optimise.
+                Unlike the univariate or multivariate case, we cannot maximise the likelihood since the update of each parameter depends on other parameters - hence we do not have a closed form for GMMs (this is similar to how the clustering changes when a centroid is updated in $k$-means).
+                \medskip
+
+                The \textbf{Expectation-Maximisation (EM)} algorithm is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{initialisation}
+                        \smallskip
+
+                        First pick a $K$ value, and then randomly initialise the parameters;
+                        \begin{align*}
+                            \theta & = \{ \pi_k, \vec{\mu_k}, \mat{\Sigma_k} : k = 1, \dots, K \} \\
+                            0 \leq p_k & \leq 1 \\
+                            \summation{k = 1}{K} \pi_k & = 1
+                        \end{align*}
+                    \item \textbf{E-Step}
+                        \smallskip
+
+                        Compute the \textbf{responsibilities} for each training example $\vec{x^{(i)}}$, and each mixture component $k$ (note that the following is done for each $i$ \textbf{and} $k$);
+                        $$r_{i, k} = \frac{\pi_k \mathcal{N}(\vec{x^{(i)}}\ |\ \vec{\mu_k}, \mat{\Sigma_k})}{\summation{j = 1}{K} \pi_j \mathcal{N}(\vec{x^{(i)}}\ |\ \vec{\mu_j}, \mat{\Sigma_j})}$$
+                    \item \textbf{M-Step}
+                        \smallskip
+
+                        Note that for the following part, we will be using the following;
+                        $$N_k = \summation{i = 1}{N} r_{i, k}$$
+                        \begin{itemize}
+                            \itemsep0em
+                            \item Update the \textbf{mean} of all the mixture components
+                                $$\vec{\hat{\mu}_k} = \frac{1}{N_k} \summation{i = 1}{N} r_{i, k} \vec{x^{(i)}}$$
+                                This changes the centres of the Gaussians (if we consider this with two features, looking top-down at contours).
+                            \item Update the \textbf{covariance} of all the mixture components
+                                $$\mat{\Sigma_k} = \frac{1}{N_k} \summation{i = 1}{N} r_{i, k} \left(\vec{x^{(i)}} - \vec{\hat{\mu}_k}\right)\left(\vec{x^{(i)}} - \vec{\hat{\mu}_k}\right)^\top$$
+                                Similar to the visual above, this changes the shapes of the Gaussians.
+                            \item Update the \textbf{mixing proportion} of all mixture components
+                                $$\pi_k = \frac{N_k}{N}$$
+                                This changes the height of the Gaussians (assuming two features as before, but with the $y$ axis being $p$).
+                        \end{itemize}
+                        Similar to $k$-means, this will converge to a local optimum, and therefore should be repeated, finally taking the model with the minimum negative log likelihood.
+                    \item finish if \textbf{converged}, otherwise go back to step 2
+                        \smallskip
+
+                        Define convergence as the parameters not changing, or the likelihood stagnates.
+                \end{enumerate}
+                One approach to selecting the number of components $K$ is to minimise the \textbf{Bayesian Information Criterion (BIC)};
+                $$BIC_K = \violet{\mathcal{L}(K)} + \teal{\frac{P_k}{2}\log(N)}$$
+                Note that the above consists of two parts;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \violet{violet} - negative log likelihood, which encourages fitting of data
+                    \item \teal{teal} - penalises complex models; Occam's razor suggests we should pick the simplest of all models that fit
+                        \smallskip
+
+                        Note that $P_K$ denotes the number of parameters, and $N$ denotes the number of examples.
+                        The the number of parameters for a 2D Gaussian is $P_K = 6K - 1$, where we have 2 for mean, 3 for covariance, and 1 for the mixing proportion.
+                        It's important to note that while the covariance matrix is $\mathbb{R}^{2 \times 2}$, it is symmetrical hence we do not need the entire matrix to define it.
+                \end{itemize}
+                Another approach is to perform cross-validation with the same procedure as $k$-means, bu splitting into training and validation sets, then running GMM-EM on the training sets.
+                \medskip
+
+                There are a fair number of similarities between $k$-means and GMM-EM;
+                \begin{itemize}
+                    \itemsep0em
+                    \item need to select $K$
+                    \item convergence happens when changes are sufficiently small
+                    \item also sensitive to initialisation (often initialise the means of GMM-EM from the result of $k$-means)
+                \end{itemize}
+                We can consider GMM-EM as a softer $k$-means clustering.
+                On one hand, with hard clustering ($k$-means), every point belongs to exactly one cluster, whereas with soft clustering (GMM), every point belongs to several clusters in certain degrees.
+                \medskip
+
+                Each component in the mixture represents a different cluster, and the responsibilities of each data point define the probability of a data point belonging to a certain cluster.
+                Another difference in GMM is that the distance to the centroids (the means) is not isotropic and varies during the learning process, due to the covariance matrix (the distance is related to the Mahalanobis distance).
+                \medskip
+
+                We can summarise the differences between the two as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{objective function}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $k$-means \hfill minimise average mean squared distance
+                            \item GMM-EM \hfill maximise log likelihood
+                        \end{itemize}
+                    \item \textbf{algorithm}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $k$-means
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item assignment \hfill assign points to cluster
+                                    \item update \hfill optimise cluster
+                                \end{itemize}
+                            \item GMM-EM
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item E-step \hfill compute posterior probability of membership
+                                    \item M-step \hfill optimise parameters
+                                \end{itemize}
+                        \end{itemize}
+                    \item \textbf{hardness}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $k$-means \hfill performs hard assignment during assignment step
+                            \item GMM-EM \hfill performs soft assignment during E-step
+                        \end{itemize}
+                    \item \textbf{other}
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $k$-means
+                                \smallskip
+
+                                assumes spherical clusters with equal probability for each cluster
+                            \item GMM-EM
+                                \smallskip
+
+                                can be used for non-spherical clusters and can generate clusters with different probabilities
+                        \end{itemize}
+                \end{itemize}
         \subsection*{Week 8 (Genetic Algorithms)}
 \end{document}
