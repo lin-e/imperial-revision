@@ -7,14 +7,10 @@
 *.synctex.gz
 *.out
 
-# accidentally started a Scala project
-.metals/*
-
 # ignore notes that are by the college
 */notes/*
 materials/*
 
 # ignore testing, and programming practice
 co000/*
-gitlab/*
 ignored/*
