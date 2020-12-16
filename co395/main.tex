@@ -2481,4 +2481,306 @@
                     \item genotypes can be used to encode graphs
                     \item heterogeneous list of large number of variants of the operators
                 \end{itemize}
+            \subsubsection*{Genetic Algorithms}
+                For this section, the running example is using a genetic algorithm to solve \textit{Mastermind}.
+                Each piece can have 6 different colours, and a combination of $N$ colours is defined by the game-master ($N = 4$ in the original game), where duplicates are allowed.
+                The information we are given at each turn is the number pieces with the right colour and correct position, as well as the number of pieces with the right colour but incorrect position.
+                The goal is to get all four (in our example) to have the right colour and correct position.
+                \medskip
+
+                We need to define the evolutionary algorithm as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{fitness function} \hfill represents the problem we want to solve
+                        \smallskip
+
+                        To solve the problem, we maximise the fitness function (maximise to find the fittest individuals).
+                        If we define $p_1$ as the number of pieces with the correct colour and position, and $p_2$ as the number of pieces with the correct colour but incorrect position, we can define the fitness function as;
+                        $$F(x) = p_1 + \frac{1}{2}p_2$$
+                        And therefore, the maximum of this problem corresponds to the solution ($F(x) = 4$).
+                        \medskip
+
+                        Generally, the fitness function is \textbf{problem specific}; for example if the goal was to teach a robot to walk, the fitness function could be the walking speed, or if the goal was to teach a robot to throw an object, the function could be the negative of the distance between the thrown object and the target.
+                    \item \textbf{genotype and phenotype} \hfill represents the potential solutions to the problem
+                        \smallskip
+
+                        For this, we can use a binary string (although this isn't the only option) of length $3N$, where $N$ is the number of hidden pieces, as our genotype.
+                        The phenotype is aggregated into trios, which corresponds to an integer, which then corresponds to a different colour.
+                        With three bits, we can encode 8 different colours, although we only require 6.
+                        Note that the bit combinations ~111~ and ~110~ will refer to 7 and 6 respectively, which will be invalid.
+                        One common method for getting around this is to assign the lowest possible fitness score (0) to anything containing an invalid bit pattern.
+                        For example;
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \node (gen) at (0, 0) {~000011101001~};
+                                \node (t0) at (-3, -1) {~000~};
+                                \node (t1) at (-1, -1) {~011~};
+                                \node (t2) at (1, -1) {~101~};
+                                \node (t3) at (3, -1) {~001~};
+                                \node (i0) at (-3, -2) {~0~};
+                                \node (i1) at (-1, -2) {~3~};
+                                \node (i2) at (1, -2) {~5~};
+                                \node (i3) at (3, -2) {~1~};
+                                \node (c0) at (-3, -3) {\red{red}};
+                                \node (c1) at (-1, -3) {\blue{blue}};
+                                \node (c2) at (1, -3) {\textcolor{orange}{orange}};
+                                \node (c3) at (3, -3) {\textcolor{yellow}{yellow}};
+
+                                \draw
+                                (gen) edge[->] (t0)
+                                (gen) edge[->] (t1)
+                                (gen) edge[->] (t2)
+                                (gen) edge[->] (t3)
+                                (t0) edge[->] (i0)
+                                (t1) edge[->] (i1)
+                                (t2) edge[->] (i2)
+                                (t3) edge[->] (i3)
+                                (i0) edge[->] (c0)
+                                (i1) edge[->] (c1)
+                                (i2) edge[->] (c2)
+                                (i3) edge[->] (c3);
+                            \end{tikzpicture}
+                        \end{center}
+                    \item \textbf{selection operator} \hfill selects the parents for the next generation
+                        \smallskip
+
+                        Although there are many different options, a standard approach is to use a biased roulette wheel.
+                        Each individual is associated to a portion of the circle (where individuals with high fitness will have a larger proportion).
+                        A random location on the circle is then drawn, and the likelihood for an individual to be selected is proportional to its fitness.
+                        \medskip
+
+                        It's important not to exclude low fitness individuals completely, as we may have reached a local optimum, but some more optimal traits can exist in some low fitness individuals.
+                        \medskip
+
+                        The process for the biased roulette wheel is as follows;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item compute the probability $p_i$ to select an individual from the population
+                                $$p_i = \frac{f_i}{\summation{j = 1}{n} f_j}$$
+                            \item compute the cumulative probability for an individual $q_i$
+                                $$q_i = \summation{j = 1}{i} p_j$$
+                            \item randomly generate (from a uniform distribution) a number $r$ between 0 and 1
+                            \item select the individual $x_i$ such that
+                                $$q_{i - 1} < r \leq q_i$$
+                        \end{itemize}
+                        An alternative is a tournament, where the simple algorithm is as follows;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item randomly draw two individuals from the population
+                            \item select the best out of the two
+                            \item repeat until enough parents have been obtained
+                        \end{itemize}
+                        Variations of this include drawing multiple individuals, or not always selecting the best individual.
+                        This has an advantage in that it only takes into account relative values of the fitness (do not need to normalise), and is easy to parallelise.
+                        If we don't have a fitness function, this approach can be used to allow two individuals to compete (for example in a game).
+                        \medskip
+
+                        Another concept is \textbf{elitism}.
+                        In the general description of an evolutionary algorithm, the next generation completely replaces the current generation.
+                        However, it's often useful to keep a fraction (usually $10\%$) of the best individuals from the current generation in the next generation.
+                        This has an advantage that the fitness of the best individual of the population \textbf{cannot decrease}.
+                    \item \textbf{cross-over operator} \hfill combine the traits of the parents
+                        \smallskip
+
+                        A standard operator on strings is a \textbf{single-point cross-over}.
+                        In this, we pick a split point at random.
+                        The genotype of the offspring is formed by exchanging the portions of the parents' genotypes.
+                        For example, if we consider the parents \violet{~01000100011000~} and \teal{~10111100101101~}, and a split point after index 4, we can have the two following children; \violet{~01000~}\teal{~100101101~} and \teal{~10111~}\violet{~100011000~}.
+                    \item \textbf{mutation operator} \hfill explore nearby solutions
+                        \smallskip
+
+                        A standard mutation on binary strings is to do the following for each bit of the genotype;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item randomly generate a number from a uniform distribution between 0 and 1
+                            \item if this number is lower than a probability $m$ (hyperparameter), the bit is flipped - $m$ is often fixed to be $\frac{1}{~size of genotype~}$
+                        \end{itemize}
+                        For our problem, we can add a specific mutation which allows us to exploit the information that we have the correct colour but incorrect position, which standard operators cannot use.
+                        The mutation swaps groups of 3 bits in the genotype with a probability $m_2$.
+                    \item \textbf{hyperparameters}
+                \end{itemize}
+                Commonly used \textbf{stopping criterion} are;
+                \begin{itemize}
+                    \itemsep0em
+                    \item when a specific fitness value is reached (4 in our running example)
+                    \item after a pre-defined number of generations
+                    \item when the best fitness function stagnates for a number of generations
+                \end{itemize}
+                The simplified algorithm for \textit{Mastermind} is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item randomly generate a population of $N$ binary strings
+                    \item evaluate the fitness of each individual using some game engine
+                        $$F(x) = p_1 + \frac{1}{2}p_2$$
+                    \item select $\frac{N}{2}$ couples of parents (less if elitism is used), with respect to fitness
+                    \item create the their offspring with the crossover operator for each couple
+                    \item mutate each child
+                    \item replace old population with new one, return to step 2 (until stopping criterion reached)
+                \end{enumerate}
+            \subsubsection*{Evolutionary Strategies}
+                Genetic algorithms have a binary string as a genotype, and therefore it optimises a parameter list of integers.
+                However, many problems involve real parameters (such as neural networks).
+                This approach, \textbf{evolutionary strategy}, has a genotype of a list of reals, a uniform parent selection, and mutations generated from a Gaussian distribution.
+                Note that there is \textbf{no cross-over}.
+                \medskip
+
+                The $\mu + \lambda$-ES (evolutionary strategy) is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item randomly generate a population of $\mu + \lambda$ individuals
+                    \item evaluate the population
+                    \item select the $\mu$ best individuals from the populations as parents (call them $x$)
+                    \item generate $\lambda$ offspring (call them $y$) from the parents (where $j$ is one of the parents, hence a random integer up to $\mu$)
+                        $$y_i = x_j + \mathcal{N}(0, \sigma)$$
+                        This takes one of the parents, and adds some Gaussian noise with the variance fixed to $\sigma$
+                    \item take the population as the union of the offspring and the parents
+                        $$~pop~ = \underbrace{\left(\bigcup\limits_{i = 1}^\lambda y_i\right)}_\text{offspring} \cup \underbrace{\left(\bigcup\limits_{j = 1}^\mu x_j\right)}_\text{parents}$$
+                    \item return to step 2
+                \end{enumerate}
+                A very simple variant is $(1 + 1)$-ES; the ``hill-climbing'' example.
+                Usually, the ratio $\frac{\lambda}{\mu} \approx 5$, and the main challenge is in fixing $\sigma$.
+                Note that both $\lambda$ and $\mu$ are also hyperparameters.
+                \medskip
+
+                The value of $\sigma$ is crucial; a large $\sigma$ will lead to the population moving quickly to the solution, but will have a difficult time refining it.
+                On the other hand, a small $\sigma$ will lead to the population moving slowly and will also be more affected by \textbf{local optimums}.
+                \medskip
+
+                A solution to this is to adapt $\sigma$ over time (or depending on the situation), where we have $\tau_0$ as our learning rate;
+                \begin{align*}
+                    x_j^\prime & = \{x_j, \sigma_j\} \\
+                    \sigma_i & = \sigma_j \cdot e^{\tau_0 \mathcal{N}(0, 1)} \\
+                    y_i & = x_j + \sigma_j \cdot \mathcal{N}(0, 1)
+                \end{align*}
+                By having $\sigma$ in the genotype, we start with high values which allow for exploration, however as it gets closer to an optimum solution the value gets lower to allow for better refinement.
+                It's common to use $\tau_0 \propto \frac{1}{\sqrt{n}}$, where $n$ is the dimension (number of parameters) of the genotype.
+                \medskip
+
+                The selection of the hyperparameter $\tau_0$ is far less critical than the selection of $\sigma$ (compared to before).
+                \medskip
+
+                Some other variants (not covered in the exam);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{CMA-ES} captures the entire population as a Gaussian distribution and samples this distribution to generate a population
+                    \item \textbf{BLX-alpha} or \textbf{SBX} adds cross-over
+                \end{itemize}
+                Another variant of a genetic algorithm is to discretise the list of parameters and then use binary strings, or to use a normal genetic algorithm with a list of reals (rather than bits), which requires specific operators.
+            \subsubsection*{Novelty Search}
+                Evolution itself is a difficult optimisation problem, and the divergent search aspect of natural evolution is rarely considered in optimisation techniques.
+                A large diversity of solutions can provide alternatives in case something happens (for example mass extinction or mechanical damage, the latter being more applicable to robotics).
+                \medskip
+
+                Similar to the diagram drawn previously for the general concept, ranking / selection is based on novelty, rather than performance or fitness.
+                This introduces the idea of a \textbf{novelty archive}, which collects the most novel species generated so far.
+                Each individual has a `distance' computed between it and the other species in the archive; this is then used to compute a novelty score, which is an average of the $k$ nearest neighbours (I personally think the definition below is incorrect);
+                $$~novelty~(x) = \frac{1}{N} \summation{k = 0}{N} d_i(x)$$
+                \textbf{Behavioural descriptors} characterises certain aspects of the solution by defining the types of solutions.
+                This is not necessarily linked to the task.
+                Several solutions are likely to have the same descriptor, but different fitness values.
+                \medskip
+
+                An example in robotics is the behavioural descriptor being the final $x, y$ position in 2D, when training a robot to move.
+                \medskip
+
+                The hard-maze problem is an example where a traditional genetic algorithm (with the fitness function being the distance from the \teal{target}) would be insufficient, as it is likely to result in the robot being stuck in a \red{dead end}.
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \node[inner sep=2pt, circle, draw=black, fill=teal!20] at (1, 9) {};
+                        \draw[fill=red!20, draw=none] (0, 8) -- (2, 8) -- (2, 7) -- (0, 7) -- cycle;
+                        \draw (0, 0) -- (10, 0) -- (10, 10) -- (0, 10) -- cycle;
+                        \draw
+                        (0, 8) -- (2, 8)
+                        (0, 7) -- (1, 3)
+                        (2, 8) -- (2, 3)
+                        (2, 3) -- (7, 1)
+                        (10, 2) -- (5, 4)
+                        (2, 7) -- (7, 5)
+                        (2, 8) -- (5, 9);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Quality-Diversity Optimisation}
+                The objective of QD algorithms is to learn a large collection of \textbf{diverse} and \textbf{high-performing} solutions in a single optimisation process.
+                Here we collect the highest performing solutions in each region of the descriptor space (consider quality on the $y$ axis and descriptor space on the $x$ axis; we want to cover all of the descriptor space and take the highest points).
+                \medskip
+
+                An application of this is for a robot with 6 legs learning how to walk.
+                There are two degrees of freedom per leg, each with an amplitude, phase, and duty cycle (movement controlled by a sine wave), hence there are 36 dimensions.
+                The descriptor is the proportion of time each leg touches the ground, in discrete intervals stepping in 25\% from 0\% to 100\%.
+                There are 6 dimensions here.
+                The fitness function is defined as the distance the robot is able to travel in 5 seconds;
+                $$f(x) = \frac{~pos~_~front~(~robot~(x), ~t~ = 5)}{5}$$
+                This goes over a real example of a hexapod walking, notable examples are the robot flipping over to walk (which has very low contact), and how it deals with damage and adapts.
+                \medskip
+
+                Most QD algorithms follow the same few steps;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{collection} \hfill can be initialised by generating random solutions
+                        \smallskip
+
+                        There are two ways to store the solutions, either in a grid from MAP-Elites, or an unstructured archive from Novelty Search.
+                    \item \textbf{stochastic selection} \hfill randomly select solutions based on some bias or heuristic
+                        \smallskip
+
+                        The selector is used to select the individual that will be mutated then evaluated in the next generation - the simplest of which is a uniform random selection.
+                        However there are other selection operators that can be biased according to a score;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item fitness
+                            \item novelty
+                            \item curiosity score
+                        \end{itemize}
+                    \item \textbf{random mutation}
+                        \smallskip
+
+                        There are also more advanced operators which can introduce cross-over between individuals.
+                    \item \textbf{evaluation}
+                    \item \textbf{tentative addition in the collection}
+                \end{enumerate}
+                To build a collection of high-performing and diverse solutions, we need to;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{measure the performance of solutions} with a \textbf{fitness function} like in most evolutionary algorithms
+                    \item \textbf{distinguish different types of solutions} with a \textbf{behavioural descriptor} (also called behavioural characterisation)
+                \end{itemize}
+                Another extension is local competition, where we calculate $LC(x)$, as the number of other solutions in the novelty archive that a solution outperforms (only comparing to $k$ nearest).
+                This is a QD algorithm when used with an archive management system.
+            \subsubsection*{MAP-Elites}
+                Multi-dimensional Archive of Phenotypic Elites (MAP-Elites) is a very popular but simple QD algorithm.
+                The goal is to discretise the behavioural descriptor space in a grid, and attempt to fill it with the best solutions.
+                \medskip
+
+                It's quite tedious to draw this grid, so consider something with 5 discrete intervals, and 6 dimensions to optimise.
+                The first two dimensions are on the outermost grid, subdivided into $25 = 5 \times 5$ smaller grids.
+                Each of these smaller grids have the next two dimensions, and inside each of them is another $25 = 5 \times 5$ smaller grids, representing the last two dimensions.
+                \medskip
+
+                Each new solution goes to the cell corresponding to its behavioural descriptor.
+                If the cell is empty, the new solution is added to the grid, however if the cell is already occupied, the solution with the best fitness is kept.
+                A hyperparameter here is the size of the cells (or the resolution of the grid).
+                This is easy to implement, however it has a drawback since the density is not necessarily uniform (there may be two solutions quite close to each other in different cells, whereas there may be a large section of empty space between other cells).
+                \medskip
+
+                From here, a random solution is selected, and then mutated.
+                However, this mutation not only changes the fitness, it can also change the behavioural descriptor, which would cause the new solution to be placed in a different cell (and replacement is performed if the cell is already occupied, based on fitness).
+                \medskip
+
+                In order to quantify performance, we observe the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{diversity} of solutions in the container; usually the archive size is used (in MAP-Elites, it's the number of occupied cells)
+                    \item \textbf{performance} of the solutions in the container; usually either the maximum or average fitness value
+                    \item \textbf{convergence speed} of the two above points
+                \end{itemize}
+                Often, everything is gathered in the \textbf{QD-Score}, which is the sum of the fitness of all solutions in the archive, when we assume the fitness is \textbf{strictly positive} - increases in both diversity and performance lead to increases in the score.
+                \medskip
+
+                The lecture then goes over some applications.
+            \subsubsection*{Conclusion}
+                Genetic algorithms, Evolutionary Strategies, Evolutionary algorithms all rely on the \textbf{same main concepts}.
+                The main differences lie in the \textbf{operators} used in each case, and many different operators exist - they are often problem specific.
+                The biggest strength of evolutionary algorithms is on black-box problems, such as the hyperparameters of a neural network.
+                There are also good exploration capabilities, as some individuals can explore other regions and leave local optimums, assuming there is sufficient diversity.
+                The evaluation is also easy to parallelise, however there is a downside in that it is slower than gradient descent when we know the gradient and when the problem is a simple (such as convex problems).
 \end{document}
