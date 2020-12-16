@@ -212,6 +212,111 @@
     \rule{\textwidth}{0.1pt}
     \section*{CO395 - Introduction to Machine Learning \hfill (70050)}
         \subsection*{Module 1 (Introduction to ML)}
+            There are three distinct settings (although there can be settings in between);
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{supervised learning}
+                    \smallskip
+
+                    A supervised learning algorithm takes in a set of input variables with their corresponding correct output labels, and generates a model.
+                    The general pipeline is as follows;
+                    \begin{center}
+                        \begin{tikzpicture}[x=1.5cm]
+                            \node[draw] (d) at (0, 0) {$D$};
+                            \node[draw] (xtr) at (0, 2) {$X^~train~$};
+                            \node[draw] (fe) at (2, 2) {\shortstack{feature\\encoding}};
+                            \node[draw] (txtr) at (2, 0.5) {$\tilde{X}^~train~$};
+                            \node[draw] (ytr) at (2, -0.5) {$Y^~train~$};
+                            \node[draw] (a) at (4, 0) {algorithm};
+                            \node[draw] (h) at (6, 0) {$h(X)$};
+                            \node[draw] (hyte) at (8, 0) {$\hat{Y}^~test~$};
+                            \node[draw] (xte) at (6, 2) {$X^~test~$};
+                            \node[draw] (yte) at (8, 2) {$Y^~test~$};
+                            \node[draw] (e) at (8, 1) {evaluation};
+                            \node[draw] (s) at (10, 1) {score};
+
+                            \draw
+                            (d) edge[dashed] (xtr)
+                            (d) edge[dashed] (ytr)
+                            (xtr) edge[->] (fe)
+                            (fe) edge[->] (txtr)
+                            (txtr) edge[->] (a)
+                            (ytr) edge[->] (a)
+                            (a) edge[->] (h)
+                            (xte) edge[->] (h)
+                            (h) edge[->] (hyte)
+                            (hyte) edge[->] (e)
+                            (yte) edge[->] (e)
+                            (e) edge[->] (s);
+                        \end{tikzpicture}
+                    \end{center}
+                    We should first analyse our data - for example if there is a significant imbalance of labels, the classifier may become inaccurate and predict one class much more frequently.
+                    We need to take our dataset from a measurement space into a feature space.
+                    \medskip
+
+                    Understanding our features / attributes is also important.
+                    We may have categorical features, integers, or real numbers, which can have different ranges.
+                    Therefore normalisation can be useful.
+                    \medskip
+
+                    Increasing dimensionality will lead to increased computational complexity, as well as increased data sparsity, and also cause overfitting.
+                    We can perfrom either feature selection (taking a subset of features), or feature extraction (where we generate new features).
+                    \medskip
+
+                    Lazy learners store the training examples and postpones generalisation until an explicit request is made at test time.
+                    On the other hand, eager learners construct a general, explicit description of the target function based on the provided examples.
+                    \medskip
+
+                    We have the following types of models;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item \textbf{non-parametric models} \hfill no assumptions about form (e.g. nearest neighbour)
+                        \item \textbf{linear model} \hfill linearly separable instances
+                        \item \textbf{non-linear models} \hfill linearly non-separable instances
+                            \smallskip
+
+                            Examples of this are to fit a quadratic $ax^2 + bx + c$.
+                            Another example is to perform feature space transformation, for example $(x_1, x_2) \mapsto (x_1^2, x_2^2)$ - this converts a circle and ring into a linearly separable model; examples of this are Support Vector Machines and Neural Networks.
+                            Another approach is to combine multiple simple classifiers, such as in decision trees.
+                    \end{itemize}
+                \item \textbf{unsupervised learning}
+                    \smallskip
+
+                    Similar to the above, however this has no labels.
+                    The aim of these algorithms is to discover hidden / latent structure within the data.
+                \item \textbf{reinforcement learning}
+                    \smallskip
+
+                    As before, there are no labels in the input.
+                    The difference is that the output now interacts with the environment, which provides a form of a reward signal to the reinforcement learning algorithm.
+                    \medskip
+
+                    Policy search finds which action an agent should take (depending on the curent state) to maximise recieved rewards.
+            \end{itemize}
+            The two main tasks we cover in this course are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{classification} \hfill most common
+                    \smallskip
+
+                    The goal of a classifier is to take some input and produce an output label (discrete / categorical).
+                    Binary classification has one of two possible labels, whereas multi-class classification allows for the classifier to choose one of multiple labels, and multi-label classification allows for the classifier to choose multiple labels.
+                \item \textbf{regression}
+                    \smallskip
+
+                    The regressor gives a real floating value (continuous).
+                    An example of simple regression is to produce the house price from a house size.
+                    An example of multiple regression is predicting a grade from courseworks.
+                    Multivariate regression produces multiple outputs.
+            \end{itemize}
+            The trade-off between variance and bias; if a model is underfitted, it has low variance and high bias, whereas an overfitted model has high variance and low bias.
+            We want to find something that lies between the two extremes.
+            Occam's razor states that more things should not be used than are necessary.
+            \medskip
+
+            For evaluation, we want to determine a baseline and upper bound.
+            The baseline represents the worst performance, which could be down to randomly picking (as a lower bound), another consideration is to take the base performance before any improvements.
+            On the other hand, the upper bound represents the best case (usually compared to a human).
         \subsection*{Module 2 (Instance-based Learning + Decision Trees)}
             The \textbf{k Nearest Neighbours (k-NN)} classifier is classified as a \textbf{lazy learner}.
             A lazy learner stores all the training examples in the data set, and postpone any processing until a request is made (such as a prediction).
