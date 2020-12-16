@@ -2357,5 +2357,128 @@
                                 can be used for non-spherical clusters and can generate clusters with different probabilities
                         \end{itemize}
                 \end{itemize}
-        \subsection*{Module 7 (Genetic Algorithms)}
+        \subsection*{Module 7 (Evolutionary Algorithms)}
+            \subsubsection*{History and General Concepts}
+                A genetic / evolutionary algorithm is a form of optimisation algorithm for \textbf{black-box} functions (where we have no access to the gradient, hence cannot be analytically solved).
+                They are inspired by natural evolution and concepts from genetics, and can be seen as a \textbf{reinforcement learning problem}.
+                \medskip
+
+                Some examples of black-box optimisation problems are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{robot learning}
+                        \smallskip
+
+                        Here we start with a set of parameters, which determines motor commands, and after running on an actual machine, we obtain performance from sensors.
+                        Since this requires interaction with the real world, it's difficult to determine a purely analytical relation.
+                    \item \textbf{hyper-parameter tuning and training}
+                        \smallskip
+
+                        Starting with a set of parameters for a neural network (the number of layers / neurons etc.), fed into a neural network (and trained), then evaluated on a validation set, we obtain some metric.
+                \end{itemize}
+                The main concept stems from Darwin's theory regarding the origin of species;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{every individual is different}
+                        \smallskip
+
+                        These differences exist even within the same species and the variations are heritable.
+                    \item \textbf{resources are finite}
+                        \smallskip
+
+                        Since resources are finite, not all the produced individuals will \textbf{survive}.
+                    \item \textbf{natural selection}
+                        \smallskip
+
+                        Only individuals with heritable traits \textbf{better suited} to the environment will survive.
+                    \item \textbf{heritable traits}
+                        \smallskip
+
+                        Surviving individuals will \textbf{pass their heritable traits} to their offspring.
+                        This allows positive traits to be passed on, allowing their offspring to be more likely to survive and dominate.
+                \end{itemize}
+                Neo-Darwinism uses more modern discoveries;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{genomes} \hfill Mendel, 1866
+                        \smallskip
+
+                        Consider a parent generation, with individuals ~gg~ and ~YY~ - peas with green and peas with yellow respectively.
+                        The next generation will consist of ~Yg~ and ~Yg~, both of which are yellow (since yellow is dominant).
+                        The next generation however can produce the following ~YY~, ~Yg~, ~Yg~, ~gg~, all of which are yellow, except for the final combination which will be green.
+                    \item \textbf{acquired traits not passed to offspring} \hfill Weismann, 1883
+                        \smallskip
+
+                        After 19 generations of amputating the tail of mice, and encouraging them to reproduce, the offspring always still have tails (without any actual change to the lengths).
+                    \item \textbf{DNA structure} \hfill Watson, Crick, and Franklin, 1953
+                \end{itemize}
+                The following terms will be used;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{gene} \hfill sequence of nucleotides in DNA that codes a particular trait
+                    \item \textbf{genotype} \hfill set of genes (e.g. ~Yg~), will be used often
+                    \item \textbf{DNA} \hfill support of the genotype
+                    \item \textbf{phenotype} \hfill physiological expression of the genotype (e.g. `yellow')
+                \end{itemize}
+                The three main families of algorithms proposed during the 60s, inspired by Neo-Darwinism, are as follows, along with three more recent approaches;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{evolutionary strategies}
+                    \item \textbf{evolutionary programming} \hfill evolution of finite state machines
+                    \item \textbf{genetic algorithms} \hfill design of complex and robust systems
+                    \item \textbf{genetic programming} \hfill evolution of programs
+                    \item \textbf{estimated distribution algorithms} \hfill statistical model of the population
+                    \item \textbf{multi-objective algorithms} \hfill simultaneously optimise several objectives
+                \end{itemize}
+                The general concept is as follows;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (s) at (1, 0) {};
+                        \node (p) at (2, 0) {population};
+                        \node (e) at (4, 0) {evaluation};
+                        \node (r) at (6, 0) {ranking / selection};
+                        \node (c) at (5, -2) {\shortstack{cross-over\\and mutation}};
+                        \node (d) at (7, -2) {death};
+                        \draw
+                        (s) edge[->] (p)
+                        (p) edge[->] (e)
+                        (e) edge[->] (r)
+                        (r) edge[->, left] node{best\ \ } (c)
+                        (r) edge[->, right] node{\ worst} (d)
+                        (c) edge[->, bend left=30] (p);
+                    \end{tikzpicture}
+                \end{center}
+                All of these algorithms perform the following, with Neo-Darwinism as a common base;
+                \begin{itemize}
+                    \itemsep0em
+                    \item manipulate a randomly generated \textbf{population of solutions}
+                    \item each solution is represented by a genotype
+                    \item each genotype is developed into a phenotype
+                    \item the performance of each phenotype is measured by a \textbf{fitness function}
+                    \item the \textbf{fittest individuals} have a higher probability to pass part of their genotype to the offspring
+                \end{itemize}
+                The algorithms are defined according to three main operators;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{selection operator} \hfill selects solutions which will be reproduced
+                    \item \textbf{cross-over operator} \hfill mixes the parent's genotype
+                    \item \textbf{mutation operator} \hfill type / frequency of variation applied to the genotype post-reproduction
+                \end{itemize}
+                The differences between the algorithms described are down to the definition of the genotype and the genetic operators used - they are largely based off the same concept;
+                \begin{tabularx}{\textwidth}{XXXX}
+                    \textbf{algorithm} & \textbf{genotype} & \textbf{cross-over} & \textbf{mutation} \\
+                    \hline
+                    genetic algorithm & binary string of fixed size & swap portion of the string & random bit flips \\
+                    \hline
+                    genetic programming & program represented as tree (often LISP) & swap portions of trees & change tree symbols \\
+                    \hline
+                    evolutionary strategies & string of floats / doubles & not usually used & draw from Gaussian distribution
+                \end{tabularx}
+                The modern view, unification, mixes all these approaches (and is called an \textbf{Evolutionary Algorithm});
+                \begin{itemize}
+                    \itemsep0em
+                    \item genotype are often strings of floats / doubles
+                    \item genotypes can be used to encode graphs
+                    \item heterogeneous list of large number of variants of the operators
+                \end{itemize}
 \end{document}
