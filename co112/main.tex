@@ -21,6 +21,11 @@
 \array{#1}}
 \makeatother
 
+% shorthand for verbatim
+% this clashes with logicproof, so maybe fix this at some point?
+\catcode`~=\active
+\def~#1~{\texttt{#1}}
+
 % ceiling / floor
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
 \DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
@@ -50,11 +55,16 @@
 
 % actual document
 \begin{document}
+    {\sc Computing $1^\text{str}$ Year Notes} \hfill ~https://github.com/lin-e/imperial-revision~
+    \rule{\textwidth}{0.1pt}
     \section*{CO112 - Hardware}
         \subsection*{Prelude}
-            The content discussed here is part of CO112 - Hardware (Computing MEng); taught by Bernhard Kainz, and Bjoern Schuller, in Imperial College London during the academic year 2018/19. The notes are written for my personal use, and have no guarantee of being correct (although I hope it is, for my own sake). This should be used in conjunction with the notes, and lecture slides. This course starts off fairly slow, especially if you have an idea of how logic gates work, and therefore the first parts won't be covered in much detail.
+            The content discussed here is part of CO112 - Hardware (Computing MEng); taught by Bernhard Kainz, and Bjoern Schuller, in Imperial College London during the academic year 2018/19. The notes are written for my personal use, and have no guarantee of being correct (although I hope it is, for my own sake).
+            This should be used in conjunction with the notes, and lecture slides.
+            This course starts off fairly slow, especially if you have an idea of how logic gates work, and therefore the first parts won't be covered in much detail.
         \subsection*{Lecture 1}
-            This section will be covered in less detail, as we've gone through the majority of this in much greater depth during logic. However, we will need to change the notation we use in this course from the one used in logic, from using $\land$ to $\cdot$, $\lor$ to $+$, and from $\neg$ to $^\prime$.
+            This section will be covered in less detail, as we've gone through the majority of this in much greater depth during logic.
+            However, we will need to change the notation we use in this course from the one used in logic, from using $\land$ to $\cdot$, $\lor$ to $+$, and from $\neg$ to $^\prime$.
             \begin{center}
                 \begin{tabular}{cc|c|c|c}
                     $A$ & $B$ & $A \cdot B$ (AND) & $A + B$ (OR) & $A^\prime$ (NOT) \\
@@ -65,9 +75,15 @@
                     1 & 1 & 1 & 1 & 0
                 \end{tabular}
             \end{center}
-            The same distributivity laws apply, just like in \textbf{CO140}, as well as the simplification laws. In general, the laws should be the same as propositional logic, with the notation being slightly changed. Use 1 for $\top$, and 0 for $\bot$. We will also be using de Morgan's theorem on any number of variables (this can be proven by induction), such that $(V_1 + V_2 + V3 + ... + V_n)^\prime \equiv V_1^\prime \cdot V_2^\prime \cdot V_3^\prime \cdot ... \cdot V_n^\prime$, and the same the other way around. This can be very useful later on, as we will often use NAND / NOR gates to reduce silicon area.
+            The same distributivity laws apply, just like in \textbf{CO140}, as well as the simplification laws.
+            In general, the laws should be the same as propositional logic, with the notation being slightly changed. Use 1 for $\top$, and 0 for $\bot$.
+            We will also be using de Morgan's theorem on any number of variables (this can be proven by induction), such that $(V_1 + V_2 + V3 + ... + V_n)^\prime \equiv V_1^\prime \cdot V_2^\prime \cdot V_3^\prime \cdot ... \cdot V_n^\prime$, and the same the other way around.
+            This can be very useful later on, as we will often use NAND / NOR gates to reduce silicon area.
         \subsection*{Lecture 2}
-            The three operators covered in the first lecture can be represented by three logic gates; AND, OR, and NOT. The inverter (NOT), is represented by the circle at the end of the triangle. We can also create operations such as NAND, and NOR. Any of the first three gates can be built with just NAND gates, or just NOR gates. Let us represent $A$ NAND $B$, with $A \uparrow B$.
+            The three operators covered in the first lecture can be represented by three logic gates; AND, OR, and NOT.
+            The inverter (NOT), is represented by the circle at the end of the triangle.
+            We can also create operations such as NAND, and NOR. Any of the first three gates can be built with just NAND gates, or just NOR gates.
+            Let us represent $A$ NAND $B$, with $A \uparrow B$.
             \begin{itemize}
                 \itemsep0em
                 \item $A^\prime$ \hfill $A \uparrow A$
@@ -77,7 +93,10 @@
                     \subitem \hfill $A^\prime \uparrow B^\prime$
                     \subitem \hfill $(A \uparrow A) \uparrow (B \uparrow B)$
             \end{itemize}
-            We also need to introduce two new gates, which are commonly used in digital logic; XOR, and XNOR. Roughly, you can use the same rules for $\neg (A \leftrightarrow B)$, and $A \leftrightarrow B$ respectively. XOR is commonly represented by $A \oplus B$ (which is much shorter than $A \cdot B^\prime + A^\prime \cdot B$), and XNOR represented by $(A \oplus B)^\prime$, instead of $A^\prime \cdot B^\prime + A \cdot B$. It has the following truth table;
+            We also need to introduce two new gates, which are commonly used in digital logic; XOR, and XNOR.
+            Roughly, you can use the same rules for $\neg (A \leftrightarrow B)$, and $A \leftrightarrow B$ respectively.
+            XOR is commonly represented by $A \oplus B$ (which is much shorter than $A \cdot B^\prime + A^\prime \cdot B$), and XNOR represented by $(A \oplus B)^\prime$, instead of $A^\prime \cdot B^\prime + A \cdot B$.
+            It has the following truth table;
             \begin{center}
                 \begin{tabular}{cc|c|c}
                     $A$ & $B$ & $A \oplus B$ & $(A \oplus B)^\prime$ \\
@@ -89,12 +108,19 @@
                 \end{tabular}
             \end{center}
             In general, with $n$ inputs, we can have $2^n$ unique gates.
-            With this information, we can build a single control block. For example, let there be a block with an input $A$, a control $C$, and output $R$. It follows that if $C$ is 0, then the output is 0, and $A$, if $C$ is 1. Hence $R = A \cdot C$.
+            With this information, we can build a single control block.
+            For example, let there be a block with an input $A$, a control $C$, and output $R$.
+            It follows that if $C$ is 0, then the output is 0, and $A$, if $C$ is 1.
+            Hence $R = A \cdot C$.
             \medskip
 
-            Now, if we had something with two inputs, $A$, and $B$, and a control $C$, we could use $C$ to determine whether $R = A$, or $R = B$. This is done with the boolean equation $R = A \cdot C^\prime + B \cdot C$. This is a \textbf{multiplexer}, which will be used very often in circuit design for other components.
+            Now, if we had something with two inputs, $A$, and $B$, and a control $C$, we could use $C$ to determine whether $R = A$, or $R = B$.
+            This is done with the boolean equation $R = A \cdot C^\prime + B \cdot C$. This is a \textbf{multiplexer}, which will be used very often in circuit design for other components.
         \subsection*{Lecture 3}
-            Consider an more complex circuit, where we have 3 outputs; $R_1, R_2$, and $R_3$, and 3 inputs; $A, B$, and $C$, where $R_n=f_n(A, B, C)$. For now, we ignore sequential circuits, where the output can be on either side of the equation. The first step of creating a circuit is to construct a truth table as a starting point. We also need to define a few terms;
+            Consider an more complex circuit, where we have 3 outputs; $R_1, R_2$, and $R_3$, and 3 inputs; $A, B$, and $C$, where $R_n=f_n(A, B, C)$.
+            For now, we ignore sequential circuits, where the output can be on either side of the equation.
+            The first step of creating a circuit is to construct a truth table as a starting point.
+            We also need to define a few terms;
             \begin{itemize}
                 \itemsep0em
                 \item \textbf{minterm} - a boolean product where each input, or its complement, appears exactly once
@@ -153,7 +179,11 @@
 
             Remember that the regions in the map can wrap around, and that don't cares can count as either 0, or 1.
         \subsection*{Lecture 4}
-            A general circuit can be used to generate all possible $n$-input digital circuits. If we were to have inputs $V_1, V_2, ..., V_n$, and have each one come out as two lines, so $V_i$ would come out with $V_i$, and its complement $V_i^\prime$. We can have $2^n$ $n$-input AND gates, which correspond to each possible combination (00...00), (00...01), (00...11), all the way to (11...11). This is hard to visualise (see \textit{Notes04 - Description to Circuit.pdf}), but the general idea is that each AND gate corresponds to a possible minterm, which is joined to a $2^n$-input OR gate, if it's a 1 in the truth table. This is a \textbf{Programmable Array Logic (PAL)} device, and the device can be programmed by sending a current through specific links to connect them to the OR gate.
+            A general circuit can be used to generate all possible $n$-input digital circuits.
+            If we were to have inputs $V_1, V_2, ..., V_n$, and have each one come out as two lines, so $V_i$ would come out with $V_i$, and its complement $V_i^\prime$.
+            We can have $2^n$ $n$-input AND gates, which correspond to each possible combination (00...00), (00...01), (00...11), all the way to (11...11).
+            This is hard to visualise (see \textit{Notes04 - Description to Circuit.pdf}), but the general idea is that each AND gate corresponds to a possible minterm, which is joined to a $2^n$-input OR gate, if it's a 1 in the truth table.
+            This is a \textbf{Programmable Array Logic (PAL)} device, and the device can be programmed by sending a current through specific links to connect them to the OR gate.
             \medskip
 
             The general steps for creating a device from a specified design are as follows;
@@ -176,7 +206,10 @@
                     \subitem finding bugs before production is important (and expensive, if not spotted); see the \textit{Floating Point Division Bug} in \textit{Intel Pentium P5}
             \end{enumerate}
         \subsection*{Lecture 5}
-            While boolean algebra is a good abstraction for the behaviour of logic gates, it has some subtle differences, which can be problematic, and cause bugs. Practically, voltages aren't exact values, and therefore thresholds have to be arbitrarily determined - leading to more issues (such as what happens when the voltage is between the lower, and upper threshold). The main difference is that boolean algebra doesn't consider time delays, which exist despite electrons moving at light-speed. This failure to synchronise events is a common error in hardware design, and therefore we will require a more accurate physical model (note that all models are simply approximations, but we should choose one of a sensible degree of accuracy).
+            While boolean algebra is a good abstraction for the behaviour of logic gates, it has some subtle differences, which can be problematic, and cause bugs.
+            Practically, voltages aren't exact values, and therefore thresholds have to be arbitrarily determined - leading to more issues (such as what happens when the voltage is between the lower, and upper threshold).
+            The main difference is that boolean algebra doesn't consider time delays, which exist despite electrons moving at light-speed.
+            This failure to synchronise events is a common error in hardware design, and therefore we will require a more accurate physical model (note that all models are simply approximations, but we should choose one of a sensible degree of accuracy).
             \medskip
 
             To define the physical representation of a logic gate, we'll need to reuse some content from A Level Physics.
@@ -190,19 +223,31 @@
                     \subitem $V = I \cdot R$ \hfill Ohm's law
                     \subitem $I = C\dif{V}{t}$ \hfill Capacitance
             \end{itemize}
-            Pure silicon is an extremely good insulator, however if we were to infuse (\textbf{dope}) it with impurities to give it surplus electrons, it would then be able to conduct electricity; this type of semiconductor is known as \textbf{n-type}. On the other hand, if we were to infuse it with positive charge carriers (which would just be holes, with missing electrons), we'd have \textbf{p-type}. A transistor is made of three adjacent pieces of these semiconductors; and can either be \textbf{n-p-n}, or \textbf{p-n-p}. While Ohm's law is a simple mathematical method for resistors, and it's possible to derive a set of equations for more complex devices, we're engineers. We will consider the transistor as a switch (as a set of rules, called a procedural model).
+            Pure silicon is an extremely good insulator, however if we were to infuse (\textbf{dope}) it with impurities to give it surplus electrons, it would then be able to conduct electricity; this type of semiconductor is known as \textbf{n-type}.
+            On the other hand, if we were to infuse it with positive charge carriers (which would just be holes, with missing electrons), we'd have \textbf{p-type}.
+            A transistor is made of three adjacent pieces of these semiconductors; and can either be \textbf{n-p-n}, or \textbf{p-n-p}.
+            While Ohm's law is a simple mathematical method for resistors, and it's possible to derive a set of equations for more complex devices, we're engineers.
+            We will consider the transistor as a switch (as a set of rules, called a procedural model).
             \medskip
 
-            Consider the transistor as a switch with three terminals; a source $S$, a drain $D$, and a gate $G$. There is no connection between $G$, and $S$, nor is there a connection between $G$, and $D$. If the voltage between $G$, and $S$ (let it be $V_{GS}$) $\leq 0.5\mathrm{v}$, there is no connection between $S$, and $D$. On the other hand, if $V_{GS} \geq 1.7\mathrm{v}$, then $S$ is connected to $D$, and therefore current can flow through. In an ideal world, when the switch is closed, it has 0 resistance, and when it is open, the resistance is $\infty$ (this isn't correct, for reasons that will be discussed later).
+            Consider the transistor as a switch with three terminals; a source $S$, a drain $D$, and a gate $G$.
+            There is no connection between $G$, and $S$, nor is there a connection between $G$, and $D$.
+            If the voltage between $G$, and $S$ (let it be $V_{GS}$) $\leq 0.5\mathrm{v}$, there is no connection between $S$, and $D$.
+            On the other hand, if $V_{GS} \geq 1.7\mathrm{v}$, then $S$ is connected to $D$, and therefore current can flow through. In an ideal world, when the switch is closed, it has 0 resistance, and when it is open, the resistance is $\infty$ (this isn't correct, for reasons that will be discussed later).
             \medskip
 
-            In general, if there is a high resistance (the circuit is broken), then the output is high (since we have (almost) no current flowing, $I \approx 0$, therefore the P.D. across the resistor, $V_\text{R} \approx 0$), and $V_\text{out} \approx 5$. However, if it is connected, we will consider it to have a very low resistance, hence the larger P.D. would be across the resistor, thus having a lower $V_\text{out}$.
+            In general, if there is a high resistance (the circuit is broken), then the output is high (since we have (almost) no current flowing, $I \approx 0$, therefore the P.D. across the resistor, $V_\text{R} \approx 0$), and $V_\text{out} \approx 5$.
+            However, if it is connected, we will consider it to have a very low resistance, hence the larger P.D. would be across the resistor, thus having a lower $V_\text{out}$.
             \medskip
 
             The physical representation of logic gates explains why NAND, and NOR gates are cheaper, as they each only require two transistors (in series, or in parallel, respectively).
             \medskip
 
-            There are two main reasons for why there are time delays in a circuit. The first is the state change of the transistor; the electrons will still take time to move through it. Second is the representation of the transistor; we need to consider the transistor as more of a variable resistor. By reducing the size of the capacitor, we have a lower capacitance, and hence a faster charge. We can calculate a formula for voltage over time; (note that $K = -\mathrm{ln}(5)$, since $V(0) = 0$)
+            There are two main reasons for why there are time delays in a circuit.
+            The first is the state change of the transistor; the electrons will still take time to move through it.
+            Second is the representation of the transistor; we need to consider the transistor as more of a variable resistor.
+            By reducing the size of the capacitor, we have a lower capacitance, and hence a faster charge.
+            We can calculate a formula for voltage over time; (note that $K = -\mathrm{ln}(5)$, since $V(0) = 0$)
             \begin{align*}
                 5 - V & = I \cdot R \\
                 I & = C \dif{V}{t} \\
@@ -219,7 +264,10 @@
                 V & = 5(1 - e^{-\frac{t}{RC}})
             \end{align*}
         \subsection*{Lecture 6}
-            Consider the case where we have a NAND gate, with inputs $A$, and $R$ (which is coming from the output $R$). When $A = 1$, we have $R = (A \cdot R)^\prime = (1 \cdot R)^\prime = R^\prime$; which is clearly inconsistent. This is where the logic breaks down - however in real life, there's nothing stopping us from doing this. Continuing on from the previous lecture, we have two models;
+            Consider the case where we have a NAND gate, with inputs $A$, and $R$ (which is coming from the output $R$).
+            When $A = 1$, we have $R = (A \cdot R)^\prime = (1 \cdot R)^\prime = R^\prime$; which is clearly inconsistent.
+            This is where the logic breaks down - however in real life, there's nothing stopping us from doing this.
+            Continuing on from the previous lecture, we have two models;
             \begin{itemize}
                 \itemsep0em
                 \item \textbf{Switch and Delay}
@@ -228,10 +276,12 @@
                     \subitem this is a more accurate representation of real behaviour, and during the time delay period, it's no longer a valid boolean signal
                     \subitem this is a analogue model, and not digital (digital electronics don't actually exist, due to noise, and therefore we use safety margins) - for example, a voltage above 1.7v would be logic 1, and a voltage between 0.5v would be logic 0
             \end{itemize}
-            Despite defining the noise margins above, we should design our circuits so that they operate far from the thresholds, such that we can have boolean 1 around 3.5v, and boolean 0 at around 0.3v. Since we're considering the transistor as a variable resistor, it acts like a potential divider.
+            Despite defining the noise margins above, we should design our circuits so that they operate far from the thresholds, such that we can have boolean 1 around 3.5v, and boolean 0 at around 0.3v.
+            Since we're considering the transistor as a variable resistor, it acts like a potential divider.
             \medskip
 
-            Remembering from physics, we can take $\frac{1}{R_\text{total}} = \frac{1}{R_\text{var}} + \frac{1}{R_\text{load}}$, and therefore calculate $V_\text{out} = \frac{5R_\text{total}}{R_\text{source} + R_\text{total}}$. Here, $R_\text{load}$ is the combined resistance of all gates the transistor is connected to.
+            Remembering from physics, we can take $\frac{1}{R_\text{total}} = \frac{1}{R_\text{var}} + \frac{1}{R_\text{load}}$, and therefore calculate $V_\text{out} = \frac{5R_\text{total}}{R_\text{source} + R_\text{total}}$.
+            Here, $R_\text{load}$ is the combined resistance of all gates the transistor is connected to.
             \begin{center}
                 \begin{circuitikz}
                     \node[] (5v) at (0, 4) {5v};
@@ -256,10 +306,14 @@
                     (0.75, 2) to[R, l=$R_\text{total}$] (0.75, 0);
                 \end{circuitikz}
             \end{center}
-            As we know the inverse law for parallel resistors, we can say the load resistance $R_\text{load}$ becomes $\frac{1}{n}$ of a single gate, when there are $n$ identical gates connected to a single gate output. Not only does this \textbf{fan-out} cause issues with the thresholds, we also need to consider the time delay. The time delay is directly proportional to the size of the load capacitor (trivial to derive from the equations listed), and capacitors in parallel add up, hence a larger fan-out would have a larger time delay. For the time being, we will stick to the original \textbf{switch-and-delay} model.
+            As we know the inverse law for parallel resistors, we can say the load resistance $R_\text{load}$ becomes $\frac{1}{n}$ of a single gate, when there are $n$ identical gates connected to a single gate output.
+            Not only does this \textbf{fan-out} cause issues with the thresholds, we also need to consider the time delay. The time delay is directly proportional to the size of the load capacitor (trivial to derive from the equations listed), and capacitors in parallel add up, hence a larger fan-out would have a larger time delay.
+            For the time being, we will stick to the original \textbf{switch-and-delay} model.
             \medskip
 
-            Going back to the problem at hand, with the NAND gate, we would have an extremely high frequency oscillation. If we construct a table for the states, we can determine which states are stable. This effect can be harnessed to make memory.
+            Going back to the problem at hand, with the NAND gate, we would have an extremely high frequency oscillation.
+            If we construct a table for the states, we can determine which states are stable.
+            This effect can be harnessed to make memory.
         \subsection*{Lecture 7}
             I will use the following notation for stating the values of inputs; $I_1...I_n(v_1, ..., v_n)$ means that $I_i = v_i\ \forall i \in [1, n]$; so $SR(1, 0)$ would mean $S = 1$, and $R = 0$.
             \medskip
@@ -278,7 +332,13 @@
                     1 & 1 & 1 & 1 & 0 & 0
                 \end{tabular}
             \end{center}
-            You might be able to notice that when $SR(1, 1)$, and $P = Q^\prime$, we have a stable state. In general, we have $P = Q^\prime$, as long as we reset the flip-flop, and avoid $RS(0, 0)$. Looking at the $RS(1, 1)$ state, where it's bi-stable, it can theoretically oscillate infinitely, but in practice the gates will likely have different time delays, and will therefore fall into a stable state. As we have this uncertainty, we send a reset signal $RS(0, 1)$, which sets the $Q$ to 1, and after that point we have predictable behaviour (given we avoid $RS(0, 0)$). This way, we will be able to get $RS(0, 1) \to Q = 1$, and $RS(1, 0) \to Q = 0$. However, this mechanism isn't convenient for practical memory circuits, so we adapt it with a latch. This way, if the latch is engaged ($L = 1$), we set $Q = D$.
+            You might be able to notice that when $SR(1, 1)$, and $P = Q^\prime$, we have a stable state.
+            In general, we have $P = Q^\prime$, as long as we reset the flip-flop, and avoid $RS(0, 0)$.
+            Looking at the $RS(1, 1)$ state, where it's bi-stable, it can theoretically oscillate infinitely, but in practice the gates will likely have different time delays, and will therefore fall into a stable state.
+            As we have this uncertainty, we send a reset signal $RS(0, 1)$, which sets the $Q$ to 1, and after that point we have predictable behaviour (given we avoid $RS(0, 0)$).
+            This way, we will be able to get $RS(0, 1) \to Q = 1$, and $RS(1, 0) \to Q = 0$.
+            However, this mechanism isn't convenient for practical memory circuits, so we adapt it with a latch.
+            This way, if the latch is engaged ($L = 1$), we set $Q = D$.
             \begin{center}
                 \begin{tikzpicture}[y=-1cm]
                     \node (L) at (2, -2.5) {Latch};
@@ -307,7 +367,8 @@
                     (nand4.input 2) -| ($(Q) + (-2.5, 0.35)$) -- ($(Qp) + (-1, -0.35)$) -- ($(Qp) + (-1, 0)$);
                 \end{tikzpicture}
             \end{center}
-            However; there would be a time delay, as the NOT gate would introduce a small delay. We can get around this by using a \textbf{Master-Slave Flip-Flop}, which combines two D Flip-Flops, thus allowing for $Q$ to only be set on the \textbf{falling edge} of the clock signal.
+            However; there would be a time delay, as the NOT gate would introduce a small delay.
+            We can get around this by using a \textbf{Master-Slave Flip-Flop}, which combines two D Flip-Flops, thus allowing for $Q$ to only be set on the \textbf{falling edge} of the clock signal.
             \begin{center}
                 \begin{tikzpicture}
                     \node (clock) at (0, 0) {Clock};
@@ -374,15 +435,20 @@
                     \subitem this is very useful, as it is able to store memory when you have $JK(0, 0)$, since it doesn't change state on that input
             \end{itemize}
         \subsection*{Lecture 8}
-            The content covered in this lecture, is done in Coursework 2, and as such, I will be skipping over a lot of things. In general, if we have $k$ states, we will need to use $n = \ceil{\mathrm{log}_2(k)}$ D-type flip-flops, all connected to the same clock. A general synchronous sequential system would consist of a block of state sequencing logic, which takes in a set of $m$ inputs, as well as the current states of the flip-flops, and has $n$ outputs. The system would also need a block of output logic, which decodes the states into the appropriate outputs. In general, we can say that $Q_i = D_i(I_1, ..., I_m, Q_{1_\text{old}}, ..., Q_{n_\text{old}})\ \forall i \in [1..n]$, where $Q_i$ the updated state of the $i^\text{th}$ flip-flop.
+            The content covered in this lecture, is done in Coursework 2, and as such, I will be skipping over a lot of things.
+            In general, if we have $k$ states, we will need to use $n = \ceil{\mathrm{log}_2(k)}$ D-type flip-flops, all connected to the same clock.
+            A general synchronous sequential system would consist of a block of state sequencing logic, which takes in a set of $m$ inputs, as well as the current states of the flip-flops, and has $n$ outputs.
+            The system would also need a block of output logic, which decodes the states into the appropriate outputs. In general, we can say that $Q_i = D_i(I_1, ..., I_m, Q_{1_\text{old}}, ..., Q_{n_\text{old}})\ \forall i \in [1..n]$, where $Q_i$ the updated state of the $i^\text{th}$ flip-flop.
             \medskip
 
             The J-K flip-flop is a very simple example of such a synchronous circuit, which is detailed above.
             \medskip
 
-            In general, if we have "don't cares", we will consider them a logic 1 if they are inside any regions inside a Karnaugh map, and 0 otherwise. While components inside the Karnaugh map don't know about each other, we can reuse components when we implement our circuit in order to save silicon space.
+            In general, if we have ``don't cares'', we will consider them a logic 1 if they are inside any regions inside a Karnaugh map, and 0 otherwise.
+            While components inside the Karnaugh map don't know about each other, we can reuse components when we implement our circuit in order to save silicon space.
         \subsection*{Lecture 9}
-            The general notation we will be using is $S(t)$, or $S_t$ to represent $S$ at time $t$. We cover two main types of finite state machines in this course;
+            The general notation we will be using is $S(t)$, or $S_t$ to represent $S$ at time $t$.
+            We cover two main types of finite state machines in this course;
             \begin{itemize}
                 \itemsep0em
                 \item notation
@@ -398,7 +464,9 @@
                     \subitem $S(t + 1) = f(S(t), I(t))$
                     \subitem $O(t) = g(S(t))$
             \end{itemize}
-            A synchronous digital circuit avoids time issues by having a bank of D-Q flip-flops (with a common clock), acting as a barrier between the input, and output. However, spikes can still occur in a Mealy machine, as the output is also controlled by the input. In general, the method for designing a synchronous circuit is as follows;
+            A synchronous digital circuit avoids time issues by having a bank of D-Q flip-flops (with a common clock), acting as a barrier between the input, and output.
+            However, spikes can still occur in a Mealy machine, as the output is also controlled by the input.
+            In general, the method for designing a synchronous circuit is as follows;
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item determine the number of states
@@ -409,18 +477,31 @@
             \end{enumerate}
             There's an example in the notes, and in the lecture, but once again this is covered mostly in Coursework 2, and therefore will be skipped here.
         \subsection*{Lecture 10}
-            Once again, the content from this lecture is covered in the coursework. However, it's important to note how to notice problems with the "don't care" states. In the slides, you'll see an example where the FSM gets stuck in a state, when we replace the "don't cares" with 1s or 0s, depending on whether they're in any Karnaugh map region, or not, respectively. To fix this, we find the offending line, and make a small change that will fix the bug, without adding too much additional bulk to the circuit. This is fixing by hacking.
+            Once again, the content from this lecture is covered in the coursework.
+            However, it's important to note how to notice problems with the ``don't care'' states.
+            In the slides, you'll see an example where the FSM gets stuck in a state, when we replace the ``don't cares'' with 1s or 0s, depending on whether they're in any Karnaugh map region, or not, respectively.
+            To fix this, we find the offending line, and make a small change that will fix the bug, without adding too much additional bulk to the circuit.
+            This is fixing by hacking.
         \subsection*{Lecture 11}
-            Registers are fast, small bits of memory that are very accessible. An example of a register is the bank of D-Q flip-flops in the synchronous circuit., which can store an integer in the range $[-2^{n - 1}, 2^{n - 1} - 1]$, or $[0, 2^n - 1]$, depending on whether a sign is being used. However, we frequently use serial data, and not just parallel, in real life. For example, cables are often serial as it reduces size, and minimises the chance of cable failure. However in practice, data is often processed in parallel in a computer to increase speed, therefore conversion between the two types of data is required. The same circuit can be used for doing parallel-to-serial, and serial-to-parallel, being toggled by a multiplexer
+            Registers are fast, small bits of memory that are very accessible.
+            An example of a register is the bank of D-Q flip-flops in the synchronous circuit, which can store an integer in the range $[-2^{n - 1}, 2^{n - 1} - 1]$, or $[0, 2^n - 1]$, depending on whether a sign is being used.
+            However, we frequently use serial data, and not just parallel, in real life.
+            For example, cables are often serial as it reduces size, and minimises the chance of cable failure.
+            However in practice, data is often processed in parallel in a computer to increase speed, therefore conversion between the two types of data is required.
+            The same circuit can be used for doing parallel-to-serial, and serial-to-parallel, being toggled by a multiplexer
             \medskip
 
             This method for loading serial data can be slow (due to the capacitance of the wires), especially with a larger set of data. Serial communication cannot be done as quickly as operations within the processor, which is why it is normally run on a separate clock, and utilises control lines to indicate when conversions are complete.
             \medskip
 
-            This register can also be used for division, and multiplication, by 2. By increasing the number of functions our shift register has, we need to implement a more complex multiplexer. First we have to create a binary to unary converter, which converts an $n$-bit input, to a $2^n$ separate lines. This can then easily be combined with $n$ AND gates, and a single OR to select between $2^n$ inputs.
+            This register can also be used for division, and multiplication, by 2.
+            By increasing the number of functions our shift register has, we need to implement a more complex multiplexer.
+            First we have to create a binary to unary converter, which converts an $n$-bit input, to a $2^n$ separate lines.
+            This can then easily be combined with $n$ AND gates, and a single OR to select between $2^n$ inputs.
             \medskip
 
-            We can use this to half the frequency of a clock, by connecting $Q^\prime$ into $D$. This will create the following square wave;
+            We can use this to half the frequency of a clock, by connecting $Q^\prime$ into $D$.
+            This will create the following square wave;
             \begin{center}
                 \begin{tikzpicture}
                     \node[] at (0, 0) {Clock};
@@ -430,7 +511,10 @@
                     (1, -1.25) -- (2, -1.25) -- (2, -0.75) -- (3, -0.75) -- (3, -1.25) -- (4, -1.25) -- (4, -0.75);
                 \end{tikzpicture}
             \end{center}
-            This can then be easily chained to do divisions by powers of 2. However, only being able to divide by powers of 2 isn't exactly useful, and therefore division by other numbers is also important. By using a ripple through counter, we can count to a number, and then send a pulse on that tick, and then clear the memory, thus allowing us to divide by any integer. This counter however, is \textbf{not} synchronous. For example, if we wanted to divide by 5, we'd have $O = b_0 \cdot b_1^\prime \cdot b_2$, which would also feed into the top, as a clear signal.
+            This can then be easily chained to do divisions by powers of 2.
+            However, only being able to divide by powers of 2 isn't exactly useful, and therefore division by other numbers is also important.
+            By using a ripple through counter, we can count to a number, and then send a pulse on that tick, and then clear the memory, thus allowing us to divide by any integer.
+            This counter however, is \textbf{not} synchronous. For example, if we wanted to divide by 5, we'd have $O = b_0 \cdot b_1^\prime \cdot b_2$, which would also feed into the top, as a clear signal.
             \begin{center}
                 \begin{tikzpicture}
                     \node[] at (-1.4, -2.2) {clk};
@@ -454,10 +538,13 @@
             There's a lot of diagrams in this, so just look at \textit{Notes12 - Multiplexers.pdf} - TikZ is too painful.
             \medskip
 
-            While we can build more optimised circuits, calculating the optimal solution is often not feasible, especially as the number of inputs grow (since the possible situations grow exponentially). In order to do this, we will reuse components - this is known as functional design. Often, this will be done with the use of an Enable input, which in reality is just an additional AND gate right at the end.
+            While we can build more optimised circuits, calculating the optimal solution is often not feasible, especially as the number of inputs grow (since the possible situations grow exponentially).
+            In order to do this, we will reuse components - this is known as functional design.
+            Often, this will be done with the use of an Enable input, which in reality is just an additional AND gate right at the end.
             \medskip
 
-            Something that will be needed often in a computer is transferring data between two registers. This is done in the following steps;
+            Something that will be needed often in a computer is transferring data between two registers.
+            This is done in the following steps;
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item select the input register (source)
@@ -469,13 +556,20 @@
                 \item the data is then transferred on the clock edge
                     \subitem this is commonly written as $R_\text{destination} \leftarrow R_\text{source}$
             \end{enumerate}
-            One of the most important circuits is the comparator; which compares values in two registers ($A$, and $B$), and gives an output depending on; $A > B$, $A = B$, or $A < B$. In reality, only two of those are needed, as the missing one is the NOR of the other two, whichever one we decide to drop is arbitrary. See the diagrams in the notes, since I've had enough of drawing them in TikZ for today.
+            One of the most important circuits is the comparator; which compares values in two registers ($A$, and $B$), and gives an output depending on; $A > B$, $A = B$, or $A < B$.
+            In reality, only two of those are needed, as the missing one is the NOR of the other two, whichever one we decide to drop is arbitrary.
+            See the diagrams in the notes, since I've had enough of drawing them in TikZ for today.
         \subsection*{Lecture 13}
             \subsubsection*{Addition}
-                First consider the half-adder; we have 3 inputs; $A$, $B$, and $C_\text{in}$, which is the carry bit. We also have 2 outputs; $S$, the sum, and $C_\text{out}$, which is the bit carried to the next most significant bit. This is trivial to represent as a truth table, so that will be skipped. We can say $C_\text{out} = A \cdot B$, and $S = A \oplus B$. We can also make a full-adder with two half-adders, this is done by having the $A_2 = S_1$, and $B_2 = C_{1_\text{out}}$. From this, we can get $S_2$ (the final sum), to be $S = S_1 \oplus C_\text{in} = A \oplus B \oplus C_\text{in}$, and $C_\text{out}$ (the final carry bit), to be $C_\text{out} = C_{1_\text{out}} + (S_1 \cdot C_\text{in}) = (A \cdot B) + C_\text{in} \cdot (A \oplus B)$.
+                First consider the half-adder; we have 3 inputs; $A$, $B$, and $C_\text{in}$, which is the carry bit.
+                We also have 2 outputs; $S$, the sum, and $C_\text{out}$, which is the bit carried to the next most significant bit. This is trivial to represent as a truth table, so that will be skipped.
+                We can say $C_\text{out} = A \cdot B$, and $S = A \oplus B$. We can also make a full-adder with two half-adders, this is done by having the $A_2 = S_1$, and $B_2 = C_{1_\text{out}}$.
+                From this, we can get $S_2$ (the final sum), to be $S = S_1 \oplus C_\text{in} = A \oplus B \oplus C_\text{in}$, and $C_\text{out}$ (the final carry bit), to be $C_\text{out} = C_{1_\text{out}} + (S_1 \cdot C_\text{in}) = (A \cdot B) + C_\text{in} \cdot (A \oplus B)$.
                 \medskip
 
-                An $n$-bit full adder chains together $n$ full-adders, with a carry of 0 in the least significant bit, and the carries ripple through to the next most significant bit. A single full adder can also be used to sum up serial data; the $C_\text{out}$ goes in to a D-Q flip-flop, and the $Q$ of the flip-flop is used as the $C_\text{in}$. This way, a serial sum is produced.
+                An $n$-bit full adder chains together $n$ full-adders, with a carry of 0 in the least significant bit, and the carries ripple through to the next most significant bit.
+                A single full adder can also be used to sum up serial data; the $C_\text{out}$ goes in to a D-Q flip-flop, and the $Q$ of the flip-flop is used as the $C_\text{in}$.
+                This way, a serial sum is produced.
             \subsubsection*{Subtraction}
                 Since subtraction is a bit less straightforward, as it needs to consider the borrowing, and payback between bits, I will write the truth table for it here, let $P$ represent payback, from the previous bit, $D$ represent the difference, and $O$ represent the borrow, which is passed into the next bit;
                 \begin{center}
@@ -492,14 +586,29 @@
                         1 & 1 & 1 & 1 & 1 \\
                     \end{tabular}
                 \end{center}
-                As such, we end up with $D = A \oplus B \oplus P$, and $O = A^\prime \cdot (B + P) + B \cdot P$. However, the case where $B$, and $P$ are both 1 is covered by $B \cdot P$, hence we can change the $B + P$ to a $B \oplus P$, which reduces the number of gates, as we can reuse the $B \oplus P$ from the $D$ circuit. This can then be chained in a similar fashion to the $n$-bit full adder. However, in practice, it's more common to negate every bit of $B$, and add it to $A$ with an $n$-bit full adder, that has a carry of 1. This is a twos complement subtractor.
+                As such, we end up with $D = A \oplus B \oplus P$, and $O = A^\prime \cdot (B + P) + B \cdot P$.
+                However, the case where $B$, and $P$ are both 1 is covered by $B \cdot P$, hence we can change the $B + P$ to a $B \oplus P$, which reduces the number of gates, as we can reuse the $B \oplus P$ from the $D$ circuit.
+                This can then be chained in a similar fashion to the $n$-bit full adder.
+                However, in practice, it's more common to negate every bit of $B$, and add it to $A$ with an $n$-bit full adder, that has a carry of 1.
+                This is a twos complement subtractor.
             \subsubsection*{Multiplication}
-                Multiplication in binary is done in a similar way to how multiplication is manually done in denary. For example, if we were to do $a_1a_0 \times b_1b_0$ (where $a_i$ is a digit, hence $a_1a_0 = 10 \times a_1 + a_0$), we'd do $a_1 \times b_1 \times 10^2 + a_1 \times b_0 \times 10^1 + a_0 \times b_1 \times 10^1 + a_0 \times b_0 \times 10^0$. We do the same in binary, but instead of multiplying by $10^n$, we multiply by $2^n$, which is $n$ shift to the left. Hence we'd do $(a_1 \cdot b_1) \Leftarrow 2 + (a_1 \cdot b_0) \Leftarrow 1 + (a_0 \cdot b_1) \Leftarrow 1 + (a_0 \cdot b_0) \Leftarrow 0$, where $a_i$, and $b_i$ are binary digits. This is using ANDs, not multiplying, and the pluses are actual addition with adders. Additional circuits will be needed for signed integers; the sign bit of the output should be the XOR of the sign bits of the two inputs. The scaling of multiplication isn't as elegant as the scaling for addition, and subtraction, as you would need 4 2-bit multipliers, and the shifts would have to be done by powers of 4. This keeps scaling up, and the number of adders required also increases.
+                Multiplication in binary is done in a similar way to how multiplication is manually done in denary.
+                For example, if we were to do $a_1a_0 \times b_1b_0$ (where $a_i$ is a digit, hence $a_1a_0 = 10 \times a_1 + a_0$), we'd do $a_1 \times b_1 \times 10^2 + a_1 \times b_0 \times 10^1 + a_0 \times b_1 \times 10^1 + a_0 \times b_0 \times 10^0$.
+                We do the same in binary, but instead of multiplying by $10^n$, we multiply by $2^n$, which is $n$ shift to the left.
+                Hence we'd do $(a_1 \cdot b_1) \Leftarrow 2 + (a_1 \cdot b_0) \Leftarrow 1 + (a_0 \cdot b_1) \Leftarrow 1 + (a_0 \cdot b_0) \Leftarrow 0$, where $a_i$, and $b_i$ are binary digits.
+                This is using ANDs, not multiplying, and the pluses are actual addition with adders.
+                Additional circuits will be needed for signed integers; the sign bit of the output should be the XOR of the sign bits of the two inputs.
+                The scaling of multiplication isn't as elegant as the scaling for addition, and subtraction, as you would need 4 2-bit multipliers, and the shifts would have to be done by powers of 4.
+                This keeps scaling up, and the number of adders required also increases.
         \subsection*{Lecture 14}
-            Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions. This will result in a binary number. Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions. Our model will be based on 8 bits.
+            Putting together a manual processor; generally the block diagram takes in a sequence of binary numbers, one sequence for data, and another for instructions.
+            This will result in a binary number.
+            Our design is based on the von Neumann architecture, which divides the processor into arithmetic units and registers, with a shared stream for data, and instructions.
+            Our model will be based on 8 bits.
             \medskip
 
-            Our example action is to find the average of two numbers, $A$, and $B$, such that $R = \frac{A + B}{2}$. Since we are dealing with 8 bits, $A + B < 256$.
+            Our example action is to find the average of two numbers, $A$, and $B$, such that $R = \frac{A + B}{2}$.
+            Since we are dealing with 8 bits, $A + B < 256$.
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item The first number is set up in input lines, and stored in register $A$
@@ -570,7 +679,10 @@
                     ($(r2o) + (-0.25, -0.15)$) edge[above] node{8} ($(r2o) + (0.25, 0.15)$);
                 \end{tikzpicture}
             \end{center}
-            However, the data path diagram above has no information about when the transfers occur, it it only shows the possible paths it can take. The arithmetic, and shift operations are done by combinational circuits, the function of which is determined by the bits in the instruction register. The processor also cannot operator on the results register. In our design, this is the specification for our ALU (in order to prevent ambiguity between the logical operators, and arithmetic, I will use symbols from \textbf{CO140}, and regular symbols for arithmetic);
+            However, the data path diagram above has no information about when the transfers occur, it it only shows the possible paths it can take.
+            The arithmetic, and shift operations are done by combinational circuits, the function of which is determined by the bits in the instruction register.
+            The processor also cannot operator on the results register.
+            In our design, this is the specification for our ALU (in order to prevent ambiguity between the logical operators, and arithmetic, I will use symbols from \textbf{CO140}, and regular symbols for arithmetic);
             \begin{center}
                 \begin{tabular}{c|c|c||c}
                     $S_2$ & $S_1$ & $S_0$ & Function \\
@@ -650,7 +762,9 @@
 
                 \end{tikzpicture}
             \end{center}
-            For an $n$-bit ALU, there are $n + 1$ multiplexers, as the last one handles the carry bit. The $C_\text{in}$ bit for the $n^\text{th}$ multiplexer is the $C_\text{out}$ for the $(n - 1)^\text{th}$ multiplexer. The $C_\text{in}$ for the first multiplexer is 0.
+            For an $n$-bit ALU, there are $n + 1$ multiplexers, as the last one handles the carry bit.
+            The $C_\text{in}$ bit for the $n^\text{th}$ multiplexer is the $C_\text{out}$ for the $(n - 1)^\text{th}$ multiplexer.
+            The $C_\text{in}$ for the first multiplexer is 0.
             \medskip
 
             In our 8 function shifter, we will be using the following rules;
@@ -668,7 +782,8 @@
                     H & 1 & 1 & 1 & right & $C_\text{in}$ & shift right with carry
                 \end{tabular}
             \end{center}
-            In reality, for an $n$-bit shifter, it's just $n$ multiplexers together, with carry cases for the first, and last, multiplexer. Given an $n$-bit shifter, these are the outputs for the multiplexers;
+            In reality, for an $n$-bit shifter, it's just $n$ multiplexers together, with carry cases for the first, and last, multiplexer.
+            Given an $n$-bit shifter, these are the outputs for the multiplexers;
             \begin{center}
                 \begin{tabular}{c||c|c|c}
                     & $O[n-1]$ & $O[i] (i \neq n-1 \land i \neq 0)$ & $O[0]$ \\
@@ -684,7 +799,8 @@
                 \end{tabular}
             \end{center}
         \subsection*{Lecture 15}
-            This builds on the manual processor we started in the previous lecture. The structure of our instructions that go into the 8-bit instruction register is as follows;
+            This builds on the manual processor we started in the previous lecture.
+            The structure of our instructions that go into the 8-bit instruction register is as follows;
             \begin{center}
                 \begin{tabular}{c|c|c|c|c|c|c|c}
                     IR7 & IR6 & IR5 & IR4 & IR3 & IR2 & IR1 &IR0 \\
@@ -692,7 +808,10 @@
                     $\times$ & \multicolumn{3}{c|}{ALU/SHIFT INS} & $\times$ & S/$R$ & S/$C$ & S/$A$
                 \end{tabular}
             \end{center}
-            Wherever there's a $\times$ - it's an unused bit. IR4-6 is used to select the function of the shifter or ALU; S/$R$ (in IR2) decides which of the two outputs is loaded into $R$. S/$C$ (in IR1) decides whether to use the $C_\text{out}$ of the ALU (when S/$C = 1$), or to use a constant logic 1. Finally, S/$A$ controls the multiplexer which decides whether $A$ is loaded from $R$ (S/$A = 0$), or from the data line (S/$A = 1$). Having unused bits has two benefits; there's redundancy built in, and also allows for the possibility of upgrading the instruction set in the future. We can represent the cycle in the following state transition diagram, where the input 0 means idle, and 1 means operate;
+            Wherever there's a $\times$ - it's an unused bit. IR4-6 is used to select the function of the shifter or ALU; S/$R$ (in IR2) decides which of the two outputs is loaded into $R$. S/$C$ (in IR1) decides whether to use the $C_\text{out}$ of the ALU (when S/$C = 1$), or to use a constant logic 1.
+            Finally, S/$A$ controls the multiplexer which decides whether $A$ is loaded from $R$ (S/$A = 0$), or from the data line (S/$A = 1$).
+            Having unused bits has two benefits; there's redundancy built in, and also allows for the possibility of upgrading the instruction set in the future.
+            We can represent the cycle in the following state transition diagram, where the input 0 means idle, and 1 means operate;
             \begin{center}
                 \begin{tikzpicture}
                     \node[state] (0) at (0, 0) {0};
@@ -729,7 +848,8 @@
                     5 & 0 & 0 & 0 & 1 & 1
                 \end{tabular}
             \end{center}
-            The states are transitioned in the falling edge of the clock, and then pulsed out in the rising edge, by the NAND gate. In our execution cycle above, we can list the states as follow;
+            The states are transitioned in the falling edge of the clock, and then pulsed out in the rising edge, by the NAND gate.
+            In our execution cycle above, we can list the states as follow;
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item load the IR register from the Data In line
@@ -778,10 +898,15 @@
                 \end{tabular}
             \end{center}
         \subsection*{Lecture 16}
-            When we move to larger systems, we will need to be able to address specific memory locations. This can be done with a decoder (which is also a demultiplexer). We will need to have a read line $R$, which is toggled based on whether memory is being read or not. The data in, and data out lines are connected to all of the flip-flops. The enable line of a D-Q flip-flop $M[i]$ has the logic $R^\prime \cdot D_i(\text{ADDRESS}) \cdot \text{Clk}$. Note that $D_i(\text{ADDRESS})$ is the line corresponding to the address in the decoder, this then allows the specific bit to be written.
+            When we move to larger systems, we will need to be able to address specific memory locations.
+            This can be done with a decoder (which is also a demultiplexer). We will need to have a read line $R$, which is toggled based on whether memory is being read or not.
+            The data in, and data out lines are connected to all of the flip-flops.
+            The enable line of a D-Q flip-flop $M[i]$ has the logic $R^\prime \cdot D_i(\text{ADDRESS}) \cdot \text{Clk}$.
+            Note that $D_i(\text{ADDRESS})$ is the line corresponding to the address in the decoder, this then allows the specific bit to be written.
             \medskip
 
-            Note that reading is a combinatorial circuit, as it is simply $R^\prime \cdot D_i(\text{ADDRESS}) \cdot Q_i$, but writing is a sequential circuit, as it requires the address, and data to be present on the clock edge pulse. This asymmetric design is known as static RAMs, which are used in special applications, due to their larger physical space, but are generally faster.
+            Note that reading is a combinatorial circuit, as it is simply $R^\prime \cdot D_i(\text{ADDRESS}) \cdot Q_i$, but writing is a sequential circuit, as it requires the address, and data to be present on the clock edge pulse.
+            This asymmetric design is known as static RAMs, which are used in special applications, due to their larger physical space, but are generally faster.
             \medskip
 
             In the processor, we have collections of wires, known as busses; they are as follows;
@@ -795,7 +920,13 @@
                     \subitem as we won't need to use both the data in, and data out lines at the same time, it makes sense for us to create a bi-directional bus, as it would reduce the size, and complexity of the memory circuit
                     \subitem however, we can encounter some issues with this, as lines may short circuit, causing damage
             \end{itemize}
-            In order to use a bi-directional data bus, a new gate called a \textbf{tri-state buffer} is required, which follows the input exactly if the input, $C_i$, of the buffer is 0. However, if $C_i$ is set to 1, the output is neither 0, nor 1, and it is effectively disconnected from the data line. This way, many different sources can feed into a single line, as long as only of of the $C_i=0$. This is yet another use of the demultiplexer. Physically, the RAM is organised in to a two-dimensional grid of units, where it is only active if both the decoded column, decoded row, are 1. Every cell is connected to the same bi-directional data line, and the same read/write line. The data line is connected through a two-way tri-state buffer, which prevents data from flowing in, or out, if the buffer isn't enabled. The following diagram is connected to each cell.
+            In order to use a bi-directional data bus, a new gate called a \textbf{tri-state buffer} is required, which follows the input exactly if the input, $C_i$, of the buffer is 0.
+            However, if $C_i$ is set to 1, the output is neither 0, nor 1, and it is effectively disconnected from the data line.
+            This way, many different sources can feed into a single line, as long as only of of the $C_i=0$. This is yet another use of the demultiplexer.
+            Physically, the RAM is organised in to a two-dimensional grid of units, where it is only active if both the decoded column, decoded row, are 1.
+            Every cell is connected to the same bi-directional data line, and the same read/write line.
+            The data line is connected through a two-way tri-state buffer, which prevents data from flowing in, or out, if the buffer isn't enabled.
+            The following diagram is connected to each cell.
             \begin{center}
                 \begin{tikzpicture}[circuit logic US, on grid, x=0.5cm, y=0.5cm]
                     \node[] (r) at (0, 1) {R};
@@ -870,13 +1001,21 @@
                     (0) edge[loop, ->, above] node{0} (0);
                 \end{tikzpicture}
             \end{center}
-            For larger RAM, where the chip is greater than 1 Mbit, D-Q flip-flops are too big to be used. Each bit is instead a transistor and a capacitor, where the charge of the capacitor is the value of the bit. This is called dynamic RAM, as the store is not permanent, and the values drift to zero rapidly. Refreshing the charge is done when the computer is not accessing the memory, and a controller must periodically tell the DRAM to refresh itself - this has low overhead.
+            For larger RAM, where the chip is greater than 1 Mbit, D-Q flip-flops are too big to be used.
+            Each bit is instead a transistor and a capacitor, where the charge of the capacitor is the value of the bit.
+            This is called dynamic RAM, as the store is not permanent, and the values drift to zero rapidly.
+            Refreshing the charge is done when the computer is not accessing the memory, and a controller must periodically tell the DRAM to refresh itself - this has low overhead.
         \subsection*{Lecture 17}
-            The diagrams in these sections have too many parts for me to do in TikZ. I mean it this time, as such, they are pasted directly in from \textit{Notes17 - 32-bit Processor.pdf}. Given that we have created a memory module, and the processor, we can then combine them to create the circuit below.
+            The diagrams in these sections have too many parts for me to do in TikZ.
+            I mean it this time, as such, they are pasted directly in from \textit{Notes17 - 32-bit Processor.pdf}.
+            Given that we have created a memory module, and the processor, we can then combine them to create the circuit below.
 
             \includegraphics[width=\linewidth]{2019-04-11-17-48-25.png}
 
-            However, this design still has quite a few issues; you'll see how we fetch from memory 4 times during one instruction, which adds on 12 stages to our original sequential circuit, with a total of 17 steps (plus an idle state). We also don't have the result register, therefore we need to store that somewhere within memory. However, finding out where that will be would require another 3 steps, since that would have to be loaded as well, which means we'd need an extremely large multiplexer to replace the selection for $R$, or we'd need to read it through $A$, which would then overwrite it, thus causing us to lose our computed result. There are multiple ways to get around this;
+            However, this design still has quite a few issues; you'll see how we fetch from memory 4 times during one instruction, which adds on 12 stages to our original sequential circuit, with a total of 17 steps (plus an idle state).
+            We also don't have the result register, therefore we need to store that somewhere within memory.
+            However, finding out where that will be would require another 3 steps, since that would have to be loaded as well, which means we'd need an extremely large multiplexer to replace the selection for $R$, or we'd need to read it through $A$, which would then overwrite it, thus causing us to lose our computed result.
+            There are multiple ways to get around this;
             \begin{enumerate}[1.]
                 \itemsep0em
                 \item scale the architecture up to 32-bits, or even higher
@@ -893,13 +1032,23 @@
 
             \includegraphics[width=\linewidth]{2019-04-11-18-21-11.png}
 
-            You'll note that this design still retains registers $A$, and $B$. This is so we have registers that we can manipulate, but programmers cannot modify (or directly use). This way, we can modify the registers without crashing the program. Additionally, this removes the need for a large set of combinatorial circuits, which may have spike issues when the clock speed is increased. The ALU doesn't change, other than the size, and therefore the complex carry arrangements are no longer needed - the carry bit is now used as an input to the controller. If the controller is able to determine the carry bits, we can use that for instructions that allow for conditional branching.
+            You'll note that this design still retains registers $A$, and $B$.
+            This is so we have registers that we can manipulate, but programmers cannot modify (or directly use).
+            This way, we can modify the registers without crashing the program.
+            Additionally, this removes the need for a large set of combinatorial circuits, which may have spike issues when the clock speed is increased.
+            The ALU doesn't change, other than the size, and therefore the complex carry arrangements are no longer needed - the carry bit is now used as an input to the controller.
+            If the controller is able to determine the carry bits, we can use that for instructions that allow for conditional branching.
             \medskip
 
-            The controller will exist as a FSM which will start by fetching program instructions from memory, and then providing operations to execute the instructions. However, we don't yet know what the steps required are, only that there will be fetch states $F_i$, followed by some execution states $E_i$.
+            The controller will exist as a FSM which will start by fetching program instructions from memory, and then providing operations to execute the instructions.
+            However, we don't yet know what the steps required are, only that there will be fetch states $F_i$, followed by some execution states $E_i$.
             \medskip
 
-            Now, we can limit the number of operations to 255 - therefore we can reserve the top 8 bits of the word will define the instruction. This is called the \textbf{Opcode}. As the majority of the operations will involve the internal registers, the next 4 bits will store the destination register (note that it's not 3, as we want to be able to expand to more registers in the future). Any remaining data carried in the instruction will be stored in the remaining bits. This allows us to remove any operation data (the first 12 bits) with a simple mask pictured below (the first 12 outputs are connected to ground, and the remaining are connected directly through);
+            Now, we can limit the number of operations to 255 - therefore we can reserve the top 8 bits of the word will define the instruction.
+            This is called the \textbf{Opcode}.
+            As the majority of the operations will involve the internal registers, the next 4 bits will store the destination register (note that it's not 3, as we want to be able to expand to more registers in the future).
+            Any remaining data carried in the instruction will be stored in the remaining bits.
+            This allows us to remove any operation data (the first 12 bits) with a simple mask pictured below (the first 12 outputs are connected to ground, and the remaining are connected directly through);
             \begin{center}
                 \begin{tikzpicture}
                     \node[] (i31) at (-1, -1) {$I_{31}$};
@@ -950,79 +1099,84 @@
                 \end{tikzpicture}
             \end{center}
             \subsubsection*{Memory Reference Instructions}
-            In the table below, I'll list the instructions used. Note that for all of them, bits 31-24 (inclusive) are used for the Opcode, and therefore I won't include them. Note that to save space, LOADI means LOADINDIRECT, and similar for STORE, JUMP, and CALL.
+            In the table below, I'll list the instructions used. Note that for all of them, bits 31-24 (inclusive) are used for the Opcode, and therefore I won't include them.
+            Note that to save space, ~LOADI~ means ~LOADINDIRECT~, and similar for ~STORE~, ~JUMP~, and ~CALL~.
             \begin{center}
                 \begin{tabular}{l||c|c|c||c|l|l}
                     Instruction & $I_{23-20}$ & $I_{19-16}$ & $I_{15-0}$ & Cycle & Transfers & Path \\
                     \hline
-                    LOAD & $R_\text{dest}$ & $\times$ & Adr & $E_1$ & $\text{MAR} \leftarrow \text{MDR}$ & bit mask \\
+                    ~LOAD~ & $R_\text{dest}$ & $\times$ & Adr & $E_1$ & $\text{MAR} \leftarrow \text{MDR}$ & bit mask \\
                     & & & & $E_2$ & $\text{MDR} \leftarrow \text{Mem}$ & \\
                     & & & & $E_3$ & $R_\text{dest} \leftarrow \text{MDR}$ & no mask \\
                     \hline
-                    STORE & $R_\text{dest}$ & $\times$ & Adr & $E_1$ & $\text{MAR} \leftarrow \text{MDR}; A \leftarrow R_\text{dest}$ & bit mask \\
+                    ~STORE~ & $R_\text{dest}$ & $\times$ & Adr & $E_1$ & $\text{MAR} \leftarrow \text{MDR}; A \leftarrow R_\text{dest}$ & bit mask \\
                     & & & & $E_2$ & $\text{Mem} \leftarrow A$ & via shifter (hold) \\
                     \hline
-                    JUMP & $\times$ & $\times$ & Adr & $E_1$ & $\text{PC} \leftarrow \text{MDR}$ & bit mask \\
+                    ~JUMP~ & $\times$ & $\times$ & Adr & $E_1$ & $\text{PC} \leftarrow \text{MDR}$ & bit mask \\
                     \hline
-                    CALL & $R_\text{dest}$ & $\times$ & Adr & $E_1$ & $\text{PC} \leftarrow \text{PC} + 1$ & \\
+                    ~CALL~ & $R_\text{dest}$ & $\times$ & Adr & $E_1$ & $\text{PC} \leftarrow \text{PC} + 1$ & \\
                     & & & & $E_2$ & $R_\text{dest} \leftarrow \text{PC}$ & \\
                     & & & & $E_3$ & $\text{PC} \leftarrow \text{MDR}$ & bit mask \\
                     \hline
-                    LOADI & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    ~LOADI~ & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
                     & & & & $E_2$ & $\text{MAR} \leftarrow A$ & via shifter (hold) \\
                     & & & & $E_3$ & $\text{MDR} \leftarrow \text{Mem}$ & \\
                     & & & & $E_4$ & $R_\text{dest} \leftarrow \text{MDR}$ & no mask \\
                     \hline
-                    STOREI & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    ~STOREI~ & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
                     & & & & $E_2$ & $\text{MAR} \leftarrow A; A \leftarrow R_\text{dest}$ & via shifter (hold) \\
                     & & & & $E_3$ & $\text{Mem} \leftarrow A$ & via shifter (hold) \\
                     \hline
-                    JUMPI & $\times$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    ~JUMPI~ & $\times$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
                     & & & & $E_2$ & $\text{PC} \leftarrow A$ & via shifter (hold) \\
                     \hline
-                    CALLI & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $\text{PC} \leftarrow \text{PC} + 1; A \leftarrow R_\text{src}$ & \\
+                    ~CALLI~ & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $\text{PC} \leftarrow \text{PC} + 1; A \leftarrow R_\text{src}$ & \\
                     & & & & $E_2$ & $R_\text{dest} \leftarrow \text{PC}$ & \\
                     & & & & $E_3$ & $\text{PC} \leftarrow A$ & via shifter (hold) \\
                     \hline
-                    MOVE & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    ~MOVE~ & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
                     & & & & $E_2$ & $R_\text{dest} \leftarrow \text{Shifter}$ & via shifter (hold) \\
                     \hline
-                    ADD & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    ~ADD~ & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
                     & & & & $E_2$ & $B \leftarrow R_\text{dest}$ & \\
                     & & & & $E_3$ & $R_\text{dest} \leftarrow \text{ALU}_R; C \leftarrow \text{ALU}_{C_\text{O}}$ & ALU=$A+B$, $C_\text{I} = 0$\\
                     \hline
-                    COMPARE & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
+                    ~COMPARE~ & $R_\text{dest}$ & $R_\text{src}$ & $\times$ & $E_1$ & $A \leftarrow R_\text{src}$ & \\
                     & & & & $E_2$ & $B \leftarrow R_\text{dest}$ & \\
                     & & & & $E_3$ & $C \leftarrow \text{ALU}_{C_\text{O}}$ & ALU=$A-B$, $C_\text{I} = 0$ \\
                     \hline
-                    CLEAR & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $R_\text{dest} \leftarrow \text{ALU}_R$ & ALU=0 out \\
+                    ~CLEAR~ & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $R_\text{dest} \leftarrow \text{ALU}_R$ & ALU=0 out \\
                     \hline
-                    INC & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
+                    ~INC~ & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
                     & & & & $E_2$ & $B \leftarrow \text{ALU}_R$ & ALU=0 out \\
                     & & & & $E_3$ & $R_\text{dest} \leftarrow \text{ALU}_R; C \leftarrow \text{ALU}_{C_\text{O}}$ & ALU=$A+B$, $C_\text{I} = 1$ \\
                     \hline
-                    DEC & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
+                    ~DEC~ & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
                     & & & & $E_2$ & $B \leftarrow \text{ALU}_R$ & ALU=-1 out \\
                     & & & & $E_3$ & $R_\text{dest} \leftarrow \text{ALU}_R; C \leftarrow \text{ALU}_{C_\text{O}}$ & ALU=$A+B$, $C_\text{I} = 0$ \\
                     \hline
-                    COMP & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
+                    ~COMP~ & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
                     & & & & $E_2$ & $B \leftarrow \text{ALU}_R$ & ALU=-1 out \\
                     & & & & $E_3$ & $R_\text{dest} \leftarrow \text{ALU}_R$ & ALU=$A \oplus B$ \\
                     \hline
-                    ASL & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
+                    ~ASL~ & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
                     & & & & $E_2$ & $R_\text{dest} \leftarrow \text{Shifter}$ & via shifter (a. left) \\
                     \hline
-                    RETURN & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
+                    ~RETURN~ & $R_\text{dest}$ & $\times$ & $\times$ & $E_1$ & $A \leftarrow R_\text{dest}$ & \\
                     & & & & $E_2$ & $\text{PC} \leftarrow \text{Shifter}$ & via shifter (hold) \\
                     \hline
-                    SKIP & $\times$ & $\times$ & $\times$ & $E_1$ & $\text{PC} \leftarrow \text{PC} + 1$ & \\
+                    ~SKIP~ & $\times$ & $\times$ & $\times$ & $E_1$ & $\text{PC} \leftarrow \text{PC} + 1$ & \\
                     \hline
                 \end{tabular}
             \end{center}
-            SUBTRACT, AND, OR, and XOR are done in the same way as ADD, with the appropriate ALU settings. COMPARE is just subtract with a zero check. Since we don't have any hardware for checking ALU, we can check the carry bit (0 if $R_\text{src} \leq R_\text{dest}$, 1 otherwise). Other shifts are done in the same way as ASL, but the settings, and carry will change. COMP would flip the bits for the register, and in order to get a number in twos complement, we'd do a COMP followed by INC.
+            ~SUBTRACT~, ~AND~, ~OR~, and ~XOR~ are done in the same way as ~ADD~, with the appropriate ALU settings.
+            ~COMPARE~ is just subtract with a zero check.
+            Since we don't have any hardware for checking ALU, we can check the carry bit (0 if $R_\text{src} \leq R_\text{dest}$, 1 otherwise).
+            Other shifts are done in the same way as ASL, but the settings, and carry will change.
+            ~COMP~ would flip the bits for the register, and in order to get a number in twos complement, we'd do a ~COMP~ followed by ~INC~.
             \medskip
 
-            There are some limitations to this design, for example - INC, DEC, and COMP, $B$ is loaded from the main bus, but $A$ is loaded from the registers the programmer specified; another multiplexer could be used to allow these to happen simultaneously.
+            There are some limitations to this design, for example - ~INC~, ~DEC~, and ~COMP~, $B$ is loaded from the main bus, but $A$ is loaded from the registers the programmer specified; another multiplexer could be used to allow these to happen simultaneously.
         \subsection*{Lecture 18}
             We can model the cycles as a FSM, but what we need to work out is the input to the FSM;
             \begin{center}
@@ -1050,11 +1204,27 @@
                     (e3) edge[->, above] node{0} (f1);
                 \end{tikzpicture}
             \end{center}
-            The input, $C$, is a combinatorial circuit of $\text{IR}_{31-24}$, $Q_2$, $Q_1$, and $Q_0$. In order to make it easier for us to deal with the opcode, we can use an 8-256 demultiplexer, which will give us 1 line corresponding to each possible instruction, only one of which will be 1, depending on the opcode. In order to make this easier for us, we can group together instructions that have the same state sequence; for example, we can say ADDS = ADD + SUBTRACT + AND + OR + XOR, and SHIFTS = ASL + ASR + ROR, and so on - this will allow us to save some time when we start the circuit. We will also need to know the states, however, this can be done with a 3-8 demultiplexer, in the same fashion as the demultiplexer used for the opcode.
+            The input, $C$, is a combinatorial circuit of $\text{IR}_{31-24}$, $Q_2$, $Q_1$, and $Q_0$.
+            In order to make it easier for us to deal with the opcode, we can use an 8-256 demultiplexer, which will give us 1 line corresponding to each possible instruction, only one of which will be 1, depending on the opcode.
+            In order to make this easier for us, we can group together instructions that have the same state sequence; for example, we can say $~ADDS~ = ~ADD~ + ~SUBTRACT~ + ~AND~ + ~OR~ + ~XOR~$, and $~SHIFTS~ = ~ASL~ + ~ASR~ + ~ROR~$, and so on - this will allow us to save some time when we start the circuit.
+            We will also need to know the states, however, this can be done with a 3-8 demultiplexer, in the same fashion as the demultiplexer used for the opcode.
             \medskip
 
-            Now, we can work the return condition from the state $E_2$ (I explicitly mention state here, as we will be using $E_2$ to refer to the 3-8 multiplexer output later on). The condition is $(E_2 \cdot (\text{RETURN} + \text{SHIFTS} + \text{MOVE} + \text{JUMPI}))^\prime$. This is inverted, as if it is on $E_2$, and it's currently performing the last action (since these items all have 2 stages), it should output a 0, as it will need to return to the state $F_1$ (see the FSM). The final outcome will be $C = (F_3 \cdot \text{NOP})^\prime \cdot (E_1 \cdot (\text{SKIPS} + \text{CLEAR} + \text{JUMP}))^\prime \cdot (E_2 \cdot (\text{RETURN} + \text{SHIFTS} + \text{MOVE} + \text{JUMPI}))^\prime \cdot (E_3 \cdot (\text{COMP} + \text{DEC} + \text{INC} + \text{COMPARE} + \text{ADDS} + \text{STOREI} + \text{LOAD}))^\prime$. This extremely long input, is then used in the state transition table, which follows the same methodology as we have used multiple times before. We can also reuse the outputs of the multiplexers, once we do our minterms.
+            Now, we can work the return condition from the state $E_2$ (I explicitly mention state here, as we will be using $E_2$ to refer to the 3-8 multiplexer output later on).
+            The condition is $(E_2 \cdot (~RETURN~ + ~SHIFTS~ + ~MOVE~ + ~JUMPI~))^\prime$.
+            This is inverted, as if it is on $E_2$, and it's currently performing the last action (since these items all have 2 stages), it should output a 0, as it will need to return to the state $F_1$ (see the FSM).
+            The final outcome will be $C = (F_3 \cdot ~NOP~)^\prime \cdot (E_1 \cdot (~SKIPS~ + ~CLEAR~ + ~JUMP~))^\prime \cdot (E_2 \cdot (~RETURN~ + ~SHIFTS~ + ~MOVE~ + ~JUMPI~))^\prime \cdot (E_3 \cdot (~COMP~ + ~DEC~ + ~INC~ + ~COMPARE~ + ~ADDS~ + ~STOREI~ + ~LOAD~))^\prime$.
+            This extremely long input, is then used in the state transition table, which follows the same methodology as we have used multiple times before.
+            We can also reuse the outputs of the multiplexers, once we do our minterms.
             \medskip
 
-            Finally, we can start working on the output logic. However, there are 28 combinatorial circuits that we will need, each having 17 inputs. This is not feasible to do with Karnaugh maps. We can define the clock signals for when registers have to be updated by referencing the table. For example, we're updating MAR on the following stages; $F_1$, and certain cases for $E_1$, and $E_2$, hence we can say the gate logic for $C_\text{MAR} = F_1 + E_1 \cdot (\text{LOAD} + \text{STORE}) + E_2 \cdot (\text{LOADI} + \text{STOREI})$ - the same is done for the other registers. Sometimes, we don't care about the content of the register, for example - because we only need the MAR to be accurate when we load the MDR, we can simplify the gate logic to $C_\text{MAR}=F_1 + E_1 + E_2$. This is combined with a NAND gate with the system clock, so that the state changes happen on a different edge to the loading. However, because we care about the MDR, we will follow the proper procedure, and obtain $C_\text{MDR} = F_2 + E_2 \cdot \text{LOAD} + E_3 \cdot \text{LOADI}$. The same is also done for the function bits, which are gated based on when they are used, depending on the configuration for the instruction.
+            Finally, we can start working on the output logic.
+            However, there are 28 combinatorial circuits that we will need, each having 17 inputs.
+            This is not feasible to do with Karnaugh maps.
+            We can define the clock signals for when registers have to be updated by referencing the table.
+            For example, we're updating MAR on the following stages; $F_1$, and certain cases for $E_1$, and $E_2$, hence we can say the gate logic for $C_\text{MAR} = F_1 + E_1 \cdot (~LOAD~ + ~STORE~) + E_2 \cdot (~LOADI~ + ~STOREI~)$ - the same is done for the other registers.
+            Sometimes, we don't care about the content of the register, for example - because we only need the MAR to be accurate when we load the MDR, we can simplify the gate logic to $C_\text{MAR}=F_1 + E_1 + E_2$.
+            This is combined with a NAND gate with the system clock, so that the state changes happen on a different edge to the loading.
+            However, because we care about the MDR, we will follow the proper procedure, and obtain $C_\text{MDR} = F_2 + E_2 \cdot ~LOAD~ + E_3 \cdot ~LOADI~$.
+            The same is also done for the function bits, which are gated based on when they are used, depending on the configuration for the instruction.
 \end{document}
