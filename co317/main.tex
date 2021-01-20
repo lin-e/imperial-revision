@@ -567,7 +567,7 @@
                     x \\ y \\ z \\ 1
                 \end{bmatrix}$$
                 Frequently the last ordinate is 1, however in general it is a scale factor;
-                $$\underbrace{(p_x, p_y, p_z, s)}_\text{homogeneous} \Leftrightarrow \underbrace{\left(\frac{p_x}{s}, \frac{p_y}{s}, \frac{p_z}{s}\right)}_\text{Cartesian}$$
+                $$\underbrace{(p_x, p_y, p_z, s)}_\text{homogenous} \Leftrightarrow \underbrace{\left(\frac{p_x}{s}, \frac{p_y}{s}, \frac{p_z}{s}\right)}_\text{Cartesian}$$
             \subsubsection*{Affine Transformations}
                 Affine transformations preserve parallel lines.
                 Most of the transformations we require are affine, with the most important being scaling, rotation, and translation;
@@ -635,4 +635,342 @@
 
                 Note that we should be careful when we combine transformation.
                 As matrix multiplication isn't commutative, we should read a sequence of matrices multiplied together from right to left, with the right-most matrix, before the vector, being the \textbf{first} transformation to be applied.
+        \subsection*{Lecture 2 - Transformations for Animation}
+            Recall the transformation in the previous lecture, which took way too long to draw, moving the origin to the view point.
+            It consists of three steps, with the latter two being used to align the $z$-axis with the view direction;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item translation of the origin \hfill fairly trivial to do
+                    $$\mat{\mathcal{A}} = \begin{bmatrix}
+                        1 & 0 & 0 & -C_x \\
+                        0 & 1 & 0 & -C_y \\
+                        0 & 0 & 1 & -C_z \\
+                        0 & 0 & 0 & 1
+                    \end{bmatrix}$$
+                \item rotation about $y$-axis
+                    \smallskip
+
+                    Consider the following, looking at the $x-z$ plane;
+                    \begin{center}
+                        \begin{tikzpicture}[x=0.75cm, y=0.75cm]
+                            \draw
+                            (0, 0) edge[->] (0, 6)
+                            (0, 0) edge[->] (6, 0)
+                            (0, 0) edge[very thick, ->] (3, 4)
+                            (0, 0) edge[very thick, ->] (0, 5)
+                            (0, 0) edge[dashed, <->, below] node{$d_x$} (3, 0)
+                            (3, 0) edge[dashed, <->, right] node{$d_z$} (3, 4);
+
+                            \draw (0, 0) ++(53:1) arc (53:90:1);
+                            \node at (0.4, 1.25) {$\theta$};
+
+                            \node at (2.5, 4) {$\vec{v}$};
+                            \node at (6, -0.5) {$x$};
+                            \node at (-0.5, 6) {$z$};
+                        \end{tikzpicture}
+                    \end{center}
+                    This can be used to calculate the following (note that here we are using a right-handed system);
+                    \begin{align*}
+                        || \vec{v} || & = v \\
+                        & = \sqrt{d_x^2 + d_z^2} \\
+                        \cos \theta & = \frac{d_z}{v} \\
+                        \sin \theta & = \frac{d_x}{v} \\
+                        \mat{\mathcal{B}} & = \begin{bmatrix}
+                            \cos \theta & 0 & -\sin \theta & 0 \\
+                            0 & 1 & 0 & 0 \\
+                            -\sin \theta & 0 & \cos \theta & 0 \\
+                            0 & 0 & 0 & 1
+                        \end{bmatrix} \\
+                        & = \begin{bmatrix}
+                            \frac{d_z}{v} & 0 & -\frac{d_x}{v} & 0 \\
+                            0 & 1 & 0 & 0 \\
+                            \frac{d_x}{v} & 0 & \frac{d_z}{v} & 0 \\
+                            0 & 0 & 0 & 1
+                        \end{bmatrix}
+                    \end{align*}
+                \item rotation about $x$-axis
+                    \smallskip
+
+                    This follows a similar process, note that we are now aligned along the $y-z$ plane (for clarity, the horizontal distance is $v$);
+                    \begin{center}
+                        \begin{tikzpicture}[x=0.75cm, y=0.75cm]
+                            \draw
+                            (0, 0) edge[->] (6, 0)
+                            (0, 0) edge[->] (0, 5)
+                            (0, 0) edge[very thick, ->, above] node{$| \vec{d} |$} (4, 3)
+                            (0, 0) edge[very thick, ->] (5, 0)
+                            (0, 0) edge[dashed, <->, below] node{$v = | \vec{v} |$} (4, 0)
+                            (4, 0) edge[dashed, <->, right] node{$d_y$} (4, 3);
+
+                            \draw (0, 0) ++(38:1) arc (38:0:1);
+                            \node at (1.25, 0.4) {$\phi$};
+                            \node at (6, -0.5) {$z$};
+                            \node at (-0.5, 5) {$y$};
+                        \end{tikzpicture}
+                    \end{center}
+                    Similarly, the matrix can be obtained as follows;
+                    \begin{align*}
+                        \cos \phi & = \frac{v}{| \vec{d} |} \\
+                        \sin \phi & = \frac{d_y}{| \vec{d} |} \\
+                        \mat{\mathcal{C}} & = \begin{bmatrix}
+                            1 & 0 & 0 & 0 \\
+                            0 & \cos \phi & -\sin \phi & 0 \\
+                            0 & \sin \phi & \cos \phi & 0 \\
+                            0 & 0 & 0 & 1
+                        \end{bmatrix} \\
+                        & = \begin{bmatrix}
+                            1 & 0 & 0 & 0 \\
+                            0 & \frac{v}{| \vec{d} |} & -\frac{d_y}{| \vec{d} |} & 0 \\
+                            0 & \frac{d_y}{| \vec{d} |} & \frac{v}{| \vec{d} |} & 0 \\
+                            0 & 0 & 0 & 1
+                        \end{bmatrix}
+                    \end{align*}
+            \end{enumerate}
+            From this, we are able to combine the matrices into the following;
+            $$\mat{\mathcal{T}} = \mat{\mathcal{C}} \mat{\mathcal{B}} \mat{\mathcal{A}}$$
+            For every point $\vec{P}$ in the scene, we can obtain $\vec{P_t} = \mat{\mathcal{T}}\vec{P}$, with the view in \textbf{canonical} form, allowing us to apply the standard perspective or orthographic projection.
+            \subsubsection*{Rotation About a General Line}
+                Rotation of a scene around a general line can be done as a combination of transformations.
+                The idea is similar, with the following three steps;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item making the line of rotation one of the Cartesian axes
+                        \smallskip
+
+                        This uses the matrices derived before, rotating the general line to be aligned with the $z$-axis.
+                    \item perform the rotation
+                        \smallskip
+
+                        Standard rotation around the $z$-axis defined previously.
+                    \item restore line to original place
+                        \smallskip
+
+                        Inversion of the initial matrices to revert rotation.
+                \end{enumerate}
+                This gives us the following full matrix;
+                $$\mat{\mathcal{T}} = \underbrace{\mat{\mathcal{A}^{-1}} \mat{\mathcal{B}^{-1}} \mat{\mathcal{C}^{-1}}}_3 \underbrace{\mat{\mathcal{R}_z}}_2 \underbrace{\mat{\mathcal{C}} \mat{\mathcal{B}} \mat{\mathcal{A}}}_1$$
+            \subsubsection*{Projection Matrices}
+                For the canonical / orthographic projection, the matrix simply drops the $z$ component;
+                \begin{align*}
+                    \mat{\mathcal{M}_O} & = \begin{bmatrix}
+                        1 & 0 & 0 & 0 \\
+                        0 & 1 & 0 & 0 \\
+                        0 & 0 & 0 & 0 \\
+                        0 & 0 & 0 & 1
+                    \end{bmatrix} \\
+                    \mat{\mathcal{M}_O} \begin{bmatrix}
+                        x \\ y \\ z \\ 1
+                    \end{bmatrix} & = \begin{bmatrix}
+                        x \\ y \\ 0 \\ 1
+                    \end{bmatrix}
+                \end{align*}
+                This is clearly non-invertible, as we are losing information about one of the axes.
+                An effect of this is that we must do any effects in 3D \textbf{before} applying the projection matrix.
+                \medskip
+
+                The perspective projection matrix can also be done in a similar way;
+                \begin{align*}
+                    \mat{\mathcal{M}_p} & = \begin{bmatrix}
+                        1 & 0 & 0 & 0 \\
+                        0 & 1 & 0 & 0 \\
+                        0 & 0 & 1 & 0 \\
+                        0 & 0 & \frac{1}{f} & 0
+                    \end{bmatrix} \\
+                    \mat{\mathcal{M}_p} \begin{bmatrix}
+                        x \\ y \\ z \\ 1
+                    \end{bmatrix} & = \begin{bmatrix}
+                        x \\ y \\ z \\ \frac{z}{f}
+                    \end{bmatrix} \\
+                    & \rightarrow \begin{bmatrix}
+                        \frac{fx}{z} \\
+                        \frac{fy}{z} \\
+                        f \\
+                        1
+                    \end{bmatrix} & \text{using the fourth ordinate as a scale factor}
+                \end{align*}
+                Note that homogenous coordinates and vectors fall into one of two types;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{position vectors}
+                        \smallskip
+
+                        These have a non-zero final ordinate ($s > 0$) and can be normalised to Cartesian form.
+                        If two position vectors are added, we instead obtain the mid-point;
+                        $$\begin{bmatrix}
+                            X_a \\ Y_a \\ Z_a \\ 1
+                        \end{bmatrix} + \begin{bmatrix}
+                            X_b \\ Y_b \\ Z_b \\ 1
+                        \end{bmatrix} = \begin{bmatrix}
+                            X_a + X_b \\
+                            Y_a + Y_b \\
+                            Z_a + Z_b \\
+                            2
+                        \end{bmatrix} = \begin{bmatrix}
+                            \frac{X_a + X_b}{2} \\
+                            \frac{Y_a + Y_b}{2} \\
+                            \frac{Z_a + Z_b}{2} \\
+                            1
+                        \end{bmatrix}$$
+                        This has no real meaning in geometry, but is a useful observation.
+                    \item \textbf{direction vectors}
+                        \smallskip
+
+                        These have a zero in the final ordinate, and have a direction and magnitude.
+                        If two direction vectors are added, we obtain a direction vector (following the normal addition rule);
+                        $$\begin{bmatrix}
+                            x_i \\ y_i \\ z_i \\ 0
+                        \end{bmatrix} + \begin{bmatrix}
+                            x_j \\ y_j \\ z_j \\ 0
+                        \end{bmatrix} = \begin{bmatrix}
+                            x_i + x_j \\
+                            y_i + y_j \\
+                            z_i + z_j \\
+                            0
+                        \end{bmatrix}$$
+                        However, if a direction vector is added to a position vector, we obtain another position vector;
+                        $$\begin{bmatrix}
+                            X \\ Y \\ Z \\ 1
+                        \end{bmatrix} + \begin{bmatrix}
+                            x \\ y \\ z \\ 0
+                        \end{bmatrix} = \begin{bmatrix}
+                            X + x \\
+                            Y + y \\
+                            Z + z \\
+                            1
+                        \end{bmatrix}$$
+                \end{enumerate}
+            \subsubsection*{Structure of a Transformation Matrix}
+                Note that the bottom row of such a matrix is \textbf{always} 0 0 0 1.
+                We can decompose the columns of a transformation matrix into three direction vectors and one position vector.
+                The three direction vectors are the new axes and the position vector is the new origin.
+                $$\underbrace{\begin{bmatrix}
+                    q_x & r_x & s_x & C_x \\
+                    q_y & r_y & s_y & C_y \\
+                    q_z & r_z & s_z & C_z \\
+                    0 & 0 & 0 & 1
+                \end{bmatrix}}_\text{matrix} \rightarrow \underbrace{\begin{bmatrix}
+                    q_x \\ q_y \\ q_z \\ 0
+                \end{bmatrix} \begin{bmatrix}
+                    r_x \\ r_y \\ r_z \\ 0
+                \end{bmatrix} \begin{bmatrix}
+                    s_x \\ s_y \\ s_z \\ 0
+                \end{bmatrix}}_\text{direction vectors} \underbrace{\begin{bmatrix}
+                    C_x \\ C_y \\ C_z \\ 1
+                \end{bmatrix}}_\text{position vector}$$
+                When applying this transformation to a direction vector, where the last ordinate is zero, no \textbf{translation} is applied.
+                On the other hand, if it is a position vector, where the last ordinate is 1, all vectors will have the same displacement.
+                \medskip
+
+                The following results can be proved by observing changes to the standard basis vectors, and the origin after applying the matrix;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\vec{q}$ \hfill transformed $x$-axis
+                    \item $\vec{r}$ \hfill transformed $y$-axis
+                    \item $\vec{s}$ \hfill transformed $z$-axis
+                    \item $\vec{C}$ \hfill transformed origin
+                \end{itemize}
+            \subsubsection*{Dot Product}
+                We can consider the dot product as a projection;
+                $$\vec{P} \cdot \vec{u} = | \vec{P} | | \vec{u} | \cos \theta$$
+                Visually, we can see the dot product as the following;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (-1, 0) edge[dashed] (5, 0)
+                        (0, -1) edge[dashed] (0, 5)
+                        (0, 0) edge[thick, ->, below] node{$\vec{u}$} (2, 0)
+                        (0, 0) edge[thick, ->, left] node{$\vec{v}$} (0, 2)
+                        (0, 0) edge[very thick, ->, above] node{$\vec{P}$} (4, 3)
+                        (4, 3) edge[very thick, dashed] (0, 3)
+                        (4, 3) edge[very thick, dashed] (4, 0);
+                        \draw (0, 0) ++(38:1) arc (38:0:1);
+                        \node at (1.25, 0.4) {$\theta$};
+                        \draw[black!50]
+                        (0, -0.5) edge[very thick, ->, below] node{$\vec{P} \cdot \vec{u}$} (4, -0.5)
+                        (-0.5, 0) edge[very thick, ->, left] node{$\vec{P} \cdot \vec{v}$} (-0.5, 3);
+                    \end{tikzpicture}
+                \end{center}
+                If $\vec{u}$ is along a co-ordinate axis, then $\vec{P} \cdot \vec{u}$ is the ordinate of $\vec{P}$ in the direction of $\vec{u}$.
+                \medskip
+
+                Consider changing to the new axes $\vec{u}, \vec{v}, \vec{w}$, and origin $\vec{C}$.
+                We can call the first co-ordinate of $\vec{P}$ in the new system $\vec{P}_x^t$;
+                \begin{align*}
+                    \vec{P}_x^t & = (\vec{P} - \vec{C}) \cdot \vec{u} \\
+                    & = \vec{P} \cdot \vec{u} - \vec{C} \cdot \vec{u}
+                \end{align*}
+                However, this can also be represented in matrix notation;
+                $$\begin{bmatrix}
+                    P_x^t \\
+                    P_y^t \\
+                    P_z^t \\
+                    1
+                \end{bmatrix} = \begin{bmatrix}
+                    u_x & u_y & u_z & -\vec{C} \cdot \vec{u} \\
+                    v_x & v_y & v_z & -\vec{C} \cdot \vec{v} \\
+                    w_x & w_y & w_z & -\vec{C} \cdot \vec{w} \\
+                    0 & 0 & 0 & 1
+                \end{bmatrix} \begin{bmatrix}
+                    P_x \\
+                    P_y \\
+                    P_z \\
+                    1
+                \end{bmatrix}$$
+                Returning to the original problem, where we need to find a transformation matrix with a viewpoint $\vec{C}$ and direction $\vec{d}$.
+                This can be done by first finding the vectors $\vec{u}, \vec{v}, \vec{w}$.
+                Since $\vec{d}$ is the direction of the new axes, we can write (to get a unit vector);
+                $$\vec{w} = \frac{\vec{d}}{| \vec{d} |}$$
+                We also want to maintain an orthogonal basis, as well as all unit vectors.
+                For the horizontal direction, we can write $\vec{u}$ in terms of some horizontal vector $\vec{p}$;
+                \begin{align*}
+                    \vec{u} & = \frac{\vec{p}}{| \vec{p} |} \\
+                    p_y & = 0 & \text{ensure horizontal, no vertical component}
+                \end{align*}
+                Similarly, we want some vertical vector $\vec{q}$ to write $\vec{v}$;
+                \begin{align*}
+                    \vec{v} & = \frac{\vec{q}}{| \vec{q} |} \\
+                    q_y & = 1 & \text{vertical, positive component}
+                \end{align*}
+                This gives us the following to solve;
+                \begin{align*}
+                    \vec{p} & = \begin{bmatrix}
+                        p_x \\ 0 \\ p_z
+                    \end{bmatrix} & \text{new horizontal} \\
+                    \vec{q} & = \begin{bmatrix}
+                        q_x \\ 1 \\ q_z
+                    \end{bmatrix} & \text{new vertical}
+                \end{align*}
+                However, the view direction can also be written as the following (since we have the view direction, which happens to be the new $z$-axis as perpendicular to the remaining two vectors);
+                $$\vec{d} = \vec{p} \times \vec{q}$$
+                Using this, we can write $\vec{p}$ in terms of $\vec{q}$;
+                \begin{align*}
+                    \vec{d} & = \begin{bmatrix}
+                        d_x \\ d_y \\ d_z
+                    \end{bmatrix} \\
+                    & = \vec{p} \times \vec{q} \\
+                    & = \begin{vmatrix}
+                        \vec{i} & \vec{j} & \vec{k} \\
+                        p_x & 0 & p_z \\
+                        q_x & 1 & q_z
+                    \end{vmatrix} \\
+                    & = -p_z \vec{i} + (p_z q_x - p_x q_z) \vec{j} + p_x \vec{k} \\
+                    & = \begin{bmatrix}
+                        -p_z \\
+                        p_z q_x - p_x q_z \\
+                        p_x
+                    \end{bmatrix} & \Rightarrow \\
+                    d_x & = -p_z \\
+                    d_y & = p_z q_x - p_x q_z \\
+                    d_z & = p_x & \Rightarrow \\
+                    \vec{p} & = \begin{bmatrix}
+                        d_z \\ 0 \\ -d_x
+                    \end{bmatrix}
+                \end{align*}
+                However, since we know that the vectors $\vec{p}$ and $\vec{q}$ are orthogonal, we can say the following;
+                \begin{align*}
+                    \vec{p} \cdot \vec{q} & = 0 & \Rightarrow \\
+                    p_x q_x + p_z q_z & = 0 \\
+                    d_y & = p_z q_x - p_x q_z & \text{from above}
+                \end{align*}
+                Both of these equations can be fully written in terms of $\vec{d}$.
 \end{document}
