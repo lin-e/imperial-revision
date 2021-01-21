@@ -18,6 +18,7 @@
 \usepackage{tipa}
 \usepackage{pgfplots}
 \usepackage{adjustbox}
+\usepackage{ifthen}
 
 % tikz libraries
 \usetikzlibrary{
@@ -274,4 +275,244 @@
                         Medical image analysis can be used for disease diagnosis.
                         For example, identifying breast cancer lesions from mammograms.
                 \end{itemize}
+        \subsection*{Lecture 2 - Image Formation}
+            An image, in RGB format, can be represented as pixels, each being three numbers.
+            A digital image is formed from a lighting source being reflected into an optics sensor (eyes, cameras, etc).
+            \subsubsection*{Light}
+                A \textbf{point light source} originates from a single location in space, such as a small light bulb, or the sun.
+                This can be described with three properties; location, intensity, and the spectrum.
+                \medskip
+
+                On the other hand, an \textbf{area light source} is more complex.
+                For example, this could be a ceiling light; a rectangle of point lights.
+            \subsubsection*{Reflectance}
+                When light emitted from the source hits the surface of an object, it will be reflected.
+                To describe this, we typically use the \textbf{bidirectional reflectance distribution function (BDRF)} to model this behaviour (where $\lambda$ is the wavelength, $L_r$ is the output power, and $E_i$ is the input power);
+                $$f_r(\underbrace{\theta_i, \varphi_i}_\text{incident}, \underbrace{\theta_r, \varphi_r}_\text{reflected}, \lambda) = \dif{L_r}{E_i}$$
+                While this is a very general model, it is very complex.
+                \medskip
+
+                As such, we can use \textbf{diffuse reflection}, where light is assumed to be scattered uniformly in all directions.
+                This has a constant BRDF - this says that regardless of the incident or reflected directions, nor the wavelength, the power will be constant;
+                $$f_r(\theta_i, \varphi_i, \theta_r, \varphi_r,, \lambda) = f_r(\lambda)$$
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw[blue!50!black] (0, 0) edge[below] node{rough surface} (6, 0);
+                        \draw[red!50!black] (1.25, 2) edge[->] (3, 0);
+                        \draw[dashed, blue!50]
+                        (4, 0) arc(0:180:1) -- cycle
+                        (3, 0) edge[->] +(0:1)
+                        (3, 0) edge[->] +(15:1)
+                        (3, 0) edge[->] +(30:1)
+                        (3, 0) edge[->] +(45:1)
+                        (3, 0) edge[->] +(60:1)
+                        (3, 0) edge[->] +(75:1)
+                        (3, 0) edge[->] +(90:1)
+                        (3, 0) edge[->] +(105:1)
+                        (3, 0) edge[->] +(120:1)
+                        (3, 0) edge[->] +(135:1)
+                        (3, 0) edge[->] +(150:1)
+                        (3, 0) edge[->] +(165:1)
+                        (3, 0) edge[->] +(180:1);
+                    \end{tikzpicture}
+                \end{center}
+                On the other hand, we can use \textbf{specular reflection} which performs reflections in a mirror-like fashion.
+                The reflection and incident directions are symmetric with respect to the surface normal $\vec{n}$, such that $\theta_r = \theta_i$, with the same amount of power;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw (3, 0) ++(48.8:1) arc (48.8:132.2:1);
+                        \draw[blue!50!black] (0, 0) edge[below] node{rough surface} (6, 0);
+                        \draw[red!50!black] (1.25, 2) edge[->] (3, 0);
+                        \draw[blue!50] (4.75, 2) edge[<-] (3, 0);
+                        \draw[dashed] (3, 1.5) -- (3, 0);
+
+                        \node at (3, 1.75) {$\vec{n}$};
+                        \node at (2.5, 1.25) {$\theta_i$};
+                        \node at (3.5, 1.25) {$\theta_r$};
+                    \end{tikzpicture}
+                \end{center}
+                While these two are the \textbf{ideal} cases, the majority of cases, we see a combination of both of those, as well as \textbf{ambient} illumination.
+                Ambient illumination accounts for general illumination which could be complicated to model.
+                For example, these could be repeated reflections between walls (which would be very difficult to calculate), and we instead assume that there is some light that exists in the 3D space representing the room.
+                Another example could be a distance source, such as the sky (which has atmosphere).
+                \medskip
+
+                Combining these, we can use the \textbf{Phong} reflection model.
+                This is an empirical model that describes how a surface reflects light as a combination of ambient, diffuse, and specular components.
+            \subsubsection*{`Duality' with Computer Graphics}
+                Using the game engine to produce example images is useful, as we are able to directly obtain the labels of objects from the engine itself, as well as visual output.
+                As such, we can use these images as training for a model, since we also have an associated label map.
+                This synthetic data is complementary to time-consuming manual annotations.
+            \subsubsection*{Optics and Sensors}
+                Both our eyes and cameras work in similar ways, with a lens governed by the thin lens equation, where $f$ denotes the focal length of the lens, $u$ denotes the distance from the subject to the lens, and $v$ denotes the distance from the lens to the image;
+                $$\frac{1}{f} = \frac{1}{u} + \frac{1}{v}$$
+                Our eyes work by light rays being focused by the cornea and lens onto the retina, where vision begins with two neural cells.
+                The \textbf{cone} cells are responsible for colour vision, and function in bright light.
+                On the other hand, the \textbf{rod} cells have little role in colour vision, but function in dim light.
+                \medskip
+
+                Humans have three types of cone cells (\textbf{trichromatic vision}), which have different response curves.
+                The short cone cells respond to short wavelength lights (\violet{violet}, \blue{blue}), whereas the medium cone cells respond to medium wavelength lights (\textcolor{green}{green}), and long cone cells respond to long wavelength lights (\red{red}).
+                Occasionally, there may be two cone cells, or four, which are referred to as \textbf{dichromacy} or \textbf{tetrachromacy} respectively.
+                \medskip
+
+                Note that colours are not objective physical properties of light or electromagnetic wave (which have a physical property of wavelength).
+                Colour is a subjective feature, dependent on the visual perception of the observer.
+                Since \textbf{rod} cells are more sensitive to light, they are the primary source of visual information at night.
+                \medskip
+
+                On the other hand, camera sensors have two common types;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{CCD} (charged-coupled device) \hfill often used in handheld cameras
+                    \item \textbf{CMOS} (complementary metal-oxide semiconductor) \hfill used by most smartphone cameras
+                \end{itemize}
+                These sensors convert incoming light into electron charges, which are then read.
+                \textbf{Bayer} filter arrays are a way to arrange RGB filters on sensors, half of which are green, and the remaining two quarters are red and blue.
+                This mimics the human eyes, which are most sensitive to green light;
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=-0.5cm] % I should've just taken a screenshot, why do I keep doing this to myself
+                        \foreach \i in {0,...,7} {
+                            \foreach[evaluate={
+                                \g=int(mod(\i + \j, 2);
+                                \jm=int(mod(\j, 2))
+                            }] \j in {0,...,7} {
+                                \ifthenelse{\g = 1}
+                                    {\def\col{green}}
+                                    {\ifthenelse{\jm = 0}
+                                        {\def\col{blue}}
+                                        {\def\col{red}}}
+                                \draw[fill=\col, draw=none] (\i, \j) -- (\i + 1, \j) -- (\i + 1, \j + 1) -- (\i, \j + 1) -- cycle;
+                            }
+                        }
+                        \foreach \x in {0,...,8} {\draw[thick] (\x, 0) -- (\x, 8);}
+                        \foreach \y in {0,...,8} {\draw[thick] (0, \y) -- (8, \y);}
+                    \end{tikzpicture}
+                \end{center}
+                CMOS works by having sensors underneath each of these filtered portions, which can report an electrical signal.
+                However, note that only one colour is available at each pixel (therefore the rest must be interpolated from the neighbours, by using bilinear interpolation; which simply averages the 4 neighbours).
+                For example, consider the following pixel (denoted as a white cross);
+                \begin{center}
+                    \begin{tikzpicture}[x=0.475cm, y=-0.475cm] % I should've just taken a screenshot, why do I keep doing this to myself
+                        \begin{scope}[shift={(0, 0)}]
+                            \foreach \i in {0,...,7} {
+                                \foreach[evaluate={
+                                    \g=int(mod(\i + \j, 2);
+                                    \jm=int(mod(\j, 2))
+                                }] \j in {0,...,7} {
+                                    \ifthenelse{\g = 1}
+                                        {\def\col{green}}
+                                        {\ifthenelse{\jm = 0}
+                                            {\def\col{blue}}
+                                            {\def\col{red}}}
+                                    \draw[fill=\col, draw=none] (\i, \j) -- (\i + 1, \j) -- (\i + 1, \j + 1) -- (\i, \j + 1) -- cycle;
+                                }
+                            }
+                            \foreach \x in {0,...,8} {\draw[thick] (\x, 0) -- (\x, 8);}
+                            \foreach \y in {0,...,8} {\draw[thick] (0, \y) -- (8, \y);}
+
+                            \node[white] at (1.5, 1.5) {$\times$};
+                        \end{scope}
+                        \begin{scope}[shift={(10, 0)}]
+                            \foreach \i in {0,...,7} {
+                                \foreach[evaluate={
+                                    \g=int(mod(\i + \j, 2);
+                                    \jm=int(mod(\j, 2))
+                                }] \j in {0,...,7} {
+                                    \ifthenelse{\g = 1}
+                                        {\def\col{white}}
+                                        {\ifthenelse{\jm = 0}
+                                            {\def\col{white}}
+                                            {\def\col{red}}}
+                                    \draw[fill=\col, draw=none] (\i, \j) -- (\i + 1, \j) -- (\i + 1, \j + 1) -- (\i, \j + 1) -- cycle;
+                                }
+                            }
+                            \foreach \x in {0,...,8} {\draw[thick] (\x, 0) -- (\x, 8);}
+                            \foreach \y in {0,...,8} {\draw[thick] (0, \y) -- (8, \y);}
+
+                            \node[white] at (1.5, 1.5) {$R$};
+                        \end{scope}
+                        \begin{scope}[shift={(20, 0)}]
+                            \foreach \i in {0,...,7} {
+                                \foreach[evaluate={\g=int(mod(\i + \j, 2)}] \j in {0,...,7} {
+                                    \ifthenelse{\g = 1}
+                                        {\def\col{green}}
+                                        {\def\col{white}}
+                                    \draw[fill=\col, draw=none] (\i, \j) -- (\i + 1, \j) -- (\i + 1, \j + 1) -- (\i, \j + 1) -- cycle;
+                                }
+                            }
+                            \foreach \x in {0,...,8} {\draw[thick] (\x, 0) -- (\x, 8);}
+                            \foreach \y in {0,...,8} {\draw[thick] (0, \y) -- (8, \y);}
+
+                            \node at (1.5, 0.5) {$G_1$};
+                            \node at (2.5, 1.5) {$G_2$};
+                            \node at (1.5, 2.5) {$G_3$};
+                            \node at (0.5, 1.5) {$G_4$};
+                        \end{scope}
+                        \begin{scope}[shift={(30, 0)}]
+                            \foreach \i in {0,...,7} {
+                                \foreach[evaluate={
+                                    \g=int(mod(\i + \j, 2);
+                                    \jm=int(mod(\j, 2))
+                                }] \j in {0,...,7} {
+                                    \ifthenelse{\g = 1}
+                                        {\def\col{white}}
+                                        {\ifthenelse{\jm = 0}
+                                            {\def\col{blue}}
+                                            {\def\col{white}}}
+                                    \draw[fill=\col, draw=none] (\i, \j) -- (\i + 1, \j) -- (\i + 1, \j + 1) -- (\i, \j + 1) -- cycle;
+                                }
+                            }
+                            \foreach \x in {0,...,8} {\draw[thick] (\x, 0) -- (\x, 8);}
+                            \foreach \y in {0,...,8} {\draw[thick] (0, \y) -- (8, \y);}
+
+                            \node[white] at (0.5, 0.5) {$B_1$};
+                            \node[white] at (2.5, 0.5) {$B_2$};
+                            \node[white] at (2.5, 2.5) {$B_3$};
+                            \node[white] at (0.5, 2.5) {$B_4$};
+                        \end{scope}
+                        \node at (9, 4) {$=$};
+                        \node at (19, 4) {$+$};
+                        \node at (29, 4) {$+$};
+
+                        \node at (14, 9) {$R_\times = R$};
+                        \node at (24, 9) {$G_\times = \frac{G_1 + G_2 + G_3 + G_4}{4}$};
+                        \node at (34, 9) {$B_\times = \frac{B_1 + B_2 + B_3 + B_4}{4}$};
+                    \end{tikzpicture}
+                \end{center}
+                Note that the use of different filters, and this interpolation, can lead to slightly different colours between cameras.
+            \subsubsection*{Image Representation}
+                The earliest colour space was described in 1931 by CIE, by performing a colour matching experiment.
+                In this experiment, an observer attempts to match different levels of red, green, and blue lights to match a target light.
+                This allows for colours to be represented in 3D space, as $(X, Y, Z)$, corresponding to the different levels.
+                Colours can also be represented on a 2D plane, by normalising brightness;
+                \begin{align*}
+                    x & = \frac{X}{X + Y + Z} \\
+                    y & = \frac{Y}{X + Y + Z} \\
+                    z & = \frac{Z}{X + Y + Z} \\
+                    & = 1 - x - y & \text{therefore redundant}
+                \end{align*}
+                Here $X, Y, Z$ are primary colours ($R, G, B$), and $x, y$ are chromacity / colour after removing brightness.
+                This is much easier to draw.
+                However, this colour space, also known as the \textbf{gamut} of human vision, was invented before computer screens.
+                \medskip
+
+                The sRGB (standard RGB) space was created by \textit{HP} and \textit{Microsoft} in 1996 for use on monitors, printers, and the internet.
+                \begin{center}
+                    \begin{tabular}{lcc}
+                        sRGB definition & $x$ & $y$ \\
+                        \hline
+                        \red{red} & 0.64 & 0.33 \\
+                        \textcolor{green}{green} & 0.30 & 0.60 \\
+                        \blue{blue} & 0.15 & 0.06
+                    \end{tabular}
+                \end{center}
+                This is represented by a triangle (which is a subset) in the gamut of human vision.
+                As this is a subset, it cannot produce all the colours visible by the human eye.
+                \medskip
+
+                There are other colour spaces, such as HSV, CMYK, and so on.
+                Note that CMYK is a \textbf{subtractive} colour model, starting from white, whereas RGB is an \textbf{additive} colour model, where we start from black.
+                There can also be an alpha channel in RGB, which represents transparency.
+                In a greyscale image, the three components are equal, hence only require one number.
 \end{document}
