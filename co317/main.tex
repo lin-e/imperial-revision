@@ -973,4 +973,52 @@
                     d_y & = p_z q_x - p_x q_z & \text{from above}
                 \end{align*}
                 Both of these equations can be fully written in terms of $\vec{d}$.
+        \subsection*{Lecture 3 - Clipping and 3D Geometry}
+            \textbf{Clipping} is the process of eliminating portions of objects outside the \textbf{viewing frustum} (bounadries of the image plane projected in 3D, consistening of a near and far clipping plane).
+            This is useful to avoid degeneracy (by not drawing objects behind the camera), as well as improving effiency by not processing objects which won't be visible.
+            \medskip
+
+            There are three points when we could clip;
+            \begin{itemize}
+                \itemsep0em
+                \item before perspective transform (3D space) \hfill world co-ordinates
+                \item after perspective transform \hfill homogeneous co-ordinates
+                \item after perspective division \hfill screen space
+            \end{itemize}
+            The second option, in camera co-ordinates, is ideal.
+            This is because the clipping planes are axis aligned, as we can discard anything further than the far plane or closer than the near plane.
+            \subsubsection*{Halfspace}
+                We can define any infinite line (for simplicity, in 2D) as a test;
+                $$f(x, y) = 0 \text{ such as } \violet{x - y + 1 = 0}$$
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (0, -1) edge[->] (0, 4)
+                        (-2, 0) edge[->] (4, 0);
+                        \node at (-0.5, 4) {$y$};
+                        \node at (4, -0.5) {$x$};
+
+                        \node at (2, 1) {\shortstack{halfspace\\$f(x, y) > 0$}};
+                        \node at (-2, 2) {\shortstack{halfspace\\$f(x, y) < 0$}};
+
+                        \draw[violet] (-2, -1) -- (3, 4);
+                    \end{tikzpicture}
+                \end{center}
+                In 3D, the plane equation is $f(x, y, z) = Ax + By + Cz + D = 0$, which also divides space into two spaces, one where the test is positive, and one where it is negative.
+                \medskip
+
+                Note that we can define $\vec{H}$ as the normal vector of our plane, and also normalise it to avoid infinite solutions by scaling;
+                \begin{align*}
+                    \vec{H} & = \begin{bmatrix}
+                        A \\ B \\ C \\ D
+                    \end{bmatrix} \\
+                    A^2 + B^2 + C^2 & = 1
+                \end{align*}
+                The distance is quite easily calculated as follows;
+                $$d = \vec{H} \cdot \vec{P} = \vec{H}^\top\vec{P}$$
+                This is a \textbf{signed} distance, where a positive value would denote inside, and a negative value would denote outside.
+                \medskip
+
+                Consider the \textbf{view frustum}, where we have 6 planes, and their normals oriented towards the interior of the frustum (where each plane has its own $\vec{H}$).
+                If $\vec{H} \cdot \vec{P} < 0$ for \textbf{any} of the planes, then it is clipped, as it would be outside of the frustum.
 \end{document}
