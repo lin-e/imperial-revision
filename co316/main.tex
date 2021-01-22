@@ -321,7 +321,7 @@
                 \begin{center}
                     \begin{tikzpicture}
                         \draw (3, 0) ++(48.8:1) arc (48.8:132.2:1);
-                        \draw[blue!50!black] (0, 0) edge[below] node{rough surface} (6, 0);
+                        \draw[blue!50!black] (0, 0) edge[below] node{smooth surface} (6, 0);
                         \draw[red!50!black] (1.25, 2) edge[->] (3, 0);
                         \draw[blue!50] (4.75, 2) edge[<-] (3, 0);
                         \draw[dashed] (3, 1.5) -- (3, 0);
@@ -515,4 +515,121 @@
                 Note that CMYK is a \textbf{subtractive} colour model, starting from white, whereas RGB is an \textbf{additive} colour model, where we start from black.
                 There can also be an alpha channel in RGB, which represents transparency.
                 In a greyscale image, the three components are equal, hence only require one number.
+            \subsubsection*{Quantisation}
+                Note that this is covered in lecture 3.
+                \medskip
+
+                \textbf{Quantisation} maps a continuous signal to a discrete signal.
+                The pictures from a camera are a continuous signal, but when it is stored on the camera, it is quantised to a discrete signal.
+                Numerical errors can occur during this process, and the magnitude of the errors depends on the number of bits used (less error with more bits; 16 bits can store from 0 to 65535, compared to 8 bits storing from 0 to 255).
+                \medskip
+
+                Physically, an analog-to-digital convert (ADC) is used to perform the conversion.
+                The energy of photons are converted into voltage, amplified, and then converted.
+            \subsubsection*{Compression}
+                In order to reduce the cost of storage to transmission, compression may be used.
+                Lossy compression loses information after the compression (such as discrete cosine transform (DCT) in JPEG, often used for images or videos).
+                However, lossless compression can also reduce the file size (less efficient compared to lossy), and is preferred for archival purposes or important imaging, where detail needs to be recovered.
+        \subsection*{Lecture 3 - Image Filtering}
+            Note that in this course, most of the examples will be done on greyscale images, but can be applied to the channels individually.
+            Some examples of filters include;
+            \begin{itemize}
+                \itemsep0em
+                \item identity filter
+                    \smallskip
+
+                    Does nothing to the image.
+                \item low-pass / smoothing (moving average, Gaussian)
+                    \smallskip
+
+                    Removes high-frequency signals, and keep low-frequency signals.
+                \item high-pass / sharpening
+                    \smallskip
+
+                    Similar to the previous filter (keeps high-frequency signals, and removes low-frequency).
+                \item denoise (median, non-local means, block-matching and 3D filtering)
+            \end{itemize}
+            \subsubsection*{Moving Average Filter}
+                This is commonly used for 1D signal processing (time series), such as stocks, which can be quite noisy.
+                To smooth out a noisy curve, it moves a window across the signal (and calculates the average value within the window) - the larger the window size, the smoother the result.
+                \medskip
+
+                In a two dimensional case, we can use a \textbf{filter kernel} (for example, with a $3 \times 3$ kernel);
+                $$\frac{1}{9} \begin{bmatrix}
+                    1 & 1 & 1 \\
+                    1 & 1 & 1 \\
+                    1 & 1 & 1
+                \end{bmatrix}$$
+                At each pixel, we apply the kernel centred at the pixel, and take the average of the pixels around it (and itself) to create a new output image.
+                When we blur with a larger kernel, such as $7 \times 7$, we end up with a blurrier image.
+                Note that the output image is smaller than the input image.
+                We can pad the image with zeroes (anything outside of the picture is 0), or by mirroring the pixels (copying the boundary pixels).
+                \medskip
+
+                Consider an image of size $N \times N$, and a kernel size of $K \times K$.
+                At each pixel, we perform $K^2$ multiplications (by the kernel weights), and then $K^2 - 1$ summations.
+                This has to be done for each pixel, hence $N^2$ times.
+                Therefore this results in $N^2 K^2$ multiplications and $N^2 (K^2 - 1)$ summations; giving a \textbf{complexity} of $O(N^2 K^2)$.
+                However, we'd like to reduce this, if possible.
+                \medskip
+
+                If a big filter can be separated as two filters (\textbf{separable filter}) applied consecutively, we can perform the first operation, and then the second.
+                An average in a 2D window can be done as an average across rows (horizontal), and then an average across columns (vertical);
+                $$\begin{bmatrix}
+                    \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
+                    \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
+                    \frac{1}{9} & \frac{1}{9} & \frac{1}{9}
+                \end{bmatrix} = \begin{bmatrix}
+                    \frac{1}{3} & \frac{1}{3} & \frac{1}{3}
+                \end{bmatrix} * \begin{bmatrix}
+                    \frac{1}{3} \\ \frac{1}{3} \\ \frac{1}{3}
+                \end{bmatrix}$$
+                Doing these two filters, we end up with an equivalent result to the original 2D filter.
+                Note that $*$ is a convolution (see next lecture).
+                \medskip
+
+                Consider the complexity of separable filtering.
+                The image size remains as $N \times N$, however we have two kernels, of $1 \times K$ and $K \times 1$ respectively.
+                At each pixel we do $K$ multiplications followed by $K - 1$ summations.
+                Again, this is done for $N^2$ pixels, and twice (once for each filter).
+                Therefore, the total number of multiplications is $2N^2K$ multiplications and $2N^2(K - 1)$ summations.
+                This is better, in contrast to the original complexity, as we have complexity of $O(N^2K)$ - which will make a difference for large $K$.
+                \medskip
+
+                A moving average filter removes high frequency signals (noise or sharpness), which results in a smooth but blurry image.
+            \subsubsection*{Gaussian Filter}
+                The kernel is a 2D Gaussian distribution;
+                $$h(i, j) = \frac{1}{2 \pi \sigma^2} e^{-\frac{i^2 + j^2}{2 \sigma^2}}$$
+                Here we have $i, j = 0, 0$ as the centre of the kernel.
+                While the support is infinite, small values outside the range $[-k\sigma, k\sigma]$ can be ignored (very small values, such as $k=3$ or $k=4$).
+                Note that $\sigma$ is a manually defined parameter.
+                This is a separable filter, which is equivalent to two 1D Gaussian filters with the same $\sigma$, with one along the $x$-axis and the other along the $y$-axis;
+                \begin{align*}
+                    h(i, j) & = h_x(i) * h_y(j) \\
+                    h_x(i) & = \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\frac{i^2}{2\sigma^2}}
+                \end{align*}
+            \subsubsection*{High-pass Filter}
+                One design is to do the following;
+                $$\underbrace{\begin{bmatrix}
+                    0 & 0 & 0 \\
+                    0 & 1 & 0 \\
+                    0 & 0 & 0
+                \end{bmatrix}}_\text{identity} + \underbrace{\left(\begin{bmatrix}
+                    0 & 0 & 0 \\
+                    0 & 1 & 0 \\
+                    0 & 0 & 0
+                \end{bmatrix} - \begin{bmatrix}
+                    \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
+                    \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
+                    \frac{1}{9} & \frac{1}{9} & \frac{1}{9}
+                \end{bmatrix}\right)}_\text{high-frequency} = \begin{bmatrix}
+                    -\frac{1}{9} & -\frac{1}{9} & -\frac{1}{9} \\
+                    -\frac{1}{9} & \frac{17}{9} & -\frac{1}{9} \\
+                    -\frac{1}{9} & -\frac{1}{9} & -\frac{1}{9}
+                \end{bmatrix}$$
+                We can add a high frequency signal to the identity, in order to enhance it.
+            \subsubsection*{Median Filter}
+                This is a non-linear filter (not performing an average calculation by multiplication).
+                This moves a sliding window, and replaces the centre pixel with the median value in the window - this is not a linear equation.
+
 \end{document}
