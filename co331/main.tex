@@ -466,4 +466,324 @@
                         \end{itemize}
                         Responses should be documented, such as in a project issue tracker.
                 \end{enumerate}
+        \subsection*{Week 2}
+            \subsubsection*{Authentication}
+                The main application of computer passwords are the protection of cryptographic keys or user authentication.
+                Password based authentication is widely used as it is easy to understand, easy to implement, and deploy.
+                Some implementations are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{plain-text passwords}
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item store all credentials in a file (~/etc/passwd~ or ~/etc/shadow~);
+                                \begin{lstlisting}
+                                    alice:foo
+                                      bob:bar
+                                \end{lstlisting}
+                            \item user gives username and password
+                            \item check if username is present, if it is; check password matches stored
+                            \item grant / deny access
+                        \end{enumerate}
+                        This becomes a valuable target for hackers, as this file alone allows for anyone with the file to impersonate users on the system.
+                    \item \textbf{encrypted passwords}
+                        \smallskip
+
+                        This implementation uses \textbf{symmetric encryption}, where the encryption and decryption are done with the same key.
+                        The steps are similar to above, however \textbf{encrypted} passwords are stored in the file - the remaining steps are the same (except step 3, where we check if the decrypted version of the stored password matches the given password).
+                        \medskip
+
+                        This is more secure than before; where the attack tree now has two children (need to obtain the encrypted file \textbf{and} the decryption key).
+                    \item \textbf{password hashes}
+                        \smallskip
+
+                        In contrast to before, this uses a \textbf{one-way} hashing function, which should not be reversed.
+                        Similar to before, we now store \textbf{hashed} passwords in the file.
+                        Step 3 now applies the hash function to the presented password, checking that it matches the hash stored in the file.
+                        While this is more secure than the previous, it's susceptible to an \textbf{offline dictionary attack}, where a large table of candidate passwords and corresponding hashes are built up.
+                        A hash in the stolen password file can now be looked up in the \textbf{rainbow table}.
+                    \item \textbf{salted hashes}
+                        \smallskip
+
+                        A \textbf{salt} is a cryptographically random string, which is combined with the password in the hash.
+                        The salted hashes are stored in the file, in the format ~username:salt:salted\_hashed\_password~ (where the salt is specific to the user);
+                        \begin{lstlisting}
+                            alice:61C82:2CFAD1C96B8236072823B77EDBF150B1
+                              bob:8B4D8:7FBA1AFAAB57793255B59A8D596449D3
+                        \end{lstlisting}
+                        Step 3 now combines the given password with the salt, hashes it, and checks it against the salted and hashed password in the file.
+                        The remaining steps are the same.
+                        \medskip
+
+                        It's now impractical to build a rainbow table, as a different dictionary will be needed for each possible salt.
+                \end{itemize}
+                The Linux password file stores passwords in the following format;
+                \begin{center}
+                    ~username:password\_data:parameters~
+                \end{center}
+                Where the ~password\_data~ is stored in the following format;
+                \begin{center}
+                    ~\$hash\_function\_id\$salt\$password~
+                    \smallskip
+
+                    \begin{tabular}{l|l}
+                        ~hash\_function\_id~ & algorithm \\
+                        \hline
+                        ~1~ & ~md5~ \\
+                        ~2a~, ~2y~ & ~blowfish~ \\
+                        ~5~ & ~sha256~ \\
+                        ~6~ & ~sha512~
+                    \end{tabular}
+                \end{center}
+                The problem with passwords is usability; complex passwords are a burden to users.
+                Security questions are also dangerous, as common answers can quite easily be found online via social media.
+                Hints also tend to be chosen such that they easily give away the password.
+                Ideally, we choose a password we can't remember, and don't write it down.
+                However, it's hard for humans to choose and remember good passwords, therefore users tend to use memorable passwords (and users with common interests may use similar passwords).
+                \medskip
+
+                Because of this, offline dictionary attacks don't need to try every possible passwords; they can start with a dictionary of common words, and then apply rules to generate variants.
+                This can include `leetspeak', where letters are substituted with similar looking numbers, using a few uppercase letters, and appending common years.
+                \medskip
+
+                Another issue is password reuse, leading to \textbf{online dictionary attacks}.
+                In this situation, attackers submit login combinations to a live authentication system (rather than a stolen password file).
+                Usernames are quite easy to find (as they are public) or can just be email addresses.
+                Previously used passwords are easily to find, where lists of passwords from hacked websites can easily be found.
+                \medskip
+
+                Defences against this can include limiting the number of attempts per username / IP before blocking access.
+                Another approach is to use CAPTCHAs, preventing simple automation attacks (however it can inconvenience legitimate users).
+                Honeypot accounts can also be made, which are easily cracked.
+                Requests can be blocked from a device attempting to login to one of these accounts.
+                \medskip
+
+                The best practices to build passwords are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item filters to select, random looking passwords (force user to use good passwords)
+                    \item hash passwords with functions like ~PBKDF2~ (password based key derivation function) or ~bcrypt~ (which take long enough to prevent hackers from building rainbow tables)
+                    \item don't force users to change passwords often (otherwise users will choose easy passwords)
+                    \item don't fail with ``user not found''; this allows attackers to find valid users
+                    \item block account or requests from same IP after too many attempts
+                    \item on a successful long, show information about last login (allows user to report suspicious logins) and notify user if login is from a different machine / location
+                \end{itemize}
+                On the other hand, some practices that could be followed by users (to enhance passwords);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{password managers}
+                        \smallskip
+
+                        Password managers allow users to handle strong passwords for many different websites, as well as avoid phishing sites.
+                        However, they are a single point of failure; if the master password is lost, all the other accounts are lost, similarly if a hacker obtains the master password, all passwords are obtained.
+                        Online managers are exposed to hackers, whereas offline managers can potentially be unavailable.
+                    \item \textbf{2FA} (2$^\text{nd}$ factor authentication)
+                        \smallskip
+
+                        2FA prevents attacks based on weak / stolen passwords.
+                        However, the main downsides include being locked out of an account without the device, as well as users being given a false sense of security (leading to weaker passwords).
+                        It also introduce another device into the user's \textbf{Trusted Computing Base}.
+                    \item \textbf{OAuth or Single Sign On}
+                        \smallskip
+
+                        This allows for authentication via a trusted identity provider, such as some social networks, delegating responsibility to a third party.
+                        However, this does lead to the cost of giving a third party your user data.
+                \end{itemize}
+                There are also alternatives to passwords entirely, including;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{hardware tokens}
+                        \smallskip
+
+                        Commonly used by banks (creating single use passwords / tokens for logins or transactions).
+                        These are expensive and hard to replace.
+                    \item \textbf{biometric authentication}
+                        \smallskip
+
+                        It's impossible to replace if ``lost'' or revealed (spoofed).
+                    \item \textbf{RFID tags}
+                        \smallskip
+
+                        As a physical object, they are at risk of theft or misplacement.
+                        Similarly, due to the nature of RFID, it can be susceptible to proximity based attacks.
+                    \item \textbf{passwordless authentication}
+                        \smallskip
+
+                        A lower value website can be authenticated by the user proving they have access to a certain email.
+                        When the user wishes to login, a temporary pin is generated and sent to a given email.
+                \end{itemize}
+            \subsubsection*{Pentesting}
+                \textbf{Penetration testing} is the process of paying someone to break into a system or organisation, and report the weaknesses (can also include physical security of the building).
+                It's important to scope the pentesting, particularly the goals we are trying to achieve (what's being accessed).
+                Once this is agreed, restrictions on the targets, tools, techniques, and side effects (cannot wipe out an entire database to prove it is vulnerable) need to be discussed.
+                \medskip
+
+                A pentesting exercise is also defined by the amount of available information;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{black box} \hfill no information, all has to be discovered from a given high-level goal
+                    \item \textbf{grey box} \hfill selected information, e.g; there is an intranet, which contains a database server
+                    \item \textbf{white box} \hfill extensive information about the system, possibly including source code
+                \end{itemize}
+                It's hard to ensure a pentester has tried ``hard enough'', and one option is to have several teams playing against each other.
+                Certifications (such as \textit{CISSP}) commend higher fees.
+                \medskip
+
+                PTES (Penetration Testing Execution Standard) are a set of fundamental principles and technical guidelines for pentesting, with the following key steps;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item pre-engagement interactions \hfill sign contract, define scope
+                    \item \textbf{intelligence gathering}
+                        \smallskip
+
+                        This can be split into two phases;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{passive} information gathering
+                                \smallskip
+
+                                The aim is to build as much information about the target system without engaging with the target itself.
+                                We want to have enough information to build a data-flow diagram of the target, in order to drive the next phase, as well as information about the network structure of the target.
+                                However, we don't want to reveal our presence at this phase, and one technique is to prevent any connection to the target (by blocking access through a firewall or proxy).
+                                \medskip
+
+                                One approach is to look for information made public, including possible blog posts from the company which may contain relevant information.
+                                From there, we can find any web presence - looking at source code for any links, form fields, as well as references to open source code used (possibly finding bugs or hardcoded credentials) and protocols.
+                                While accessing the website should be fine, it's also possible to hide any presence at this point by looking at cached versions of the site only.
+                                It's important to note that even publicly accessible data may be protected by law.
+                                \smallskip
+
+                                One technique that can be used is \textbf{Google Hacking}, which uses search engine operators to locate sites;
+                                \begin{itemize}
+                                    \itemsep0em
+                                    \item ~ext:pdf~ \hfill search with specific extensions
+                                    \item ~site:example.com~ \hfill search within a given website only
+                                    \item ~"index.html" inurl: -html~
+                                        \smallskip
+
+                                        find inside page, but without ~html~ in the URL (find exposed directories)
+                                    \item ~allintext:"Powered by phpbb"~ \hfill locate sites running known vulnerable software
+                                \end{itemize}
+                            \item \textbf{active} information gathering
+                                \smallskip
+
+                                We can collect more in-depth information if we are willing to contact our directly, at the risk of being detected (therefore it is better to do it from a different IP than the one used for exploitation).
+                                To verify gathered email addresses, emails could be sent to these addresses and checked for any bounces.
+                                Network probing can also be done, identifying what subnet addresses are active and what ports accept communications.
+                                It's also possible to identify services, by performing \textbf{banner grabbing} as some services send identifying information by default, or by reverse-engineering the protocol.
+                                It may be sufficient to send random data and to observe the error message.
+                        \end{itemize}
+                    \item \textbf{threat modelling}
+                    \item \textbf{vulnerability analysis}
+                        \smallskip
+
+                        The target may not be fully patched.
+                        From there, we can look in the CVE database for any vulnerabilities in the previously identified components.
+                        Automated tools can be used to systematically scan the target (however this generates a large amount of traffic).
+                        \medskip
+
+                        However, if the system is patched, we can attempt to look for new vulnerabilities.
+                        If the source code is available, we can use static analysis tools or perform this by hand (which can be very slow).
+                        Another approach is to trigger vulnerabilities with educated guesses like SQLi or XSS.
+                        \medskip
+
+                        Another approach is to find credentials, by either looking for default logins or finding password hashes published by hackers.
+                    \item \textbf{exploitation}
+                        \smallskip
+
+                        In this phase, we actually act on the vulnerabilities identified before.
+                        For example; if we have collected credentials, we can attempt to use them to see if they work.
+                        We can also run publicly available exploits, either manually (and with our own exploits), or using automated tools such as \textit{Metasploit} (tailored to verified vulnerabilities only, not just everything the tool can do).
+                    \item \textbf{post-exploitation}
+                        \smallskip
+
+                        If the exploited account isn't an administrator, privilege escalation should be attempted.
+                        Typical goals to prove access include;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item steal data
+                            \item send data back to the hacker
+                            \item maintain access
+                            \item manipulate logs to cover tracks
+                            \item pivot; use host to exploit other targets on LAN
+                        \end{itemize}
+                    \item reporting
+                \end{enumerate}
+            \subsubsection*{Networks Background}
+                Most of this should be covered in the \textbf{CO212} module last year.
+            \subsubsection*{LAN Security}
+                We want to clarify the principles of what we consider as legitimate users and attackers on the networks, and the capabilities;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{participant}
+                        \smallskip
+
+                        A participant can send and receive legitimate packets that respect the protocol (for example web browsers and web applications).
+                    \item \textbf{eavesdropper}
+                        \smallskip
+
+                        On the other hand, an eavesdropper can read packets sent to others, and will not / cannot participate.
+                        Examples of eavesdroppers include wiretappers and sniffers on a broadcast network.
+                    \item \textbf{off-path}
+                        \smallskip
+
+                        In contrast, an off-path attacker is connected to the same network between the client and the server, however is not in the same local area network (and cannot sniff packets).
+                        However, it can participate and create arbitrary packets (which may not abide by the protocols).
+                        Examples of this include independent machines connected to the same WiFi.
+                    \item \textbf{MITM (man in the middle)}
+                        \smallskip
+
+                        These are more powerful and completely control the link between one host and the rest of the network.
+                        They can participate like a regular participant, but can also read, modify, or delete packets.
+                        Examples of this include a proxy, an ISP, a router, or WiFi access point (therefore we should be careful on untrusted networks).
+                \end{itemize}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[draw, dashed] (n) at (1, 0) {network};
+                        \node[draw] (c) at (-3, 0) {client};
+                        \node[draw] (mitm) at (5, 0) {man-in-the-middle};
+                        \node[draw] (s) at (9, 0) {server};
+                        \node[draw] (op) at (1, -1) {off-path};
+                        \node[draw] (e) at (-1, 1) {eavesdropper};
+
+                        \draw
+                        (c) -- (n)
+                        (n) -- (mitm)
+                        (mitm) -- (s)
+                        (op) -- (n)
+                        (e) -- (-1, 0);
+                    \end{tikzpicture}
+                \end{center}
+                Within the same LAN, devices send messages to each other based on MAC (Media Access Control) addresses.
+                The DHCP (Dynamic Host Configuration Protocol) tells new hosts their IP addresses (and other configuration information).
+                ARP (Address Resolution Protocol) is used to find the MAC of an IP on the same LAN.
+                \medskip
+
+                As a device typically communicates by asking for data to be sent to a device with a given MAC, LANs typically rely on broadcast medium such as cable (Ethernet) or wireless (WiFi).
+                Conflict resolution requires a minimum packet size, and if this padding data is not properly initialised (either with zeroes or dummy data) - and contains more bytes from the buffer, this may lead to data disclosure.
+                Eavesdroppers hosts can also sniff the network (and we should assume that hosts connected to the network can see whatever we send).
+                \medskip
+
+                Assume a switch with 3 ports, and devices $A$, $B$, and $C$ connected to ports 1, 2, and 3 respectively, where $C$ is the attacker.
+                \textbf{MAC flooding} is done in two phases, to force the switch to broadcast traffic;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item The attacker floods the CAM table with frames with invalid source MACs ($X \to ?$, $Y \to ?$, etc), preventing valid hosts from creating CAM entries.
+                    \item A message $A \to B$ is now flooded out to both $B$ and $C$, since no CAM entries exist for the valid hosts.
+                \end{enumerate}
+                Countermeasures to this include limiting the number of MAC addresses from a single port as well as keeping track of authorised MAC addresses in the system.
+                \medskip
+
+                Another attack is \textbf{ARP poisoning}.
+                By design, MAC is easy to spoof (as a way to deal with conflicting hardware).
+                An attacker can change its MAC address in order to evade access control mechanisms.
+                An off-path attacker spoofing the router can become a MITM.
+                The process for poisoning is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item switch needs to find MAC corresponding to an IP
+                    \item attacker spoofs MAC of victim and replies like the victim
+                    \item message is forwarded to both ports that replied (victim and attacker)
+                \end{enumerate}
+                Countermeasures include static ARP rules (which can be inconvenient), or to detect spoofed ARP messages (at which point both hosts are kicked off, and an administrator is likely notified).
 \end{document}
