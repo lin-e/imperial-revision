@@ -974,8 +974,8 @@
                 \end{align*}
                 Both of these equations can be fully written in terms of $\vec{d}$.
         \subsection*{Lecture 3 - Clipping and 3D Geometry}
-            \textbf{Clipping} is the process of eliminating portions of objects outside the \textbf{viewing frustum} (bounadries of the image plane projected in 3D, consistening of a near and far clipping plane).
-            This is useful to avoid degeneracy (by not drawing objects behind the camera), as well as improving effiency by not processing objects which won't be visible.
+            \textbf{Clipping} is the process of eliminating portions of objects outside the \textbf{viewing frustum} (boundaries of the image plane projected in 3D, consisting of a near and far clipping plane).
+            This is useful to avoid degeneracy (by not drawing objects behind the camera), as well as improving efficiency by not processing objects which won't be visible.
             \medskip
 
             There are three points when we could clip;
@@ -1021,4 +1021,384 @@
 
                 Consider the \textbf{view frustum}, where we have 6 planes, and their normals oriented towards the interior of the frustum (where each plane has its own $\vec{H}$).
                 If $\vec{H} \cdot \vec{P} < 0$ for \textbf{any} of the planes, then it is clipped, as it would be outside of the frustum.
+        \subsection*{Lecture 4 - Graphics Pipelines and APIs}
+            All graphics systems work according to some fundamental principles, we can define two conceptually related graphics pipelines;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{declarative} \hfill tell system what we want to render, not how
+                    \smallskip
+
+                    Relates to OOP.
+                    For example, we can define a sphere which knows about its environment, and its location etc, and can draw itself with graphics primitives (essentially how to tessellate itself).
+                    Virtual cameras, and scene descriptions (scene graphs) can also exist.
+                    Every object may know about each other.
+                \item \textbf{imperative} \hfill tell the system how to render something, but not what is being rendered
+                    \smallskip
+
+                    In contrast, the pipeline here now takes in a sequence of drawing commands, such as drawing a vertex at a given position.
+                    As such, objects can be drawn independent from each other, allowing for a degree of parallelism.
+            \end{itemize}
+            It's important to note that we build declarative pipelines on top of an imperative model.
+            For example, the sphere should know how to tessellate itself, and send the commands to the imperative backend.
+            \begin{center}
+                \begin{tikzpicture}[y=-1cm]
+                    \begin{scope}[shift={(0, 0)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {\shortstack{modelling\\transformations}};
+                    \end{scope}
+                    \begin{scope}[shift={(0, 1.5)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {\shortstack{illumination\\(shading)}};
+                    \end{scope}
+                    \begin{scope}[shift={(0, 3)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {\shortstack{viewing transformation\\(perspective / orthographic)}};
+                    \end{scope}
+                    \begin{scope}[shift={(0, 4.5)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {\shortstack{clipping}};
+                    \end{scope}
+                    \begin{scope}[shift={(0, 6)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {\shortstack{projection\\(to screen space)}};
+                    \end{scope}
+                    \begin{scope}[shift={(0, 7.5)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {\shortstack{scan conversion\\(rasterization)}};
+                    \end{scope}
+                    \begin{scope}[shift={(0, 9)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {\shortstack{visibility / display}};
+                    \end{scope}
+                    \node (a) at (10, 0.5) {application};
+                    \node (o) at (10, 9.5) {\shortstack{output: 2D image\\for framebuffer display}};
+                    \draw
+                    (3, 1) edge[->] (3, 1.5)
+                    (3, 2.5) edge[->] (3, 3)
+                    (3, 4) edge[->] (3, 4.5)
+                    (3, 5.5) edge[->] (3, 6)
+                    (3, 7) edge[->] (3, 7.5)
+                    (3, 8.5) edge[->] (3, 9)
+                    (a) edge[->, above] node{\shortstack{drawing\\commands}} (6, 0.5)
+                    (6, 9.5) edge[->] (o);
+                \end{tikzpicture}
+            \end{center}
+            The steps of the pipeline perform the following;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{modelling transformations}
+                    \smallskip
+
+                    As 3D models are defined in the own coordinate systems (might all be at the origin, etc.), modelling transformations orients the models within the world coordinates (as a common coordinate frame).
+                    This can include scaling, rotation, and transformations.
+                \item \textbf{illumination (shading)}
+                    \smallskip
+
+                    Approximate lighting model to give initial ideas for how the object may be illuminated.
+                    The main illumination is done at this step, before clipping, in order to get accurate shadows (which may have been clipped).
+                \item \textbf{viewing transformation}
+                    \smallskip
+
+                    The world space is mapped into camera space.
+                    The viewing position is transformed to the origin, and the viewing direction is oriented along the $z$ axis (typically).
+                \item \textbf{clipping}
+                    \smallskip
+
+                    Remove portions of the scene outside the view frustum.
+                    Transformation is also performed to Normalised Device Coordinates (pictured below).
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \draw (0, 0) -- (4, 0) -- (5, -1) -- (1, -1) -- cycle;
+                            \draw (0, -3) -- (4, -3) -- (5, -4) -- (1, -4) -- cycle;
+                            \draw
+                            (0, 0) -- (0, -3)
+                            (4, 0) -- (4, -3)
+                            (5, -1) -- (5, -4)
+                            (1, -1) -- (1, -4);
+                            \draw
+                            (4.5, -2) edge[dotted, ->] (4.5, 0.5)
+                            (4.5, -2) edge[dotted, ->] (1.5, -2)
+                            (4.5, -2) edge[dotted, ->] (3, -0.5);
+                            \node at (5, 0.5) {$y$};
+                            \node at (2.5, -0.5) {$x$};
+                            \node at (1.5, -2.5) {$z$};
+                        \end{tikzpicture}
+                    \end{center}
+                \item \textbf{projection}
+                    \smallskip
+
+                    The objects are projected into the 2D imaging plane screen space (see below);
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \draw (0, 0) -- (4, 0) -- (5, -1) -- (1, -1) -- cycle;
+                            \draw (0, -3) -- (4, -3) -- (5, -4) -- (1, -4) -- cycle;
+                            \draw
+                            (0, 0) -- (0, -3)
+                            (4, 0) -- (4, -3)
+                            (5, -1) -- (5, -4)
+                            (1, -1) -- (1, -4);
+                            \draw
+                            (5, -4) edge[dotted, ->] (5, 0.5)
+                            (5, -4) edge[dotted, ->] (0.5, 0.5)
+                            (5, -4) edge[dotted, ->] (-1, -4);
+                            \node at (5.5, 0.5) {$y$};
+                            \node at (0, 0.5) {$x$};
+                            \node at (-1, -3.5) {$z$};
+                            \node at (5.5, -4.5) {$O$};
+                            \foreach \y in {0,...,8} {
+                                \draw (0, -0.3 * \y - 0.3) -- (1, -0.3 * \y - 1.3);
+                            }
+                            \foreach \x in {0,...,5} {
+                                \draw (0.1412 * \x + 0.1412, -0.1412 * \x - 3.1412) -- (0.1412 * \x + 0.1412, -0.1412 * \x - 0.1412);
+                            }
+                        \end{tikzpicture}
+                    \end{center}
+                \item \textbf{rasterization}
+                    \smallskip
+
+                    Converts objects into pixels, and interpolates values inside objects.
+                    Due to hardware support, it's more efficient to just rasterize everything.
+                \item \textbf{visibility / display}
+                    \smallskip
+
+                    Handles occlusions and transparency blending, as well as determining which objects are closest (and hence visible).
+            \end{itemize}
+            The majority of real-time graphics is based on the rasterization of graphic primitives (points, lines, triangles, etc).
+            This is typically implemented in hardware (GPU), and is controlled through an API such as \textit{OpenGL}.
+            Certain parts of the pipeline are programmable, such as with GLSL (shaders).
+            \medskip
+
+            A \textbf{vertex} is a point in space defining geometry and a \textbf{fragment} is a sample produced during rasterization (multiple of which are merged into pixels).
+            The high level view of the pipeline is as follows;
+            \begin{center}
+                \begin{tikzpicture}[y=-1cm]
+                    \begin{scope}[shift={(0, 0)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {application};
+                    \end{scope}
+                    \begin{scope}[shift={(0, 2)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {geometry};
+                    \end{scope}
+                    \begin{scope}[shift={(0, 4)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {rasterization};
+                    \end{scope}
+                    \begin{scope}[shift={(0, 6)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {frame buffer};
+                    \end{scope}
+                    \begin{scope}[shift={(0, 8)}]
+                        \draw (0, 0) -- (6, 0) -- (6, 1) -- (0, 1) -- cycle;
+                        \node at (3, 0.5) {display};
+                    \end{scope}
+                    \draw
+                    (3, 1) edge[->, right] node{commands} (3, 2)
+                    (3, 3) edge[->, right] node{primitives} (3, 4)
+                    (3, 5) edge[->, right] node{fragments} (3, 6)
+                    (3, 7) edge[->, right] node{scan-out} (3, 8);
+                \end{tikzpicture}
+            \end{center}
+            It's important to draw a distinction in which stage we're working.
+            When we have geometry processing and write shaders to do something with our vertices, we are at a vertex stage (everything lives in 3D coordinates).
+            \subsubsection*{Application Stage}
+                At the application stage, we typically generate a database of the scene (loaded from disks), and perform simulations (physics).
+                Input events are also handled here.
+                In this stage, objects are just vertex coordinates, and how they are connected.
+                \medskip
+
+                The lecture now goes over the graphics pipeline in \textbf{OpenGL 3.2}.
+                It's important to note that many fixed functions (including tessellation primitive generation, rasterization and interpolation) are implemented in hardware, for performance.
+            \subsubsection*{Geometry Stage}
+                \begin{center}
+                    \begin{tikzpicture}[x=0.75cm, y=0.75cm]
+                        \draw (0, 0) -- (4, 0) -- (4, -2) -- (0, -2) -- cycle;
+                        \draw (6, 0) -- (10, 0) -- (10, -2) -- (6, -2) -- cycle;
+                        \draw (12, 0) -- (16, 0) -- (16, -2) -- (12, -2) -- cycle;
+                        \draw (18, 0) -- (22, 0) -- (22, -2) -- (18, -2) -- cycle;
+                        \node at (2, -1) {\shortstack{vertex\\processing}};
+                        \node at (8, -1) {\shortstack{clipping}};
+                        \node at (14, -1) {\shortstack{projection}};
+                        \node at (20, -1) {\shortstack{viewport\\transform}};
+                        \draw[
+                            thick,
+                            decoration={
+                                brace,
+                                mirror,
+                                raise=5
+                            },
+                            decorate
+                        ] (0, -2) -- (4, -2) node[pos=0.5, anchor=north, yshift=-5.55] {programmable};
+                        \draw[
+                            thick,
+                            decoration={
+                                brace,
+                                mirror,
+                                raise=5
+                            },
+                            decorate
+                        ] (6, -2) -- (22, -2) node[pos=0.5, anchor=north, yshift=-5.55] {fixed function (hardware)};
+                        \draw
+                        (4, -1) edge[->] (6, -1)
+                        (10, -1) edge[->] (12, -1)
+                        (16, -1) edge[->] (18, -1);
+                    \end{tikzpicture}
+                \end{center}
+                In the vertex processing stage, the input vertex stream (composed of arbitrary vertex attributes such as position and colour) is transformed into a stream of vertices mapped onto the screen by the vertex shader.
+                The following is the vertex post-processing pipeline (we can pre-multiply matrices if we don't need to do anything between the stages - typically we want to do stuff before the \textbf{projection matrix} however);
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node (ivc) at (-0.5, 0) {\shortstack{input vertex\\coordinates}};
+                        \node[draw] (mm) at (3, 0) {\shortstack{model\\matrix}};
+                        \node[draw] (dm) at (6, 0) {\shortstack{draw\\matrix}};
+                        \node[draw] (pm) at (9, 0) {\shortstack{projection\\matrix}};
+                        \node (ovc) at (12.5, 0) {\shortstack{output vertex\\coordinates}};
+                        \node[draw] (mvm) at (4.5, -2) {\shortstack{model view\\matrix}};
+                        \node[draw] (mvpm) at (6, -4) {\shortstack{model view projection\\matrix}};
+                        \draw
+                        (ivc) edge[->] (mm)
+                        (mm) edge[->] (dm)
+                        (dm) edge[->] (pm)
+                        (pm) edge[->] (ovc)
+                        (1.5, 0) -- (1.5, -4)
+                        (1.5, -2) edge[->] (mvm)
+                        (mvm) -- (7.5, -2) -- (7.5, 0)
+                        (1.5, -4) edge[->] (mvpm)
+                        (mvpm) -- (10.5, -4) -- (10.5, 0);
+                        \node at (1.5, 1) {\shortstack{object\\space}};
+                        \node at (4.5, 1) {\shortstack{world\\space}};
+                        \node at (7.5, 1) {\shortstack{view\\space}};
+                        \node at (10.5, 1) {\shortstack{clip\\space}};
+                    \end{tikzpicture}
+                \end{center}
+                The \textbf{geometry shader} is an optional stage between the vertex and fragment shader; it has full knowledge of the primitive it is working on (unlike the vertex shader).
+                It can also generate primitives dynamically (such as procedural geometry in growing plants).
+                Note that this is limited by the GPU.
+            \subsubsection*{Rasterization Stage}
+                \begin{center}
+                    \begin{tikzpicture}[x=0.75cm, y=0.75cm]
+                        \draw (0, 0) -- (4, 0) -- (4, -2) -- (0, -2) -- cycle;
+                        \draw (6, 0) -- (10, 0) -- (10, -2) -- (6, -2) -- cycle;
+                        \draw (12, 0) -- (16, 0) -- (16, -2) -- (12, -2) -- cycle;
+                        \draw (18, 0) -- (22, 0) -- (22, -2) -- (18, -2) -- cycle;
+                        \node at (2, -1) {\shortstack{primitive\\assembly}};
+                        \node at (8, -1) {\shortstack{primitive\\traversal}};
+                        \node at (14, -1) {\shortstack{fragment\\shading}};
+                        \node at (20, -1) {\shortstack{fragment\\merging}};
+                        \draw[
+                            thick,
+                            decoration={
+                                brace,
+                                mirror,
+                                raise=5
+                            },
+                            decorate
+                        ] (0, -2) -- (10, -2) node[pos=0.5, anchor=north, yshift=-5.55] {fixed function};
+                        \draw[
+                            thick,
+                            decoration={
+                                brace,
+                                mirror,
+                                raise=5
+                            },
+                            decorate
+                        ] (12, -2) -- (16, -2) node[pos=0.5, anchor=north, yshift=-5.55] {programmable};
+                        \draw[
+                            thick,
+                            decoration={
+                                brace,
+                                mirror,
+                                raise=5
+                            },
+                            decorate
+                        ] (18, -2) -- (22, -2) node[pos=0.5, anchor=north, yshift=-5.55] {fixed function};
+                        \draw
+                        (4, -1) edge[->] (6, -1)
+                        (10, -1) edge[->] (12, -1)
+                        (16, -1) edge[->] (18, -1);
+                    \end{tikzpicture}
+                \end{center}
+                A lot of merging can be performed at the fragment shading stage.
+                Also note that in graphics, we let $(0, 0)$ denote the \textbf{lower left} corner of the window, and we refer to the lower left corner of a pixel.
+                For example, the pixel centre (sample location) would be at $(2.5, 1.5)$;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw
+                        (0, 0) -- (0, 4)
+                        (0, 0) -- (4, 0);
+                        \draw[fill=black!20, very thick] (2, 1) -- (3, 1) -- (3, 2) -- (2, 2) -- cycle;
+                        \node at (2.5, 1.5) {\shortstack{pixel\\$(2, 1)$}};
+                        \foreach \i in {0,...,3} {
+                            \draw (\i, -0.2) -- (\i, 0);
+                            \draw (-0.2, \i) -- (0, \i);
+                            \node at (\i, -0.5) {\i};
+                            \node at (-0.5, \i) {\i};
+                        }
+                        \draw[dotted]
+                        (2, 0) -- (2, 1)
+                        (0, 1) -- (2, 1);
+                    \end{tikzpicture}
+                \end{center}
+                In the fragment shading step, given the interpolated vertex attributes (output by the vertex shader), the fragment shader computes colour values for each fragment, by applying textures, performing lighting calculations, etc.
+                The fragment merging step follows the following pipeline;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node (sf) at (-1.5, 1) {\shortstack{shaded\\fragment}};
+                        \begin{scope}[shift={(0, 0)}]
+                            \draw (0, 0) -- (3, 0) -- (3, 2) -- (0, 2) -- cycle;
+                            \node at (1.5, 1) {\shortstack{pixel\\ownership\\test}};
+                        \end{scope}
+                        \begin{scope}[shift={(4, 0)}]
+                            \draw (0, 0) -- (3, 0) -- (3, 2) -- (0, 2) -- cycle;
+                            \node at (1.5, 1) {\shortstack{scissor\\test}};
+                        \end{scope}
+                        \begin{scope}[shift={(8, 0)}]
+                            \draw (0, 0) -- (3, 0) -- (3, 2) -- (0, 2) -- cycle;
+                            \node at (1.5, 1) {\shortstack{stencil\\test}};
+                        \end{scope}
+                        \begin{scope}[shift={(12, 0)}]
+                            \draw (0, 0) -- (3, 0) -- (3, 2) -- (0, 2) -- cycle;
+                            \node at (1.5, 1) {\shortstack{depth\\test}};
+                        \end{scope}
+                        \begin{scope}[shift={(4, -3)}]
+                            \draw (0, 0) -- (3, 0) -- (3, 2) -- (0, 2) -- cycle;
+                            \node at (1.5, 1) {\shortstack{blending}};
+                        \end{scope}
+                        \begin{scope}[shift={(8, 3)}]
+                            \draw[fill=black!20] (0, 0) -- (3, 0) -- (3, 1) -- (0, 1) -- cycle;
+                            \node at (1.5, 0.5) {stencil buffer};
+                        \end{scope}
+                        \begin{scope}[shift={(12, 3)}]
+                            \draw[fill=black!20] (0, 0) -- (3, 0) -- (3, 1) -- (0, 1) -- cycle;
+                            \node at (1.5, 0.5) {depth buffer};
+                        \end{scope}
+                        \begin{scope}[shift={(8, -2.5)}]
+                            \draw[fill=black!20] (0, 0) -- (3, 0) -- (3, 1) -- (0, 1) -- cycle;
+                            \node at (1.5, 0.5) {frame buffer};
+                        \end{scope}
+                        \draw
+                        (sf) edge[->] (0, 1)
+                        (3, 1) edge[->] (4, 1)
+                        (7, 1) edge[->] (8, 1)
+                        (11, 1) edge[->] (12, 1)
+                        (15, 1) -- (15.5, 1) -- (15.5, -0.5) -- (3.5, -0.5) -- (3.5, -2) edge[->] (4, -2)
+                        (7, -2) edge[->] (8, -2)
+                        (9.5, -2.5) -- (9.5, -3.5) -- (5.5, -3.5) edge[->] (5.5, -3)
+                        (9.5, 2) edge[<->] (9.5, 3)
+                        (13.5, 2) edge[<->] (13.5, 3);
+                    \end{tikzpicture}
+                \end{center}
+                At this point, we have everything in the frame buffer, generally in the RGBA format, ready for the display stage.
+            \subsubsection*{Considerations with Pipeline}
+                It's important to keep in mind that the size of the pipeline grows.
+                While we may start with a few million vertices in a complex scene, the rasterizer may lead to billions of fragments / pixel candidates.
+                Another note is that the vertex and fragment processing stages are highly parallel.
+                Instead of iterating over the incoming list of vertices, we write programs that work on an individual vertex, for the GPU to perform in parallel (which is the power of GPU programming) - a similar concept applies for the fragment processing stage.
+            \subsubsection*{Architectural Overview}
+                It's important to note that graphics hardware is a shared resource.
+                The user mode driver (UMD) prepares command buffers for the hardware (and also provides a unified interface for different hardware), which is then submitted to the hardware by the kernel mode driver (KMD).
+                The graphics kernel subsystem schedules hardware access.
+                \medskip
+
+                The lecture continues with a list of graphics APIs.
 \end{document}
