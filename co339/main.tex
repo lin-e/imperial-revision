@@ -218,15 +218,15 @@
             \medskip
 
             High performance computing is usually focused on a single problem (such as fluid dynamics, weather simulation, etc).
-            The problem is usually `high value', with some significant benefit, is realtively simple (narrowly scoped, however speed is difficult), and is occasionally supported by special hardware, such as GPUs or tensor processing units built to support ML workloads.
+            The problem is usually `high value', with some significant benefit, is relatively simple (narrowly scoped, however speed is difficult), and is occasionally supported by special hardware, such as GPUs or tensor processing units built to support ML workloads.
             \medskip
 
-            However, performance engineering fcuses on systems (complex, flexible pieces of software).
+            However, performance engineering focuses on systems (complex, flexible pieces of software).
             Examples of systems include big data systems, DBMS, AI systems (such as \textit{Tensorflow}, \textit{Torch}, etc), as well as operating system kernels and operating system tools (such as ~awk~, ~grep~, ~sed~).
             \medskip
 
             A system is often made up of \textbf{components} which interact to achieve a greater goal.
-            These are usually applicable to multiple problems or domains (they are generic); this differs from a well-designed application as the goal is domain-agnositc, hence they are designed to be flexible at runtime - for example, we don't want to recompile ~grep~ every time we want to search for a string.
+            These are usually applicable to multiple problems or domains (they are generic); this differs from a well-designed application as the goal is domain-agnostic, hence they are designed to be flexible at runtime - for example, we don't want to recompile ~grep~ every time we want to search for a string.
             \medskip
 
             The need for flexibility arises from the fact that we do not know the exact operating conditions for a system during development.
@@ -234,7 +234,7 @@
             Another example is an OS not knowing the number of users, \textit{Tensorflow} doesn't know the dimensionality of the data, or ~grep~ not knowing what regular expression we intend to search for.
             \medskip
 
-            Software systems are complex and developed over years, and therefore must be maintainbale.
+            Software systems are complex and developed over years, and therefore must be maintainable.
             They also need to be fast.
             The challenge is to build a system which strikes a balance, within the classic trade-off triangle (where we choose two of the three);
             \begin{center}
@@ -245,7 +245,7 @@
                     \draw (m) -- (fl) -- (fa) -- (m);
                 \end{tikzpicture}
             \end{center}
-            Instead of having only flexible and fast code, we need to think about what parts should be prioritised for flexibility, what parts for speed, and what parts should be maintainble.
+            Instead of having only flexible and fast code, we need to think about what parts should be prioritised for flexibility, what parts for speed, and what parts should be maintainable.
             \subsubsection*{Example}
                 The challenge here is to count lines in a CSV file which contain the phrase ``  FAUST:'' - two spaces, followed by ~FAUST~, followed by a colon.
                 This could be done with the command;
@@ -393,8 +393,8 @@
                             \item \textbf{throughput} \hfill how many runs can be performed in a given time
                             \item \textbf{latency} \hfill trade-off with throughput (what we've been looking at)
                             \item \textbf{scalability} \hfill how well it works with more machines
-                            \item \textbf{memory usage} \hfill stay within memory constraitns
-                            \item \textbf{energy consumption} \hfill energy related to cooling in data centers
+                            \item \textbf{memory usage} \hfill stay within memory constraints
+                            \item \textbf{energy consumption} \hfill energy related to cooling in data centres
                             \item \textbf{TCO} \hfill total ownership cost
                             \item \textbf{efficiency} \hfill work over time
                         \end{itemize}
@@ -407,12 +407,12 @@
 
                         On the other hand, we can set a target, requirement, or threshold (at least this fast).
                         This might have real-time requirements; soft (if it misses the requirements, it's an error), or hard (if it misses the requirement, it's considered a failure).
-                        These are often referred to as \textbf{Quality-of-Service (QoS)} objetives.
+                        These are often referred to as \textbf{Quality-of-Service (QoS)} objectives.
                         \medskip
 
                         These objectives are statistical properties of a metric that must hold for a system.
                         For example, we can put a condition for a game to run at 60 FPS or higher on a GPU with 50 GFlops (or higher) - here we have have something that must be fulfilled once a certain condition is satisfied.
-                        This can sometimes conflict with functional requirements (the previous example may conflict with the realisim of the AI in a game).
+                        This can sometimes conflict with functional requirements (the previous example may conflict with the realism of the AI in a game).
                         \medskip
 
                         \textbf{Service-Level Agreements (SLAs)} are related to (and more important than) QoS objectives.
@@ -436,7 +436,7 @@
 
                 Measuring can be performed on the actual system, either on a prototype or the final system.
                 If this is done properly, it can achieve good accuracy (closest thing to quantifiable performance).
-                Based on \textbf{instrumentation}, and can be difficult as we want to reduce the effect of the benchmarking on the acutal performance of the production system.
+                Based on \textbf{instrumentation}, and can be difficult as we want to reduce the effect of the benchmarking on the actual performance of the production system.
                 \medskip
 
                 Monitoring is measuring in production.
@@ -458,7 +458,7 @@
                 \end{center}
                 The alternative is \textbf{benchmarking}, which is measuring in the lab.
                 Since some systems run continuously, they can store state, therefore the first step in benchmarking is to put the system into a \textbf{pre-defined / steady state}, which is reasonably close to what a system would be in production.
-                After this, a series of operations (the workload) is performed with relavent metrics measured.
+                After this, a series of operations (the workload) is performed with relevant metrics measured.
                 For example, to benchmark a database system, some data is typically generated and loaded to put the system into a steady state, and a query set is run (which we actually measure metrics for).
                 \begin{center}
                     \begin{tikzpicture}[x=2cm]
