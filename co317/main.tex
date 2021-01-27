@@ -1164,7 +1164,7 @@
                     Handles occlusions and transparency blending, as well as determining which objects are closest (and hence visible).
             \end{itemize}
             The majority of real-time graphics is based on the rasterization of graphic primitives (points, lines, triangles, etc).
-            This is typically implemented in hardware (GPU), and is controlled through an API such as \textit{OpenGL}.
+            This is typically implemented in hardware (GPU), and is controlled through an API such as OpenGL.
             Certain parts of the pipeline are programmable, such as with GLSL (shaders).
             \medskip
 
@@ -1401,4 +1401,339 @@
                 \medskip
 
                 The lecture continues with a list of graphics APIs.
+        \subsection*{Lecture 5 - Shading Languages}
+            \subsubsection*{OpenGL}
+                OpenGL is a low-level ``immediate mode'' graphics API specification (and not a library).
+                It has a platform independent interface, with a platform dependent implementation.
+                It defines an abstract rendering device, which can be operated by a set of functions, and therefore we don't need to care about what the actual hardware is.
+                It also uses a \textbf{state machine} for high efficiency.
+                In order to write a program, we need to do the following;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item set up a \textbf{render window} (OS dependent, usually use a library such as \textit{glut}, \textit{Qt}, etc.)
+                    \item setup viewport, model transformation, and file I/O (including shaders and textures)
+                    \item frame generation (define what happens in every frame)
+                \end{enumerate}
+                % To start using it, we use the following;
+                % \begin{lstlisting}
+                %     #include <GL/gl.h>
+                %     #include <GL/glu.h>
+                %     #include <GL/glut.h>
+
+                %     // in the case of Qt applications, large overhead
+                %     #include <QtOpenGL>
+                % \end{lstlisting}
+                \textbf{Contexts} are abstract graphics devices, which usually do not communicate with each other; each representing one instance of OpenGL.
+                There is only one \textbf{current} context per thread.
+                We may have multiple OpenGL windows in a single application and they are independent contexts.
+                A \textbf{resource} is something that is read from (some sort of data).
+                They act as sources of inputs (such as texture images), and sinks for outputs (such as buffers).
+                \medskip
+
+                The overall concept uses \textbf{object models}, where objects have unique names (unsigned integer handle).
+                Commands work on targets, which has an object \textbf{bound} to the target.
+                When a name is bound to a target, the object it identifies becomes current for that target.
+                Exceptions exist such as shader objects and program objects, where commands work directly on object names.
+                We can consider targets as analogous to types, and commands analogous to methods (drawing analogies to OOP).
+            \subsubsection*{Buffer Objects}
+                A buffer object stores an array of unformatted memory allocated by the OpenGL context (the GPU) - and they are regular OpenGL objects.
+                In order to set up the internal state, it must be bound to the context;
+                \begin{lstlisting}
+                    void glBindBuffer(enum target, uint bufferName)
+                \end{lstlisting}
+                To put immutable data on it, the command ~void glBufferStorage(...);~ is used, whereas ~void glBufferData(...);~ is used for mutable data.
+                An example is as follows;
+                \begin{lstlisting}
+                    GLuint my_buffer;
+
+                    // request an unused buffer object name
+                    glGenBuffers(1, &my_buffer);
+
+                    // bind name as GL_ARRAY_BUFFER
+                    // bound for the first time => creates
+                    glBindBuffer(GL_ARRAY_BUFFER, my_buffer);
+
+                    // put some data into my_buffer
+                    glBufferStorage(GL_ARRAY_BUFFER, ...);
+
+                    // "unbind" buffer
+                    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+                    // bind it again
+                    glBindBuffer(GL_ARRAY_BUFFER, my_buffer);
+                    // use it
+
+                    // example of drawing (type, startIdx, number of elements)
+                    glDrawArrays(GL_TRIANGLES, 0, 33);
+
+                    // delete buffer object, free resources, release buffer object name
+                    glDeleteBuffers(1, &my_buffer);
+                \end{lstlisting}
+            \subsubsection*{Primitive Types}
+                The primitive types available to us are;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~GL\_POINTS~
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \node[rbtb] at (0, 0) {};
+                                \node[rbtb] at (1, -0.2) {};
+                                \node[rbtb] at (-0.2, -0.4) {};
+                                \node[rbtb] at (1.2, -1) {};
+                            \end{tikzpicture}
+                        \end{center}
+                    \item ~GL\_LINES~
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (0, 0) -- (1, 1);
+                                \draw (1, 0.7) -- (1.8, -0.1);
+                            \end{tikzpicture}
+                        \end{center}
+                    \item ~GL\_LINE\_STRIP~
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (0, 0) -- (-1, 1) -- (-1.5, 0.3) -- (2, 0.5) -- (1, 1.1) -- (1.5, -0.1) -- (-0.2, -0.5);
+                            \end{tikzpicture}
+                        \end{center}
+                    \item ~GL\_LINE\_LOOP~
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (2, 0.5) -- (1, 1.1) -- (1.5, -0.1) -- (-0.2, -0.5) -- cycle;
+                            \end{tikzpicture}
+                        \end{center}
+                    \item ~GL\_POLYGON~
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \node[
+                                    regular polygon,
+                                    regular polygon sides=6,
+                                    draw,
+                                    inner sep=0.5cm,
+                                ] (hexagon) {};
+                            \end{tikzpicture}
+                        \end{center}
+                    \item ~GL\_TRIANGLE\_STRIP~
+                        \begin{center}
+                            \begin{tikzpicture}
+                                % \draw (0, 0) -- (2, 0.2) -- (1.8, -0.8) -- (1.7, -1.8) -- (2, -2.4) -- (1, -2.7) -- (0.3, -1.5) -- (0.6, -0.9) -- cycle;
+                                % \draw
+                                % (1.8, -0.8) -- (0.6, -0.9)
+                                % (1.7, -1.8) -- (0.3, -1.5)
+                                % (0.6, -0.9) -- (2, 0.2)
+                                % (0.3, -1.5) -- (1.8, -0.8)
+                                % (1, -2.7) -- (1.7, -1.8);
+                                \node (a) at (0, 0) {0};
+                                \node (b) at (2, 0.5) {1};
+                                \node (c) at (1.5, 1.5) {2};
+                                \node (d) at (4, 0) {3};
+                                \node (e) at (5, 1.3) {4};
+                                \draw
+                                (a) -- (b) -- (c) -- (a)
+                                (b) -- (d) -- (e) -- (c) -- (d);
+                            \end{tikzpicture}
+                        \end{center}
+                        It's important to note that here we alternate between identifying vertices; starting with a counter clockwise ordering, then clockwise, and so on.
+                        For example, the first triangle will be 0, 1, 2, then the second triangle is 1, 2, 3, and then the third triangle is 2, 3, 4.
+                        This allows vertices to be shared, and is therefore more memory efficient.
+                    \item ~GL\_TRIANGLES~
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \node (a) at (0, 0) {0};
+                                \node (b) at (1, -1) {1};
+                                \node (c) at (0.5, 1) {2};
+                                \draw (a) -- (b) -- (c) -- (a);
+                            \end{tikzpicture}
+                        \end{center}
+                        It's important to note that here we identify vertices counter clockwise (the triangle is 0, 1, 2).
+                    \item ~GL\_TRIANGLE\_FAN~
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (0, 0) -- (0.1, 1) -- (1.5, 1.2) -- (2, 0.3) -- (2.6, 0.1) -- (2.1, -0.3) -- cycle;
+                                \draw
+                                (0, 0) -- (1.5, 1.2)
+                                (0, 0) -- (2, 0.3)
+                                (0, 0) -- (2.6, 0.1);
+                            \end{tikzpicture}
+                        \end{center}
+                    \item ~GL\_QUADS~
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (0, 0) -- (1, -0.3) -- (0.7, -0.8) -- (-0.2, -0.5) -- cycle;
+                                \draw (0.5, -1.5) -- (1.3, -1.4) -- (1.1, -1.8) -- (0, -2.2) -- cycle;
+                            \end{tikzpicture}
+                        \end{center}
+                    \item ~GL\_QUAD\_STRIP~
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (0, 0) -- (2, 0.2) -- (1.8, -0.8) -- (1.7, -1.8) -- (2, -2.4) -- (1, -2.7) -- (0.3, -1.5) -- (0.6, -0.9) -- cycle;
+                                \draw
+                                (1.8, -0.8) -- (0.6, -0.9)
+                                (1.7, -1.8) -- (0.3, -1.5);
+                            \end{tikzpicture}
+                        \end{center}
+                \end{itemize}
+                A draw call, which isn't used after OpenGL 4, is done as follows;
+                \begin{lstlisting}
+                    glBegin(GL_TRIANGLE_STRIP); // primitive type
+                    glColor3f(0.0, 1.0, 0.0); // colour state
+                    glVertex3f(1.0, 0.0, 0.0); // vertex index
+                    ...
+                    glEnd();
+                \end{lstlisting}
+                The more efficient method of doing it is to do the following (using buffer objects) for continuous groups of vertices;
+                \begin{lstlisting}
+                    glDrawArrays(GL_TRIANGLES, 0, num_vertices);
+                \end{lstlisting}
+            \subsubsection*{Shaders}
+                A shader is a piece of code that can be put in the graphics pipeline.
+                To create a vertex or fragment shader, the following has to be done (anything that's not `filled in' will default to fixed functions);
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}[shift={(0, 0)}]
+                            \draw (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {\shortstack{~glCreateShader~\\~(GL\_FRAGMENT\_SHADER)~}};
+                        \end{scope}
+                        \begin{scope}[shift={(0, -2)}]
+                            \draw (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {~glShaderSource(...)~};
+                        \end{scope}
+                        \begin{scope}[shift={(0, -4)}]
+                            \draw (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {~glCompileShader(...)~};
+                        \end{scope}
+                        \begin{scope}[shift={(0, -6)}]
+                            \draw[fill=black!20] (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {~glAttachShader(...)~};
+                        \end{scope}
+                        \begin{scope}[shift={(6, 0)}]
+                            \draw (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {\shortstack{~glCreateShader~\\~(GL\_VERTEX\_SHADER)~}};
+                        \end{scope}
+                        \begin{scope}[shift={(6, -2)}]
+                            \draw (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {~glShaderSource(...)~};
+                        \end{scope}
+                        \begin{scope}[shift={(6, -4)}]
+                            \draw (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {~glCompileShader(...)~};
+                        \end{scope}
+                        \begin{scope}[shift={(6, -6)}]
+                            \draw[fill=black!20] (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {~glAttachShader(...)~};
+                        \end{scope}
+                        \begin{scope}[shift={(12, -6)}]
+                            \draw[fill=black!20] (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {~glCreateProgram()~};
+                        \end{scope}
+                        \begin{scope}[shift={(0, -8)}]
+                            \draw[fill=black!20] (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {~glLinkProgram(...)~};
+                        \end{scope}
+                        \begin{scope}[shift={(12, -8)}]
+                            \draw[fill=black!20] (0, 0) -- (5, 0) -- (5, 1) -- (0, 1) -- cycle;
+                            \node at (2.5, 0.5) {~glUseProgram(...)~};
+                        \end{scope}
+                        \draw
+                        (12, -5.5) edge[->] (11, -5.5)
+                        (6, -5.5) edge[->] (5, -5.5)
+                        (5, -7.5) edge[dotted, ->] (12, -7.5)
+                        (2.5, 0) edge[->] (2.5, -1)
+                        (2.5, -2) edge[->] (2.5, -3)
+                        (2.5, -4) edge[->] (2.5, -5)
+                        (2.5, -6) edge[->] (2.5, -7)
+                        (8.5, 0) edge[->] (8.5, -1)
+                        (8.5, -2) edge[->] (8.5, -3)
+                        (8.5, -4) edge[->] (8.5, -5);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{GLSL}
+                We have the following types available, initialised with C++ style constructors (~vec3 a = vec3(1.0, 2.0, 3.0);~);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{scalar types} \hfill ~float~, ~int~, ~bool~
+                    \item \textbf{vector types} \hfill ~vec2~, ~vec3~, ~vec4~, ~ivec2~, ~ivec3~, ~ivec4~, ~bvec2~, ~bvec3~, ~bvec4~
+                    \item \textbf{matrix types} \hfill ~mat2~, ~mat3~, ~mat4~
+                    \item \textbf{texture sampling} \hfill ~sampler1D~, ~sampler2D~, ~sampler3D~, ~samplerCube~
+                        \smallskip
+
+                        Specific piece of hardware that does memory access very efficiently.
+                \end{itemize}
+                The standard C/C++ arithmetic and logic operators hold, as well as operators being overloaded for matrix and vector operations;
+                \begin{lstlisting}
+                    mat4 m;
+                    vec4 a, b, c;
+
+                    b = a*m;
+                    c = m*a;
+                \end{lstlisting}
+                Vectors can be accessed via index (~[]~), ~xyzw~, ~rgba~, or ~stpq~, therefore;
+                \begin{lstlisting}
+                    vec3 v;
+                    v[1] == v.y == v.g == v.t
+                \end{lstlisting}
+                Swizzling is the following (not really mentioned in detail) - asking for objects in a different order;
+                \begin{lstlisting}
+                    vec3 a, b;
+                    a.xy = b.yx;
+                \end{lstlisting}
+                ~in~ and ~out ~ copy vertex attributes and other variables to / from shaders (they need to match the next step of the pipeline), whereas ~uniform~ denotes a variable from the application;
+                \begin{lstlisting}
+                    in vec2 tex_coord;
+                    out vec4 colour;
+
+                    uniform float time;
+                    uniform vec4 rotation;
+                \end{lstlisting}
+                We are also given some functions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{arithmetic} \hfill e.g. ~sqrt~, ~power~, ~abs~
+                    \item \textbf{trigonometric} \hfill e.g. ~sin~, ~asin~
+                    \item \textbf{graphical} \hfill e.g. ~length~, ~reflect~
+                    \item users can also define functions
+                \end{itemize}
+                Built-in variables include ~gl\_Position~ which denotes the output position from the vertex shader, and ~gl\_FragColor~, denoting the output colour from the fragment shader.
+                This is only for ES, WebGL, and older versions of GLSL (present versions use an out variable).
+                \medskip
+
+                The anatomy of a GLSL shader is as follows;
+                \begin{lstlisting}
+                    #version 400
+
+                    uniform mat4 some_uniform // set by application (configuration values e.g. MVP Matrix)
+
+                    // optional flexible register configuration between shaders (location stuff)
+                    layout(location = 0) in vec3 some_input;
+                    layout(location = 1) in vec4 another_input;
+
+                    out vec4 some_output; // output definition for next shader stage
+
+                    void main() {
+
+                    }
+                \end{lstlisting}
+                An example of a fragment shader is as follows;
+                \begin{lstlisting}
+                    #version 400
+
+                    uniform vec4 ambient;
+                    uniform vec4 diffuse;
+                    uniform vec4 specular;
+                    uniform float shininess;
+
+                    uniform vec4 lightPosition_camSpace; // light position in camera space
+
+                    in fragmentData {
+                        vec4 position_camSpace;
+                        vec3 normal_camSpace;
+                        vec2 textureCoordinate;
+                        vec4 color;
+                    } frag;
+
+                    out vec4 fragColor;
+
+                    void main(void) {
+                        fragColor = frag.color;
+                    }
+                \end{lstlisting}
 \end{document}
