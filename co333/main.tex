@@ -213,10 +213,243 @@
     \section*{CO333 - Robotics \hfill (60019)}
         \subsection*{Lecture 1 - Introduction to Robotics}
         \subsection*{Lecture 2 - Robot Motion}
+            A definition of a robot is something that can \textbf{move} and \textbf{sense}, and uses some sort of information processing to link the two.
+            Robots might want to move in the water, fly in the air, walk (legged) on land, or work in space.
+            The course will focus on wheeled robots that work on generally flat surfaces.
+            \subsubsection*{Coordinate Frames}
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (4, -0.5) {$x_W$};
+                        \node at (-0.5, 4) {$y_W$};
+                        \draw
+                        (0, 0) edge[->] (4, 0)
+                        (0, 0) edge[->] (0, 4)
+                        (2, 0) edge[dashed] (2, 2)
+                        (0, 2) edge[dashed] (2.75, 2);
+                        \node[rbtb] at (2, 2) {};
+                        \begin{scope}[shift={(1.8, 1.8)}]
+                            \begin{scope}[rotate={45}]
+                                \draw (-0.5, -0.5) -- (0.5, -0.5) -- (0.5, 0.5) -- (-0.5, 0.5) -- cycle;
+                            \end{scope}
+                        \end{scope}
+
+                        \node at (3, 3.5) {$x_R$};
+                        \node at (1, 3.5) {$y_R$};
+                        \node at (3, 2.3) {$\theta_R$};
+                        \draw
+                        (2, 2) edge[->] (3, 3)
+                        (2, 2) edge[->] (1, 3);
+                        \draw (2, 2) ++(0:0.75) arc (0:45:0.75);
+                    \end{tikzpicture}
+                \end{center}
+                We will be mostly focused on 2D coordinates, on the flat (close to planar) ground.
+                The world frame $W$ is anchored in the world, and the robot frame $R$ is anchored to the robot (consider one point and orientation as the centre of the robot) - consider a set of axis carried by the robot.
+                Often we are interested in the robot's location; the transformation between the world frame $W$ and the robot frame $R$.
+            \subsubsection*{Degrees of Motion Freedom}
+                This is to do with how many parameters we need to specify the aforementioned transformation, generally related to the number of dimensions the robot is moving in.
+                The simplest is a single degree of freedom, where a train moves along the $x$-axis - this position can be specified in one parameter.
+                A rigid body which moves on a ground plane, such as an AV or robot vacuum cleaner has 3 DoF; two translational ($x,y$) and one rotational (typically $\theta$).
+                On the other hand, a rigid body which moves in 3D space has 6 degrees of freedom; three rotational and three rotational.
+                \medskip
+
+                A \textbf{holonomic robot} is able to move instantaneously in any direction in its space of DoF, otherwise it is \textbf{non-holonomic}.
+                Most are non-holonomic, but some holonomic robots do exist; ground-based robots can be made with omnidirectional wheels.
+                \medskip
+
+                Standard wheel configurations (both non-holonomic; each has two motors but has three degrees of movement freedom, the number of control inputs are lower than the DoF) include;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{drive and steer} (car) - not implemented in this course
+                        \smallskip
+
+                        The combination of acceleration and braking determines how fast it moves forwards, and the orientation of wheel determines direction.
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (0, 0) -- (5, 0) -- (5, 3) -- (0, 3) -- cycle;
+                                \begin{scope}[shift={(1, 2.5)}, scale={0.2}]
+                                    \draw (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                    \foreach \i in {0,...,5} {
+                                        \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                    }
+                                \end{scope}
+                                \begin{scope}[shift={(1, 0.5)}, scale={0.2}]
+                                    \draw (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                    \foreach \i in {0,...,5} {
+                                        \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                    }
+                                \end{scope}
+                                \begin{scope}[shift={(4, 2.5)}, rotate={20}, scale={0.2}]
+                                    \draw (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                    \foreach \i in {0,...,5} {
+                                        \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                    }
+                                \end{scope}
+                                \begin{scope}[shift={(4, 0.5)}, rotate={20}, scale={0.2}]
+                                    \draw (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                    \foreach \i in {0,...,5} {
+                                        \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                    }
+                                \end{scope}
+                            \end{tikzpicture}
+                        \end{center}
+                        Rear wheels need a  differential, variable (Ackerman) linkage for steering wheels.
+                    \item \textbf{differential drive} (robot vacuum)
+                        \smallskip
+
+                        Has two driving wheels, both pointing forwards, and maybe castors which keep it balanced.
+                        Robot moves in different ways depending on the different speeds the wheels are turning at.
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (0, 0) -- (3, 0) -- (3, 3) -- (0, 3) -- cycle;
+                                \begin{scope}[shift={(1.5, 2.5)}, scale={0.2}]
+                                    \draw (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                    \foreach \i in {0,...,5} {
+                                        \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                    }
+                                \end{scope}
+                                \begin{scope}[shift={(1.5, 0.5)}, scale={0.2}]
+                                    \draw (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                    \foreach \i in {0,...,5} {
+                                        \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                    }
+                                \end{scope}
+                                \begin{scope}[shift={(0.7, 1.5)}, scale={0.15}]
+                                    \draw[dashed] (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                    \foreach \i in {0,...,5} {
+                                        \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                    }
+                                \end{scope}
+                                \begin{scope}[shift={(2.3, 1.5)}, scale={0.15}]
+                                    \draw[dashed] (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                    \foreach \i in {0,...,5} {
+                                        \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                    }
+                                \end{scope}
+                            \end{tikzpicture}
+                        \end{center}
+                        The caster wheels (dashed) are passive, and simply support the robot, with one motor per wheel.
+                        If the wheels are running at equal speeds, the robot moves in a straight line, and wheels running at equal and opposite speeds turn on the spot.
+                        On the other hand, in general, other combinations lead to motion in circular arcs / curves.
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \begin{scope}
+                                    \draw (4, 0) circle (0.8);
+                                    \node[inner sep=1pt, circle, draw=black, fill=black] at (4, 0) {};
+                                    \begin{scope}[shift={(3.5, 0)}, scale={0.15}]
+                                        \draw (-0.5, -2) -- (-0.5, 2) -- (0.5, 2) -- (0.5, -2) -- cycle;
+                                    \end{scope}
+                                    \begin{scope}[shift={(4.5, 0)}, scale={0.15}]
+                                        \draw (-0.5, -2) -- (-0.5, 2) -- (0.5, 2) -- (0.5, -2) -- cycle;
+                                    \end{scope}
+                                    \draw (0, 0) -- (4, 0);
+                                \end{scope}
+                                \begin{scope}[rotate={30}]
+                                    \draw (4, 0) circle (0.8);
+                                    \begin{scope}[shift={(3.5, 0)}, scale={0.15}]
+                                        \draw (-0.5, -2) -- (-0.5, 2) -- (0.5, 2) -- (0.5, -2) -- cycle;
+                                    \end{scope}
+                                    \begin{scope}[shift={(4.5, 0)}, scale={0.15}]
+                                        \draw (-0.5, -2) -- (-0.5, 2) -- (0.5, 2) -- (0.5, -2) -- cycle;
+                                    \end{scope}
+                                    \draw (0, 0) -- (4, 0);
+                                \end{scope}
+                                \draw (0, 0) ++(0:1) arc (0:30:1);
+                                \draw[->] (0, 0) ++(0:4) arc (0:30:4);
+                                \draw
+                                (3.5, -1) edge[<->, below] node{$W$} (4.5, -1)
+                                (0, -2) edge[<->, below] node{$R$} (4, -2);
+                                \draw[dashed]
+                                (0, 0) -- (0, -2)
+                                (4, 0) -- (4, -2)
+                                (3.5, -0.3) -- (3.5, -1)
+                                (4.5, -0.3) -- (4.5, -1);
+                                \node at (1.3, 0.35) {$\Delta \theta$};
+                                \node at (3, -0.3) {$v_L$};
+                                \node at (5, -0.3) {$v_R$};
+                            \end{tikzpicture}
+                        \end{center}
+                        Consider the left wheel at speed $v_L$ and the right wheel at $v_R$ (linear velocities over th ground, hence $v_L = r_L\omega_L$, where $r_L$ is the radius of the wheel and $\omega_L$ is the angular velocity).
+                        We also assume no slipping (the intersection is the centre of rotation).
+                        \medskip
+
+                        We want to determine $R$, which is the radius of the circle formed by the robot's centre moving.
+                        Consider a small period of time $\Delta t$, and an angle of movement $\Delta \theta$;
+                        $$\Delta \theta = \frac{v_L \Delta t}{R - \frac{W}{2}} = \frac{v_R \Delta t}{R + \frac{W}{2}} \Rightarrow v_L \left(R + \frac{W}{2}\right) = v_R \left(R - \frac{W}{2}\right) \Rightarrow \frac{W}{2}(v_L + v_R) = R(v_R - v_L)$$
+                        By rearranging the above, and substituting back in, we have the following;
+                        \begin{align*}
+                            R & = \frac{W(v_R + v_L)}{2(v_R - v_L)} \\
+                            \Delta \theta & = \frac{(v_R - v_L) \Delta t}{W}
+                        \end{align*}
+                \end{itemize}
+            \subsubsection*{Actuation (DC Motors)}
+                DC motors are controlled by a power signal, using \textbf{PWM (pulse width modulation)} and a fixed voltage.
+                A gearing system is typically used to \textbf{gear down} the end effector to be slower with higher torque (compared to the DC motor's rapid rotation, but low torque).
+                Many motors have a built in encoders (connected to the motor), which can be read to measure angular position by counting steps.
+                This is required as a running motor's rotations depend on many conditions (including the load it's driving); for example a heavier robot moving on rough ground will move slower.
+                To measure the rate the motor is moving at, we can feed the rotation back.
+                We can then use feedback control (servo control) to adjust the motor to make it do what we want.
+                In principle, we want to determine where the motor is, and where it actually is.
+                At a high rate, we want to send pulses to reduce the error between the target location and actual location.
+            \subsubsection*{PID (Proportional / Integral / Differential) Control}
+                The PID expression sets the power as a function of error;
+                $$P(t) = k_p e(t) + k_i \defint{0}{t}{e(\tau)}{\tau} + k_d \dif{e(t)}{t}$$
+                In this, we have the following terms;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $e(t)$ \hfill demand minus position (error)
+                        \smallskip
+
+                        For example, at each time step this is the angle we want the motor to be at minus the actual angle of the motor measured.
+                    \item $k_p$ \hfill main term (high values give rapid response)
+                        \smallskip
+
+                        Continuing with the example above, $k_p e(t)$ will be higher if $k_p$ is large.
+                        If there's a large error, send a large signal, and vice versa for small errors.
+                    \item $k_i$ \hfill integral term (increased to reduce steady state error)
+                        \smallskip
+
+                        Imagine the motor is close to where it should be; this allows for the `gap' to be closed.
+                    \item $k_d$ \hfill differential term (reduced settling time / oscillation)
+                \end{itemize}
+            \subsubsection*{Wheel Rotation Speed to Velocity}
+                Consider a wheel of radius $r_w$ rotating at $\omega$ (in radians per second).
+                The speed of the wheel, in theory, would be $v = r_w \omega$.
+                However, in practice, there are factors such as uneven ground and tyre softness, the radius may be hard to measure accurately.
+                Another consideration would be possible slipping; in general it will be better to \textbf{calibrate} this for the surface by considering some constant of proportionality.
+            \subsubsection*{State in 2D}
+                If a robot is moving on a plane, we can define the robot with a state vector $\vec{x}$, with three parameters;
+                $$\vec{x} = \begin{bmatrix}
+                    x \\ y \\ \theta
+                \end{bmatrix} \begin{matrix*}[l]
+                    \text{$x$ component of robot centre point in world frame} \\
+                    \text{$y$ component of robot centre point in world frame} \\
+                    \text{rotation angle between coordinate frames (angle between $x_W$ and $x_R$ axes)}
+                \end{matrix*}$$
+                The two frames coincide when the robot is at the origin ($x = y = \theta = 0$).
+                Note that $-\pi < \theta \leq \pi$.
+                During a straight line period of motion of distance $D$, we have;
+                $$\begin{bmatrix}
+                    x^\prime \\
+                    y^\prime \\
+                    \theta^\prime
+                \end{bmatrix} = \begin{bmatrix}
+                    x + D \cos \theta \\
+                    y + D \sin \theta \\
+                    \theta
+                \end{bmatrix}$$
+                On the other hand, during a pure rotation of angle $\alpha$ we have (rotation to the left is positive by convention);
+                $$\begin{bmatrix}
+                    x^\prime \\
+                    y^\prime \\
+                    \theta^\prime
+                \end{bmatrix} = \begin{bmatrix}
+                    x \\
+                    y \\
+                    \theta + \alpha
+                \end{bmatrix}$$
         \subsection*{Lecture 3 - Sensors (Behaviours)}
         \subsection*{Lecture 4 - Probabilistic Robotics}
         \subsection*{Lecture 5 - Monte Carlo Localisation}
         \subsection*{Lecture 6 - Advanced Sonar Sensing}
         \subsection*{Lecture 7 - SLAM}
-
 \end{document}
