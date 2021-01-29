@@ -530,7 +530,7 @@
                 In order to reduce the cost of storage to transmission, compression may be used.
                 Lossy compression loses information after the compression (such as discrete cosine transform (DCT) in JPEG, often used for images or videos).
                 However, lossless compression can also reduce the file size (less efficient compared to lossy), and is preferred for archival purposes or important imaging, where detail needs to be recovered.
-        \subsection*{Lecture 3 - Image Filtering}
+        \subsection*{Lecture 3 - Image Filtering I}
             Note that in this course, most of the examples will be done on greyscale images, but can be applied to the channels individually.
             Some examples of filters include;
             \begin{itemize}
@@ -631,5 +631,143 @@
             \subsubsection*{Median Filter}
                 This is a non-linear filter (not performing an average calculation by multiplication).
                 This moves a sliding window, and replaces the centre pixel with the median value in the window - this is not a linear equation.
+        \subsubsection*{Lecture 4 - Image Filtering II}
+            \subsubsection*{Mathematical Description}
+                Consider a simple filter, of size 3, in 1D.
+                With an input $f$, and an output $g$, it can be written as the weighted average in a window;
+                $$g[n] = \frac{1}{3} f[n - 1] + \frac{1}{3} f[n] + \frac{1}{3} f[n + 1]$$
+                In general, filtering takes in an input signal $f$, processes it and generates an output signal $g$.
+                A filter is a device (or process) that removes unwanted components or features from a signal (keeps / enhances wanted filters).
+                \medskip
 
+                In order to mathematically describe a filter, we need the concept of \textbf{impulse response}; the output of a  filter when the input is an \textbf{impulse signal} (only have a signal at a single time point);
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}
+                            \draw (0, 0) -- (2, 0);
+                            \draw (1, 0) -- (1, 0.75);
+                            \node[rbtb] at (1, 0.75) {};
+                            \node at (1, -0.5) {$\delta$};
+                            \node at (1, -1) {impulse};
+                        \end{scope}
+                        \draw (2, -0.5) edge[->] (3, -0.5);
+                        \draw (5, -0.5) edge[->] (6, -0.5);
+                        \draw (3, -0.25) -- (5, -0.25) -- (5, -0.75) -- (3, -0.75) -- cycle;
+                        \node at (4, -1) {filter};
+                        \begin{scope}[shift={(6, 0)}]
+                            \draw (0, 0) -- (0.5, 0) -- (1, 0.75) -- (1.5, 0) -- (2, 0);
+                            \node at (1, -0.5) {$\delta$};
+                            \node at (1, -1.25) {\shortstack{impulse\\response}};
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                For a continuous signal, we treat an impulse as a Dirac delta function $\delta(x)$, whereas for a discrete signal, we treat an impulse as a Kronecker delta function $\delta[i]$;
+                \begin{align*}
+                    \delta(x) & = \begin{cases}
+                        \infty & \text{if } x = 0 \\
+                        0 & \text{otherwise}
+                    \end{cases} \\
+                    \defint{-\infty}{\infty}{\delta(x)}{x} & = 1 \\
+                    \delta[i] & = \begin{cases}
+                        1 & \text{if } i = 0 \\
+                        0 & \text{otherwise}
+                    \end{cases}
+                \end{align*}
+                The impulse response $h$ completely characterises a \textbf{linear time-invariant} filter.
+                Note that we can consider a filter as time-invariant if, by shifting the input signal some number of time steps $k$, the output signal will remain the same (shape and values) but shifted by the \textbf{same} number of time steps.
+                For example;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $g[n] = 10 \cdot f[n]$ is time-invariant and amplifies the input by a constant
+                    \item $g[n] = n \cdot f[n]$ is \textbf{not} time-invariant since the amount it amplifies the input depends on the time step $n$
+                \end{itemize}
+                As long as we know $h$, and have an input $x$, we can calculate the output signal $y$.
+                Since it uniquely describes a filter, we often denote a filter by its impulse response function $h$.
+                \medskip
+
+                Additionally, a filter can be \textbf{linear}.
+                If it is a linear system, when two input signals are combined linearly, their outputs will also be combined linearly.
+                Let $f_1[n]$ lead to an output $g_1[n]$, and $f_2[n]$ to $g_2[n]$.
+                $$\text{output}(\alpha f_1[n] + \beta f_2[n]) = \alpha g_1[n] + \beta g_2[n]$$
+            \subsubsection*{Convolution}
+                Most of the filters we've previously covered are linear time-invariant.
+                Since $h$ characterises how the system works (as it is linear time-invariant), it's possible for the output $g$ to be described as the \textbf{convolution} between an input $f$ and impulse response $h$;
+                $$g[n] = f[n] * h[n]$$
+                \medskip
+
+                We can describe an input signal $f[n]$ as the following, where each time step is a constant multiplied by a spike;
+                $$f[n] = f[0]\delta[n] + f[1]\delta[n - 1] + f[2]\delta[n - 2] + f[3]\delta[n - 3] + \dots$$
+                However, since we know the output of $\delta[n]$ is $h[n]$, we can write the output as;
+                $$g[n] = f[0]h[n] + f[1]h[n - 1] + f[2]h[n - 2] + f[3]h[n - 3] + \dots$$
+                The output mathematical operation is defined as a convolution, where a signal $f$ and a filter with impulse response / convolution kernel $h$ is defined as;
+                $$g[n] = f[n] * h[n] = \summation{m = -\infty}{\infty} f[m]h[n - m]$$
+                The continuous form (previously we have only considered the discrete form);
+                $$g(t) = f(t) * h(t) = \defint{-\infty}{\infty}{f(\tau) h(t - \tau)}{\tau}$$
+                Focusing on the discrete case, we notice the following (when we replace $m$ with $n - m$);
+                $$\summation{m = -\infty}{\infty} f[m]h[n - m] = \summation{m = -\infty}{\infty} f[n - m]h[m]$$
+                This shows that the convolution of $f$ and $h$ is equivalent to the convolution of $h$ and $f$ (commutativity);
+                $$f[n] * h[n] = h[n] * f[n]$$
+                By expanding the equations, we can also show that convolution satisfies associativity, such that;
+                $$f * (g * h) = (f * g) * h$$
+                We also have distributivity;
+                $$f * (g + h) = (f * g) + (f * h)$$
+                And also differentiation;
+                $$\dif{}{x}(f * g) = \dif{f}{x} * g = f * \dif{g}{x}$$
+                With a more concrete example, we can visualise it as follows (this is the moving average of size 3);
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}[shift={(0, 1.5)}]
+                            \draw (1, 0) -- (4, 0) -- (4, -1) -- (1, -1) -- cycle;
+                            \foreach \i in {1,...,2} {
+                                \draw (\i + 1, 0) -- (\i + 1, -1);
+                            }
+                            \node at (1.5, -0.5) {\tiny $h[1]$};
+                            \node at (2.5, -0.5) {\tiny $h[0]$};
+                            \node at (3.5, -0.5) {\tiny $h[-1]$};
+                        \end{scope}
+
+                        \draw (0, 0) -- (6, 0) -- (6, -1) -- (0, -1) -- cycle;
+                        \foreach \i in {1,...,5} {
+                            \draw (\i, 0) -- (\i, -1);
+                        }
+                        \node at (1.5, -0.5) {\tiny$f[n - 1]$};
+                        \node at (2.5, -0.5) {\tiny$f[n]$};
+                        \node at (3.5, -0.5) {\tiny$f[n + 1]$};
+
+                        \draw (8, 0) -- (14, 0) -- (14, -1) -- (8, -1) -- cycle;
+                        \foreach \i in {1,...,5} {
+                            \draw (\i + 8, 0) -- (\i + 8, -1);
+                        }
+                        \node at (10.5, -0.5) {\tiny$g[n]$};
+                    \end{tikzpicture}
+                \end{center}
+                In our case, we have the kernel $h[n]$, and the values;
+                \begin{align*}
+                    h[-1] & = \frac{1}{3} \\
+                    h[0] & = \frac{1}{3} \\
+                    h[1] & = \frac{1}{3} \\
+                    h[n] & = \begin{bmatrix}
+                        \frac{1}{3}, & \frac{1}{3}, & \frac{1}{3}
+                    \end{bmatrix}
+                \end{align*}
+                This can be expanded into the 2D case, which is used for image filtering;
+                $$g[m, n] = f[m, n] * h[m, n] = \summation{i = -\infty}{\infty} \summation{j = -\infty}{\infty} f[i, j] h[m - i, n - j]$$
+                This can also be written as the following, replacing $m - i, n - j$ by $i, j$;
+                $$g[m, n] = \summation{i = -\infty}{\infty} \summation{j = -\infty}{\infty} f[m - i, n - j] h[i, j]$$
+                By using the property of associativity, if a big filter (call it $f_b$) can be written as the convolution of $g$ and $h$ (smaller filters), we can first convolve $f$ with $g$, then with $h$ - this is used for separable filtering;
+                $$f * f_b = f * (g * h) = (f * g) * h$$
+                For example (note that we have padded zeroes, but in code we do not need that);
+                $$\underbrace{\begin{bmatrix}
+                    \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
+                    \frac{1}{9} & \frac{1}{9} & \frac{1}{9} \\
+                    \frac{1}{9} & \frac{1}{9} & \frac{1}{9}
+                \end{bmatrix}}_{f_b} = \underbrace{\begin{bmatrix}
+                    \textcolor{black!33}{0} & \textcolor{black!33}{0} & \textcolor{black!33}{0} \\
+                    \frac{1}{3} & \frac{1}{3} & \frac{1}{3} \\
+                    \textcolor{black!33}{0} & \textcolor{black!33}{0} & \textcolor{black!33}{0}
+                \end{bmatrix}}_{g} * \underbrace{\begin{bmatrix}
+                    \textcolor{black!33}{0} & \frac{1}{3} & \textcolor{black!33}{0} \\
+                    \textcolor{black!33}{0} & \frac{1}{3} & \textcolor{black!33}{0} \\
+                    \textcolor{black!33}{0} & \frac{1}{3} & \textcolor{black!33}{0}
+                \end{bmatrix}}_{h}$$
 \end{document}
