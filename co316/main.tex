@@ -943,4 +943,118 @@
                 Notice there's a parameter $\sigma$ in the derivative of Gaussian.
                 With a small $\sigma$, there is more detail in the magnitude map; on the other hand, a large $\sigma$ value suppresses noise and results in a smoother derivative.
                 As such, different $\sigma$ values help to find edges at different scales.
+        \subsection*{Lecture 6 - Edge Detection II}
+            \subsubsection*{Canny Edge Detection}
+                The results of the filters from the previous lectures (gradient magnitude map) have values ranging from black to white.
+                However, we want either a 0 or 1 (black or white) - a \textbf{binary edge map}.
+                \medskip
+
+                There should be good detection; a low probability of failing too mark real edge points and low probability of falsely marking non-edge points.
+                In addition, there should be good localisation - the points marked as edges should be as close as possible to the centre of the edge.
+                Finally, there should only be a single response to a single edge.
+                \medskip
+
+                Canny edge detection is done in the following steps;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item perform Gaussian filtering to suppress noise
+                        \smallskip
+
+                        The choice of $\sigma$ depends on the type of edge we desire at the end.
+                        If we want large edges (such as buildings), $\sigma$ should be set to a large value (such as 7).
+                        However, if we want to pay attention to fine features, $\sigma$ can be set to a small value.
+                    \item calculate gradient magnitudes and directions
+                    \item apply non-maximum suppression (NMS) to get a single response for each edge
+                        \smallskip
+
+                        Non-maximum suppression aims to get a single response for each edge, by using the idea that the edge occurs where the gradient magnitude is maximum at the centre of the edge.
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \foreach \x in {0,...,3} {
+                                    \foreach \y in {0,...,3} {
+                                        \node[rbtb] at (\x, \y) {};
+                                    }
+                                }
+                                \node[inner sep=2pt, circle, draw=black!50, fill=black!50] at (2.6, 3) {};
+                                \node[inner sep=2pt, circle, draw=black!50, fill=black!50] at (1.4, 1) {};
+                                \node at (2.25, 1.75) {$q$};
+                                \node at (2.85, 2.75) {$p$};
+                                \node at (1.65, 0.75) {$r$};
+                                \begin{scope}[shift={(2, 2)}, scale={0.8}]
+                                    \draw (0, 0) edge[->] (-0.6, -1);
+                                \end{scope}
+                            \end{tikzpicture}
+                        \end{center}
+                        Compare the magnitude at $q$ with the magnitudes of $p$ and $r$, both along the gradient direction (in opposite directions).
+                        If $q$ is the local maximum (larger than both $p$ and $r$), we keep the magnitude at pixel $q$.
+                        $$M(x, y) = \begin{cases}
+                            M(x, y) & \text{if local maximum} \\
+                            0 & \text{otherwise}
+                        \end{cases}$$
+                        However, notice that there may be issues with $p$ and $r$ not being at exact pixel locations.
+                        For example, using pixel $r$ (not at an integer position), we can perform interpolation.
+                        It's possible to use linear interpolation (weighted by distance), or a simpler algorithm such as nearest neighbour interpolation (better performance).
+                        Note that different interpolation algorithms will lead to different outcomes.
+                        Another approach is to round the gradient direction into 8 possible angles, in steps of $45^\circ$ in the range $[0^\circ, 315^\circ]$, allowing us to check only along those directions to give exact pixels (intuitively quite similar to nearest neighbour).
+                        \medskip
+
+                        After NMS, there are fewer points with bright values.
+                    \item perform hysteresis thresholding to find potential edges
+                        \smallskip
+
+                        Many pixels that are local maxima may still have very low magnitudes; however we only want edges with high magnitudes.
+                        A simple thresholding would be to convert an intensity image to a binary image with a threshold $t$;
+                        $$\text{binary}(x, y) = \begin{cases}
+                            1 & \text{if } I(x, y) \geq t \\
+                            0 & \text{otherwise}
+                        \end{cases}$$
+                        On the other hand, hysteresis thresholding defines two thresholds $t_\text{low}$ and $t_\text{high}$.
+                        If the magnitude is $\geq t_\text{high}$, it is accepted as an edge pixel, and if it is $< t_\text{low}$, it is rejected.
+                        However, if we have a value between the thresholds, we have a \textbf{weak edge} (which may or may not be an edge).
+                        If it is connected to existing edge pixels, it is accepted, whereas if it is not connected (adjacent to one strong edge) to an existing edge, it will be rejected.
+                \end{enumerate}
+                The initial goals are satisfied as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{good detection}
+                        \smallskip
+
+                        False positives are reduced by using Gaussian smoothing to suppress noise.
+                        On the other hand, false negatives are reduced by using hysteresis thresholding to find weak edges.
+                    \item \textbf{good localisation}
+                        \smallskip
+
+                        NMS finds locations based on gradient magnitude and direction.
+                    \item \textbf{single response} \hfill also done with NMS
+                \end{itemize}
+            \subsubsection*{Learning-based Edge Detection}
+                Decades of effort have been made to improve detection accuracy.
+                This includes using richer features such as colour and texture, enforcing smoother, as well as using machine learning (by learning mapping from an image to edge directly from data).
+                \medskip
+
+                This machine learning algorithm assumes paired data (images $x$ and manually defined edge maps $y$).
+                The problem finds a model (with model parameters $\theta$) that maps $x$ to $y$, such that $y = f(x\ |\ \theta)$.
+                This differs from Canny edge detector, as our example integrates from multiple scales (fine-scale edges) with coarse-scale edges to form a final output.
+                On the other hand, Canny edge detector uses a single scale for edge detection, controlled by a single parameter $\sigma$.
+                \medskip
+
+                An application for learning-based edge detection is to learn a mapping from a rough sketch to a simplified sketch.
+                However, this isn't just an edge detection problem since it cannot be solved using NMS; when this is done by humans, a high-level understanding about the sketch is required.
+            \subsubsection*{Conclusion}
+                Edge detection is a fundamental problem in image processing and computer vision; aiming to identify where discontinuities occur, or identifying points that are edges.
+                Two solutions are proposed;
+                \begin{itemize}
+                    \itemsep0em
+                    \item if we know the explicit criteria, we can implement computational criteria
+                    \item otherwise, we can collect data pairs representing what we want to achieve and train a machine learning model
+                \end{itemize}
+                Edges provide important low-level features both human vision and computer vision for understanding images.
+                These algorithms provide ideas for other detection algorithms.
+                \medskip
+
+                We can also go in the other direction, taking edges to images.
+                This aims to train a model that generates an image that looks close to real images, from edges.
+                A model $G$ (generator) learns the mapping from edge to image.
+                For example, we take an edge image $x$ to $G(x)$ (an image).
+                A discriminator $d$ then attempts to assess whether the image is real or fake (GAN).
 \end{document}
