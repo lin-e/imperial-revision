@@ -2070,4 +2070,76 @@
                             \end{tikzpicture}
                         \end{center}
                 \end{enumerate}
+        \subsection*{Lecture 7 - Illumination, Shading, and Colour II}
+            Colours are energy distributions.
+            Lasers are light sources that contain a single / narrow band of wavelengths.
+            Light is made up of a mixture of many wavelengths, with an energy distribution.
+            This lecture starts with a lot about colour, similar to \textbf{CO316}.
+            The \textbf{tri-stimulus colour theory} states receptor performance implies that colours do not have a unique energy distribution, and more importantly colours which are a distributed over all wavelengths can be matched by mixing red, green, and blue.
+            \subsubsection*{Colour Matching}
+                Given any colour light source, we can try to match it with a mixture of three light sources (with $R, G, B$ being pure light sources, and $r, g, b$ being their respective intensities);
+                $$X = rR + gG + bB$$
+                However, not all colours can be matched with a given set of light sources - we cannot model anything that will take out colour.
+                \textbf{Subtractive matching} allows us to add light to the colour we are trying to match, for example;
+                $$X + r = g + b$$
+                Printed documents cannot emit light, and are examples of subtractive matching (as opposed to mixing light emitters such as screens, which is additive matching).
+            \subsubsection*{CIE Diagram}
+                The CIE diagram was devised as a standard normalised representation of colours.
+                Consider normalising the ranges between 0 and 1.
+                The colours can be normalised such that the components sum to 1;
+                \begin{align*}
+                    x & = \frac{r}{r + g + b} \\
+                    y & = \frac{g}{r + g + b} \\
+                    z & = \frac{b}{r + g + b} \\
+                    & = 1 - x - y
+                \end{align*}
+                This has the following representation, where we have the hypothetical sources as follows;
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=1.5cm]
+                        \draw
+                        (0, -0.2) edge[->] (0, 1.2)
+                        (-0.2, 0) edge[->] (1.2, 0)
+                        (0, 1) edge[dashed] (1, 0);
+                        \node[inner sep=2pt, circle, draw=black, fill=red] at (1, 0) {};
+                        \node[inner sep=2pt, circle, draw=black, fill=green] at (0, 1) {};
+                        \node[inner sep=2pt, circle, draw=black, fill=blue] at (0, 0) {};
+                        \node at (-0.25, 1.2) {$y$};
+                        \node at (1.2, -0.25) {$x$};
+                    \end{tikzpicture}
+                \end{center}
+                However, the actual visible colours are a subset of this, done through manual testing.
+                The pure colours (coherent $\lambda$) are around the edge of the diagram.
+                In addition, the shape must be convex, since any blend would produce a colour in the visible region.
+                When the three colours are components are equal, the colour is white ($x = y \approx 0.33$).
+                Pure colours are fully saturated (colours on the edge of the horseshoe), and a line from the pure colour $P$ going through the white point $W$ will cross over on the other side at a \textbf{complement colour} $C$.
+            \subsubsection*{Conversion}
+                Converting from RGB (monitor's representation) to CIE is done with the following;
+                $$\begin{bmatrix}
+                    x \\ y \\ z
+                \end{bmatrix} = \begin{bmatrix}
+                    0.628 & 0.268 & 0.150 \\
+                    0.346 & 0.588 & 0.070 \\
+                    0.026 & 0.144 & 0.780
+                \end{bmatrix} \begin{bmatrix}
+                    R \\ G \\ B
+                \end{bmatrix}$$
+                A conversion between RGB and HSV is done as follows;
+                \begin{align*}
+                    V & = \max(r, g, b) \\
+                    S & = \frac{\max(r, g, b) - \min(r, g, b)}{\max(r, g, b)} \\
+                    H & = \begin{cases}
+                        \text{undefined} & r = g = b \\
+                        120 \cdot \frac{g - b}{(r - b) + (g - b)} & (r > b) \land (g > b) \\
+                        120 + 120 \cdot \frac{b - r}{(g - r) + (b - r)} & (g > r) \land (b > r) \\
+                        240 + 120 \cdot \frac{r - g}{(r - g) + (b - g)} & (r > g) \land (b > g)
+                    \end{cases}
+                \end{align*}
+            \subsubsection*{Transparency}
+                In addition, we can model transparency with an $\alpha$ channel;
+                \begin{itemize}
+                    \itemsep0em
+                    \item transparent \hfill $\alpha = 0$
+                    \item semi-transparent \hfill $0 < \alpha < 1$
+                    \item opaque \hfill $\alpha = 1$
+                \end{itemize}
 \end{document}
