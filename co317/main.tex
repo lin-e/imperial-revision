@@ -1736,4 +1736,338 @@
                         fragColor = frag.color;
                     }
                 \end{lstlisting}
+        \subsection*{Lecture 6 - Illumination, Shading, and Colour I}
+            With very basic illumination, the result is a flat image with a single colour (and we cannot infer a shape).
+            We want to give the impression that light acts in a more complex way.
+            In local illumination, we focus on how \textbf{one} object interacts with the light sources; we do not consider how objects interact with other objects (such as reflections).
+            \subsubsection*{Physics of Shading}
+                The light we want to model is whatever is reflected from our object.
+                In this lecture, we only consider the brightness at each point.
+                Illumination is dependent on various environmental factors, including the properties of the light source;
+                \begin{itemize}
+                    \itemsep0em
+                    \item intensity of emitted light
+                    \item distance to the point on the surface (light spreads out)
+                \end{itemize}
+                As well as object (surface) properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item surface normal vector
+                    \item object position relative to light source
+                    \item reflectivity / albedo (ability to absorb light energy) of the surface
+                \end{itemize}
+            \subsubsection*{Radiometry}
+                \begin{align*}
+                    e_\lambda & = \frac{hc}{\lambda} & \text{energy of a photon} \\
+                    h & \approx 6.63 \times 10^{-34} Js & \text{Planck constant} \\
+                    c & \approx 3 \times 10^8 ms^{-1} & \text{speed of light} \\
+                    Q & = \summation{i = 1}{n} \frac{hc}{\lambda_i} & \text{radiant energy of $n$ photons} \\
+                    \Phi & = \dif{Q}{t} & \text{radiation / electromagnetic / radiant flux (in Watts)}
+                \end{align*}
+                Radiant flux is the number of photons we have available to reflect at any one time.
+                \textbf{Radiance} is defined as the radiant flux per unit solid angle per unit projected area; the number of photons per time at a small area in a particular direction (units are watts per meter$^2$ steradian);
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm, y=1.25cm]
+                        \draw
+                        (0, 0) edge[->] (0, 2)
+                        (0, 0) edge[->] (2, 0)
+                        (0, 0) edge[->] (-1.4, -1.4);
+                        \draw (-0.3, 0.2) -- (0.7, 0.2) -- (0.2, -0.3) -- (-0.8, -0.3) -- cycle;
+                        \begin{scope}[rotate={50}]
+                            \draw (0, 0) edge[->] (2.5, 0);
+                            \draw (0, 0) -- (2.2, 0.1);
+                            \draw (0, 0) -- (2.2, -0.1);
+                            \draw (2.2, 0) ellipse (0.04 and 0.1);
+                        \end{scope}
+                        \node at (0.3, 2) {$z$};
+                        \node at (2, -0.3) {$y$};
+                        \node at (-1.1, -1.4) {$x$};
+                        \node at (0.5, -0.3) {$\mathrm{d}A$};
+                        \node at (1.9, 1.9) {$L$};
+                        \node at (1.55, 1.4) {$\mathrm{d}\omega$};
+                        \draw[<->] (0, 0) ++(50:1) arc (50:90:1);
+                        \node at (0.45, 1.2) {$\theta$};
+                        \node at (6, 0) {$L(\omega) = \dfrac{\mathrm{d}^2 \Phi}{\cos \theta \mathrm{d} A \mathrm{d} \omega}$};
+                    \end{tikzpicture}
+                \end{center}
+                \textbf{Irradiance} is how much light arrives from any other surface on another surface.
+                It is the differential flux falling onto differential area (in Watts per meter$^2$).
+                $$E = \dif{\Phi}{A}$$
+                It can be seen as a density of incident flux falling onto a surface, and can be obtained by integrating the radiance over the solid angle.
+            \subsubsection*{Reflection and Reflectance}
+                The actual property we want to model is reflection.
+                We want to work out how much is reflected to the viewer.
+                \textbf{Reflection} is the process by which electromagnetic flux incident on a surface leaves the surface without a change in frequency (fluorescence), and \textbf{reflectance} is a fraction of the incident flux that is reflected.
+                We do not consider absorption, transmission nor diffraction.
+                \medskip
+
+                We want to find out how much is reflected when $E_i$ reaches an infinitely small patch of surface.
+                To model this, we need the Bidirectional Reflectance Distribution Function (BRDF) (also seen in \textbf{CO316}) - the units are steradian$^{-1}$;
+                $$f_r(\theta_i, \phi_i, \theta_r, \phi_r) = \dif{L_r(\theta_r, \phi_r)}{E_i(\theta_i, \phi_i)}$$
+                In this case, $L_r$ is the viewer, and $E_i$ the light source.
+                \medskip
+
+                Given our surface is well behaved and generally flat, we can simplify it by stating that a rotation along the surface normal does not change the reflectance;
+                $$f_r(\theta_i, \theta_r, \phi_r - \phi_i) = f_r(\theta_i, \theta_r, \phi_d) = \dif{L_r(\theta_r, \phi_d)}{(\theta_i, \phi_d)}$$
+                However, this isn't true for surfaces with strongly oriented nanostructures (such as \textit{vantablack}, hair, fur, velvet).
+                The properties of BRDFs are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item non-negative
+                        $$f_r(\theta_i, \phi_i, \theta_r, \phi_r) \geq 0$$
+                    \item energy conservation \hfill we never have more light come out than comes in
+                        $$\forall \theta_i, \phi_i\ \defint{\Omega}{}{f_r(\theta_i, \phi_i, \theta_r, \phi_r)}{\mu(\theta_r, \phi_r)} \leq 1$$
+                    \item reciprocity
+                        $$f_r(\theta_i, \phi_i, \theta_r, \phi_r) = f_r(\theta_r, \phi_r, \theta_i, \phi_i)$$
+                \end{itemize}
+                In our case, we only consider the discrete version to compute reflected radiance (with $n$ point light sources)- note that $\Phi_{s, j}$ denotes radiant flux, and $d_j$ is the distance;
+                $$L_r(\omega_r) = \summation{j = 1}{n} f_r(\omega_{i, j}, \omega_r) E_j = \summation{j = 1}{n} f_r(\omega_{i, j}, \omega_r) \cos \theta_j \frac{\Phi_{s, j}}{4 \pi d_j^2} $$
+                Some cases;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{ideal diffuse reflectance} \hfill depends on light source position and surface normal
+                        \smallskip
+
+                        In this case we define BRDF as a constant.
+                        The only dependence is the position of our light, and how that is related to the normal vector of our surface.
+                        At a microscopic level, an ideal diffuse surface is very rough (such as chalk, clay, or some paints).
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw[blue!50!black] (0, 0) edge[below] node{rough surface} (6, 0);
+                                \draw[red!50!black] (1.25, 2) edge[->] (3, 0);
+                                \draw[dashed, blue!50]
+                                (4, 0) arc(0:180:1) -- cycle
+                                (3, 0) edge[->] +(0:1)
+                                (3, 0) edge[->] +(15:1)
+                                (3, 0) edge[->] +(30:1)
+                                (3, 0) edge[->] +(45:1)
+                                (3, 0) edge[->] +(60:1)
+                                (3, 0) edge[->] +(75:1)
+                                (3, 0) edge[->] +(90:1)
+                                (3, 0) edge[->] +(105:1)
+                                (3, 0) edge[->] +(120:1)
+                                (3, 0) edge[->] +(135:1)
+                                (3, 0) edge[->] +(150:1)
+                                (3, 0) edge[->] +(165:1)
+                                (3, 0) edge[->] +(180:1);
+                            \end{tikzpicture}
+                        \end{center}
+                        This has a constant BRDF value;
+                        \begin{align*}
+                            L_r(\omega_r) & = \defint{\Omega}{}{f_r{\omega_i, \omega_r}}{E_i{\omega_i}} \\
+                            & = f_r \defint{\Omega}{}{}{E_i{\omega_i}} \\
+                            & = f_r E_i \\
+                            \mathrm{d}B & = \mathrm{d}A \cos \theta_i
+                        \end{align*}
+                        Using the following, we can see that the reflection is maximal when it is parallel to the normal, and minimal when it is perpendicular;
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \begin{scope}[shift={(2, 0)}, rotate={-30}]
+                                    \draw (0, 1.75) edge[<->] (0.5, 1.75);
+                                    \draw (0, 0) -- (0.5, 0) -- (0.5, 2) -- (0, 2) -- cycle;
+                                    \draw (0, 0) edge[dashed, ->] (0, 3);
+                                \end{scope}
+                                \node at (3.8, 2.7) {$\vec{l}$};
+                                \draw[white, fill=white] (0, 0) -- (4, 0) -- (4, -1) -- (0, -1) -- cycle;
+                                \draw (0, 0) edge[below] node{surface} (4, 0);
+                                \draw (2, 0) edge[->] (2, 2);
+                                \node at (2, 2.25) {$\vec{n}$};
+                                \draw[<->] (2, 0) ++(60:1) arc (60:90:1);
+                                \node at (2.3, 1.3) {$\theta_i$};
+                                \begin{scope}[shift={(0.1, 0.2)}]
+                                    \draw (2, 0) edge[<->] (2.577, 0);
+                                \end{scope}
+                                \node at (3.1, 0.2) {$\mathrm{d}A$};
+                                \node at (3.8, 1.15) {$\mathrm{d}B$};
+                            \end{tikzpicture}
+                        \end{center}
+                        These reflectors reflect light according to \textbf{Lambert's cosine law}; the more parallel the light is to the normal, the higher the strength of the outgoing light.
+                        This is physically incorrect, but it is an approximation, and gives a basic shading.
+                        From a single point light source \textbf{to} direction $\vec{l}$, on a a surface with diffuse reflection coefficient $k_d$ (the colour of the surface in the simplest case) and surface normal $\vec{n}$;
+                        $$L(\omega_r) = k_d (\vec{n} \cdot \vec{l}) \frac{\Phi_s}{4 \pi d^2}$$
+                        The direction \textbf{vectors must be normalised}.
+                        Note that from this point on, using $\vec{n} \cdot \vec{l}$ denotes $\max(\vec{n} \cdot \vec{l}, 0)$; ensuring that the result is at least 0.
+                    \item \textbf{ideal specular reflectance} \hfill depends on light source position, surface normal, and viewpoint position
+                        \smallskip
+
+                        In contrast to diffuse, reflection is \textbf{only} at mirror angle, and is view dependent.
+                        Nanostructures of the surface are usually oriented in the same direction as the surface (such as polished metals or mirrors).
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (3, 0) ++(48.8:1) arc (48.8:132.2:1);
+                                \draw[blue!50!black] (0, 0) edge[below] node{smooth surface} (6, 0);
+                                \draw[red!50!black] (1.25, 2) edge[<-] (3, 0);
+                                \draw[blue!50] (4.75, 2) edge[<-] (3, 0);
+                                \draw[dashed] (3, 1.5) -- (3, 0);
+
+                                \node at (3, 1.75) {$\vec{n}$};
+                                \node at (2.5, 1.25) {$\theta$};
+                                \node at (3.5, 1.25) {$\theta$};
+                            \end{tikzpicture}
+                        \end{center}
+                        This uses a special case of Snell's law, where the incoming ray, the surface normal, and reflected ray are all on a common plane;
+                        \begin{align*}
+                            n_l \sin \theta_l & = n_r \sin \theta_r \\
+                            n_l & = n_r  \\
+                            \theta_l & = \theta_r
+                        \end{align*}
+                        What we want to do is figure out how our viewpoint is related to the reflectance direction.
+                    \item \textbf{non-ideal reflectors}
+                        \smallskip
+
+                        In the real world, materials are neither ideal mirror reflectors following Snell's law, nor ideal diffuse surfaces.
+                        A simple empirical model expects most of the light reflected to travel in the direction of the ideal ray; however due to surface nanostructures some of the light can be expected to be reflected slightly offset from the ideal.
+                        As we move further out (in the angular sense) from the reflected ray, we expect to see less light reflected.
+                        \begin{center}
+                            \hfill
+                            \begin{tikzpicture}
+                                \draw[blue!50!black] (0, 0) edge[below] node{slightly specular surface} (6, 0);
+                                \draw[red!50!black] (1.25, 2) edge[->] (3, 0);
+                                \draw[dashed, blue!50]
+                                (3, 0) edge[->] +(0:1)
+                                (3, 0) edge[->] +(15:1.125)
+                                (3, 0) edge[->] +(30:1.25)
+                                (3, 0) edge[->] +(45:1.5)
+                                (3, 0) edge[->] +(60:1.25)
+                                (3, 0) edge[->] +(75:1.125)
+                                (3, 0) edge[->] +(90:1)
+                                (3, 0) edge[->] +(105:1)
+                                (3, 0) edge[->] +(120:1)
+                                (3, 0) edge[->] +(135:1)
+                                (3, 0) edge[->] +(150:1)
+                                (3, 0) edge[->] +(165:1)
+                                (3, 0) edge[->] +(180:1);
+                            \end{tikzpicture}
+                            \hfill
+                            \begin{tikzpicture}
+                                \draw[blue!50!black] (0, 0) edge[below] node{highly specular surface} (6, 0);
+                                \draw[red!50!black] (1.25, 2) edge[->] (3, 0);
+                                \draw[dashed, blue!50]
+                                (3, 0) edge[->] +(0:1)
+                                (3, 0) edge[->] +(15:1.1)
+                                (3, 0) edge[->] +(30:1.5)
+                                (3, 0) edge[->] +(45:2)
+                                (3, 0) edge[->] +(60:1.5)
+                                (3, 0) edge[->] +(75:1.1)
+                                (3, 0) edge[->] +(90:1)
+                                (3, 0) edge[->] +(105:0.8)
+                                (3, 0) edge[->] +(120:0.8)
+                                (3, 0) edge[->] +(135:0.8)
+                                (3, 0) edge[->] +(150:0.8)
+                                (3, 0) edge[->] +(165:0.8)
+                                (3, 0) edge[->] +(180:0.8);
+                            \end{tikzpicture}
+                            \hfill \phantom{}
+                        \end{center}
+                        In the case of the slightly shiny surface, there is slightly higher intensity in the reflected direction, however in the highly shiny surface, there is high intensity in the reflected direction.
+                        \medskip
+
+                        The \textbf{Phong} model states that the closer the viewer direction $\alpha$ is to the ideal reflection direction, the brighter the light should appear.
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (3, 0) ++(63.4:1) arc (63.4:116.6:1);
+                                \draw (0, 0) edge[below] node{smooth surface} (6, 0);
+                                \draw (2, 2) edge[<-] (3, 0);
+                                \draw (4, 2) edge[<-] (3, 0);
+                                \draw (1, 1) edge[<-] (3, 0);
+                                \draw (3, 0) ++(116.6:1.5) arc (116.6:153.4:1.5);
+                                \draw (3, 1.5) edge[<-] (3, 0);
+
+                                \node at (0.75, 1) {$\vec{v}$};
+                                \node at (3, 1.75) {$\vec{n}$};
+                                \node at (1.75, 2) {$\vec{r}$};
+                                \node at (4.25, 2) {$\vec{l}$};
+                                \node at (2.75, 1.25) {$\theta$};
+                                \node at (3.25, 1.25) {$\theta$};
+                                \node at (1.75, 1.3) {$\alpha$};
+                            \end{tikzpicture}
+                        \end{center}
+                        Therefore we have the following, where $k_s$ is the specular reflection coefficient, and $q$ the specular reflection exponent;
+                        $$L(\omega_r) = k_s (\cos \alpha)^q \frac{\Phi_s}{4 \pi d^2} = k_s (\vec{v} \cdot \vec{r})^q \frac{\Phi_s}{4 \pi d^2}$$
+                        A higher $q$ leads to a more focused light (a shiner surface), and $k_s$ is the surface property we want to manipulate.
+                        In order to obtain $\vec{r}$, we can calculate the following;
+                        \begin{align*}
+                            \vec{r} + \vec{l} & = 2 \cos \theta \vec{n} & \Rightarrow \\
+                            \vec{r} & = 2(\vec{n} \cdot \vec{l}) \vec{n} - \vec{l} \\
+                            L(\omega_r) & = k_s (\vec{v} \cdot (2(\vec{n} \cdot \vec{l}) \vec{n} - \vec{l}))^q \frac{\Phi_s}{4 \pi d^2}
+                        \end{align*}
+                        The \textbf{Blinn-Phong} variation uses the halfway vector $\vec{h}$ between $\vec{l}$ and $\vec{v}$;
+                        \begin{align*}
+                            \vec{h} & = \frac{\vec{l} + \vec{v}}{|| \vec{l} + \vec{v} ||} \\
+                            L(\omega_r) & = k_s (\cos \beta)^q \frac{\Phi_s}{4 \pi d^2} \\
+                            & = k_s (\vec{n} \cdot \vec{h})^q \frac{\Phi_s}{4 \pi d^2}
+                        \end{align*}
+                    \item \textbf{ambient}
+                        \smallskip
+
+                        This represents the reflection of all indirect illumination (it is a hack).
+                        This avoids the complexity of global illumination;
+                        $$L(\omega_r) = k_a$$
+                \end{itemize}
+                The Phong model is a sum of three components; the \teal{ambient}, the \violet{diffuse} reflection, and the \blue{specular} reflection.
+                $$L(\omega_r) = \teal{k_a} + (\violet{k_d (\vec{n} \cdot \vec{l})} + \blue{k_s (\vec{v} \cdot \vec{r})^q}) \frac{\Phi_s}{4 \pi d^2}$$
+            \subsubsection*{Note on Inverse Square Law}
+                Light falls off according to an inverse square law, hence the $d^2$ term.
+                However, it may not produce the best results, and we can instead often use $(d + s)$ in place, where $s$ is a heuristic constant.
+            \subsubsection*{Shading}
+                The three levels at which shading can be applied in polygon based systems, providing increasing realism at the cost of computation, are;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{flat shading}
+                        \smallskip
+
+                        This can be done wherever.
+                        Each polygon is shaded uniformly over is surface, and computed by taking a point in the centre and at the surface normal (consider a light source at infinity).
+                        Normally, only the diffuse and ambient components are used
+                    \item \textbf{Gouraud shading}
+                        \smallskip
+
+                        Interpolates colour across triangles.
+                        This is fast, and supported by most GPUs, but cannot accurately model specular components (since we don't have normal vectors at each point on a polygon).
+                    \item \textbf{Phong shading} \hfill fragment stage
+                        \smallskip
+
+                        Interpolates normals across triangles; more accurate modelling of specular components, but slower.
+                \end{itemize}
+                \textbf{Interpolation shading} is a more accurate way to render a shaded polygon, by computing an independent shade at each point;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item compute a shade value at each vertex
+                    \item interpolate to find shade value at the boundary \hfill $L = \frac{d_1 L_3 + d_2 L_1}{d_1 + d_2}$
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (0, 0) -- (2, 3) -- (3, -1) -- cycle;
+                                \node[rbtb] at (0, 0) {};
+                                \node[rbtb] at (2, 3) {};
+                                \node[rbtb] at (3, -1) {};
+                                \node[rbtb] at (2.5, 1) {};
+                                \node at (2.5, 3) {$L_1$};
+                                \node at (0, -0.5) {$L_2$};
+                                \node at (3.5, -1) {$L_3$};
+                                \node at (3, 1) {$L$};
+                                \node at (2.75, 2) {$d_1$};
+                                \node at (3.25, 0) {$d_2$};
+                            \end{tikzpicture}
+                        \end{center}
+                    \item interpolate to find shade values in the middle \hfill $L = \frac{d_1 L_B + d_2 L_A}{d_1 + d_2}$
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw (0, 0) -- (2, 3) -- (3, -1) -- cycle;
+                                \node[rbtb] at (0, 0) {};
+                                \node[rbtb] at (2, 3) {};
+                                \node[rbtb] at (3, -1) {};
+                                \node[rbtb] at (2.5, 1) {};
+                                \node[rbtb] at (2/3, 1) {};
+                                \node at (2.5, 3) {$L_1$};
+                                \node at (0, -0.5) {$L_2$};
+                                \node at (3.5, -1) {$L_3$};
+                                \node at (3, 1) {$L_B$};
+                                \node at (2/3 - 0.5, 1) {$L_A$};
+                                \node[rbtb] at (1.5, 1) {};
+                                \draw (2/3, 1) -- (2.5, 1);
+                                \node at (1.08333, 0.5) {$d_1$};
+                                \node at (2, 1.5) {$d_2$};
+                            \end{tikzpicture}
+                        \end{center}
+                \end{enumerate}
 \end{document}
