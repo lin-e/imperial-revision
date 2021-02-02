@@ -1414,15 +1414,6 @@
                     \item setup viewport, model transformation, and file I/O (including shaders and textures)
                     \item frame generation (define what happens in every frame)
                 \end{enumerate}
-                % To start using it, we use the following;
-                % \begin{lstlisting}
-                %     #include <GL/gl.h>
-                %     #include <GL/glu.h>
-                %     #include <GL/glut.h>
-
-                %     // in the case of Qt applications, large overhead
-                %     #include <QtOpenGL>
-                % \end{lstlisting}
                 \textbf{Contexts} are abstract graphics devices, which usually do not communicate with each other; each representing one instance of OpenGL.
                 There is only one \textbf{current} context per thread.
                 We may have multiple OpenGL windows in a single application and they are independent contexts.
@@ -1515,13 +1506,6 @@
                     \item ~GL\_TRIANGLE\_STRIP~
                         \begin{center}
                             \begin{tikzpicture}
-                                % \draw (0, 0) -- (2, 0.2) -- (1.8, -0.8) -- (1.7, -1.8) -- (2, -2.4) -- (1, -2.7) -- (0.3, -1.5) -- (0.6, -0.9) -- cycle;
-                                % \draw
-                                % (1.8, -0.8) -- (0.6, -0.9)
-                                % (1.7, -1.8) -- (0.3, -1.5)
-                                % (0.6, -0.9) -- (2, 0.2)
-                                % (0.3, -1.5) -- (1.8, -0.8)
-                                % (1, -2.7) -- (1.7, -1.8);
                                 \node (a) at (0, 0) {0};
                                 \node (b) at (2, 0.5) {1};
                                 \node (c) at (1.5, 1.5) {2};
@@ -2142,4 +2126,5 @@
                     \item semi-transparent \hfill $0 < \alpha < 1$
                     \item opaque \hfill $\alpha = 1$
                 \end{itemize}
+        \subsection*{Lecture 8 - Texture Mapping}
 \end{document}
