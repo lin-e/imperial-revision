@@ -1057,4 +1057,234 @@
                 A model $G$ (generator) learns the mapping from edge to image.
                 For example, we take an edge image $x$ to $G(x)$ (an image).
                 A discriminator $d$ then attempts to assess whether the image is real or fake (GAN).
+        \subsection*{Lecture 7 - Hough Transform}
+            In the last lecture, we covered edge detection (1 for edge pixel, 0 for background).
+            If we know these edges form some shape (such as a line), we want to obtain a parametric representation.
+            \subsubsection*{Line Parameterisation}
+                A line can be represented by two parameters (e.g. $m$ (slope) and $b$ ($y$-intercept)), which is much more efficient than a lot of edge points;
+                \begin{itemize}
+                    \itemsep0em
+                    \item slope intercept form \hfill $m$ (slope) and $b$ ($y$-intercept)
+                        $$y = mx + b$$
+                    \item double intercept form \hfill $(a, 0)$ and $(0, b)$ are on the line
+                        $$\frac{x}{a} + \frac{y}{b} = 1$$
+                    \item normal form \hfill $\theta$ is angle and $\rho$ is distance
+                        $$x\cos(\theta) + y\sin(\theta) = \rho$$
+                \end{itemize}
+            \subsubsection*{Hough Transform}
+                Hough transform transforms from image space (edge map) to parameter space (two parameters of a line).
+                The output is a parametric model, from a n input of edge points.
+                Each edge point `votes' for possible models in the parameter space.
+                One way is to fit a line model $(m, b)$ to the edge points $(x_1, y_1), (x_2, y_2), \dots$;
+                $$\min_{m, b} \summation{i}{} (y_i - \underbrace{(mx_i + b)}_{\hat{y}})^2$$
+                For the Hough transform we will use the slope intercept form.
+                $$y = mx + b \Leftrightarrow b = y - mx$$
+                Assume we have the edge points $(x_1, y_1), \dots$, each point will vote for a line model in the parameter space; for example, the first point votes for;
+                $$b = y_1 - mx_1$$
+                This can be seen graphically as the following (image space on the left, parameter space ($b = y - mx$) on the right);
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            domain=-4:4, samples=9,
+                            axis lines=middle, xlabel=$x$, ylabel=$y$,
+                            height=8cm, width=8cm,
+                            enlargelimits=false,
+                            xtick={-4,-3,...,4},
+                            ytick={-4,-3,...,4},
+                            xmin=-4, xmax=4,
+                            ymin=-4, ymax=4
+                        ]
+                            \node[label={45:{\tiny(3,3)}}, circle, fill=red, inner sep=2pt] at (axis cs:3,3) {};
+                            \node[label={45:{\tiny(1,1)}}, circle, fill=green, inner sep=2pt] at (axis cs:1,1) {};
+                            \node[label={135:{\tiny(-2,-2)}}, circle, fill=blue, inner sep=2pt] at (axis cs:-2,-2) {};
+                        \end{axis}
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            domain=-4:4, samples=9,
+                            axis lines=middle, xlabel=$m$, ylabel=$b$,
+                            height=8cm, width=8cm,
+                            enlargelimits=false,
+                            xtick={-4,-3,...,4},
+                            ytick={-4,-3,...,4},
+                            xmin=-4, xmax=4,
+                            ymin=-4, ymax=4
+                        ]
+                            \addplot[very thick, red] {3 - 3*\x};
+                            \addplot[very thick, green] {1 - \x};
+                            \addplot[very thick, blue] {-2 + 2*\x};
+                        \end{axis}
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                The intersection will get 3 votes, the other points on the line get 1 vote each, and the empty spaces get 0 votes.
+                This gives a result of $m = 1$ and $b = 0$, thus we get the line $y = x$.
+                However, in practice this is divided into two dimensional bins, with each point incrementing the vote by 1 in one of the bins.
+                One problem is that the parameter space is too large for $m$ and $b$ (both are infinite).
+                \medskip
+
+                The solution to this is to use the normal form.
+                While $\rho$ can still be infinite (in theory, however we can actually limit this to the image size in practice), we have $\theta \in [0, \pi)$.
+                The transform from the image space to the parameter space ($x\cos(\theta) + y\sin(\theta) = \rho$) will however look different;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            domain=0:180, samples=90,
+                            axis lines=middle, xlabel=$\theta$, ylabel=$\rho$,
+                            height=8cm, width=8cm,
+                            enlargelimits=false,
+                            xticklabels={,,},
+                            ytick={-5,-4,...,5},
+                            xmin=0, xmax=180,
+                            ymin=-5, ymax=5
+                        ]
+                            \addplot[very thick, red] {3 * cos(\x) + 3 * sin(\x)};
+                            \addplot[very thick, green] {cos(\x) + sin(\x)};
+                            \addplot[very thick, blue] {-2 * cos(\x) - 2 * sin(\x)};
+                        \end{axis}
+                    \end{tikzpicture}
+                \end{center}
+                This gives the resultant vote $\theta = \frac{3\pi}{4}$ and $\rho = 0$.
+                \medskip
+
+                To perform this algorithm, we do the following;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item initialise the bins $H(\rho, \theta)$ to zero in the parameter space
+                    \item for each edge point $(x, y)$;
+                        \begin{enumerate}[a.]
+                            \itemsep0em
+                            \item for $\theta$ from $0$ to $\pi$
+                                \begin{enumerate}[i.]
+                                    \itemsep0em
+                                    \item calculate $\rho = x\cos \theta + y\sin \theta$
+                                    \item accumulate $H(\rho, \theta) = H(\rho, \theta) + 1$
+                                \end{enumerate}
+                        \end{enumerate}
+                    \item find $(\rho, \theta)$ where $H(\rho, \theta)$ is a local maximum and larger than a threshold
+                        \smallskip
+
+                        This is done in a similar way to the previous lecture.
+                        The local maximum allows multiple solutions to be detected, and the threshold reduces false positives.
+                    \item the detected lines are given by $\rho = x\cos \theta + y\sin \theta$
+                \end{enumerate}
+                In contrast to model fitting (minimisation), Hough transform can simultaneously detect multiple lines (as long as they are local maximums and above a threshold) whereas the former can only detect a single line.
+                Hough transform is robust to noise for two reasons.
+                First, the initial edge map is generated after image smoothing (already suppressing noise).
+                Furthermore, the broken edge maps are still able to vote and contribute to line detection.
+                Similarly, it is also robust to object occlusion (objects overlapping, such as a tree obstructing part of a face).
+                \medskip
+
+                However, the computational complexity is high; we have to vote in a 2D or 3D parameter space for each edge point.
+                We also need to set parameters carefully, such as parameters for the edge detector, the threshold for the accumulator, or the radius range (in the case of circles).
+                \medskip
+
+                This can be generalised to other shapes (which can be analytically represented), such as ellipses or planes in a 3D space.
+                We can also weigh the votes, by taking the gradient magnitude (such that stronger edge points are weighted higher).
+                \medskip
+
+                In general, if it is a simple shape (such that there is no analytical equation), we can still vote as long as we have a model.
+                For example, consider the case of pedestrian detection; we can vote for points above a patch where a foot is detected, and below where a head is detected.
+            \subsubsection*{Circles}
+                We can parameterise a circle as;
+                $$(x - a)^2 + (y - b)^2 = r^2$$
+                However, this is a very large parameter space (hence many bins).
+                If we have some prior knowledge (such as the radius $r$), we can make the problem easier by reducing the search space - we can just vote for $a, b$ (the centre of the circle).
+                The votes are still circles in the parameter space $H(a, b)$ (assuming $r = 1$);
+                $$(a - x)^2 + (b - y)^2 = 1$$
+                This can be seen graphically as the following (image space on the left, parameter space ($(a - x)^2 + (b - y)^2 = 1$) on the right);
+                \begin{center}
+                    \hfill
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            domain=-4:4, samples=9,
+                            axis lines=middle, xlabel=$x$, ylabel=$y$,
+                            height=8cm, width=8cm,
+                            enlargelimits=false,
+                            xtick={-4,-3,...,4},
+                            ytick={-4,-3,...,4},
+                            xmin=-4, xmax=4,
+                            ymin=-4, ymax=4
+                        ]
+                            \node[circle, fill=red, inner sep=2pt] at (axis cs:3,2) {};
+                            \node[circle, fill=green, inner sep=2pt] at (axis cs:2,1) {};
+                            \node[circle, fill=blue, inner sep=2pt] at (axis cs:1,2) {};
+                        \end{axis}
+                    \end{tikzpicture}
+                    \hfill
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            axis on top=true,
+                            axis line style=thick,
+                            domain=-4:4, samples=9,
+                            axis equal image,
+                            axis lines=middle, xlabel=$m$, ylabel=$b$,
+                            height=8cm, width=8cm,
+                            enlargelimits=false,
+                            xtick={-5,-4,...,5},
+                            ytick={-5,-4,...,5},
+                            xmin=-5, xmax=5,
+                            ymin=-5, ymax=5
+                        ]
+                            \path (axis cs:0,0) coordinate (O);
+                            \path (axis cs:1,0) coordinate (U);
+                            \draw[very thick, red] let \p1=(O), \p2=(U), \n1={veclen(\x2-\x1,\y2-\y1)} in (axis cs:3,2) circle [radius=\n1];
+                            \draw[very thick, green] let \p1=(O), \p2=(U), \n1={veclen(\x2-\x1,\y2-\y1)} in (axis cs:2,1) circle [radius=\n1];
+                            \draw[very thick, blue] let \p1=(O), \p2=(U), \n1={veclen(\x2-\x1,\y2-\y1)} in (axis cs:1,2) circle [radius=\n1];
+                        \end{axis}
+                    \end{tikzpicture}
+                    \hfill \phantom{}
+                \end{center}
+                If we don't know the radius, we set a range $r \in [r_\text{min}, r_\text{max}]$, and then perform a similar algorithm to before.
+                \medskip
+
+                Another representation of a circle can be done with trigonometric functions (parametric form);
+                \begin{align*}
+                    x & = a + r \cos \theta \\
+                    y & = b + r \sin \theta
+                \end{align*}
+                However, if we know $\theta$, we can vote along a direction.
+                Since we know the direction of an edge point (obtained from edge detection), we can narrow it down (along the gradient or opposite the gradient).
+                We assume an accuracy of $\pm \phi$, and vote within that area.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw (0, 0) circle (1);
+                        \begin{scope}[shift={(0.707, 0.707)}, rotate={45}, scale={0.75}]
+                            \draw[dashed, fill=black!20]
+                            (1.5, 0.5) -- (0, 0) -- (1.5, -0.5) -- cycle
+                            (-3, -1) -- (0, 0) -- (-3, 1) -- cycle;
+                            \node[rbtb] at (0, 0) {};
+                            \draw (0.5, 0) edge[<->] (-0.5, 0);
+                            \draw (0, 0) ++(161.6:1) arc (161.6:198.4:1);
+                        \end{scope}
+                        \node at (0, 0) {\tiny $2 \phi$};
+                    \end{tikzpicture}
+                \end{center}
+                The algorithm can be done as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item initialise all bins $H(a, b, r)$ to zero
+                    \item for each possible radius $r \in [r_\text{min}, r_\text{max}]$
+                        \begin{enumerate}[a.]
+                            \itemsep0em
+                            \item for each edge point $(x, y)$;
+                                \begin{enumerate}[i.]
+                                    \itemsep0em
+                                    \item let $\theta$ be gradient direction / opposite gradient direction
+                                    \item calculate $a = x - r\cos \theta$ and $b = y - r\sin \theta$
+                                    \item accumulate $H(a, b, r) = H(a, b, r) + 1$
+                                \end{enumerate}
+                        \end{enumerate}
+                    \item find $(a, b, r)$ where $H(a, b, r)$ is a local maximum and larger than a threshold
+                \end{enumerate}
 \end{document}
