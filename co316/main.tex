@@ -1287,4 +1287,184 @@
                         \end{enumerate}
                     \item find $(a, b, r)$ where $H(a, b, r)$ is a local maximum and larger than a threshold
                 \end{enumerate}
+        \subsection*{Lecture 8 - Interest Point Detection I}
+            An interest point is a point we are interested in, and are useful for subsequent processing and analysis (classification, matching, retrieval, etc).
+            These are commonly corners or blobs, where local image structure is rich.
+            These are also known as keypoints, landmarks, or low-level features.
+            \subsubsection*{Applications}
+                We can define landmarks, on a face, which are most representative.
+                Once we detect these landmarks, the locations can be used for purposes such as mood analysis, AR, etc.
+                \medskip
+
+                Another application is \textbf{image matching}; detecting relationships between images (such as orientation) and finding spatial correspondence between two images.
+                This can be done by pixels (by using all information), by edges (using some information), or by interest points (using only important information).
+                Matching with pixels often works by optimising a similarity metric (based on all pixels), with a spatial transformation $T$;
+                $$\max_T \text{Similarity}(I_A, I_B(T))$$
+                A more efficient approach is to find interest points and see how they are transformed between images (consider different perspectives of an art piece).
+            \subsubsection*{Harris Detector}
+                Corners are intersection of edges (which are high magnitude of gradient).
+                For corner detection, by just looking at the gradient magnitude of a single pixel, we can't tell if it is a corner or edge pixel.
+                However, if we look at the small windows, we can tell a difference;
+                \begin{itemize}
+                    \itemsep0em
+                    \item flat \hfill change of intensity in \textbf{neither} direction
+                    \item edge \hfill change of intensity along just \textbf{one} direction
+                    \item corner \hfill change of intensity along \textbf{both} directions
+                \end{itemize}
+                We want to define a window $W$ and a window function $w$ (1 if it is in the window, 0 otherwise), where we have the \violet{sum of squared difference}, \teal{intensity in the shifted window} and the \blue{original intensity};
+                $$\violet{E(u, v)} = \summation{(x, y) \in W}{} w(x, y)[\teal{(I(x + u, y + v)} - \blue{I(x, y)}]^2$$
+                Note that the window function $w(x, y)$ is used as it isn't necessarily 1 inside, and 0 outside, we can use also use a Gaussian to put more focus on the middle of the window.
+                \medskip
+
+                We can use the following Taylor expansion (note that $I_x$ and $I_y$ denote the image derivative along $x$ and $y$ respectively);
+                $$\teal{I(x + u, y + v)} = \blue{I(x, y)} + \red{uI_x(x, y) + vI_y(x, y)} + \dots$$
+                Using just the first order approximation;
+                \begin{align*}
+                    E(u, v) & = \summation{}{} w(x, y)[\teal{I(x + u, y + v)} - \blue{I(x, y)}]^2 \\
+                    & \approx \summation{}{} w(x, y)[\red{u\underbrace{I_x(x, y)}_{I_x} + v\underbrace{I_y(x, y)}_{I_y}}])^2 \\
+                    & = \summation{}{} w(x, y)(u^2I_x^2 + 2uvI_xI_y + v^2I_y^2) \\
+                    & = \summation{}{} w(x, y) \begin{bmatrix}
+                        u & v
+                    \end{bmatrix} \begin{bmatrix}
+                        I_x^2 I_xI_y \\
+                        I_xI_y & I_y^2
+                    \end{bmatrix} \begin{bmatrix}
+                        u \\ v
+                    \end{bmatrix} & \text{written as matrix formula} \\
+                    & = \begin{bmatrix}
+                        u & v
+                    \end{bmatrix} \summation{}{} w(x, y) \begin{bmatrix}
+                        I_x^2 & I_xI_y \\
+                        I_xI_y & I_y^2
+                    \end{bmatrix} \begin{bmatrix}
+                        u \\ v
+                    \end{bmatrix}
+                \end{align*}
+                Therefore, for a small shift $(u, v)$, we have the approximation (note that $E(u, v)$ will be large when image derivatives are large);
+                $$E(u, v) \approx \begin{bmatrix}
+                    u & v
+                \end{bmatrix} \mat{M} \begin{bmatrix}
+                    u \\ v
+                \end{bmatrix}$$
+                Where $\mat{M} \in \mathbb{R}^{2 \times 2}$ is computed from the window function and image derivatives (this matrix will also provide the direction of changes);
+                $$\mat{M} = \summation{x, y}{} w(x, y) \begin{bmatrix}
+                    I_x^2 & I_xI_y \\
+                    I_xI_y & I_y^2
+                \end{bmatrix}$$
+                We have the following simple cases (and examples) - note that these are \textbf{only} diagonals;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{flat region} \hfill small values on diagonal
+                        $$\mat{M} = \begin{bmatrix}
+                            0 & 0 \\
+                            0 & 0
+                        \end{bmatrix}$$
+                    \item \textbf{edge} \hfill diagonal, large on one of diagonal
+                        $$\mat{M} = \begin{bmatrix}
+                            10 & 0 \\
+                            0 & 0.1
+                        \end{bmatrix}$$
+                        In this case, we have a large change if shifting along $u$, but a small change if we shift along $v$, hence we have an edge.
+                    \item \textbf{corner} \hfill diagonal, large on both diagonal
+                        $$\mat{M} = \begin{bmatrix}
+                            10 & 0 \\
+                            0 & 10
+                        \end{bmatrix}$$
+                        If we move along either direction, there will be a large change, hence it is a corner.
+                \end{itemize}
+                However, in the case that $\mat{M}$ is more complex (such that it isn't a diagonal matrix), we can simplify it by performing eigen decomposition.
+                Because $\mat{M}$ is a real symmetric matrix, we can decompose it as;
+                $$\mat{M} = \mat{P} \mat{\Lambda} \mat{P}^\top$$
+                In the above, $\mat{P}$ has eigenvectors (orthogonal to each other) as columns (and therefore $\mat{P}^\top$ has eigenvectors as rows), and $\mat{\Lambda}$ is a diagonal matrix with eigenvalues;
+                $$\mat{\Lambda} = \begin{bmatrix}
+                    \lambda_1 & 0 \\
+                    0 & \lambda_2
+                \end{bmatrix}$$
+                Referring back to $E(u, v)$, we have the following;
+                $$E(u, v) \approx \begin{bmatrix}
+                    u & v
+                \end{bmatrix} \mat{P} \mat{\Lambda} \mat{P}^\top \begin{bmatrix}
+                    u \\ v
+                \end{bmatrix}$$
+                The same rules as above apply; however instead of moving along $u$, we instead move along the first eigenvector (and instead of moving along $v$, we move along the second eigenvector).
+                The edges are no longer horizontal or vertical, they are in the directions of the eigenvectors.
+                The eigenvalues can be interpreted as follows;
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=1.5cm]
+                        \draw (0, 0) edge[->] (2, 0);
+                        \draw (0, 0) edge[->] (0, 2);
+                        \node at (2, -0.5) {$\lambda_1$};
+                        \node at (-0.5, 2) {$\lambda_2$};
+                        \begin{scope}[shift={(0.25, 1.75)}, scale={0.25}]
+                            \draw (-0.5, 0) -- (-0.5, 0.5) -- (0.5, 0.5) -- (0.5, 0);
+                            \draw[fill=black] (-0.5, 0) -- (0.5, 0) -- (0.5, -0.5) -- (-0.5, -0.5) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(0.25, 0.25)}, scale={0.25}]
+                            \draw (-0.5, -0.5) -- (-0.5, 0.5) -- (0.5, 0.5) -- (0.5, -0.5) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(1.75, 0.25)}, rotate={90}, scale={0.25}]
+                            \draw (-0.5, 0) -- (-0.5, 0.5) -- (0.5, 0.5) -- (0.5, 0);
+                            \draw[fill=black] (-0.5, 0) -- (0.5, 0) -- (0.5, -0.5) -- (-0.5, -0.5) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(1.75, 1.75)}, scale={0.25}]
+                            \draw (-0.5, 0) -- (-0.5, 0.5) -- (0.5, 0.5) -- (0.5, -0.5) -- (0, -0.5);
+                            \draw[fill=black] (-0.5, -0.5) -- (-0.5, 0) -- (0, 0) -- (0, -0.5) -- cycle;
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                Here we have the following cases;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\lambda_1 \sim 0$ and $\lambda_2 \sim 0$ \hfill flat
+                    \item $\lambda_1 >> \lambda_2$ \hfill vertical edge
+                    \item $\lambda_2 >> \lambda_1$ \hfill horizontal edge
+                    \item $\lambda_1$ and $\lambda_2$ both large \hfill corner
+                \end{itemize}
+                However, we want to define a single number for `cornerness' (high when both eigenvalues are large).
+                This can be defined in multiple ways;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textit{Harris and Stephens (1988)}
+                        $$R = \lambda_1\lambda_2 - k(\lambda_1 + \lambda_2)^2$$
+                        Here $k$ is a small number, such as $0.05$.
+                        The small $k$ ensures that the number does not become too small (when subtracted) when both eigenvalues are large.
+                    \item \textit{Kanade and Tomasi (1994)}
+                        $$R = \min(\lambda_1, \lambda_2)$$
+                    \item \textit{Noble (1998)}
+                        $$R = \frac{\lambda_1\lambda_2}{\lambda_1 + \lambda_2 + \epsilon}$$
+                \end{itemize}
+                However; notice that we only want the values of $\lambda_1\lambda_2$  and $\lambda_1 + \lambda_2$, therefore we do not need to perform eigen decomposition.
+                Using the following properties for matrix determinant and trace, we can obtain the following;
+                \begin{align*}
+                    \det(\mat{M}) & = \det(\mat{P}\mat{\Lambda}\mat{P}^\top) \\
+                    & = \det(\mat{\Lambda}) \\
+                    & = \lambda_1 \lambda_2 \\
+                    \mathrm{trace}(\mat{M}) & = \mathrm{trace}(\mat{P}\mat{\Lambda}\mat{P}^\top) \\
+                    & = \mathrm{trace}(\mat{\Lambda}) \\
+                    & = \lambda_1 + \lambda_2
+                \end{align*}
+                Therefore, we only need the determinant and trace for the original matrix to calculate $R$;
+                $$R = \det(\mat{M}) - k(\mathrm{trace}(\mat{M}))^2$$
+                This detector can also find strong responses at blobs and textures, as well as corners.
+                The algorithm is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item compute $x$ and $y$ derivatives of an image \hfill $G$ can be the Sobel filter
+                        \begin{align*}
+                            I_x & = G_x * I \\
+                            I_y & = G_y * I
+                        \end{align*}
+                    \item compute the matrix $\mat{M}$ at each pixel
+                        $$\mat{M} = \summation{x, y}{} w(x, y) \begin{bmatrix}
+                            I_x^2 & I_xI_y \\
+                            I_xI_y & I_y^2
+                        \end{bmatrix}$$
+                    \item calculate the detector response
+                        $$R = \lambda_1\lambda_2 - k(\lambda_1 + \lambda_2)^2$$
+                    \item detect interest points which are local maxima (and $R$ above a certain threshold)
+                \end{enumerate}
+                Note that the Harris detector is \textbf{rotation-invariant}.
+                We will still get the same change of intensities when shifting along a rotated direction - the eigenvalues of $\mat{M}$ remain the same, but the eigenvectors will change.
+                However, it is not invariant to scale.
+                At a different zooming scale, an edge may be detected as a corner or vice versa (for example if the circle arc is large it will be detected as an edge, but if it is small, it will be detected as a corner).
 \end{document}
