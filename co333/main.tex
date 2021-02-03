@@ -292,7 +292,7 @@
                                 \end{scope}
                             \end{tikzpicture}
                         \end{center}
-                        Rear wheels need a  differential, variable (Ackerman) linkage for steering wheels.
+                        Rear wheels need a differential, variable (Ackerman) linkage for steering wheels.
                     \item \textbf{differential drive} (robot vacuum)
                         \smallskip
 
@@ -449,6 +449,167 @@
                     \theta + \alpha
                 \end{bmatrix}$$
         \subsection*{Lecture 3 - Sensors (Behaviours)}
+            \subsubsection*{Motivation}
+                Recall the second practical; there was a gradual drift from the desired path.
+                There are aspects of the world that the robot can never fully understand (such as the bumpiness of the floor) - even simulations cannot do exactly the same thing every time.
+                After calibration, the robot should return to the desired location (on average), but some scatter will remain due to factors we cannot control.
+                \medskip
+
+                Systematic errors are removed, however we still have \textbf{zero mean errors} - these errors occur incrementally (where every movement or rotation adds a small amount of potential error).
+                The zero mean errors can be modelled probabilistically, often with a Gaussian distribution.
+            \subsubsection*{Uncertainty in Motion}
+                A better model (compared to the previous lecture) adds uncertain perturbations / motion noise;
+                $$\begin{bmatrix}
+                    x^\prime \\
+                    y^\prime \\
+                    \theta^\prime
+                \end{bmatrix} = \begin{bmatrix}
+                    x + (D + e) \cos \theta \\
+                    y + (D + e) \sin \theta \\
+                    \theta + f
+                \end{bmatrix}$$
+                We will likely also notice that rotations are not exact either;
+                $$\begin{bmatrix}
+                    x^\prime \\
+                    y^\prime \\
+                    \theta^\prime
+                \end{bmatrix} = \begin{bmatrix}
+                    x \\
+                    y \\
+                    \theta + \alpha + g
+                \end{bmatrix}$$
+            \subsubsection*{Sensors}
+                Proprioceptive are self-sensing (such as motor encoders / internal force sensors) and improve a robot's sense of its own internal state.
+                In general, these measurements may depend on the previous states as (as well as the current state); for example wheel odometry gives a reading depending on a difference between the current and previous state, on the other hand, a gyro in an inertial measurement unit will report a reading depending on the current \textbf{rate} of rotation (not an instantaneous state).
+                \medskip
+
+                In this case, the value of the measurement $\vec{z}_p$ should be a function of the state of the state of the robot;
+                $$\vec{z}_p = \vec{z}_p(\vec{x})$$
+
+                On the other hand, exteroceptive are outward-looking.
+                These allow the robot to generally be \textbf{aware} of its environment, letting it localise with respect to a map, recognise objects / locations, map out free space, avoid obstacles, and interact with objects.
+                \medskip
+
+                In this case, we need both the sate of the robot $\vec{x}$ and the state of the world $\vec{y}$ (relative to the robot);
+                $$\vec{z}_o = \vec{z}_o(\vec{x}, \vec{y})$$
+                The state of the world may be parameterised (such as a list of geometric coordinates describing landmarks).
+                This state may be uncertain.
+                \medskip
+
+                Some sensors (such as touch, light, and sonar) will return a \textbf{single value} in a range.
+                On the other hand, some sensors such as a camera or laser range-finder will return an \textbf{array} of values, with the former having an array of sensing elements (pixels of a camera's CCD chip), or the latter performing scanning.
+                \medskip
+
+                Some common sensors are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{touch sensor}
+                        \smallskip
+
+                        This is a binary on / off state; an open switch will have no current flow, and a closed switch will have current flow (hit).
+                    \item \textbf{light sensor}
+                        \smallskip
+
+                        This detects intensity of passive light incident from a single forward direction (some range of angle sensitivity); this is a continuous value.
+                        Multiple sensors can guide steering behaviours (such as driving towards a brighter light).
+                        In \textit{Lego}, there is also a mode where the sensor can emit light, where reflections from close surfaces can be measured.
+                    \item \textbf{sonar (ultrasonic) sensors}
+                        \smallskip
+
+                        Sonar measures distance by emitting ultrasonic pulses (tiny pulses of sound at a high frequency) - these beams typically have an angular width of $10^\circ - 20^\circ$.
+                        The sensors measure the time for a pulse to bounce back (which the sensor uses to calculate the distance).
+                        These are fairly accurate within a few centimetres in one direction (for simple shapes) - but can be noisy in the presence of complicated shapes.
+                        The maximum range is a few metres.
+                    \item \textbf{laser range-finder}
+                        \smallskip
+
+                        The principle of this is similar to sonar, however it uses infrared laser beams instead of sound.
+                        This is also reflected, detected, and timed to calculate a distance.
+                        These are very accurate (sub-millimetre), and work on most surfaces.
+                        They can normally scan in a 2D plane (rotating on one axis), but can also scan in 3D.
+                        Previously, these were bulky and expensive, however nowadays they are present in modern smartphones.
+                \end{itemize}
+            \subsubsection*{Vision}
+                This is the generalisation of a light sensor.
+                A camera can be thought of as a large array of light sensors (or a light sensor is a single pixel of) which returns a large, rectangular array of measurements.
+                A single camera measures light intensity (rather than direct information about geometry).
+            \subsubsection*{Bump Detection (Touch Sensor)}
+                We can either perform this with a touch sensor, or by thresholding sonar (such as if the distance falls below some range).
+                \medskip
+
+                Multiple touch sensors mounted inside a floating skirt can allow for detection of where an obstacle was hit.
+                For example, if a robot was hit at the front, it may attempt to drive around it by going backwards, moving around, and continuing.
+                Another simple strategy is to rotate through a random angle and go forward until the next collision (random bounce).
+            \subsubsection*{Servoing}
+                Servoing is a control technique where control parameters (e.g. the desired speed of a motor) are coupled directly to a sensor reading and updated regularly in a \textbf{negative feedback loop} - this is also known as \textbf{closed loop control}.
+                This requires high frequency updates of both the sensor and the update, otherwise the motion can oscillate.
+                \medskip
+
+                Propeortional control sets the demand proportional to negative error - for example in velocity (where we look at the difference between the desired sensor value and actual sensor value);
+                $$v = -k_p (z_\text{desired} - z_\text{actual})$$
+                This proportional case is a specific case of PID control.
+                \medskip
+
+                A simple steering law to guide the robot to collide with the target would be as follows (for example - if the obstacle is straight ahead ($\alpha = 0$), then don't steer);
+                $$s = k_p \alpha$$
+                On the other hand, to guide the robot to avoid the obstacle at a safe distance ($R$) would subtract an offset ($D$ is the distance from the robot to the object, and $\alpha$ is the angle between the robot's rotation and the direction to the object);
+                $$s = k_p(\alpha - \sin^{-1}\frac{R}{D})$$
+            \subsubsection*{Wall Following}
+                Consider the following scenario, where a differential drive robot desires to travel along a wall, at some distance $d$.
+                This uses a \textbf{sideways-looking sonar} to measure some distance $z$.
+                In the following diagram, the wall can be curved; I just don't know how to do that in TikZ.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw (-3, 3) -- (10, 3);
+                        \begin{scope}[scale={0.5}]
+                            \draw (0, 0) -- (3, 0) -- (3, 3) -- (0, 3) -- cycle;
+                            \begin{scope}[shift={(1.5, 2.5)}, scale={-0.2}]
+                                \draw (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                \foreach \i in {0,...,5} {
+                                    \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                }
+                            \end{scope}
+                            \begin{scope}[shift={(1.5, 0.5)}, scale={-0.2}]
+                                \draw (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                \foreach \i in {0,...,5} {
+                                    \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                }
+                            \end{scope}
+                            \begin{scope}[shift={(0.7, 1.5)}, scale={-0.15}]
+                                \draw[dashed] (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                \foreach \i in {0,...,5} {
+                                    \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                }
+                            \end{scope}
+                            \begin{scope}[shift={(2.3, 1.5)}, scale={-0.15}]
+                                \draw[dashed] (-3, -1) -- (3, -1) -- (3, 1) -- (-3, 1) -- cycle;
+                                \foreach \i in {0,...,5} {
+                                    \draw (\i - 2, 1) -- (\i - 3, 0) -- (\i - 2, -1);
+                                }
+                            \end{scope}
+                        \end{scope}
+                        \draw (0.75, 0.75) edge[->, right] node{$v$} (0.75, 3);
+                        \draw (-0.1, 1.5) edge[<->, left] node{$d$} (-0.1, 3);
+                    \end{tikzpicture}
+                \end{center}
+                Note that we are moving left to right (along the diagram), and we want to steer towards the wall (since we'd ideally have $d = v$).
+                To do this, the left wheel must turn slower than the right wheel.
+                Note that we can also achieve symmetric behaviour with a constant offset $v_C$ (standard speed for a straight line).
+                We can then set the left and right wheel velocities as follows;
+                \begin{align*}
+                    v_R - v_L & = k_p(z - d) \\
+                    v_R & = v_C + \frac{1}{2}k_p(z - d) \\
+                    v_L & = v_C - \frac{1}{2}k_p(z - d)
+                \end{align*}
+            \subsubsection*{Combining}
+                More complex robots may have multiple servos, and we can combine sensing-action loops.
+                We can instead consider each local servo-like sensing-action loop as a \textbf{behaviour}.
+                These behaviours can then be combined in an \textbf{arbiter}, which feeds the instructions into a motor controller.
+                \medskip
+
+                To go further, we need to go beyond a coupling between sensors and actions, and instead build a model of the world.
+                Here we plan a sequence of actions to achieve a goal, and then execute the plan.
+                However, if the world changes during the execution, we need to re-plan the actions.
         \subsection*{Lecture 4 - Probabilistic Robotics}
         \subsection*{Lecture 5 - Monte Carlo Localisation}
         \subsection*{Lecture 6 - Advanced Sonar Sensing}
