@@ -786,4 +786,148 @@
                     \item message is forwarded to both ports that replied (victim and attacker)
                 \end{enumerate}
                 Countermeasures include static ARP rules (which can be inconvenient), or to detect spoofed ARP messages (at which point both hosts are kicked off, and an administrator is likely notified).
+        \subsection*{Week 3}
+            \subsubsection*{IP Security}
+                The IP (Internet Protocol) is a best effort (may drop / reorder packets) protocol which delivers packets between \textbf{source} and \textbf{destination} hosts.
+                IP addresses are structured in a hierarchical way and guides routing.
+                However, since these may travel across networks with smaller packet sizes, IP packets can be fragmented.
+                The \textbf{D}on't \textbf{F}ragment, \textbf{M}ore \textbf{F}ragments flags indicate the type, the fragment offset field gives the \textbf{position} of the fragment in the \textbf{original} fragment, and \textbf{identification} differentiates fragments for different packets.
+                Different operating systems treat duplicate IP fragments in different ways - this can be used for OS fingerprinting.
+                The TTL (time to live) field is used to discard packets that take too many steps to reach a destination; when the TTL is decremented (at each hop) to zero, the packet is discarded and an ICMP error message is sent to the source.
+                \medskip
+
+                TTL is used to prevent loops in networks (zombie packets).
+                However, it can also be used by the \textbf{Traceroute} algorithm to identify devices on the path to a target.
+                By sending packets with an incrementing TTL (first 1, then 2, and so on), each ICMP error message should come from a host on the path to the destination.
+                This can be used to gather information about a target network (such as firewalls).
+                \medskip
+
+                The source IP can be easy to spoof (as it is not authenticated).
+                An off-path attacker can send packets with a target IP as the source, leading to the target receiving responses.
+                This is used for attacks such as amplification based DDoS or idle scanning.
+                \medskip
+
+                The Internet, by design, is a decentralised network of untrusted networks.
+                As such, packets travel through untrusted hosts, hence MITM attackers (such as an ISP) could directly read packets and modify payloads.
+                BGP routing is partly based on trust.
+                As a single AS (autonomous system) cannot track all IP addresses, they must ask each other for a route to reach an IP of a distant AS.
+                They may misbehave (BGP hijacking) by advertising false routes, diverting this traffic, and perform MITM attacks.
+                \medskip
+
+                There is an ongoing global effort to secure BGP; \textbf{MANRS (Mutually Agreed Norms for Routing Security)}, supported by the Internet Society and big players.
+                This specifies best practices for network operators (ISPs), Internet exchange providers (IXPs), content delivery networks, and cloud providers.
+                The \textbf{RPKI (Resource Public Key Infrastructure)} is the idea to use public key infrastructure to propagate trust down the address hierarchy.
+                When an AS is looking for a route to reach a system, it will be prevented with BGP advertised routes (as well as certificates, which can only be provided by the owner, or a correct path).
+                \medskip
+
+                IPsec adds security to IP with two main protocols, in two modes (transport and tunnel, where the former protects the IP payload only, and the latter \textbf{also} protects the IP header);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{authentication header (AH)}
+                        \smallskip
+
+                        Preserve packet integrity (recipient will know if tampered with) and protect authentication (recipient will be confident about who the sender is).
+                        Packet inspection is allowed, and isn't blocked by firewalls.
+                    \item \textbf{encapsulating security payload (ESP)}
+                        \smallskip
+
+                        This preserves confidentiality of the payload, but may be blocked by security.
+                \end{itemize}
+                ESP tunnel mode is commonly used to implement VPNs.
+                This gives network layer confidentiality, source authentication, data integrity, and replay-attack prevention.
+                In this mode, the protocol is changed from ~proto=TCP~ in the original IPv4 datagram to ~proto=ESP~.
+                After the destination IP address, the original TCP header and payload is replaced with the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item SPI (security parameters index)
+                    \item sequence header
+                    \item IP header
+                    \item TCP header + payload
+                    \item padding (variable), padding length, and next IP
+                    \item (optional) authentication data
+                \end{itemize}
+                The lecture then goes over IPv6 (see \textbf{CO212}); we focus mostly on IPv4 in this course.
+                \medskip
+
+                TCP (more detail in \textbf{CO212}) has security issues stemming from an easily accessible state.
+                The sequence numbers are easily predictable, as they are the previous number added with the bytes exchanged;
+                \begin{itemize}
+                    \itemsep0em
+                    \item a MITM attacker could read the current sequence number and inject new packets (TCP session hijacking)
+                    \item an off-path attacker could try to guess the correct sequence number (blind spoofing, read \textit{Off-Path Hacking})
+                \end{itemize}
+                Typical countermeasures include introducing a time-delay and discarding race-condition packets, or use IDS or protect the payload (e.g. HTTPS).
+                \medskip
+
+                Port scanning may be a crime (when unauthorised), depending on the legal jurisdiction.
+                The idea is to use the initial steps of the protocol to determine whether a port is open;
+                \begin{itemize}
+                    \itemsep0em
+                    \item TCP ~connect()~
+                        \smallskip
+
+                        If the HTTP port is open, sending ~SYN + Port 80~ to a host will result in a response of ~SYN/ACK~.
+                        We can then send ~ACK~ and ~RST~ to close the connection.
+                        However, if a port was closed (say FTP), sending ~SYN + Port 21~ to a host will result in a response of ~RST~.
+                    \item TCP idle scan
+                        \smallskip
+
+                        To do this, we perform the following steps;
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item find an idle host (one that is online, but not used actively, such as a printer during the night)
+                            \item check available IPID on printer by sending ~SYN/ACK~ to printer, will respond with ~RST,IPID=x~
+                            \item send ~SYN,src=<idle host>~ to the target (pretend to be target host)
+                            \item if the port is closed, will reply with ~RST~ to the printer, or ~SYN/ACK~ if open
+                            \item if the port was open (~SYN/ACK~), the idle host will reply to the target with ~RST,IPID=x+1~
+                            \item perform step 2 again; if we get ~RST,IPID=x+1~, we know the port was closed on the target, however if we get ~RST,IPID=x+2~, we know it is open.
+                        \end{enumerate}
+                        This can evade some port scanning protection which only monitors connections between internal and external hosts, and not monitoring at an internal level.
+                \end{itemize}
+                UDP is connectionless, which has low overhead and low latency.
+                This can be used for broadcasting or multicasting packets.
+                There is no guarantee that the data reaches the destination, and there is no integrity (optional checksum) - it is up to the application layer to make sense of a UDP stream.
+                See \textbf{CO212} for more details.
+                \medskip
+
+                UDP scans are harder, as we do not expect any acknowledgements (compared to TCP).
+                We can send a generic UDP header with no payload to target ports; if we get a UDP response, the port is open, otherwise if we receive an ICMP error the port is closed (or filtered by a firewall).
+                However, if we timeout without a response, the port may be open (but hosting a service that drops ill-formed packets), or the port may be filtered by a firewall.
+                If we encounter this case, we can probe the port again using UDP packets, but with payloads specific to a protocol (e.g. DNS query).
+                This adds to the difficulty; it is more time consuming (due to a lack of response) and may take multiple attempts to resolve ports.
+                In addition, they are less precise, as some protocols just cannot be probed.
+                \medskip
+
+                The key threats of TCP/IP are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{host and port scanning}
+                        \smallskip
+
+                        Used by hackers during active information gathering, with request being hidden within normal network traffic.
+                    \item \textbf{port sweep}
+                        \smallskip
+
+                        Attacker looks for specific service on many machines (likely looking for a vulnerable service).
+                        Nowadays, if we encounter a port sweep, it's possible it's a security researcher trying to find the number of accessible webcams (or some sort of insecure IoT device).
+                    \item \textbf{malicious traffic}
+                        \smallskip
+
+                        Normal connection, but may send malicious data that exploits the implementation of the networking stack.
+                    \item \textbf{(D)DoS}
+                        \smallskip
+
+                        Flood target with high volume of network traffic (commonly done with botnets).
+                        This either fully takes the target down, degrades performance, or increases costs.
+                \end{itemize}
+                Port knocking is a technique to hide a service form port sanning (either by a system administrator, or an attacker attempting to hide a backdoor);
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item sequential / random scan only finds closed ports
+                    \item client shares a secret with sever, identifying specific ports to probe in a fixed order (e.g. 3,1,2,4) - the last probe is replied to by the server with a random port $n$, where the service is located
+                    \item client connects to service on port $n$
+                \end{enumerate}
+            \subsubsection*{Network Defences}
+            \subsubsection*{DNS}
+            \subsubsection*{TLS}
 \end{document}
