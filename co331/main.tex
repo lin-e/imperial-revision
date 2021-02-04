@@ -1025,6 +1025,152 @@
                         Logical rules / simple languages dictate whether a packet should be accepted or rejected.
                         However, it's hard to define rules, avoid conflicts, and may be inconsistent.
                 \end{itemize}
-            \subsubsection*{DNS}
+            \subsubsection*{DNS (Domain Name System)}
+                The DNS allows us to identify hosts via easy to remember, descriptive hostnames, rather than IP addresses.
+                This separates the logical address of a service from the physical address of the host (which allows for hostnames to stay the same when network providers are switched).
+                We need to know the IP address of the target hostname, which can be obtained by a local DNS client / resolver in DNS resolution.
+                Once a name is cached, it will be valid for a limit amount of time.
+                If a name is in the cache, we can use that, otherwise the resolver queries an external primary / recursive DNS server.
+                Typically, they are short queries and responses, fitting into a single UDP packet (512 bytes) - if more data needs to be exchanged, it falls back to TCP.
+                Domain names are organised in a hierarchical manner, DNS is managed by ICANN/IANA, who also run the root DNS servers (note that ~com~ is a gTLD, and ~uk~ is a ccTLD (country));
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node (o) at (0, 0) {root};
+                        \node (ol) at (-1, -1) {~com~};
+                        \node (oc) at (0, -1) {~uk~};
+                        \node (or) at (1, -1) {~org~};
+                        \node (ocl) at (-1, -2) {~ac.uk~};
+                        \node (ocr) at (1, -2) {~co.uk~};
+                        \node (oclc) at (-1, -3) {~imperial.ac.uk~};
+                        \node (ocrc) at (1, -3) {~bbc.co.uk~};
+                        \node[teal] (oclcc) at (-1, -4) {~www.imperial.ac.uk~};
+                        \draw
+                        (o) edge[->] (ol)
+                        (o) edge[->] (oc)
+                        (o) edge[->] (or)
+                        (oc) edge[->] (ocl)
+                        (oc) edge[->] (ocr)
+                        (ocl) edge[->] (oclc)
+                        (ocr) edge[->] (ocrc)
+                        (oclc) edge[->] (oclcc);
+                    \end{tikzpicture}
+                \end{center}
+                A domain name which can be used to fully access a host is called a fully-qualified domain name (\teal{FQDN}).
+                The process of DNS resolution, when the local cache doesn't have it stored is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item user asks primary DNS server for IP address of ~example.com~
+                    \item primary DNS server asks root server for \textbf{location of} IP address of ~example.com~
+                    \item root server tells primary DNS server to ask ~.com~ namespace
+                    \item primary DNS server asks ~.com~ namespace for IP address of ~example.com~
+                    \item namespace tells primary DNS server to check primary DNS server of ~example.com~
+                    \item primary DNS server asks primary DNS server of ~example.com~ the IP address of ~example.com~
+                    \item primary DNS server of ~example.com~ tells user's primary DNS server the IP address of ~example.com~
+                    \item user's primary DNS server tells user IP address of ~example.com~
+                \end{enumerate}
+                Common DNS records include;
+                \begin{center}
+                    \begin{tabularx}{\textwidth}{lX}
+                        resource record & description \\
+                        \hline
+                        ~A~ & mapping of a name to address (IPv4) - performs primary function of DNS; converting names to addresses \\
+                        ~AAAA~ & same as ~A~, but for IPv6 \\
+                        ~NS~ & resolver doesn't know, instead replies with a name server which knows (identifies DNS server function as authority of the zone, each DNS server must be represented by a NS record, whether primary, master, or secondary) \\
+                        ~SOA~ & identifies which server is the primary one (start of authority); each zone must have an SOA record and only one SOA record can be in a zone \\
+                        ~PTR~ & (pointer) does reverse of ~A~; provides a mapping from address to name \\
+                        ~CNAME~ & creates an alias that points to canonical name (real name) of a host identified by an ~A~ record - can be used to check cache for the real name \\
+                        ~MX~ & identifies a system that will direct email traffic (mail exchange) \\
+                        ~NXDOMAIN~ & the name cannot be resolved, it is a non-existent domain (not registered or invalid)
+                    \end{tabularx}
+                    \vspace{-\baselineskip}
+                \end{center}
+                This structure leaves space for a MITM attack, recently done by the Turkish government in March 2014 (to block \textit{Twitter} access) by forcing ISPs to respond to DNS queries for ~twitter.com~ with the IP of a government website.
+                \textit{DNSpionage} in 2019 had malicious actors compromise DNS resolution of key infrastructure, to spy on emails of certain individuals.
+                Techniques included compromising DNS provider's admin panels (by simple brute force), changing the ~A~ records of target mail servers.
+                Other cases involved hacking the TLD and changing the NS record to a rogue NS (providing legitimate address normally, but giving a malicious one for ~MX~ records).
+                This lead to queries for target mail servers coming from victim IPs to a rogue mail server, and legitimate answers for other queries.
+                \medskip
+
+                Similar to TCP, DNS requests and responses are not authenticated.
+                Attackers can map trusted domain names to malicious IP trivially with MITM (even some ISPs replace ~NXDOMAIN~ with adverts).
+                Off-path attackers on LAN may be able to inject spoofed DHCP packets and advertise a malicious DNS resolver, or inject spoofed replies to DNS queries (after seeing the query ID).
+                Routers can also be compromised to advertise malicious resolvers (\textit{DNSChanger} malware).
+                DNS cache poisoning is when spoofed responses are being kept by intermediaries, giving a window of time.
+                Name servers can also be hacked.
+                \medskip
+
+                DNSSEC protects the authenticity and integrity of DNS records with zones that have public / private keys.
+                This forms a chain of trust; starting with the DNS root (the resolvers know public keys of root nodes).
+                The parent nodes then use private keys to sign hashes of the child's public keys, allowing resolvers to check the authenticity of a node's public key.
+                DNS resolution nodes then sign zone data with its private key, allowing resolver check the authenticity of a DNS reply.
+                This may become the standard as more services support it.
+                This however leads to increased load on DNS servers, as well as decreased network performance due to records being longer (and therefore requiring TCP fragmentation).
+                \medskip
+
+                If a domain does not exist, an ~NSEC~ record reveals alphabetically-closest neighbours as it proves that the domain does not exist (no further (expensive) queries needed).
+                For example, if we want to resolve ~bob.example.com~, the response may be that no records exist between ~alice.example.com~ and ~charlie.example.com~.
+                However, this helps a hacker gather intelligence; we now know that ~bob~ doesn't exist, and the closest ones are ~alice~ and ~charlie~.
+                NSEC3 mitigates this with salted hashes of domain names (note that the far-right column is sorted by \textbf{hash});
+                \begin{align*}
+                    ~hash(~\teal{~alice~}~|65BF)~ & = \teal{~F34DDF56~} & \blue{~4EE23198~} \\
+                    ~hash(~\violet{~bob~}~|65BF)~ & = \violet{~7B03235D~} & \violet{~7B03235D~} \\
+                    ~hash(~\blue{~charlie~}~|65BF)~ & = \blue{~4EE23198~} & ~D14DEA64~ \\
+                    ~hash(zoey|65BF)~ & = ~D14DEA64~ & \teal{~F34DDF56~}
+                \end{align*}
+                Now, we have the following;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item resolve ~bob.example.com~
+                    \item response is that no records exist between ~4EE23198~ and ~D14DEA64~, with a salt of ~65BF~
+                    \item this still works as a proof of non-existence, as we can check that ~4EE23198 < hash(bob|65BF) < D14DEA64~
+                \end{enumerate}
+                The salt works to hinder dictionary attacks, as this can change over time and across zones.
+                \medskip
+
+                DNS tunnelling has the goal of bypassing a firewall / proxy preventing HTTP communication with the target.
+                For this, we will have the \violet{hacker} (can be a compromised computer / device the hacker has left connected), the \blue{company internal DNS}, and the \red{hacker authoritative DNS} - which is outside of the firewall;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \violet{attacker} encodes data to be sent in a DNS query for a domain, where the \red{authoritative DNS} is controlled by the attacker (for example querying for ~x123.attacker.com~)
+                    \item \blue{local DNS resolver} cannot find it, eventually contacts \red{authoritative server}
+                    \item DNS queries (to non black-listed domains) are not filtered by the firewall
+                    \item \red{server} replies, encoding data in DNS response
+                    \item firewall forwards response to \blue{internal DNS}
+                    \item \violet{attacker} receives and decodes the reply
+                \end{enumerate}
+                The simplest version of this exfiltrates data encoded as subdomain-names.
+                An advanced version would be to use a DNS SOCKS proxy to browse any website (slowly) - all encoded via DNS.
+                \medskip
+
+                Malicious domain registration exploits the value of a particular domain (drive traffic to oneself for ads, or to use trust for malware / phishing);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{cybersquatting}
+                        \smallskip
+
+                        Register a trademarked name to sell for a higher price to the legitimate brand owner.
+                    \item \textbf{typosquatting}
+                        \smallskip
+
+                        Register names that are are a few typos away from a legitimate name, where visitors may visit by mistake.
+                        Defensive registrations are now common, for example ~goolge.com~ redirects to ~google.com~.
+                    \item \textbf{bitsquatting}
+                        \smallskip
+
+                        This is less common, as error rates are low (3 bit flips per month on 4GB DRAM) - this can be higher on old hardware, without ECC, or on airplanes.
+                        This relies on accidental bitflips in memory or on the wire; ~amazon.co.uk~ versus ~a-azon.co.uk~ (where ~m~ is one bit flip away from ~-~).
+                    \item \textbf{dropcatching}
+                        \smallskip
+
+                        Dual of cybersquatting; register domain after it expires to sell back to owners, or to exploit existing trust in the domain.
+                \end{itemize}
+                Malware can also use domain names; if a malicious IP is present in malware, it cannot be replaced easily, whereas a domain can be.
+                Domain generation algorithms can be used to create sequences of candidate names for C\&C, each contacted sequentially until one responds (only a few of these need to be registered when needed).
+                Random looking names are easy to generate (and are cheap), but can be quite easy to block by IDS.
+                Dictionary based names cannot be easily blocked as they may be legitimate.
+                \medskip
+
+                Administrators may lose control of NS pointers, by expired registration, mistyped names, or bitsquatting.
+                In 2017, a security researcher registered a dangling (one was mistyped) NS name for the ~.io~ zone, allowing for a 25\% chance that they could control any ~.io~ resolution.
             \subsubsection*{TLS}
 \end{document}
