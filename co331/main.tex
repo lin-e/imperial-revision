@@ -1172,5 +1172,185 @@
 
                 Administrators may lose control of NS pointers, by expired registration, mistyped names, or bitsquatting.
                 In 2017, a security researcher registered a dangling (one was mistyped) NS name for the ~.io~ zone, allowing for a 25\% chance that they could control any ~.io~ resolution.
-            \subsubsection*{TLS}
+            \subsubsection*{TLS (Transport Layer Security)}
+                This is a protocol specification that describes how we can protect the confidentiality and integrity of the data we are sending over protocols such as TCP or UDP.
+                An eavesdropper will see ciphertext they cannot interpret, and if a MITM were to tamper with the data, the receiver would see that it fails an integrity check (and therefore detect it).
+                \medskip
+
+                The main usage is to protect HTTPS traffic and email.
+                The specification states that TLS should be sent over a reliable medium (normally TCP/IP); DTLS (TLS over UDP) is not widely used, but exists.
+                This only protects the TCP payload data (the IP and port are \textbf{not} protected, as they are in the header).
+                The latest version (as of writing) is 1.3, but the most adopted is 1.2.
+                Before TLS, there was SSL (now the word SSL is commonly misused to mean TLS).
+                \medskip
+
+                A TLS server needs a certificate to state the identity of the principal participating in a TLS exchange, and also declares its public key.
+                This is typically in the \textbf{X.509 Public Key Infrastructure Certificate} (specified by IETF RFC 5280), which has the following main attributes;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{issuer} \hfill typically a certificate authority (CA)
+                    \item \textbf{validity} \hfill start and end dates
+                    \item \textbf{subject} \hfill identifies the owner (typically explicit domain name, e.g. ~imperial.ac.uk~)
+                    \item \textbf{subject alternative names} \hfill single certificate can cover multiple domain names
+                        \smallskip
+
+                        For example; ~*.ic.ac.uk~ will match ~doc.ic.ac.uk~ but not ~cate.doc.ic.ac.uk~.
+                    \item \textbf{subject public key info} \hfill contains actual public key
+                    \item \textbf{certificate signature value} \hfill issuer signs the certificate body (ensuring integrity)
+                \end{itemize}
+                Similar to DNSSEC, TLS also uses certificate chains.
+                The TLS client will typically trust a number of widely know CAs.
+                The TLS server may send a certificate chain so the client can verify ownership; for example, ~imperial.ac.uk~ could be a CA for a subdomain.
+                \medskip
+
+                We will use the following notation;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $[SK_A, PK_A]$ is a keypair of cryptographically related keys
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $SK_A$ is a secret (signing) key of principal $A$ (and kept secret)
+                            \item $PK_A$ is a public (verification) key (can be revealed to public)
+                        \end{itemize}
+                    \item $\{~msg~\}PK_A$ denotes asymmetric \textbf{encryption} using public key $PK_A$ (therefore only $A$ can decrypt this) - this provides confidentiality (protection from eavesdropping)
+                    \item $\{~msg~\}SK_A$ denotes a \textbf{signature} using secret key $SK_A$ (only $A$ can generate this) - this provides integrity (every can `decrypt' this with $A$'s public key)
+                    \item $~decode~(K_1, \{~msg~\}K_2) = ~msg~$ iff $[K_1, K_2]$ or $[K_2, K_1]$ are valid keypairs
+                    \item $\{~msg~\}K_L$ denotes symmetric (lighter and faster) \textbf{encryption} using symmetric key $K$ labelled $L$
+                \end{itemize}
+                Note that $C$ and $T$ both have $PK_{CA}$, $T$ has the keypair $[SK_T, PK_T]$, and $CA$ has the keypair $[SK_{CA}, PK_{CA}]$.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}[shift={(0, 0)}]
+                            \node at (2, 0.5) {client $C$};
+                            \draw (0, 0) -- (4, 0) -- (4, -6) -- (0, -6) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(7, 0)}]
+                            \node at (2, 0.5) {server $T$};
+                            \draw (0, 0) -- (4, 0) -- (4, -6) -- (0, -6) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(14, 0)}]
+                            \node at (2, 0.5) {certificate authority $CA$};
+                            \draw (0, 0) -- (4, 0) -- (4, -6) -- (0, -6) -- cycle;
+                        \end{scope}
+                        \draw
+                        (11, -1) edge[->, above] node{\tiny $(1)\ \{T, PK_T\}PK_{CA}$} (14, -1)
+                        (11, -2) edge[<-, above] node{\tiny $(2)\ \{T, PK_T\}SK_{CA}$} (14, -2)
+                        (4, -2) edge[<-, above] node{\tiny $(3)\ \{T, PK_T\}SK_{CA}$} (7, -2)
+                        (4, -3) edge[->, above] node{\tiny $(4)\ \{K_{C2T}, K_{T2C}\}PK_T$} (7, -3)
+                        (4, -4) edge[->, above] node{\tiny $(5)\ \{~GET ...~\}K_{C2T}$} (7, -4)
+                        (4, -5) edge[<-, above] node{\tiny $(5)\ \{~200 OK ...~\}K_{T2C}$} (7, -5);
+                    \end{tikzpicture}
+                \end{center}
+                This has the following steps;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item server needs to obtain certificate from the CA, will send own name and public key (which the client doesn't yet have) to the CA, encrypted with the CA's public key (therefore only the CA can decrypt it)
+                    \item the CA validates the identity of $T$, and then provides a \textbf{signed} message stating that it has been verified (in some way)
+                    \item the server now has its own certificate, when the client tries to send data to the server, it will obtain the signed certificate, which can be validated as the client has the CA's public key
+                    \item the client chooses two symmetric keys to be used for communication and sends it encrypted with the server's public key (therefore only the server can decrypt it)
+                    \item exchanges now happen with these symmetric keys
+                \end{enumerate}
+                The TLS 1.2 handshake is built on TCP, after the ~ACK~, with the following main messages (none of which are encrypted, other than the session key as before);
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~ClientHello~
+                        \subitem advertising capabilities of the client (what encryption / compression can be done, and what protocols)
+                    \item ~ServerHello~ \hfill server takes the available option and chooses the most suitable one
+                    \item ~Certificate~ \hfill server sends chain of TLS certificates (which can be validated by the client)
+                    \item ~ClientKeyExchange~ \hfill allows server to compute symmetric session key
+                    \item ~ChangeCipherSpec~ \hfill further messages will be encrypted with session key
+                \end{itemize}
+                Since the payload of what is sent over TLS is encrypted, the receiving server cannot really know what website we are trying to access; we have an IP and a port in the header, but we are not revealing what domain name we are connecting to.
+                There is an extension (SNI - server name indication) of TLS which can also communicate what domain name we are connecting to on a specific host, which also helps the server to decide what certificate to show.
+                Clients should check that the certificate name matches SNI.
+                Without SNI, the server would have to provide the same certificate for all hosts on the server (under the same IP), and they may be unrelated to each other (problem of mutual trust between domains, and leads to large certificates, also requires revocation when sites are added or removed).
+                However, with SNI, the client also requests the site, and the server shows a specific certificate.
+                \medskip
+
+                Trust is required for TLS to work.
+                By default, well known CAs are already trusted by clients.
+                ~letsencrypt.org~ provides free certificates and automated renewal scripts.
+                Self-signed certificates require the server asking the client to just trust the public key using a different channel (either by installing the key or some configuration parameters).
+                Clients can trust a custom CA as a whole; which is used to enable proxy to inspect TLS traffic in the clear (will be done in labs).
+                A MITM proxy will do the following (note that all communication between the client and the proxy is done with a key $X$, and all communication between the proxy and server is done with a different key $Y$);
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item client connects to server, through proxy
+                    \item the proxy forms an SSL connection to the server
+                    \item the server gives a certificate to the proxy, completing the SSL connection
+                    \item the proxy generates a \textbf{fake} certificate based on the server's certificate
+                    \item the proxy sends the fake certificate to the client
+                    \item the client sends a HTTP request to the proxy
+                    \item the proxy decrypts content from the client
+                    \item the decrypted content is sent to the server, and a response is retrieved
+                    \item the HTTP response is forwarded to the client
+                \end{enumerate}
+                These protections are ineffective when certificates cannot be trusted - compromised CAs can sign spoofed certificates (giving attackers a very powerful attack vector against any TLS connection).
+                \medskip
+
+                Parameters need to be verified in order to issue a new certificate;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{extended validation (EV)}
+                        \smallskip
+
+                        Done in person / via lawyers / by phone, in a more time consuming way.
+                        This proves the identity of the owner / organisation in a stronger (more trustworthy) way.
+                        Deprecated now.
+                    \item \textbf{domain validation (DV)} \hfill most common
+                        \smallskip
+
+                        Domain owner proves control over domain, when asking for a certificate, mostly internet based.
+                        Once a CA generates a random token, the owner does the following;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item owner places token in DNS record for domain
+                            \item owner servers token at specific URL for domain
+                            \item owner includes token in fresh TLS certificates served from the domain
+                            \item CA emails token to owner, who submits a challenge to CA online
+                                \smallskip
+
+                                The email the CA sends to is under that domain, which can be used to prove ownership if the recipient can show the token.
+                        \end{itemize}
+                        However, attackers can compromise the DV process to obtain certificates.
+                        With IP spoofing, a DNS reply can be faked in order to pretend to own a domain.
+                        Similarly, DNS hijacking can be used to serve a token from a controlled host, and obtain a certificate on behalf of that domain.
+                        The main mitigation is to use DNSSEC or encrypted emails.
+                        These are examples of threat transfer.
+                \end{itemize}
+                Compromised and rogue CAs break the trust in TLS.
+                All created certificates must be reported publicly (Merkle hash trees, key idea of blockchain).
+                Domain owners can monitor logs, detect rogue certificates, and have them removed.
+                Another option is to use DANE, and rely on DNSSEC.
+                When a client queries a domain name, they also obtain valid certificate authorities (that we can trust) from the DNS server.
+                We now trust the DNS operator instead of the chain of certifications.
+                In the TLSA DNS records, we have the following levels of trust;
+                \begin{itemize}
+                    \itemsep0em
+                    \item 0 (CA specification) \hfill well-known public CA that is trusted
+                    \item 1 (specific TLS certificate) \hfill trust this certificate (if it passes verification)
+                    \item 2 (trust anchor assertion) \hfill trust this new CA (we do this manually to install MITM proxy)
+                    \item 3 (domain-issued certificate) \hfill trust self-signed certificate (include information in TLSA record)
+                \end{itemize}
+                TLS can leak information via traffic analysis; BEAST (CVE-2011-3389) compromises TLS 1.0 via RC4 leakage, CRIME (CVE-2012-4929) compromises SPDY via compression ratio.
+                Implementations bugs, such as in OpenSSL, can also cause issues - see HEARTBLEED (CVE-2014-0160) causing data disclosure by buffer overrun (disclosing information from memory, including keys).
+                Formal analysis of the TLS state machine showed that the TLS client can be forced to use a weak ciphersuite (FREAK; CVE-2015-0204).
+                \medskip
+
+                The change from TLS 1.2 to TLS 1.3 improves efficiency.
+                TLS 1.2 requires 3 round trips to establish a session, and 2 to resume from accidental interruption.
+                TLS 1.3 uses one less in each case (over TCP), with TCP Fast Open - no round trips are needed to resume.
+                This is done by saving state (cookies) when a connection is established - ~SYN,Cookie=ck~ is sent, and if this is accepted, the first few exchanges are done with the old key, which is then replaced to be more secure.
+                \medskip
+
+                TLS 1.3 also addresses all recent TLS vulnerabilities, mainly removing weak crypto suites (such as MD5, SHA-1, DES, RC4, and CBC encryption mode).
+                TLS-level compression is no longer allowed, and downgrade attacks can be detected.
+                The handshake is now also encrypted, with the ~ClientHello~ including the client public key.
+                ENSI (making it possible to encrypt SNI) and an encrypted server certificate prevent MITM learning about the target domain; while this improves privacy, it can cause issues with IDSs; MITM IDS could filter TLS 1.2 traffic based on policies, but with the aforementioned improvements, filtering is much harder.
+                \medskip
+
+                TLS can also be abused by attackers; it can be used to hide infection and C\&C traffic (since the IDS can't check for signatures).
+                DLP (data loss prevention) system are also prevented from checking outbound data for corporate secrets.
+                Data can also be exfiltrated by encoding it as certificates - a compromised host in the network will send data as certificates when an outside client attempts to connect.
+                TLS fingerprinting can be used to detect this, however it is not difficult to spoof the fingerprint (as well as the usual problems of blacklisting).
 \end{document}
