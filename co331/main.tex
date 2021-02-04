@@ -928,6 +928,103 @@
                     \item client connects to service on port $n$
                 \end{enumerate}
             \subsubsection*{Network Defences}
+                Here we take a high level overview of classic network defence systems (mainly firewalls and IDSs (intrusion detection systems)).
+                \medskip
+
+                The main firewall protects all internet traffic.
+                The internal network is kept separate from Internet-facing services (in the demilitarised zone) such as a web server or FTP server.
+                In the internal network, we may have private databases or sensitive machines; generally data we don't want to share with the outside.
+                \medskip
+
+                The main goal of a firewall is to enforce security policies on all inbound / outbound traffic for the subnetwork it is trying to protect.
+                A firewall will typically specify what hosts can communicate with what over hosts (and what protocols, or how much data can be exchanged - general properties of traffic).
+                This not only can protect against attacks, but can also control what can be done by hosts.
+                It's common to have a centralised firewall to ensure consistent policies achieving the same goal.
+                Once the general network-wide policies are enforced, there may be other dedicated firewalls for subnets (with modern hosts also having local firewalls).
+                Firewalls can be either;
+                \begin{itemize}
+                    \itemsep0em
+                    \item dedicated network appliances (with purpose built hardware) \hfill \textit{Cisco}, \textit{CheckPoint}
+                    \item kernel-level applications (general purpose hosts) \hfill ~iptables~, ~pf~, Windows firewall
+                \end{itemize}
+                They are valuable targets for attackers (if it can be owned, it runs at a privileged position on the victim network / OS).
+                \medskip
+
+                Policies can be either of the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{packet filters} \hfill decision based on individual packet
+                        \smallskip
+
+                        This can take into account protocol header fields, source / destination addresses, and ports.
+                    \item \textbf{stateful filters} \hfill take state into account
+                        \smallskip
+
+                        Keep track of sessions (for TCP) and check if the packet is part of an established connection.
+                        It can also look at timeouts, and the amount of bandwidth used.
+                    \item \textbf{both} \hfill combination, and also support payload inspection
+                \end{itemize}
+                Intrusion detection systems are more powerful than firewalls, and allow for deep packet inspection.
+                This allows for decisions to be made based on the payload (not just headers), and raise an alert (IDS) or drop packets (IPS - intrusion prevention system).
+                They aim to detect or prevent attacks, such as active information gathering (including scans or sweeps), DDoS, worms (as they have a global view of the network), and application layer attacks.
+                The approaches are typically divided into the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{signature based}
+                        \smallskip
+
+                        Most common case.
+                        They have rules to detect packets that have been observed in the past to be part of / have characteristics of a known attack.
+                        Generalising rules (to catch variants) can cause false positives; there is a trade-off between sensitivity and specificity.
+                        These are typically human generated.
+                        A \textit{ModSecurity} example for detecting XSS is as follows;
+                        \begin{lstlisting}
+                            SecRule ARGS|REQUEST_HEADERS "@rx <script>"
+                            id:101,msg:'XSS Attack',severity:ERROR,deny,status:404
+                        \end{lstlisting}
+                        This applies the rule to the arguments or the headers, looking for a regex that contains the script tag, and denies the request with a 404.
+                        They are good for matching attacks with known patterns, however they cannot catch unseen attacks.
+                        Once a signature is known to be known, it can be easy to bypass (similar to antivirus).
+                        They focus on content rather than intent, and are better for stopping automated attacks than manual ones.
+                        \medskip
+
+                        Each rule is simple, however applying the rules to each packet becomes more expensive with more rules and packets.
+                        This can be evaded with IP fragmentation.
+                        Here we assume there are 10 hops from an attacker to the monitor, and a further 8 hops to the victim (18 hops in total);
+                        \begin{enumerate}[1.]
+                            \itemsep0em
+                            \item fragment a suspicious IP packet in 2 (~ttl=20,seq=6...9: USER~ and ~ttl=20,seq=10...3: root~)
+                            \item traceroute to determine distance to IDS and target
+                            \item send fragment 1 (~ttl=20,seq=6...9: USER~) to reach the target
+                            \item send a replacement of fragment 2 (~ttl=12,seq=10...3: root~)  so that the IDS sees it, but the target does not; note that the TTL is 12, which clears the monitor but expires before the victim
+                            \item IDS now decides that the communication is safe (it sees ~USER|nice~)
+                            \item send malicious fragment 2 (~ttl=20,seq=10...3: root~), which reaches the target, the target now has ~USER|root~
+                            \item IDS does not interpret the message sent in step 6 as related to the one sent in step 3
+                        \end{enumerate}
+                    \item \textbf{anomaly detection based}
+                        \smallskip
+
+                        This attempts to generalise to attacks that haven't been previously seen.
+                        The idea is to learn what normal traffic looks like, and point out statistical anomalies based on features such as the protocol used, packet size, time, order, hosts, etc.
+                        It learns a model of benign traffic, with heterogeneous features, either categorical (TCP/UDP/...), or continuous (such as size).
+                        It can detect unseen attacks, where there is no existing signature, however it can suffer from false positives (where we have uncommon traffic).
+                        \medskip
+
+                        Simple examples could be packets which are too large, or accesses to high numbered ports which are not typically used (which are typically used as source ports) - these are \textbf{point} anomalies, which is one sample being anomalous with respect to others.
+                        On the other hand, \textbf{contextual} anomalies are only anomalous in specific contexts, but not in others.
+                        For example, high bandwidth usage may be an anomaly at night but not during the day.
+                        Furthermore, there are \textbf{collective} anomalies, which are anomalous with respect to all available samples; for example, a TCP connect scan to the same port of many hosts could be detected as port sweep.
+                        \medskip
+
+                        Models used typically are statistical (non-parametric for histograms or PCA), or parametric (regression), or are classification based (Bayesian networks, neural networks, SMVs, or random forests).
+                        Training is commonly semi-supervised, with an unlabelled dataset consisting of only normal events.
+                        An unsupervised training mode is unlabelled data possibly containing some anomalies, and a supervised training contains labels for both normal and anomalous events.
+                     \item \textbf{specification based}
+                        \smallskip
+
+                        Logical rules / simple languages dictate whether a packet should be accepted or rejected.
+                        However, it's hard to define rules, avoid conflicts, and may be inconsistent.
+                \end{itemize}
             \subsubsection*{DNS}
             \subsubsection*{TLS}
 \end{document}
