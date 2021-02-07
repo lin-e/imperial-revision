@@ -1467,4 +1467,99 @@
                 We will still get the same change of intensities when shifting along a rotated direction - the eigenvalues of $\mat{M}$ remain the same, but the eigenvectors will change.
                 However, it is not invariant to scale.
                 At a different zooming scale, an edge may be detected as a corner or vice versa (for example if the circle arc is large it will be detected as an edge, but if it is small, it will be detected as a corner).
+        \subsection*{Lecture 9 - Interest Point Detection II}
+            \subsubsection*{Scale}
+                The intuitive ideal for scaling is to check whether the Harris detector gives the highest response at a given scale.
+                If the region looks most like a corner at scale $\sigma$, there should be a high response.
+                $$\mat{M} = \summation{x, y}{} w(x, y) \begin{bmatrix}
+                    I_x^2(\sigma) & I_x(\sigma)I_y(\sigma) \\
+                    I_x(\sigma)I_y(\sigma) & I_y^2(\sigma)
+                \end{bmatrix}$$
+                The response is  determined by the eigenvalues of $\mat{M}$, which are determined by the derivatives $I_x(\sigma)$ and $I_y(\sigma)$.
+                These are inversely proportional to scale $\sigma$; the larger the scale, the smaller the derivative magnitude.
+                \medskip
+
+                Consider signals which only differ by scale $s$ (and have same peak magnitude);
+                $$f(x) = g(sx)$$
+                However, when we look at the derivatives of the function, we have a different peak magnitude; since the derivative looks at how quickly the functions change.
+                Since we have the relation above, we have;
+                $$\blue{f(x + \Delta x)} - f(x) = \violet{g(sx + s \Delta x)} - g(sx)$$
+                Looking at the Taylor expansion for the above, we have;
+                \begin{align*}
+                    f(x + \Delta x) & = \blue{f(x) + \Delta x \cdot f^\prime(x) + \dots} \\
+                    g(x + \Delta x) & = g(x) + \Delta x \cdot g^\prime(x) + \dots \\
+                    g(sx + s \Delta x) & = \violet{g(sx) + s\Delta x \cdot g^\prime(sx) + \dots} \\
+                    \intertext{Substituting back into the first equation, it gives us the following}
+                    \Delta x \cdot f^\prime(x) & = s \Delta x \cdot g^\prime(sx) \\
+                    f^\prime & = sg^\prime(sx)
+                \end{align*}
+                This gives us the following result;
+                $$\dif{f}{x} = s \cdot \dif{g}{x}\ \vline\ _{sx}$$
+                Therefore, we can multiply derivative by its scale $s$ to allow for magnitude comparison across scales, with the scale adapted Harris detector;
+                $$\mat{M} = \summation{x, y}{} w(x, y) \sigma^2 \begin{bmatrix}
+                    I_x^2(\sigma) & I_x(\sigma)I_y(\sigma) \\
+                    I_x(\sigma)I_y(\sigma) & I_y^2(\sigma)
+                \end{bmatrix}$$
+                We can apply the scale adapted detector at multiple scales - at each pixel we determine the scale with the largest response (at this scale, the region looks most like a corner).
+                Something is detected as an interest point if it is a local maximum both along the scale dimension (most appropriate scale) and across space, therefore we can use $(x, y, \sigma)$ for the interest point.
+                This gives the following adapted algorithm;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item for each scale $\sigma$
+                        \begin{enumerate}[a.]
+                            \itemsep0em
+                            \item perform Gaussian smoothing with $\sigma$
+                            \item calculate $x$ and $y$ derivatives of the smoothed image $I_x(\sigma)$ and $I_y(\sigma)$, respectively
+                            \item at each pixel, compute the matrix $\mat{M}$ (see above)
+                            \item calculate the detector response $R = \lambda_1 \lambda_2 - k(\lambda_1 + \lambda_2)^2$
+                        \end{enumerate}
+                    \item detect interest points which are local maxima across both scale and space, with $R$ above a threshold
+                \end{enumerate}
+            \subsubsection*{Laplacian of Gaussian (LoG)}
+                This first performs Gaussian smoothing, followed by the Laplacian operator.
+                The Laplacian is the sum of second derivatives, for a 2D image;
+                $$\Delta f = \nabla^2 = \pdif{^2f}{x^2} + \pdif{^2f}{y^2}$$
+                We have the following filter;
+                $$\underbrace{\begin{bmatrix}
+                    \textcolor{black!33}{0} & \textcolor{black!33}{0} & \textcolor{black!33}{0} \\
+                    1 & -2 & 1 \\
+                    \textcolor{black!33}{0} & \textcolor{black!33}{0} & \textcolor{black!33}{0}
+                \end{bmatrix}}_{\pdif{^2f}{x^2}} + \underbrace{\begin{bmatrix}
+                    \textcolor{black!33}{0} & 1 & \textcolor{black!33}{0} \\
+                    \textcolor{black!33}{0} & -2 & \textcolor{black!33}{0} \\
+                    \textcolor{black!33}{0} & 1 & \textcolor{black!33}{0}
+                \end{bmatrix}}_{\pdif{^2f}{y^2}} = \underbrace{\begin{bmatrix}
+                    0 & 1 & 0 \\
+                    1 & -4 & 1 \\
+                    0 & 1 & 0
+                \end{bmatrix}}_{\text{Laplacian filter}}$$
+                The second derivative is even more sensitive to noise than the first derivative.
+                \medskip
+
+                The Laplacian of Gaussian filter is as follows (where $h$ is the Gaussian kernel);
+                $$\Delta(f * h) = \pdif{^2(f * h)}{x^2} + \pdif{^2(f * h)}{y^2} = f * \left(\pdif{^2h}{x^2} + \pdif{^2h}{y^2}\right)$$
+                Since we know the formation of a 2D Gaussian, we can derive the following;
+                $$\pdif{^2h}{x^2} + \pdif{^2h}{y^2} = -\frac{1}{\pi\sigma^4}\left(1 - \frac{x^2 + y^2}{2\sigma^2}\right)e^{-\frac{x^2 + y^2}{2\sigma^2}}$$
+                LoG can also be a good interest point detector.
+                We need to ensure it is comparable between scales (note that $I_{xx}$ denotes the second derivative, we need to multiply by $\sigma^2$ rather than just $\sigma$; without the multiplication we have the LoG response at scale $\sigma$);
+                $$\mathrm{LoG}_\text{norm}(x, y, \sigma) = \sigma^2\left(I_{xx}(x, y, \sigma) + I_{yy}(x, y, \sigma)\right)$$
+            \subsubsection*{Difference of Gaussian (DoG)}
+                This is defined as; the difference of Gaussians with different scales (note that $I$ is the image, Lowe suggests $k = \sqrt{2}$);
+                $$\mathrm{DoG}(x, y, \sigma) = I * G(k \sigma) - I * G(\sigma)$$
+                This approximates the normalised Laplacian of Gaussian, which provides convenience in calculating the response across different scales;
+                $$\mathrm{DoG}(x, y, \sigma) \approx (k - 1) \sigma^2 \nabla^2 G(x, y, \sigma)$$
+                DoG filters are used in SIFT, which is a pipeline for detecting and describing interest points.
+            \subsubsection*{Interest Point Detectors}
+                All of the interest point detectors are scale-invariant (other than the Harris detector, before normalisation);
+                \begin{center}
+                    \begin{tabular}{ll}
+                        detector & response \\
+                        \hline
+                        scale adapted Harris detector & $\lambda_1\lambda_2 - k(\lambda_1 + \lambda_2)^2$ \\
+                        normalised Laplacian of Gaussian & $\sigma^2\left(I_{xx}(x, y, \sigma) + I_{yy}(x, y, \sigma)\right)$ \\
+                        difference of Gaussian & $I * G(k \sigma) - I * G(\sigma)$
+                    \end{tabular}
+                \end{center}
+                All of these follow similar procedures, where we calculate the detector responses across values, providing a three-dimensional response map ($x$ and $y$, as well as $\sigma$ for scale).
+                From here, we find local extrema across both space and scale.
 \end{document}
