@@ -2127,4 +2127,216 @@
                     \item opaque \hfill $\alpha = 1$
                 \end{itemize}
         \subsection*{Lecture 8 - Texture Mapping}
+            With the current techniques we have, to create any detailed scenery, we'd need to create individual models for small details.
+            The solution is to use images, in the form of textures on top of basic models.
+            The key is to generate colours from some underlying function;
+            \begin{itemize}
+                \itemsep0em
+                \item one-dimensional functions
+                \item two-dimensional functions
+                \item three-dimensional functions
+                \item raster images (texels) \hfill most common
+            \end{itemize}
+            A procedural texture maps a function $F(\vec{p})$ to a colour.
+            This can be non-intuitive and quite difficult to match real textures.
+            \subsubsection*{Photo Textures}
+                The idea is to define a 2D coordinate system on an image, which is then mapped onto a 3D object.
+                For each fragment on an object's surface, we want to work out what coordinate needs to be sampled in the image's 2D space to get the right colour.
+                \medskip
+
+                Conventionally, the texture coordinates are denoted with $(s, t)$, for horizontal and vertical - really just a two-dimensional coordinate system.
+                The object surface is similarly denoted with $(u, v)$ and the pixel on the screen denoted with $(x, y)$ - we need to know how the pixel on the screen maps to a $(u, v)$ surface coordinate, and how the surface coordinate maps to a $(s, t)$ texture coordinate.
+                Typically, the mapping from $(s, t)$ to $(u, v)$ is manually predefined.
+            \subsubsection*{Paramterisation}
+                A simple method is planar mapping, where we simply ignore one of the coordinates; however, this only looks good from the front of the object (any other sides will have some sort of smearing artifact).
+                Another possible way is to build a cylinder (which can be easily parameterised, similar to a plane), and place the object inside.
+                As expected, this works well for mostly cylindrical objects.
+                A similar approach is to create a spherical mapping.
+                One common method for environment mapping is \textbf{box mapping}.
+                This creates a box around the object, which performs six planar mappings (one for each face).
+                \medskip
+
+                \textbf{Unwrapping} is the process of creating this manual mapping.
+                Typically, all mappings have distortions and singularities, which will often require manual fixing.
+            \subsubsection*{Texture Coordinates}
+                At each vertex, we specify a texture coordinate.
+                The canonical texture coordinates go from $(0, 0)$ to $(1, 1)$.
+                When we leave the boundaries of $[0, 1]$, we can take multiple approaches (note that for these examples, for my sake, I'm only drawing a simple $1 \times 3$ image).
+                The original texture is the following;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw[fill=black!50] (1, 0) -- (2, 0) -- (2, -1) -- (1, -1) -- cycle;
+                        \draw[fill=black] (2, 0) -- (3, 0) -- (3, -1) -- (2, -1) -- cycle;
+                        \draw[very thick] (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                        \draw[very thick]
+                        (1, 0) -- (1, -1)
+                        (2, 0) -- (2, -1);
+                    \end{tikzpicture}
+                \end{center}
+                Some of the approaches we can take are as follows, known as \textbf{texture addressing modes};
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{static colour}
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw[fill=black!50] (1, 0) -- (2, 0) -- (2, -1) -- (1, -1) -- cycle;
+                                \draw[fill=black] (2, 0) -- (3, 0) -- (3, -1) -- (2, -1) -- cycle;
+                                \draw[fill=red] (3, 0) -- (9, 0) -- (9, -1) -- (3, -1) -- cycle;
+                                \draw[very thick] (0, 0) -- (9, 0) -- (9, -1) -- (0, -1) -- cycle;
+                                \foreach \x in {1,...,8} {
+                                    \draw[very thick] (\x, 0) -- (\x, -1);
+                                }
+                            \end{tikzpicture}
+                        \end{center}
+                        Outside the border, we use a static colour (red in this case).
+                    \item \textbf{clamped}
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \draw[fill=black!50] (1, 0) -- (2, 0) -- (2, -1) -- (1, -1) -- cycle;
+                                \draw[fill=black] (2, 0) -- (3, 0) -- (3, -1) -- (2, -1) -- cycle;
+                                \draw[fill=black] (3, 0) -- (9, 0) -- (9, -1) -- (3, -1) -- cycle;
+                                \draw[very thick] (0, 0) -- (9, 0) -- (9, -1) -- (0, -1) -- cycle;
+                                \foreach \x in {1,...,8} {
+                                    \draw[very thick] (\x, 0) -- (\x, -1);
+                                }
+                            \end{tikzpicture}
+                        \end{center}
+                        Outside the border, we use the last colour in the range (black, in this case).
+                    \item \textbf{repeated}
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \begin{scope}
+                                    \draw[fill=black!50] (1, 0) -- (2, 0) -- (2, -1) -- (1, -1) -- cycle;
+                                    \draw[fill=black] (2, 0) -- (3, 0) -- (3, -1) -- (2, -1) -- cycle;
+                                \end{scope}
+                                \begin{scope}[shift={(3, 0)}]
+                                    \draw[fill=black!50] (1, 0) -- (2, 0) -- (2, -1) -- (1, -1) -- cycle;
+                                    \draw[fill=black] (2, 0) -- (3, 0) -- (3, -1) -- (2, -1) -- cycle;
+                                \end{scope}
+                                \begin{scope}[shift={(6, 0)}]
+                                    \draw[fill=black!50] (1, 0) -- (2, 0) -- (2, -1) -- (1, -1) -- cycle;
+                                    \draw[fill=black] (2, 0) -- (3, 0) -- (3, -1) -- (2, -1) -- cycle;
+                                \end{scope}
+                                \draw[very thick] (0, 0) -- (9, 0) -- (9, -1) -- (0, -1) -- cycle;
+                                \foreach \x in {1,...,8} {
+                                    \draw[very thick] (\x, 0) -- (\x, -1);
+                                }
+                            \end{tikzpicture}
+                        \end{center}
+                        Once we exit the range, we simply wrap back to the first coordinate, repeating the texture.
+                    \item \textbf{mirrored}
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \begin{scope}
+                                    \draw[fill=black!50] (1, 0) -- (2, 0) -- (2, -1) -- (1, -1) -- cycle;
+                                    \draw[fill=black] (2, 0) -- (3, 0) -- (3, -1) -- (2, -1) -- cycle;
+                                \end{scope}
+                                \begin{scope}[shift={(3, 0)}]
+                                    \draw[fill=black] (0, 0) -- (1, 0) -- (1, -1) -- (0, -1) -- cycle;
+                                    \draw[fill=black!50] (1, 0) -- (2, 0) -- (2, -1) -- (1, -1) -- cycle;
+                                \end{scope}
+                                \begin{scope}[shift={(6, 0)}]
+                                    \draw[fill=black!50] (1, 0) -- (2, 0) -- (2, -1) -- (1, -1) -- cycle;
+                                    \draw[fill=black] (2, 0) -- (3, 0) -- (3, -1) -- (2, -1) -- cycle;
+                                \end{scope}
+                                \draw[very thick] (0, 0) -- (9, 0) -- (9, -1) -- (0, -1) -- cycle;
+                                \foreach \x in {1,...,8} {
+                                    \draw[very thick] (\x, 0) -- (\x, -1);
+                                }
+                            \end{tikzpicture}
+                        \end{center}
+                        Similar to above, however after ending the texture, we go backwards, and then back forwards through the texture (therefore $1.25$ would map to $0.75$).
+                \end{itemize}
+                Note that we cannot naively use a texture for tiling; there may be obvious seams if done incorrectly.
+                If the boundaries at the top and bottom (and left and right) are the same, we are able to create a seamless tiling with repeating patterns.
+                This is an efficient use of memory, as we are able to use a repeated small texture rather than a single large texture.
+                \medskip
+
+                However, note that we cannot simply perform linear interpolation (as in Gouraud shading) on texture coordinates; this gives similar streaky artifacts to the specular in Gouraud shading.
+                The reason is that we are performing a 3D interpolation in 2D; while this can be acceptable for colours in shading, for coordinates that undergo two transformations from screen space $(x, y)$ to 3D $(u, v)$, back to 2D $(s, t)$, it is not acceptable.
+                The problem is that perspective projection does not preserve linear combinations of points; equal distances in 3D \textbf{do not} map to equal distances in screen space.
+                This can be shown in the following;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=4cm]
+                        \draw (-1, 0.25) -- (-1, -1.25);
+                        \draw[very thick, violet] (0, 0) -- (2, -1);
+                        \node[rbtb] (p) at (0, 0) {};
+                        \node[rbtr] (q) at (1, -0.5) {};
+                        \node[rbtb] (r) at (2, -1) {};
+                        \node[rbtb] (o) at (-2, -0.75) {};
+                        \draw[dashed]
+                        (o) -- (p)
+                        (o) -- (q)
+                        (o) -- (r);
+                        \node[rbtb] (pp) at (-1, -0.375) {};
+                        \node[rbtr] (qp) at (-1, -0.6667) {};
+                        \node[rbtb] (rp) at (-1, -0.8125) {};
+
+                        \node at ($(p) + (0.25, 0.0625)$) {$p$};
+                        \node at ($(q) + (0.25, 0.0625)$) {$q$};
+                        \node at ($(r) + (0.25, 0.0625)$) {$r$};
+
+                        \node at ($(pp) + (0.25, -0.0625)$) {$p^\prime$};
+                        \node at ($(qp) + (0.25, -0.0625)$) {$q^\prime$};
+                        \node at ($(rp) + (0.25, -0.0625)$) {$r^\prime$};
+                    \end{tikzpicture}
+                \end{center}
+                Let us assign some parameter $t$ to the vertices $p$ and $r$, with $t_p = 0$ and $t_r = 1$ (where $t$ controls the linear blend of the texture coordinates of $p$ and $r$).
+                For simplicity, assume the image plane exists at $z = 1$ (or $f = 1$ in the projection matrix).
+                Our goal is to work out the value of $t_q$, which ideally would be $0.5$ (since it lies directly between $p$ and $q$).
+                \medskip
+
+                We can divide by the $z$ coordinate;
+                \begin{align*}
+                    p^\prime & = \frac{p}{z_p} \\
+                    q^\prime & = \frac{q}{z_q} \\
+                    r^\prime & = \frac{r}{z_r}
+                \end{align*}
+                Note we cannot linearly interpolate $t$ between $p^\prime$ and $r^\prime$, since only projected values can be linearly interpolated in screen space.
+                We will instead need perspective-correct interpolation.
+                The idea is to now linearly interpolate $\frac{t}{z}$ between $p^\prime$ and $r^\prime$, by computing $t_{p^\prime}$ and $t_{r^\prime}$;
+                \begin{align*}
+                    t_{p^\prime} & = \frac{t_p}{z_p} \\
+                    t_{q^\prime} & = \mathrm{lerp}(t_{p^\prime}, t_{r^\prime}) \\
+                    t_{r^\prime} & = \frac{t_r}{z_r}
+                \end{align*}
+                However, since we want to work out $t_q$, the un-projected parameter, rather than just $t_{q^\prime}$, we do the following.
+                First note that $t_{q^\prime}$ is related to $t_q$ by the perspective factor $\frac{1}{z_q}$, which we can obtain by linear interpolation;
+                \begin{align*}
+                    \frac{1}{z_p} \\
+                    \frac{1}{z_q} & = \mathrm{lerp}\left(\frac{1}{z_p}, \frac{1}{z_r}\right) \\
+                    \frac{1}{z_r}
+                \end{align*}
+                This gives us the following;
+                $$t_q = t_{q^\prime} z_q = \frac{\mathrm{lerp}(t_{p^\prime}, t_{r^\prime})}{\mathrm{lerp}\left(\frac{1}{z_p}, \frac{1}{z_r}\right)} = \frac{\mathrm{lerp}\left(\frac{t_p}{z_p}, \frac{t_r}{z_r}\right)}{\mathrm{lerp}\left(\frac{1}{z_p}, \frac{1}{z_r}\right)}$$
+                Therefore, given texture parameter $t$ at vertices, we do the following (\textit{unproject, project, unproject, and then normalise?});
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item compute $\frac{1}{z}$ for each vertex
+                    \item linearly interpolate $\frac{1}{z}$ across the triangle
+                    \item linearly interpolate $\frac{t}{z}$ across the triangle
+                    \item perform perspective division (divide $\frac{t}{z}$ by $\frac{1}{z}$ to obtain interpolated $t$)
+                \end{enumerate}
+                The above is done automatically on the GPU's texture sampler; if we sample from the texture, it is implied (and we'd have to purposely modify the pipeline to induce distortions) - using the commands in GLSL will apply perspective corrected interpolation.
+                \medskip
+
+                The lecture then covers bi-linear map, an alternative to map textures to individual pixels.
+            \subsubsection*{Texture Mapping and Illumination}
+                Note that texture mapping can also be used to alter parts of the illumination equation.
+                Typically, we can use the texture image as the diffuse component (but we are able to use it for other components, with varying effects).
+                \medskip
+
+                When we shift lighting / camera position, we can notice a difference between a brick wall and an image of a brick wall mapped to a plane.
+                It would be too difficult and time consuming to model individual geometry for bumps in the wall.
+                We can instead feed in another texture to manipulate the normals - while it doesn't change the shape of the surface, it will cause shading to shade it as if it were a different shape.
+                \medskip
+
+                However, bump-mapping will change the silhouette of a bump-mapped object; if we move the viewpoint for a texture-mapped object, the shape will remain the same, however the bump-mapped object will not.
+                Displacement maps will actually move the surface point (modifying the positions of the vertices) - therefore the geometry must be displaced before visibility is determined.
+                \medskip
+
+                Environment maps can be used to simulate reflections, by using the direction of the reflected ray to index a texture map at infinity.
+                The texture map is dynamic, and would capture the environment around an object, however this is computationally expensive, and does not capture repeated bounces (two objects with environment maps will only show up once on each other, instead of infinitely).
+        \subsection*{Lecture 9 - Rasterization, Visibility, and Anti-aliasing}
+        \subsection*{Lecture 10 - Ray Tracing I}
 \end{document}
