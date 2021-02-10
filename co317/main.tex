@@ -2615,8 +2615,168 @@
                 A local average can cause undesirable effects, therefore a weighted average is normally taken, such as the following (allowing us to sample from the texels adjacent, like in computer games);
                 $$\frac{1}{36}\begin{bmatrix}
                     1 & 4 & 1 \\
-                    4 & 16 & 4
+                    4 & 16 & 4 \\
                     1 & 4 & 1
                 \end{bmatrix}$$
         \subsection*{Lecture 10 - Ray Tracing I}
+            From here we look at a different method of generating images.
+            Note that before we were unable to create infinitely reflecting surfaces, nor did we cover how to create shadows (which is an important depth cue) - including self shadowing.
+            We were also unable to create distortions in reflective geometry or refraction.
+            \subsubsection*{Illumination}
+                Note that we've only covered the \textbf{direct} illumination (which can be done easily with the Phong model).
+                In direct illumination, a point receives light \textbf{directly} from all light sources in the scene.
+                On the other hand, in \textbf{global} illumination, a point only receives light after \textbf{interacting} with other objects in the scene.
+                As such, points might be in shadow or rays may be refracted through transparent material.
+            \subsubsection*{Ray Casting}
+                A technique developed for pen-plotter in 1968 was to cast a ray per pixel (\textbf{from} the viewpoint outwards).
+                If the ray from the viewpoint hits an object, that point is traced to the light source; if it doesn't intersect with anything else, the global illumination model is applied.
+                However, if it intersects another object, it is not drawn (or filled in black).
+                While the algorithm is quite simple, this is computationally expensive.
+                \begin{lstlisting}
+                    trace ray
+                      intersect all objects
+                      colour = ambient term
+                      for every light cast shadow ray
+                        colour += local shading term # add local shading term if light is not occluded
+                \end{lstlisting}
+                Turner Whitted took the concept further, evaluating not only shadows, but also reflections, refractions, and other effects.
+                Note that casting a ray is simply a point plus a direction.
+                At each intersection, if the surface is reflective, we can also cast another ray.
+                If the surface is transparent, we can also attempt to perform refraction.
+                This was the first global illumination mode; an object's colour is influenced by lights and other objects in the scene, and can simulate real lighting effects such as specular reflection and refractive transmission.
+                \begin{center}
+                    See slide 9 for a diagram
+                \end{center}
+                The algorithm is simple, but gives way for a recursive algorithm (note we can stop this at some arbitrary point);
+                \begin{lstlisting}
+                    trace ray
+                      intersect all objects
+                      colour = ambient term
+                      for every light cast shadow ray
+                        colour += local shading term # add local shading term if light is not occluded
+                      if mirror
+                        colour += k_refl * trace reflected ray
+                      if transparent
+                        colour += k_trans * trace transmitted ray
+                \end{lstlisting}
+                We can either stop after some recursion depth (after some number of bounces), or we can stop once the ray contribution (from the reflected / transmitted rays) become too small.
+                \medskip
+
+                We have the following types of rays;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{primary (viewing) rays}
+                        \smallskip
+
+                        These are rays cast from the viewpoint to the nearest intersection.
+                        Local illumination is computed according to the Phong model;
+                        $$L = k_a + (k_d (\vec{n \cdot \vec{l}}) + k_s (\vec{v} \cdot \vec{r})^q)I_s$$
+                    \item \textbf{secondary rays}
+                        \smallskip
+
+                        Secondary rays are any other rays (that aren't \red{primary rays}) - rays originating at intersection points, and can be caused by a number of things;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \violet{reflected ray}
+                                \smallskip
+
+                                This computes the mirror contribution, by casting a ray in the direction symmetric with respect to the surface normal, and multiply by the reflection coefficient.
+                                The direction of the ray is calculated in the same way as the ideal reflection ray (from the specular component), or can be worked out as follows, where $\vec{v^\prime}$ is the direction of the secondary ray, $\vec{v}$ is the primary ray, and $\vec{n}$ is the unit surface normal;
+                                $$\vec{v^\prime} = \vec{v} - (2\vec{v} \cdot \vec{n})\vec{n}$$
+                            \item \teal{shadow ray}
+                                \smallskip
+
+                                Shadows can be added as follows, where we omit the diffuse and specular if the light source is obscured (hard shadows);
+                                \begin{align*}
+                                    L & = k_a + s(k_d(\vec{n} \cdot \vec{l}) + k_s(\vec{v} \cdot \vec{r})^q)I_s + k_\text{reflected}L_\text{reflected} + k_\text{refracted}L_\text{refracted} \\
+                                    s & = \begin{cases}
+                                        0 & \text{if light source obscured} \\
+                                        1 & \text{if light source not obscured}
+                                    \end{cases}
+                                \end{align*}
+                                However, we can use multiple shadow rays to sample an area light source, allowing us to create soft shadows.
+                            \item \blue{transmitted (refracted) ray}
+                                \smallskip
+
+                                The angle of the refracted ray is determined by Snell's law;
+                                $$\eta_1\sin(\phi_1) = \eta_2\sin(\phi_2)$$
+                                Note that $\eta_1$ and $\eta_2$ are constants for mediums 1 and 2, respectively.
+                                Similarly, $\phi_1$ and $\phi_2$ are angles between the respective rays and the surface normal.
+                                \begin{center}
+                                    \begin{tikzpicture}
+                                        \draw[fill=black!20, black!20] (-1.25, 0) -- (1.25, 0) -- (1.25, -1.25) -- (-1.25, -1.25) -- cycle;
+                                        \draw (-1.25, 0) -- (1.25, 0);
+                                        \draw (0, -1) edge[dashed, ->] (0, 1);
+                                        \node at (0, 1.25) {$\vec{n}$};
+                                        \draw (-1, 1) edge[->, left] node{$\vec{v}$} (0, 0);
+                                        \draw (0, 0) edge[->, right] node{$\vec{v^\prime}$} (0.5, -1);
+                                        \draw (0, 0) ++(90:0.5) arc (90:135:0.5);
+                                        \draw (0, 0) ++(270:0.5) arc (270:296.6:0.5);
+                                        \node at (0.4, 0.3) {$\phi_1$};
+                                        \node at (-0.4, -0.3) {$\phi_2$};
+                                    \end{tikzpicture}
+                                \end{center}
+                                Snell's law can also be written as the following, in vector notation;
+                                $$k_1(\vec{v} \cdot \vec{n}) = k_2(\vec{v^\prime} \cdot \vec{n})$$
+                                The direction of the refracted ray can be written as;
+                                $$\vec{v^\prime} = \frac{\eta_1}{\eta_2}\left(\left(\sqrt{(\vec{n} \cdot \vec{v})^2 + \left(\frac{\eta_2}{\eta_1}\right)^2 - 1} - \vec{n} \cdot \vec{v}\right) \vec{n} + \vec{v}\right)$$
+                                It's important to note that the above only has a solution given the following condition;
+                                $$(\vec{n} \cdot \vec{v})^2 > 1 - \left(\frac{\eta_2}{\eta_1}\right)^2$$
+                                If the angle of the refracted ray is larger than $90^\circ$ (due to a large incident ray), the ray becomes reflected rather than refracted (total internal reflection).
+                                \medskip
+
+                                In the stack based implementation, we will also need to keep track of the material ($\eta$), and whether we are entering or leaving.
+                        \end{itemize}
+                \end{itemize}
+                This allows us to express illumination as the following;
+                $$L = k_a + (k_d (\vec{n \cdot \vec{l}}) + k_s (\vec{v} \cdot \vec{r})^q)I_s + \underbrace{k_\text{reflected}L_\text{reflected} + k_\text{refracted}L_\text{refracted}}_\text{recursion}$$
+                Note that the grey circles below denote \textbf{opaque} surfaces, and the red dot denotes a light source.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[rbtb] (vp) at (0, 0) {};
+                        \node[rbtr] (light) at (1, 2) {};
+                        \draw (0.707, 4) circle (1);
+                        \draw[fill=black!20] (-4, 2.586) circle (1);
+                        \draw[fill=black!20] (-1, 2.5) circle (0.5);
+
+                        \draw
+                        (vp) edge[red, ->] (0, 3.293)
+                        (0, 3.293) edge[teal, ->, below] node{$L_1$} (light)
+                        (0, 3.293) edge[blue, ->, left] node{$T_1$} (0.707, 5)
+                        (0.707, 5) edge[blue, ->, above] node{$T_3$} (2, 6)
+                        (0.707, 5) edge[teal, ->, left] node{$L_3$} (light)
+                        (0.707, 5) edge[violet, ->, right] node{$R_3$} (1.414, 3.293)
+                        (0, 3.293) edge[violet, ->, above] node{$R_1$} (-3.293, 3.293)
+                        (-3.293, 3.293) edge[violet, ->, left] node{$R_2$} (-3.293, 5)
+                        (-3.293, 3.293) edge[teal, ->, below] node{$L_2$} (-1.441, 2.735);
+                    \end{tikzpicture}
+                \end{center}
+                Since we cannot perform recursion in GLSL, this should be done iteratively (which can be done for the reflections, refraction would require state to be stored).
+            \subsubsection*{Precision Problems}
+                However; while this will work completely fine in practice (as well as the majority of the time), consider the case where we have a sphere and a ray.
+                Due to rounding errors, the intersection point between these two may end up \textbf{inside} inside the sphere (beneath the surface), and when we cast the shadow ray from the intersection point, it will end up intersecting with itself again, hence leading to unwanted self occlusion (note that the dashed lines represent the issue caused by the rounding error, and the solid lines represent the desired effect) - the effect is obviously exaggerated here;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[rbtb] (vp) at (0, 0) {};
+                        \node[rbtr] (light) at (2, 1) {};
+                        \draw
+                        (4, 0) circle (1)
+                        (vp) edge[->] (3, 0)
+                        (3, 0) edge[->] (light)
+                        (vp) edge[->, dashed] (3.5, 0)
+                        (3.5, 0) edge[->, dashed] (3.047, 0.302);
+                    \end{tikzpicture}
+                \end{center}
+                As such, we can assign some $\varepsilon$ value; if the length of the shadow ray ($\mu$) is smaller than some $\varepsilon$, we assume it is on the surface, and shift the ray slightly in the required direction (along the surface normal) for it to be outside of the object.
+            \subsubsection*{Fresnel Factor}
+                Traditional ray tracing has a constant coefficient for reflection.
+                A better approach is to mix the reflected and refracted light according to the Fresnel factor;
+                $$L = k_\text{fresnel}L_\text{reflected} - (1 - k_\text{fresnel})L_\text{refracted}$$
+                Schlick's approximation does the following;
+                $$k_\text{fresnel}(\theta) = k_\text{fresnel}(0) + (1 - k_\text{fresnel}(0))(1 - (\vec{n} \cdot \vec{l}))^5$$
+                Setting $k_\text{fresnel}(0) = 0.8$ gives a surface like stainless steel, apparently.
+            \subsubsection*{Monte-Carlo}
+                A more computationally expensive approach which simulates the randomness of real light better is to cast multiple random rays from an intersection point (recursively).
+                At some point, all of the intersection points are sent to the light source as before.
+                On the other hand, Monte-Carlo path tracing only traces one secondary ray per recursion, but will send many primary rays per pixel.
 \end{document}
