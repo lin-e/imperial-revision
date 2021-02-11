@@ -1498,5 +1498,115 @@
                 This can still leak information however, via IP or SNI.
                 If this is combined with DNSSEC, we can have the best of both worlds.
             \subsubsection*{PHP}
+                PHP is currently the predominant server-side language, used by a number of large websites, as well as a very large percentage of small website.
+                It's simple and practical, with a fast development cycle allowing for ease of deployment.
+                It's quite powerful, however it's easy to make mistakes, leading to many examples of server-side vulnerabilities.
+                \medskip
+
+                PHP is an imperative language with aliasing;
+                \begin{lstlisting}
+                    $\dollar$x = 0;
+                    $\dollar$y = &$\dollar$x;       // $\dollar$x and $\dollar$y are now aliased
+                    $\dollar$y = "hello";
+                    echo $\dollar$x;       // prints "hello"
+                \end{lstlisting}
+                It also allows for dynamic variable names;
+                \begin{lstlisting}
+                    $\dollar$x = "y";
+                    $\dollar$y = "hello";
+                    echo $\dollar$$\dollar$x;       // prints "hello"
+
+                    $\dollar${"x"} = "y";
+                    $\dollar$z = {"x".$\dollar$x};
+                \end{lstlisting}
+                PHP also performs implicit type conversion (type juggling) to ease the burden on developers.
+                However, this has a quirk with strings, where the string literal ~"0"~ will be treated as ~false~ (as a boolean), and any other string is treated as ~true~.
+                This is an example of where programmers may make mistakes.
+                In the following, note that ~n~ denotes a digit and ~s~ denotes a character; ~"ssssss"~ will be evaluated to ~0~ as a number, but ~nnnsss~ will be evaluated to the number ~nnn~.
+                Comparison operators are also overloaded, hence ~"10"<"9"~ will be evaluated as ~false~, whereas ~"10LOW"<"9HIGH"~ will be evaluated as ~true~.
+                \medskip
+
+                A key data structure in PHP is the array (global variables are stored inside an array, objects are arrays containing fields, and a hidden pointer to the class);
+                \begin{lstlisting}
+                    $\dollar$x = array(
+                        "foo" => "bar",
+                        4.5   => "baz"
+                    );
+                    $\dollar$x[] = "default";    // uses the default key 5 (first int greater than all keys)
+                    echo $\dollar$x[5];          // prints "default"
+                    echo current($\dollar$x);    // prints "bar"
+                    next($\dollar$x);            // advances the pointer
+                    echo current($\dollar$x);    // prints "baz"
+
+                    $\dollar$GLOBALS["y"] = 42;  // 'super' global
+                    echo $\dollar$y;             // prints 42
+                \end{lstlisting}
+                PHP also handles objects as expected;
+                \begin{lstlisting}
+                    $\dollar$obj -> x = 0;
+                    var_dump($\dollar$obj); // prints the following (see next line)
+                    > object(stdClass)#1 (1) { ["x"] => int(0) }
+                \end{lstlisting}
+                We can also define classes and inheritance;
+                \begin{lstlisting}
+                    class prnt {
+                        private $\dollar$id = "foo";
+                        function displaySelf() {
+                            echo $\dollar$this -> id;
+                        }
+                    }
+
+                    class chld extends prnt {
+                        public $\dollar$id = "bar";
+                        public function displayParent() {
+                            parent::displaySelf();
+                        }
+                    }
+
+                    $\dollar$obj = new chld();
+                    $\dollar$obj -> displayParent(); // prints "foo"
+                \end{lstlisting}
+                In arrays, there are subtle quirks in copying;
+                \begin{lstlisting}
+                    $\dollar$x = array(1, 2, 3);
+                    $\dollar$y = $\dollar$x;
+                    $\dollar$x[0] = "updated";
+                    echo $\dollar$y[0];              // prints 1 (as expected)
+
+                    $\dollar$x = array(1, 2, 3);
+                    $\dollar$temp = &$\dollar$x[1];           // here we introduce sharing
+                    $\dollar$y = $\dollar$x;                  // assigning normally
+                    $\dollar$x[0] = "regular";       // update regular element
+                    $\dollar$x[1] = "shared";        // update shared element
+
+                    var_dump($\dollar$x);            // gives the following;
+                    > array(3) {
+                        [0] => string(7) "regular"
+                        [1] => &string(6) "shared"
+                        [2] => int(3) }
+
+                    var_dump($\dollar$y);            // gives the following;
+                    > array(3) {
+                        [0] => int(1)
+                        [1] => &string(6) "shared"
+                        [2] => int(3) }
+                \end{lstlisting}
+                The lazy evaluation of functions in PHP can lead to the following quirk;
+                \begin{lstlisting}
+                    function mod_x() {
+                        global $\dollar$x;
+                        $\dollar$x = array('a', 'b');
+                        return 0;
+                    }
+
+                    $\dollar$x = array(1, 2);
+                    $\dollar$x[0] = mod_x();
+                    var_dump($\dollar$x);
+                    > array(2) {
+                        [0] => int(0)
+                        [1] => string(1) "b" }
+                \end{lstlisting}
+                Due to the interplay of aliasing, objects, conversions, string to code conversion, and optimisations, it can be difficult to statically analyse.
+                \textit{Hack} restricts PHP to provide a static type system.
             \subsubsection*{Server-side Security}
 \end{document}
