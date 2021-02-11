@@ -1353,4 +1353,150 @@
                 DLP (data loss prevention) system are also prevented from checking outbound data for corporate secrets.
                 Data can also be exfiltrated by encoding it as certificates - a compromised host in the network will send data as certificates when an outside client attempts to connect.
                 TLS fingerprinting can be used to detect this, however it is not difficult to spoof the fingerprint (as well as the usual problems of blacklisting).
+        \subsection*{Week 4}
+            \subsubsection*{HTTP(S)}
+                The anatomy of a URL (Uniform Resource Locator) is as follows;
+                \begin{center}
+                    $\underbrace{~https~}_\text{scheme}~:://~\underbrace{~host1.example.com~}_\text{host}~:~\underbrace{~5588~}_\text{port}\underbrace{~/private/login.php~}_\text{path}$
+                \end{center}
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{scheme} \hfill denotes protocol used
+                    \item \textbf{host} \hfill target IP address or hostname (resolved by DNS)
+                    \item \textbf{port} \hfill defaults to scheme's standard if unspecified
+                    \item \textbf{path} \hfill denotes requested resource
+                \end{itemize}
+                The combination of the scheme, port, and host is known as the \textbf{origin}.
+                URLs can also have credentials, for example ~alice:secret@www.example.com~; this defaults to anonymous access if missing.
+                The URL can also contain query strings to be passed to the resource handler, \textbf{typically} in the form of key-value pairs.
+                The fragment remains on the client (part after ~\#~), and is used to tell the browser to scroll to specific points in a document.
+                In practice, it's up to the interpretation of the client and the server.
+                \medskip
+
+                URIs contain key information for web applications; we care about the confidentiality of the credentials, for obvious reasons.
+                We also care about the integrity of the path as requests may have side effects on the server, and we also need to be cautious of the integrity and confidentiality of the query string, since it can contain parameters that cannot be tampered with, or can contain sensitive data.
+                \medskip
+
+                HTTP is the protocol at the application layer, for the web.
+                This is a client-server protocol, and each host may act as either role depending on what is necessary.
+                The client first initiates a TCP connection (to port 80 by default for HTTP) to the destination host.
+                Once this connection is established, the client can send a request conforming to the HTTP protocol, replying with protocol-specific responses (such as data or an error).
+                Once this is done, the TCP connection is closed by the server.
+                However, in practice, since it is likely that there will be further interaction, a \textbf{keepalive} is used to keep the TCP connection open (allowing for the HTTP handshakes to be multiplexed).
+                It's important to note that the protocol is stateless; all requests are handled independently, and it is therefore up to the client and server to maintain state (such as with cookies).
+                \medskip
+
+                Most of the web currently supports ~HTTP/1.1~, however some sites have maintained compatibility with ~HTTP/0.9~, which introduces issues.
+                ~HTTP/2~, based on Google's SPDY adds features whilst retaining compatibility.
+                Servers can push data, and requests are multiplexed over TCP connections (even if they are not part of the same TCP connection), headers can be compressed, and some implementations only use it over TLS.
+                \medskip
+
+                A ~GET~ request typically fetches a resource from a server (with no side-effects, and is idempotent, however this is up to the server to decide) - it can also pass parameters via the query string, and has no body.
+                On the other hand, a ~POST~ request submits data to the server, with the payload being in the body.
+                However, it's still possible to pass parameters in the query string, and is designed to change state on the server (hence clients ask for confirmation before resubmission).
+                In both of these, there are a number of headers, including (but not limited to);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Host} \hfill this specifies the target host on the server, and supports virtual hosts
+                    \item \textbf{User-Agent} \hfill this describes the browser used to issue the request
+                    \item \textbf{Referer} \hfill (optional) URL of the page that originated the current request
+                        \smallskip
+
+                        This header can leak information.
+                        In our scenario, the user starts on site $A$, and clicks on a link to visit site $B$.
+                        This has two main issues; in terms of privacy, $B$ now knows that the user has visited $A$, and in terms of security, if the query string for $A$ had any sensitive parameters, $B$ will also see them.
+                        \medskip
+
+                        Generally, sensitive data should be in the ~POST~ body, rather than a query string.
+                        We can also use one of the following ~Referrer-Policy~ response headers to control this header;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item ~no-referrer~ \hfill no header wherever we navigate to
+                            \item ~no-referrer-when-downgrade~ \hfill don't send a header if going from ~https~ to ~http~
+                            \item ~origin~ \hfill only shows the origin of the referrer
+                            \item ~origin-when-cross-origin~ \hfill only show origin if cross origin (otherwise full URL)
+                            \item ~same-origin~ \hfill only show URL if same origin, nothing otherwise
+                            \item ~strict-origin~ \hfill only send origin when protocol security stays the same
+                            \item ~strict-origin-when-cross-origin~
+                                \smallskip
+
+                                This sends everything when the origin stays the same, only sends the origin when performing a cross-origin request to the same protocol security level, and send nothing if downgrading.
+                            \item ~unsafe-url~ \hfill send everything, regardless of security
+                        \end{itemize}
+                    \item \textbf{Cookie} \hfill add state by storing key-value pairs on behalf of the server
+                    \item \textbf{Authorization} \hfill provide credentials for some schemes
+                    \item \textbf{Accept-Encoding} \hfill describes what the browser can handle
+                \end{itemize}
+                The original meanings may not be reflected in current use (similar to URLs) - the client and server can both add, override and misuse the headers, including using them for tracking.
+                \medskip
+
+                In general, ~2xx~ response codes state that the request has succeeded.
+                On the other hand ~3xx~ response codes indicate that redirection is needed, since the requested resource resides under a different URL (either temporarily or permanently).
+                Only ~GET~ or ~HEAD~ requests should be redirected by the client, however ~POST~ requests can be redirected in practice, changed to a ~GET~.
+                Errors can either be caused by the client or the server, with a ~4xx~ indicating an error in the client request, and a ~5xx~ denoting an error on the server preventing it from fulfilling a request.
+                Note that response codes can also be abused by command and control to evade IDS.
+                \medskip
+
+                Similarly, there are also a number of response headers;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Content-Type} \hfill specifies MIME type and character set of response
+                    \item \textbf{Location} \hfill where to redirect for ~3xx~ code
+                    \item \textbf{Set-Cookie} \hfill request client to store / delete state
+                    \item \textbf{WWW-Authenticate} \hfill specifies authentication to use
+                    \item \textbf{Content-Encoding}
+                    \item \textbf{Cache-Control} \hfill specifies how long to cache a response
+                \end{itemize}
+                Since HTTP is over TCP/IP, there is no confidentiality or integrity over eavesdroppers (anyone on the same network can read) or MITM (ISPs or proxies).
+                Similar to DNS, a HTTP proxy cache can be poisoned leading to clients loading possibly malicious responses - if a hacker causes a malicious response to be cached, it will stay for as long as the cache allows even if the original page is fixed.
+                Response splitting is done when an attacker confuses the client to accept bogus responses by abusing keepalive connection.
+                \medskip
+
+                HTTPS is running HTTP over an encrypted TLS connection, giving integrity and confidentiality to both the headers and payloads.
+                It also prevents DNS spoofing, since the attacker is not able to create fake certificates for the target domain from an attacker-controlled DNS advertising a malicious IP.
+                This is used by 90\% of the web's traffic, with very minor drawbacks such as slightly increased latency, some cost with cryptography, it's also harder to cache resources at the network level (however the browser can still cache it), and IDSs have less visibility in traffic due to TLS.
+                \medskip
+
+                Security issues in HTTPS can arise from the user; the user may accept invalid certificates.
+                Similarly, compromised CAs (as previously mentioned) can spoof certificates.
+                \medskip
+
+                In the following example of an SSL stripping attack, the browser goes through a MITM with a ~http~ connection.
+                The server wants the client to use ~https~, and therefore gives a redirect to the MITM (which is not forwarded to the user).
+                The MITM then issues a request with ~https~ as required by the redirect, with the server providing data over ~https~ to the MITM, who then forwards it to the user in ~http~.
+                At this point, the user sees no warnings, and creates a session over ~http~ with the MITM, who has a session over ~https~ with the server, therefore allowing the attacker to see unencrypted data;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \draw[very thick] (0, 0) edge[->] (0, -6);
+                        \draw[very thick] (4, 0) edge[->] (4, -6);
+                        \draw[very thick] (8, 0) edge[->] (8, -6);
+                        \node at (0, 0.5) {browser};
+                        \node at (4, 0.5) {MITM};
+                        \node at (8, 0.5) {web server};
+
+                        \draw
+                        (0, -1) edge[above] node{~GET http://www.example.com/~} (4, -1)
+                        (4, -1) edge[-latex] (8, -1)
+                        (8, -2) edge[-latex, above] node{~302 https://www.example.com/~} (4, -2)
+                        (4, -2) edge[-latex, red] (2, -2)
+                        (4, -3) edge[-latex, above] node{~GET https://www.example.com/~} (8, -3)
+                        (8, -4) edge[-latex, above] node{~200 <html> ... https ... </html>~} (4, -4)
+                        (4, -4) edge[-latex, above] node{~200 <html> ... ~\red{~http~}~ ... </html>~} (0, -4)
+                        (0, -5) edge[latex-latex, above] node{~example.com session over ~\red{~http~}} (4, -5)
+                        (4, -5) edge[latex-latex, above] node{~example.com session over https~} (8, -5);
+                    \end{tikzpicture}
+                \end{center}
+                In order to counteract this, there is the \textbf{Strict Transport Security (HSTS)} header, which tells the browser to load pages from that domain only over HTTPS; this is saved for future requests for a time depending on the ~max-age~ parameter.
+                However, SSL stripping needs to be prevented from the \textbf{first} HTTP connection.
+                Browsers can have lists of some websites that must be connected over HTTPS, however this doesn't scale.
+                One approach is DANE, which associates HSTS to DNSSEC.
+                \medskip
+
+                \textbf{DoH (DNS over HTTPS)} is a way to provide integrity and confidentiality to DNS queries.
+                Similarly, DoT (DNS over TLS) is also being deployed on public DNS resolvers.
+                However, this centralises DNS, which was designed to be decentralised to provide resilience, privacy and trust.
+                This can still leak information however, via IP or SNI.
+                If this is combined with DNSSEC, we can have the best of both worlds.
+            \subsubsection*{PHP}
+            \subsubsection*{Server-side Security}
 \end{document}
