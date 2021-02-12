@@ -1927,4 +1927,82 @@
                 We can use HOG to perform feature extraction from an input image to a feature representation.
                 Feature extraction transforms an input image into low-dimensional vectors for easier comparison or matching.
                 A classifier (trained with a dataset consisting of images, and often labels) can be used to give an output label to the feature representation.
+        \subsection*{Lecture 12 - Image Classification I}
+            This lecture starts with some motivation on image classification.
+            The ImageNet project aims to collect $80,000$ classes, with each class having between $500$ to $1,000$ images.
+            The ILSVRC uses a subset of this, with only $1,000$ (simpler) classes used; there are also no overlap between classes, since pairs of classes cannot be ancestors of each other.
+            In ImageNet classes, all classes are organised as a tree.
+            Below the root node, ImageNet has 12 subtrees (with each subtree expanding further into many classes);
+            \begin{itemize}
+                \itemsep0em
+                \item mammal
+                \item bird
+                \item fish
+                \item reptile
+                \item amphibian
+                \item vehicle
+                \item furniture
+                \item musical instrument
+                \item geological formation
+                \item tool
+                \item flower
+                \item fruit
+            \end{itemize}
+            These classes are defined with concepts from our natural language defined by WordNet (a lexical database of English).
+            WordNet groups nouns into sets of cognitive synonyms (synsets), each expressing a \textbf{distinct} concept - these synsets will form the leaves of the tree, with the concepts already being organised as a tree.
+            \subsubsection*{Classifier}
+                This lecture is literally just going over stuff in \textbf{CO395}.
+                For example, drawing a line as a classifier for data points in 2D space.
+                When labels are not available for training data, we perform unsupervised learning; a common technique is to perform clustering for classification.
+            \subsubsection*{MNIST Example}
+                The example we go through will use the handwritten digit recognition dataset from MNIST - there are $60,000$ training samples and another $10,000$ reserved for testing.
+                Each sample is a $28 \times 28$ image, which is labelled with a class from 0 to 9.
+                \medskip
+
+                However, we need to perform some pre-processing.
+                We need to first find where the digit is in a large image, normalise the size of the digit to $28 \times 28$, as well as normalising the location (place the mass centre in the image centre).
+                Sometimes slant correction may be performed, shifting each row to force the principal axis to become vertical.
+                MNIST provides both datasets.
+                \medskip
+
+                There are two ways to extract features, either with hand-crafted techniques (such as HOG or pixel intensities), or learnt features such as CNNs.
+                After which, we perform classification, with classifiers like KNN (once again, see \textbf{CO395}).
+                \medskip
+
+                To define the neighbours, we need a distance metric between two data points $\vec{x}$ and $\vec{y}$;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{Euclidean distance}
+                        $$D(\vec{x}, \vec{y}) = \sqrt{(x_1 - y_1)^2 + \cdots + (x_n - y_n)^2}$$
+                        In our case, we have $784 = 28 \times 28$ dimensions.
+                        If each dimension has different scales, it can be better to normalise the feature vector (for example, weights and heights have different value ranges depending on the units).
+                        An example is to normalise each dimension to a Gaussian distribution $\mathcal{N}(0, 1)$, allowing for the dimensions to be treated fairly.
+                    \item \textbf{cosine distance}
+                        $$D(\vec{x}, \vec{y}) = \frac{\vec{x} \cdot \vec{y}}{|| \vec{x} ||\ || \vec{y} ||} = \frac{x_1y_1 + \cdots + x_ny_n}{\sqrt{\summation{i = 1}{n}x_i^2}\sqrt{\summation{i = 1}{n}y_i^2}}$$
+                    \item \textbf{generalised}
+                        \smallskip
+
+                        The Manhattan distance uses the $\ell_1$-norm;
+                        $$D_1(\vec{x}, \vec{y}) = \summation{i = 1}{n}| x_i - y_i |$$
+                        A more general form is the $\ell_p$-norm (note that the Euclidean distance is the $\ell_2$-norm);
+                        $$D_p(\vec{x}, \vec{y}) = \left(\summation{i = 1}{n} | x_i - y_i |^p\right)^{\frac{1}{p}}$$
+                \end{itemize}
+                Using $K=1$, it can already work quite well.
+                However, we may still have some inaccuracies, where a 7 may be classified as a 3, a 7 being classified as 0, or an 8 being classified as a 5, and so on.
+                \medskip
+
+                The lecture then goes over hyperparameter tuning for $K$, finding that $K=3$ is ideal for the MNIST dataset, with a $2.4\%$ error rate.
+                KNN has no training step, is simple (but quite effective), and can also handle multi-class classification easily.
+                However, it is expensive to use KNN in terms of both storage of training data and searching (for an extremely large set, the computational cost can become very expensive).
+                \medskip
+
+                Suppose we have $N$ training images, and $M$ test images.
+                While we have no training time, the computational cost to classify all $M$ test images is $O(MN)$.
+                \medskip
+
+                However, we are typically fine with slow training (since we can perform the training on high-powered hardware), but we want the test time to be fast (since it may be deployed on weaker hardware).
+            \subsubsection*{Features}
+                For simple pre-processed images (like in our example), it might be fine to use the $28 \times 28$ pixel intensities as the feature vector.
+                However, generally it may not be ideal to use pixel intensities, since it isn't invariant to scale nor rotation (and is generally a much higher dimension).
+
 \end{document}
