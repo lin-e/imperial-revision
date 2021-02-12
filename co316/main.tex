@@ -1562,4 +1562,207 @@
                 \end{center}
                 All of these follow similar procedures, where we calculate the detector responses across values, providing a three-dimensional response map ($x$ and $y$, as well as $\sigma$ for scale).
                 From here, we find local extrema across both space and scale.
+        \subsection*{Lecture 10 - Feature Description I}
+            \subsubsection*{Pixel Intensity}
+                A simple method for describing a feature is o use the intensity of a pixel.
+                However, this is sensitive to absolute value (the intensity of the same point will change during different lighting conditions).
+                This descriptor is not discriminative; many pixels can have the same intensity within an image.
+                Furthermore, a single pixel cannot represent any local content (such as an edge, or an object).
+            \subsubsection*{Patch Intensities}
+                This improves on a single pixel, as we can take some window representing the local pattern.
+                If the images are of similar intensity range, and are roughly aligned, it can perform well.
+                However, it will still be sensitive to absolute intensity values as before.
+                Furthermore, it is not rotation-invariant; for example if we look at an image from a different rotation we can still tell what the image is.
+            \subsubsection*{Gradient Orientation}
+                While gradient magnitude is sensitive to intensity changes, orientation isn't.
+                However, this still isn't rotation-invariant.
+            \subsubsection*{Histogram}
+                We can take the intensity histogram of a patch.
+                This is done by binning the intensity values of a patch, and generating a histogram from these values.
+                This has several benefits, where it is robust to rotation, as well as being robust to scaling (if the entire image is enlarged).
+                However, it is still sensitive to intensity changes.
+                \medskip
+
+                As such, we can consider combining the advantages of gradient orientation and the advantages of this histogram.
+            \subsubsection*{SIFT (Scale-invariant Feature Transform)}
+                This is an algorithm for detecting and describing local features.
+                It transforms an intensity image to a set of interest points, each of which is described by a feature vector.
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item detection of scale-space extrema
+                        \smallskip
+
+                        The first step is to search across scales and pixel locations, looking for interest points.
+                        This uses the difference of Gaussian filter, as previously encountered (in the SIFT paper, the different scales are multiplied by $\sqrt{2}$ continuously; $\sigma, \sqrt{2}\sigma, 2\sigma, 2\sqrt{2}\sigma, 4\sigma, \dots$);
+                        $$\mathrm{DoG}(x, y, \sigma) = I * G(k \sigma) - I * G(\sigma)$$
+                        As before, a point is an interest point if it is a local extremum both along the scale dimension (most appropriate scale) and across space.
+                        \medskip
+
+                        Note that extrema means both minima and maxima.
+                        If the input interest point is a very bright blob, DoG filter gives a negative response, and vice versa (a dark blob will lead to a positive response).
+                    \item keypoint localisation
+                        \smallskip
+
+                        The initial version of SIFT simply locates the keypoints at the scale-space extrema (which we have from above).
+                        An improved version fits a model onto nearby data, improving accuracy for image matching.
+                        \medskip
+
+                        A quadratic function can be \textcolor{blue!50!black}{fitted} onto the DoG response of neighbouring pixels, and the location and scale of extremum for this (quadratic) function can be estimated.
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \begin{axis}[
+                                    axis on top=true,
+                                    axis line style=thick,
+                                    domain=0:6, samples=60,
+                                    axis lines=middle, xlabel=, ylabel=DoG response,
+                                    height=9cm, width=10cm,
+                                    enlargelimits=false,
+                                    xticklabels={,,},
+                                    yticklabels={,,},
+                                    xmin=0, xmax=6,
+                                    ymin=0, ymax=5
+                                ]
+                                    \addplot[blue!50!black, very thick] {4 - (\x - 3)^2};
+                                    \node[label={90:{\shortstack{refined\\estimate}}}, circle, fill=red, inner sep=2pt] at (axis cs:3,4) {};
+                                    \node[label={0:{\shortstack{initial\\estimate}}}, circle, fill=black, inner sep=2pt] at (axis cs:3.7,3.51) {};
+                                    \node[circle, fill=green, inner sep=2pt] at (axis cs:2,3) {};
+                                    \node[circle, fill=green, inner sep=2pt] at (axis cs:4.41,2.012) {};
+                                \end{axis}
+                            \end{tikzpicture}
+                        \end{center}
+                        Denote the DoG response as $D(x, y, \sigma)$ or $D(\vec{x})$, where $\vec{x} = (x, y, \sigma)^\top$ (containing both location and scale).
+                        By Taylor expansion we have (omitting higher order terms);
+                        $$D(\vec{x} + \Delta\vec{x}) = D(\vec{x}) + {\underbrace{\pdif{D}{\vec{x}}}_\text{(1)}}^\top \Delta\vec{x} + \frac{1}{2}\Delta\vec{x}^\top \underbrace{\pdif{^2D}{\vec{x}^2}}_\text{(2)} \Delta\vec{x}$$
+                        \begin{enumerate}[(1)]
+                            \itemsep0em
+                            \item first derivatives can be estimated with finite difference
+                                $$\pdif{D}{\vec{x}} = \frac{D(x + 1, y, \sigma) - D(x - 1, y, \sigma)}{2}$$
+                            \item second derivatives / Hessian can also be estimated with finite difference
+                        \end{enumerate}
+                        This gives us a quadratic function for $\Delta\vec{x}$, the shift to the refined estimate, from the initial estimate $\vec{x}$.
+                        Therefore, to find a refined extrema for the function;
+                        $$\pdif{D(\vec{x} + \Delta\vec{x})}{\Delta\vec{x}} = \pdif{D}{\vec{x}} + \pdif{^2D}{\vec{x}^2}\Delta\vec{x} = 0 \Rightarrow \Delta \vec{x} = -\pdif{^2D}{\vec{x}^2}^{-1} \pdif{D}{\vec{x}}$$
+                        Shifting the initial estimate by $\Delta\vec{x}$ gives us the \red{refined estimate}.
+                        \medskip
+
+                        Recall that $\vec{x}$ is a 3D vector, and gives both location and scale.
+                        This means that we can get refined estimates for the location (sub-pixel accuracy), as well as a refined scale, which gives values between the scales of $\sigma, \sqrt{2}\sigma, 2\sigma, 2\sqrt{2}\sigma, 4\sigma, \dots$
+                    \item orientation assignment
+                        \smallskip
+
+                        This step attempts to assign a consistent orientation to each keypoint, based on image properties.
+                        Feature descriptors can then be represented relative to this orientation, to achieve rotation-invariance.
+                        To do this, we need to know the orientation of the feature, and once we have this, we can perform sampling in a rotated coordinate system when we calculate features, giving us the same features.
+                        \medskip
+
+                        We can calculate the gradient orientation for pixels in some neighbourhood and vote for the dominant orientation.
+                        We can create an orientation histogram with 36 bins ($10^\circ$ per bin), and each pixel in the neighbourhood votes for an orientation bin (weighted by the gradient magnitude) - the keypoint will be assigned an orientation, which would be the majority bin.
+                        \medskip
+
+                        We now have the location $(x, y)$, scale $\sigma$, and dominant orientation $\theta$.
+                        Using this, we an draw samples using a window size proportional to $\sigma$ rotated by $\theta$.
+                    \item keypoint descriptor
+                        \smallskip
+
+                        Now that we have sample points, we need to describe the local image content.
+                        SIFT uses a histogram of gradient orientations.
+                        \medskip
+
+                        A histogram of gradient orientations is made from the calculated gradient magnitudes and orientation for the sampling points.
+                        These orientations are calculated relative to the dominant orientation $\theta$.
+                        In practice, subregions are used, with each subregion having $4 \times 4$ samples - each subregion will have an orientation histogram, which (when combined) describes what it looks like around a given keypoint.
+                        \medskip
+
+                        For each subregion, we can construct an orientation histogram with 8 bins (each bin representing $45^\circ$).
+                        This can also be represented as 8 arrows (seen below), where the length of the arrow denotes the sum of the gradient magnitude along a given direction;
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \begin{scope}[rotate={0}]
+                                    \draw (0, 0) edge[-latex] (1, 0);
+                                \end{scope}
+                                \begin{scope}[rotate={45}]
+                                    \draw (0, 0) edge[-latex] (0.75, 0);
+                                \end{scope}
+                                \begin{scope}[rotate={90}]
+                                    \draw (0, 0) edge[-latex] (1.25, 0);
+                                \end{scope}
+                                \begin{scope}[rotate={135}]
+                                    \draw (0, 0) edge[-latex] (0.66, 0);
+                                \end{scope}
+                                \begin{scope}[rotate={180}]
+                                    \draw (0, 0) edge[-latex] (1.1, 0);
+                                \end{scope}
+                                \begin{scope}[rotate={225}]
+                                    \draw (0, 0) edge[-latex] (0.3, 0);
+                                \end{scope}
+                                \begin{scope}[rotate={270}]
+                                    \draw (0, 0) edge[-latex] (0.7, 0);
+                                \end{scope}
+                                \begin{scope}[rotate={315}]
+                                    \draw (0, 0) edge[-latex] (1.5, 0);
+                                \end{scope}
+                            \end{tikzpicture}
+                        \end{center}
+                        In Lowe's implementation, 16 subregions were used.
+                        This gives the descriptor a dimensionality of $128 = 16 \times 8$ (since each subregion has 8 bins); meaning each keypoint is described with a feature vector of 128 elements.
+                        \medskip
+
+                        This descriptor is robust to rotation due to a consideration of a dominant orientation, similarly it is robust to scaling as we draw samples from a window proportional to scale.
+                        It is also robust to changes in illumination since we use gradient orientations for feature description.
+                \end{enumerate}
+            \subsubsection*{Keypoint Matching}
+                Keypoints between two images are matched by identifying the nearest neighbours (which is defined by the Euclidean distance of SIFT descriptors).
+                Each keypoint in image $A$ identifies its nearest neighbour in the database of keypoints for image $B$.
+                However, we may not need to find the exact nearest neighbours for the sake of efficiency.
+                \medskip
+
+                Suppose we find a keypoint $(x, y)$ in $A$ that corresponds to a keypoint $(u, v)$ in $B$.
+                We assume they are related with an affine transformation (\violet{rotation, scaling, etc.} and \teal{translation});
+                $$\begin{bmatrix}
+                    u \\ v
+                \end{bmatrix} = \violet{\begin{bmatrix}
+                    m_1 & m_2 \\
+                    m_3 & m_4
+                \end{bmatrix}} \begin{bmatrix}
+                    x \\ y
+                \end{bmatrix} + \teal{\begin{bmatrix}
+                    t_x \\ t_y
+                \end{bmatrix}}$$
+                However, with many pairs of corresponding keypoints, we can write the equation as;
+                $$\begin{matrix}
+                    \text{keypoint 1} \\
+                    \phantom{} \\
+                    \text{keypoint 2} \\
+                    \phantom{} \\
+                    \phantom{}
+                \end{matrix} \begin{bmatrix}
+                    x_1 & y_1 & 0 & 0 & 1 & 0 \\
+                    0 & 0 & x_1 & y_2 & 0 & 1 \\
+                    x_2 & y_2 & 0 & 0 & 1 & 0 \\
+                    0 & 0 & x_2 & y_2 & 0 & 1 \\
+                    \vdots & \vdots & \vdots & \vdots & \vdots & \vdots
+                \end{bmatrix} \begin{bmatrix}
+                    m_1 \\ m_2 \\ m_3 \\ m_4 \\ t_x \\ t_y
+                \end{bmatrix} = \begin{bmatrix}
+                    u_1 \\ v_1 \\ u_2 \\ v_2 \\ \vdots
+                \end{bmatrix}$$
+                This can also be written as a linear system, where only $\vec{m}$ is unknown;
+                $$\mat{A}\vec{m} = \vec{b}$$
+                However, we can obtain the least-square solution to the linear system with the \violet{Moore-Penrose inverse}, minimising the squared difference $|| \mat{A}\vec{m} - \vec{b} ||^2$;
+                $$\vec{m} = \violet{\left(\mat{A}^\top\mat{A}\right)^{-1}\mat{A}^\top} \vec{b}$$
+                Once this is solved, we have the spatial transformation between the two images.
+            \subsubsection*{RANSAC}
+                However, the squared difference can be sensitive to outliers (noise) - in our case, this would be points that are deemed to be corresponding but actually aren't.
+                To ensure our solution is robust to the outliers we can use methods which consider outliers in the model fitting such as \textbf{RANSAC (Random Sample Consensus)}.
+                \medskip
+
+                RANSAC aims to find the best fitting line to a given set of points.
+                The algorithm to perform this is as follows (this is done repeatedly until we get a good fitting line);
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item randomly sample some points (the example shows 2 points in a 2D illustration)
+                    \item fit a line along the sampled points
+                    \item find the number of \textbf{inliers} within a threshold to the line
+                    \item terminate if enough inliers have been found, or we have reached a certain number of iterations
+                \end{enumerate}
 \end{document}
