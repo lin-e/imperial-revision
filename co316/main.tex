@@ -631,7 +631,7 @@
             \subsubsection*{Median Filter}
                 This is a non-linear filter (not performing an average calculation by multiplication).
                 This moves a sliding window, and replaces the centre pixel with the median value in the window - this is not a linear equation.
-        \subsubsection*{Lecture 4 - Image Filtering II}
+        \subsection*{Lecture 4 - Image Filtering II}
             \subsubsection*{Mathematical Description}
                 Consider a simple filter, of size 3, in 1D.
                 With an input $f$, and an output $g$, it can be written as the weighted average in a window;
@@ -1765,4 +1765,166 @@
                     \item find the number of \textbf{inliers} within a threshold to the line
                     \item terminate if enough inliers have been found, or we have reached a certain number of iterations
                 \end{enumerate}
+        \subsection*{Lecture 11 - Feature Description II}
+            \subsubsection*{SIFT}
+                As mentioned before, the SIFT descriptor at each interest point is formed by the concatenation of the gradient orientation histograms for 16 subregions (each having $128 = 16 \times 8$ values).
+                Calculating magnitudes and orientations can be slow, especially if we want real-time performance (such as stitching on a phone camera, or for robotics).
+                \medskip
+
+                One solution is to implement SIFT on FPGAs, which is faster than a CPU (once configured to perform this function).
+                Another approach is to improve the algorithm, where we decompose the pipeline into several steps, where we evaluate how to improve each step.
+                The pipeline for image matching is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{feature detection} (e.g. DoG)
+                        \smallskip
+
+                        There are a number of approaches for faster feature detection, including separable filtering, downsampling the image, or cropping the Gaussian kernel.
+                    \item \textbf{feature description} (e.g. SIFT)
+                        \smallskip
+
+                        Here we can consider whether we can evaluate the gradient orientation faster, or if we can use a different method of describing the local content.
+                    \item \textbf{interest point matching}
+                        \smallskip
+
+                        Here we can approximate the nearest neighbour search, as well as use a lower-dimensional feature vector.
+                \end{enumerate}
+            \subsubsection*{SURF (Speeded-Up Robust Features)}
+                To accelerate computation, SURF only computes gradients along horizontal and vertical directions (rather than all of them) using \textbf{Haar wavelets}.
+                Recall that the SIFT descriptor needs to calculate a histogram of gradient orientations, for each of the 16 subregions centred at an interest point.
+                \medskip
+
+                SURF still uses the same subregions and sample points, however we do not need to calculate gradients for arbitrary orientations.
+                This applies two very simple filters (Haar wavelets, of size $2 \times 2$ or $4 \times 4$), $d_y$ and $d_x$ onto the sample points;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}
+                            \node at (1, 0.5) {$d_x$};
+                            \draw[very thick] (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle;
+                            \draw[fill=black] (0, 0) -- (1, 0) -- (1, -2) -- (0, -2) -- cycle;
+                            \node[white] at (0.5, -1) {$-1$};
+                            \node at (1.5, -1) {$+1$};
+                        \end{scope}
+                        \begin{scope}[shift={(5, 0)}]
+                            \node at (1, 0.5) {$d_y$};
+                            \draw[very thick] (0, 0) -- (2, 0) -- (2, -2) -- (0, -2) -- cycle;
+                            \draw[fill=black] (0, 0) -- (2, 0) -- (2, -1) -- (0, -1) -- cycle;
+                            \node[white] at (1, -0.5) {$-1$};
+                            \node at (1, -1.5) {$+1$};
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                Summing the pixel intensities with a weight of 1 or $-1$ is very fast, since it is either an addition or subtraction.
+                For each subregion, we sum up the Haar wavelet responses over the sample points - the descriptor for a given subregion is defined by 4 elements (the sum of values and the sum of absolute values);
+                $$\left(\summation{}{}d_x, \summation{}{}d_y, \summation{}{}|d_x|, \summation{}{}|d_y|\right)$$
+                We can visualise the meanings of these descriptors as follows.
+                If all four values are low, then the subregion is mostly homogeneous.
+                If there are patterns similar to zebra stripes, a change from black to white, and then from white back to back would give a sum of 0 when we look at $d_x$ (since they cancel out).
+                However, if we look at $|d_x|$, the value doubles (since they will not cancel).
+                \begin{center}
+                    \begin{tikzpicture}[x=0.75cm, y=0.75cm]
+                        \node at (-2, -4) {$\summation{}{}d_x$};
+                        \node at (-2, -5) {$\summation{}{}|d_x|$};
+                        \node at (-2, -6) {$\summation{}{}d_y$};
+                        \node at (-2, -7) {$\summation{}{}|d_y|$};
+                        \begin{scope}
+                            \node at (3, 1) {homogeneous region};
+                            \draw[fill=black!20] (0, 0) -- (6, 0) -- (6, -3) -- (0, -3) -- cycle;
+                            \node at (3, -4) {low};
+                            \node at (3, -5) {low};
+                            \node at (3, -6) {low};
+                            \node at (3, -7) {low};
+                        \end{scope}
+                        \begin{scope}[shift={(7, 0)}]
+                            \node at (3, 1) {zebra pattern};
+                            \draw (0, 0) -- (6, 0) -- (6, -3) -- (0, -3) -- cycle;
+                            \draw[fill=black] (0, 0) -- (1, 0) -- (1, -3) -- (0, -3) -- cycle;
+                            \draw[fill=black] (2, 0) -- (3, 0) -- (3, -3) -- (2, -3) -- cycle;
+                            \draw[fill=black] (4, 0) -- (5, 0) -- (5, -3) -- (4, -3) -- cycle;
+                            \node at (3, -4) {low};
+                            \node at (3, -5) {high};
+                            \node at (3, -6) {low};
+                            \node at (3, -7) {low};
+                        \end{scope}
+                        \begin{scope}[shift={(14, 0)}]
+                            \node at (3, 1) {gradually increasing intensities};
+                            \draw[left color=black, right color=white] (0, 0) -- (6, 0) -- (6, -3) -- (0, -3) -- cycle;
+                            \node at (3, -4) {high};
+                            \node at (3, -5) {high};
+                            \node at (3, -6) {low};
+                            \node at (3, -7) {low};
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                The SURF descriptor still uses $16 = 4 \times 4$ subregions, each with 4 elements.
+                This leads to a dimensionality of 64 for each interest point.
+                Compared to SIFT, it is approximately 5 times faster due to the use of simple Haar wavelets.
+                \medskip
+
+                If we know the ground truth (in this case, the transformation between image $A$ and $B$), we can perform quantitative analysis on the performance of algorithms.
+                The paper shows that SURF performs as well as SIFT in matching.
+            \subsubsection*{BRIEF (Binary Robust Independent Elementary Features)}
+                In both SIFT and SURF, each dimension is a floating-point number (represented in 4 bytes), and our comparison of feature vectors are done with Euclidean distance.
+                Ideally, we'd want to make feature description and matching even faster.
+                \medskip
+
+                We can further shorten the descriptor by performing quantisation (converting a continuous number into a discrete number, hence 8 bits for the range $[0, 255]$), or even performing binarization (converting each into a binary number).
+                \medskip
+
+                Haar wavelets in SURF compare a local region toe another, giving a difference (which is a float).
+                In BRIEF, comparing points $p, q$ will result in a binary value as an output (1 if $q$ is brighter than $p$);
+                $$\tau(p, q) = \begin{cases}
+                    1 & \text{if } I(p) < I(q) \\
+                    0 & \text{otherwise}
+                \end{cases}$$
+                BRIEF randomly sample $n_d$ pairs of points for binary tests; this random pattern is only determined once, and the same pattern will be applied to all interest points.
+                If we set $n_d = 256$, we will perform 256 tests in total, each giving us a single bit (with a total of 32 bytes; SIFT uses 128 bytes, and SURF uses 64 bytes).
+                The descriptor is then a $n_d$-dimensional bitstring.
+                \medskip
+
+                Note that this is also fast to compute, as we can perform bit shifting (~<< n~ denotes a bit shift by ~n~ places).
+                For example, if we performed 8 binary tests, we could do the following;
+                \begin{lstlisting}
+                    descriptor = ((I(p1) < I(q1)) << 7) + ((I(p2) < I(q2)) << 6)
+                               + ((I(p3) < I(q3)) << 5) + ((I(p4) < I(q4)) << 4)
+                               + ((I(p5) < I(q5)) << 3) + ((I(p6) < I(q6)) << 2)
+                               + ((I(p7) < I(q7)) << 1) + ((I(p8) < I(q8)) << 0)
+                \end{lstlisting}
+                \medskip
+
+                Not only does it use less memory, the computation only compares two numbers, without calculating gradient orientation like in SIFT, or the intensity difference like in SURF.
+                We also avoid calculating the Euclidean distance, instead we use the Hamming distance.
+                This allows for an efficient calculation by performing a bitwise XOR between two descriptors, and then taking a bit count - both of which can be done extremely quickly on modern CPUs in very few instructions.
+                For example;
+                \begin{center}
+                    ~10001001 XOR 11000011 = 01001010~, thus a Hamming distance of 3
+                \end{center}
+                However; BRIEF isn't rotation-invariant nor scale-invariant.
+                It assumes that the images taken are from a camera where the movement \textbf{only involves translation}.
+                By combining all of the above, BRIEF is approximately 40 times faster than SURF, hence being around 200 times faster than SIFT.
+                Furthermore, if there is no rotation or scaling, BRIEF is comparable to SURF in terms of matching accuracy.
+            \subsubsection*{Image Similarity}
+                Image similarity can be defined by the number of matched point.
+                Intuitively, if two images are similar, there should be a higher number of interest points that can be matched together.
+                See \textit{VisualRank}.
+            \subsubsection*{HOG (Histograms of Oriented Gradient)}
+                We can also extend the idea of feature descriptors (which describe local content centred at a point) to describe the feature of a large region, or even a whole image.
+                \medskip
+
+                While HOG and SIFT both use gradient orientation histograms for feature descriptions, HOG differs in that it describes features for a large image region (rather than a point).
+                HOG divides a large region into a (dense) grid of cells, describes each cell, and concatenates the local descriptions to form a global description.
+                \medskip
+
+                In the example, we divide the image into equally spaced cells (each of $8 \times 8 pixels$).
+                4 of these cells form a block; and we calculate the gradient orientation histogram for a block (thus forming a description of that block).
+                Note that the description vector $\vec{v}$, which is the concatenation of the 4 histograms (from each cell), is normalised to form a locally normalised descriptor - note the inclusion of a small value $\epsilon$ to improve numerical stability.
+                This is done to prevent issues between differing brightnesses;
+                $$\vec{v_\text{norm}} = \frac{\vec{v}}{\sqrt{|| \vec{v} ||_2^2 + \epsilon^2}}$$
+                The block is then shifted along horizontally by one cell (8 pixels in our case), note that there will be some overlap between the blocks.
+                The HOG descriptor is then formed by concatenating all the normalised local descriptors for all blocks.
+                \medskip
+
+                We can use HOG to perform feature extraction from an input image to a feature representation.
+                Feature extraction transforms an input image into low-dimensional vectors for easier comparison or matching.
+                A classifier (trained with a dataset consisting of images, and often labels) can be used to give an output label to the feature representation.
 \end{document}
