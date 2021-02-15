@@ -1787,4 +1787,133 @@
 
                 There are also other security issues for servers, including brute force attacks on authentication.
                 Sensitive data can also be exposed either in comments, or through error messages being \textbf{too} descriptive (which can be used to identify SQL injections).
+        \subsection*{Week 5}
+            \subsubsection*{SQL Injection}
+                Consider the following example of a PHP page, which redirects the user to ~authorized.php~ if they submit valid credentials;
+                \begin{lstlisting}
+                    $conn = mysql_connection("localhost", "username", "password");
+                    $query = "SELECT userid FROM UsersTable WHERE user = '$_GET["user"]' "
+                           . "AND password = '$_GET["password"]'";
+                    $result = mysql_query($query);
+                    $rowcount = mysql_num_rows($result);
+                    if ($rowcount != 0) { // if there is a matching result
+                        header("Location: authorized.php");
+                    } else {
+                        die("Incorrect username or password, please try again.");
+                    }
+                \end{lstlisting}
+                With the parameters ~?user=foo\&password=bar~, we'd expect the following dynamic query to be built;
+                \begin{lstlisting}
+                    SELECT userid FROM UsersTable WHERE user = 'foo'
+                    AND password = 'bar'
+                \end{lstlisting}
+                However, if the parameters were changed to ~?user=foo\&password=bar' OR '1' = '1~, we'd have a query which always evaluates to true;
+                \begin{lstlisting}
+                    SELECT userid FROM UsersTable WHERE user = 'foo'
+                    AND password = 'bar' OR '1' = '1'
+                \end{lstlisting}
+                While we mostly focus on \textit{MySQL} and \textit{PostgreSQL} in this course, many other systems can also be affected.
+                There are a number of automated tools for detecting / exploiting SQLi, however they tend to be high-volume and noisy (possibly alerting targets).
+                \medskip
+
+                The main objectives of SQLi are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{elevation of privilege} \hfill bypass authentication (as in the last example)
+                    \item \textbf{information disclosure} \hfill read data that shouldn't be accessible
+                    \item \textbf{tampering} \hfill modify / delete without permission
+                    \item \textbf{denial of service} \hfill even without write access, force the server to do costly operations
+                \end{itemize}
+                Inputs aren't limited to just URL parameters, they can also be in HTTP headers, cookies, or any form of user inputs.
+                \medskip
+
+                Once we are able to perform these exploits, we can do the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{find out user / privileges}
+                        \begin{lstlisting}
+                            SELECT user();
+                            SELECT grantee, privilege_type FROM information_schema.user_privileges;
+                        \end{lstlisting}
+                    \item \textbf{find out what data is available}
+                        \smallskip
+
+                        A difficulty of SQL injection is that it may be difficult to know what to ask for, even if we know a form is vulnerable.
+                        One shortcut would be to try common names such as an ~accounts~ table, and so on.
+                        Another approach is to look at the schema;
+                        \begin{lstlisting}
+                            SELECT table_schema, table_name, column_name FROM information_schema.columns
+                            WHERE table_schema != 'mysql' AND table_schema != 'information_schema'
+                        \end{lstlisting}
+                    \item \textbf{data exfiltration}
+                        \smallskip
+
+                        We can use ~UNION~ statements to exfiltrate data, however the number of columns as well as the type must match.
+                        One approach is to pad missing columns with ~NULL~, and to convert data (such as ~CAST('123' AS char)~).
+                        For example, we can exploit the ~products~ page to return ~customers~ as follows;
+                        \begin{center}
+                            ~?id=12+union+select+userid,first\_name,second\_name,NULL+from+customers~
+                        \end{center}
+                        This will result in the following query;
+                        \begin{lstlisting}
+                            SELECT id, type, name, price FROM products WHERE id = 12 UNION
+                            SELECT userid, first_name, second_name, NULL from customers
+                        \end{lstlisting}
+                \end{itemize}
+                However, not all interactions with a database will give a response.
+                For example, a survey may store data from a ~POST~ request in a database, but only present the user with a thank you message at the end.
+                This is \textbf{blind SQLi}.
+                It's still possible to identify if the application is vulnerable to injections using side channels.
+                For example, if we injected a query that would take a long time to process, we would notice a delay in the thank you message if it was successful - for example using ~SLEEP()~ in \textit{MySQL} or ~pg\_sleep()~ \textit{PostgreSQL}.
+                In addition, error messages can also help.
+                Using this method, data may need to be exfiltrated one bit at a time (for example extracting a password one character at a time may require a separate query and delay for each character).
+                \medskip
+
+                In \textbf{second-order SQLi}, the injection doesn't happen straight away (when it is first put into the database).
+                However, another component may read the data, assuming it does not need sanitisation, and uses it; users may submit payloads that are only dangerous on the second usage.
+                For example, the attacker may register the username (~admin' --~), which is then used in the reset code;
+                \begin{lstlisting}
+                    $pwd = escape(request.getParameter("new_password"));
+                    $usr = session.getUsername(); // assume this is trusted
+                    $sql = "UPDATE USERS SET passwd='$pwd' WHERE uname='$usr'";
+                \end{lstlisting}
+                This changes the password of ~admin~ to whatever the attacker has set.
+                \medskip
+
+                Countermeasures for SQLi involve input filtering, however it can be difficult to capture all user input, and it can also be difficult for escaping to be done properly through multiple trust boundaries (parameters being passed across different modules and different modules transforming parameters in different ways).
+                Escaping black-listed characters can be done with some functions provided by the language, for example PHP has ~mysqli\_real\_escape\_string()~.
+                A better approach is to use prepared statements, which skips building SQL commands from strings entirely, and instead binds parameters;
+                \begin{lstlisting}
+                    // create full pattern, where ? indicates a parameter to instantiate dynamically
+                    $stmt = $dbh->prepare("SELECT * FROM registry WHERE name = ? AND age = ?");
+
+                    // bind parameters (with types; string and int in this example)
+                    $stmt->bind_param('si', $_GET['name'], $_GET['age']);
+                    if ($stmt->execute()) {
+                        while ($row = $stmt->fetch()) {
+                            print_r($row);
+                        }
+                    }
+                \end{lstlisting}
+                Another approach is to store the parameterised SQL queries in the database itself (with stored procedures) - allowing the DB to offer a fixed API to the application.
+                \medskip
+
+                Analysis of the server-side code interfacing with the database can be done, either with \textbf{type systems} to ensure that a parameter is of the expected type, and that a string cannot become both a string and an SQL command, or with \textbf{taint analysis}, which detects if input can reach the database without passing some sanitisation.
+                Another protection against blind SQLi would be to limit requests to the web / database server, but this comes with a performance trade-off.
+                An IDS in front of the database, which is aware of the web application (web application firewall), can detect and stop suspicious queries.
+                Generally, a good idea is to rely on a programming framework which should've been reviewed and tested - however this comes with the drawback of using third-party applications, where the framework itself could be vulnerable, and there may be unnecessary functionality increasing the size of the code and trusted computing base.
+                \medskip
+
+                In general, we take the following steps to perform an injection;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item identify what parameters of a request can be controlled (and if we can submit arbitrary values)
+                    \item submit input that is likely to be problematic for an application (PHP, SQL, Bash, etc.)
+                    \item observe any changes in response content / time (especially error messages leaking information)
+                    \item submit further inputs based on discovered information (until we are sure a vulnerability exists); find a proof-of-concept that confirms the vulnerability without disrupting the target
+                    \item consider how to leverage vulnerability (even if we can read data / execute commands, it may be difficult to send back)
+                    \item exploit vulnerability
+                \end{enumerate}
+            \subsubsection*{JavaScript}
+            \subsubsection*{Browser Security}
 \end{document}
