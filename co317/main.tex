@@ -2779,4 +2779,163 @@
                 A more computationally expensive approach which simulates the randomness of real light better is to cast multiple random rays from an intersection point (recursively).
                 At some point, all of the intersection points are sent to the light source as before.
                 On the other hand, Monte-Carlo path tracing only traces one secondary ray per recursion, but will send many primary rays per pixel.
+        \subsection*{Lecture 11 - Ray Tracing II}
+            \subsubsection*{Calculating Intersections}
+                For each ray, we need to find the nearest intersection point, and calculate all possible intersections with each object inside the viewing volume.
+                Our scene can be defined with solid models (such as spheres and cylinders), as well as surface models (such as planes, triangles, and polygons).
+                In general, anything that can be parameterised can be rendered with ray tracing.
+                \medskip
+
+                Rays are parametric lines, defined as an origin $\vec{p_0}$ and a direction $\vec{d}$;
+                $$\vec{p}(\mu) = \vec{p_0} + \mu\vec{d}$$
+                For a ray, we can determine $\vec{d}$ as follows, where we have the position of the pixel on the viewing plane $\vec{p_0}$ and the position of the viewpoint $\vec{p_v}$;
+                $$\vec{d} = \frac{\vec{p_0} - \vec{p_v}}{| \vec{p_0} - \vec{p_v} |}$$
+                Since the viewing ray is parameterised by $\mu$, $\mu > 0$ denotes the part of the ray \textbf{behind} the viewing plane, and $\mu < 0$ denotes the part of the ray in \textbf{front} of the viewing plane.
+                \medskip
+
+                Consider a sphere, where any point on the surface $\vec{d}$ will satisfy the following (where $r$ is the radius and $\vec{p_s}$ is the position in world space);
+                $$|\vec{q} - \vec{p_s}|^2 - r^2 = 0$$
+                Assuming that our viewing ray will intersect the sphere, we can substitute $\vec{q}$ with the line equation;
+                $$|\vec{p_0} + \mu\vec{d} - \vec{p_s}|^2 - r^2 = 0$$
+                If we allow $\Delta\vec{p} = \vec{p_0} - \vec{p_s}$ (and expand the dot product), we obtain the following quadratic equation (and corresponding solution);
+                $$\mu^2 + 2\mu(\vec{d} \cdot \Delta\vec{p}) + |\Delta\vec{p}|^2 - r^2 = 0 \Rightarrow \mu = \vec{d} \cdot \Delta\vec{p} \pm \sqrt{\violet{(\vec{d} \cdot \Delta\vec{p})^2 - |\Delta\vec{p}|^2 + r^2}}$$
+                This gives us two solutions (since the ray would pass through the object) - in the case of solid objects, we want the one that's closer (hence the smaller $\mu$).
+                If the ray does not intersect, there will be no solution (negative under the square root; \violet{discriminant}) - if this is the case, we want to stop in order to save computation.
+                Once we have a value for $\mu$, we can plug it back into the line equation to obtain the position.
+                \medskip
+
+                A cylinder can be described by two position vectors ($\vec{p_1}$ and $\vec{p_2}$), describing the first and second end points of the long axis of the cylinder, and a radius $r$.
+                The axis can be written as $\Delta\vec{p} = \vec{p_1} - \vec{p_2}$, and parameterised by $\alpha \in [0, 1]$.
+                We can solve the following equation to obtain an intersection with the ray - note that $\vec{q}$ denotes a normal from the axis vector to the surface;
+                $$\vec{p_1} + \alpha\Delta\vec{p} + \vec{q} = \vec{p_0} + \mu\vec{d}$$
+                However, since we know $\vec{q} \cdot \Delta\vec{p} = 0$ (since it is a normal), we have;
+                $$\alpha(\Delta\vec{p} \cdot \Delta\vec{p}) = \vec{p_0} \cdot \Delta\vec{p} + \mu\vec{d} \cdot \Delta\vec{p} - \vec{p_1} \cdot \Delta\vec{p}$$
+                Solving for $\alpha$ gives the following result;
+                $$\alpha = \frac{\vec{p_0} \cdot \Delta\vec{p} + \mu\vec{d} \cdot \Delta\vec{p} - \vec{p_1} \cdot \Delta\vec{p}}{\Delta\vec{p} \cdot \Delta\vec{p}}$$
+                This can be substituted back into the equation to obtain;
+                $$\vec{q} = \vec{p_0} + \mu\vec{d} - \vec{p_1} - \left(\frac{\vec{p_0} \cdot \Delta\vec{p} + \mu\vec{d} \cdot \Delta\vec{p} - \vec{p_1} \cdot \Delta\vec{p}}{\Delta\vec{p} \cdot \Delta\vec{p}}\right) \Delta\vec{p}$$
+                Since we have $\vec{q} \cdot \vec{q} = r^2$, we can use the same approach for the quadratic equation for $\mu$;
+                $$r^2 = \left(\vec{p_0} + \mu\vec{d} - \vec{p_1} - \left(\frac{\vec{p_0} \cdot \Delta\vec{p} + \mu\vec{d} \cdot \Delta\vec{p} - \vec{p_1} \cdot \Delta\vec{p}}{\Delta\vec{p} \cdot \Delta\vec{p}}\right) \Delta\vec{p}\right)^2$$
+                If this gives two solutions, $\mu_1, \mu_2$, there is an intersection, otherwise there is no intersection.
+                Assuming that $\mu_1 < \mu_2$, we obtain the two following solutions;
+                \begin{align*}
+                    \alpha_1 & = \frac{\vec{p_0} \cdot \Delta\vec{p} + \mu_1\vec{d} \cdot \Delta\vec{p} - \vec{p_1} \cdot \Delta\vec{p}}{\Delta\vec{p} \cdot \Delta\vec{p}} \\
+                    \alpha_2 & = \frac{\vec{p_0} \cdot \Delta\vec{p} + \mu_2\vec{d} \cdot \Delta\vec{p} - \vec{p_1} \cdot \Delta\vec{p}}{\Delta\vec{p} \cdot \Delta\vec{p}}
+                \end{align*}
+                If $\alpha_1 \in (0, 1)$, then the intersection is on the outside surface, whereas if $\alpha_2 \in (0, 1)$, the intersection is on the inside surface.
+                If we only have one of these $\alpha$s, we may have to intersect with some disc at the top or bottom of the cylinder.
+                \medskip
+
+                We can intersect a ray with a plane using the following (where $\vec{p_1}$ is a point on the plane, and $\vec{q}$ is a vector from the point on the plane to the intersection point);
+                $$\vec{p_1} + \vec{q} = \vec{p_0} + \mu$$
+                Since $\vec{q}$ would be perpendicular to the plane's normal $\vec{n}$, we can subtract $\vec{p_1}$ and multiply by the normal to obtain $\mu$;
+                $$\vec{q} \cdot \vec{n} = 0 (\vec{p_0} - \vec{p_1}) \cdot \vec{n} + \mu\vec{d} \cdot \vec{n} \Rightarrow \mu = -\frac{(\vec{p_0} - \vec{p_1}) \cdot \vec{n}}{\vec{d} \cdot \vec{n}}$$
+                Note that a triangle is a smaller part of a plane;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw[very thick, fill=black!20] (-1, 0) -- (4, 0) -- (4, -3) -- (-1, -3) -- cycle;
+                        \coordinate (p1) at (2.5, -2.5);
+                        \coordinate (p2) at (0.5, -2.5);
+                        \coordinate (p3) at (1.5, -0.5);
+                        \draw[white, fill=white] (p1) -- (p2) -- (p3) -- (p1);
+                        \draw
+                        (p1) edge[very thick, -latex, below] node{$\vec{a}$} (p2)
+                        (p1) edge[very thick, -latex, right] node{$\vec{b}$} (p3)
+                        (p2) edge[very thick, dashed] (p3);
+                        \node at ($(p1) + (0.5, 0)$) {$\vec{p_1}$};
+                        \node at ($(p2) + (-0.5, 0)$) {$\vec{p_2}$};
+                        \node at ($(p3) + (-0.5, 0)$) {$\vec{p_3}$};
+                    \end{tikzpicture}
+                \end{center}
+                In order to calculate intersections for triangles, we need to test if the triangle is \textbf{front facing} ($\vec{d} \cdot \vec{n} < 0$), and whether the ray intersects the plane of the triangle (as before).
+                We also need to test whether the intersection point is \textbf{inside} the triangle.
+                \begin{align*}
+                    \vec{a} & = \vec{p_2} - \vec{p_1} \\
+                    \vec{b} & = \vec{p_3} - \vec{p_1} \\
+                    \vec{n} & = \vec{a} \times \vec{b} & \text{normal of plane} \\
+                    \vec{q} & = \alpha\vec{a} + \beta\vec{b} & \text{test intersection point inside triangle}
+                \end{align*}
+                We know that a point is inside the triangle if the all of the following three hold;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $0 \leq \alpha \leq 1$
+                    \item $0 \leq \beta \leq 1$
+                    \item $\alpha + \beta \leq 1$
+                \end{itemize}
+                $\alpha$ and $\beta$ can be calculated as follows;
+                \begin{align*}
+                    \alpha & = \frac{(\vec{b} \cdot \vec{b})(\vec{q} \cdot \vec{a}) - (\vec{a} \cdot \vec{b})(\vec{q} \cdot \vec{b})}{(\vec{a} \cdot \vec{a})(\vec{b} \cdot \vec{b})^2 - (\vec{a} \cdot \vec{b})^2} \\
+                    \beta & = \frac{\vec{q} \cdot \vec{b} - \alpha(\vec{a} \cdot \vec{b})}{\vec{b} \cdot \vec{b}}
+                \end{align*}
+                A more efficient implementation of this concept is to translate the origin of the ray, and change the base of the vector yielding parameter vector $(t, u, v) \equiv (\mu, \alpha, \beta)$ - here we have $t$ being the distance to the plane in which the triangle lies and $(u, v)$ being the barycentric coordinates inside the triangle.
+                The plane equation doesn't need to be computed on the fly (as we have done previously).
+                \begin{lstlisting}
+                    // v1,v2,v3 are triangle vertices,
+                    // origin denotes the ray origin
+                    bool triangle_intersection(vec3 v1, vec3 v2, vec3 v3, vec3 origin, vec3 ray_dir, float* out) {
+                        vec3 edge1 = v2 - v1;
+                        vec3 edge2 = v3 - v1;
+
+                        // begin determinant calculation, also used for u
+                        vec3 p = cross(ray_dir, edge2);
+
+                        // if det is near 0, ray is parallel to (or in) plane
+                        float det = dot(edge1, p);
+                        if (det > -EPSILON && det < EPSILON) {
+                            return false;
+                        }
+
+                        float inv_det = 1.0f / det;
+
+                        // distance from v1 to ray origin
+                        vec3 t = origin - v1;
+
+                        // calculate u and test bound
+                        float u = dot(t, p) * inv_det;
+
+                        // intersection out of triangle
+                        if (u < 0.0f || u > 1.0f) {
+                            return false;
+                        }
+
+                        // prepare to test v parameter
+                        vec3 q = cross(t, edge1);
+                        float v = dot(ray_dir, q) * inv_det;
+
+                        // intersection out of triangle
+                        if (v < 0.0f || v > 1.0f) {
+                            return false;
+                        }
+
+                        float mu = dot(edge2, q) * inv_det;
+                        if (t > EPSILON) {
+                            *out = mu;
+                            return true;
+                        }
+                    }
+                \end{lstlisting}
+            \subsubsection*{Performance}
+                The core algorithm is easy to implement, and extends well to global illumination (including shadows, reflection / refraction, multiple bounces, and atmospheric effects).
+                However, there is a significant performance cost, as it takes multiple seconds per frame, rather than generating multiple frames per second.
+                \medskip
+
+                In order to improve performance, we can reduce the number of bounces (however this may lead to less realistic lighting), and in generally we can reduce the number of rays.
+                If we are rendering an object in a generally empty scene, we are wasting many rays that will never intersect.
+                This can be accelerated by implementing an axis aligned bounding box for the object; where we discard any rays that don't intersect the box.
+                \medskip
+
+                We can use the projection matrix to project the box, allowing us to immediately know which pixels will be inside the box (and which won't).
+                Most complicated effects are implemented using multi-pass, or to use parts of the pipeline.
+                \medskip
+
+                Another approach is to use a \textbf{regular grid}, where we divide the world into a grid, and at each region we store pointers to the objects that are in the region.
+                A ray is shot through the space and only objects in the regions it passes are checked.
+                This technique is rarely used.
+                Instead, adaptive grids are use, which subdivide the world until each cell contains no more than $n$ elements (or some maximum depth $d$ has been reached).
+                This would be done in world space (rather than screen space), as this computation is expensive; we would rather do it once than to do it on every change of the camera position.
+                \medskip
+
+                Another approach is to create a (Binary Space Partition (BSP) Tree), where the space is recursively partitioned by planes.
+                Each cell is a convex polyhedron.
+                Rays can be traced by recursion on the tree, and the construction enables a simple front-to-back traversal.
 \end{document}
