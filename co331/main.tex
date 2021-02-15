@@ -1915,5 +1915,112 @@
                     \item exploit vulnerability
                 \end{enumerate}
             \subsubsection*{JavaScript}
+                JS is widely used (supported on all major browsers, on servers in \textit{Node.js}, and as native applications for smartphones and desktops, with \textit{React Native} and \textit{Electron} respectively).
+                While it is powerful, it is also easy to make mistakes; most examples of injection and XSS are in JavaScript, and most browser-based malware is either JavaScript or installed by it.
+                \medskip
+
+                We can define objects as records of functions with an implicit ~this~;
+                \begin{lstlisting}
+                    o = {
+                        b: function() {
+                            return this.a;
+                        }
+                    };
+                \end{lstlisting}
+                Note that the ~prototype~ field can be thought of as a template, where all instances of Object inherit its fields (either created before or after);
+                \begin{lstlisting}
+                    Object.prototype.a = "foo";
+                \end{lstlisting}
+                Implicit type conversions can also be redefined as follows;
+                \begin{lstlisting}
+                    Object.prototype.toString = o.b;
+                \end{lstlisting}
+                Strings can also be converted into code that is executed, with ~eval~;
+                \begin{lstlisting}
+                    eval("o + o['b']()"); // returns "foofoo"
+                \end{lstlisting}
+                The scope can also be manipulated as if it were a language object;
+                \begin{lstlisting}
+                    window.o === o; // global scope
+                    var s = { x: 41 };
+                    with (s) { // local scope
+                        s.x++; // will find s from the global scope
+                        console.log(x); // will find x from the scope, prints 42
+                    }
+                \end{lstlisting}
+                There is also nested scoping within functions;
+                \begin{lstlisting}
+                    x = 1;
+                    y = 2;
+                    function a(z) {
+                        var y = z + x;
+                        function b(w) {
+                            return w + x + y
+                        }
+                        return b(z);
+                    }
+                    a(20); // will return 42
+                \end{lstlisting}
+                Encapsulation can also be done via function closures - note that nothing has access to the ~x~ defined in the API;
+                \begin{lstlisting}
+                    var API = (function() {
+                        var x = 13;
+                        return [
+                            function(y) { return x + y; },
+                            function(z) { x = z; return x; }
+                        ];
+                    })();
+
+                    API[1](API[0](29)); // will return 42
+                \end{lstlisting}
+                If a variable ~x~ isn't present as a property of the current scope object, it's checked for in the parent scope object; this creates a chain ending in the ~window~ object.
+                However, due to the presence of prototypes, there is also a prototype chain that is followed, which can lead to unexpected results.
+                \medskip
+
+                JavaScript is a compiled language (JIT), which is converted into bytecode and executed very efficiently by browsers.
+                \textit{asm.js} is a fast subset of JavaScript which runs close to machine code, without nested functions nor objects.
+                The main data structure are typed-arrays.
+                \textit{WebAssembly} should be thought of as C/C++ for the web, with interoperability with JavaScript.
+                \medskip
+
+                There are a number of JavaScript frameworks commonly used, which provide convenient syntactic sugar and programming patterns, as well as facilitating testing and portability between platforms.
+                However, this can introduce more security issues.
+                TypeScript and Flow both provide static type checking (the former being a class-based superset of JavaScript and is compiled down to JavaScript).
+                \medskip
+
+                JavaScript is commonly minified, since the length of the script can affect the latency of page loading.
+                Occasionally the scripts may be obfuscated to protect intellectual property (which generally isn't foolproof).
+                Another use is to hide malicious code, to prevent easy detection by automated tools.
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{string array}
+                        \smallskip
+
+                        One method of obfuscation is to have a string array contain the malicious script, which is then put together by indexing the array.
+                    \item \textbf{string manipulation}
+                        \smallskip
+
+                        This approach essentially builds a string of code, which is then executed with ~eval~.
+                    \item \textbf{string encoding}
+                        \smallskip
+
+                        Instead of using the characters directly, strings can be referred to with the ASCII code representing each character.
+                        Not only is it difficult for a human to read, it is also difficult for an automated tool to account for all the ways a string could be encoded.
+                    \item \textbf{identifier mangling}
+                        \smallskip
+
+                        This simply renames identifiers to be less legible.
+                    \item \textbf{encryption obfuscation}
+                        \smallskip
+
+                        For this, we have an \textbf{encrypted} string which is stored on the page.
+                        During execution, the payload is decrypted (or used with some inverse function) and executed with ~eval~.
+                    \item \textbf{combined}
+                        \smallskip
+
+                        Many of the techniques could be combined together, in order to increase the amount of time and effort it would require to decode.
+                \end{itemize}
+                Good obfuscation should obviously be difficult to deobfuscate, but also must preserve the behaviour of the script (without crashing), nor should it cost too much in terms of efficiency.
+                This is an active area of research, including detection (high risk of false positives, as minified JS is also difficult to read), analysis (extract key pieces of information, such as domains or keys), deobfuscation, and anti-reversing techniques.
             \subsubsection*{Browser Security}
 \end{document}
