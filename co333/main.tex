@@ -611,6 +611,213 @@
                 Here we plan a sequence of actions to achieve a goal, and then execute the plan.
                 However, if the world changes during the execution, we need to re-plan the actions.
         \subsection*{Lecture 4 - Probabilistic Robotics}
+            From the previous lab, we notice an issue when the robot is at a large angle to the wall; we realistically want the perpendicular distance between the robot and the wall, but this gets much larger if the robot is at a large angle.
+            One solution is to mount the camera in front of the robot, as this couples rotation with distance.
+            \subsubsection*{Probabilistic Localisation}
+                Notice from the previous labs that attempting to estimate the location of the robot can lead to errors adding up.
+                We assume some knowledge of the scene, but we do not know the location of the robot relative to the map.
+                Long-term estimation based on logical reasoning fail when presented with real data; advanced sensors cannot be easily analysed like bump and light sensors, and all information received is uncertain (every action as well as every sensor measurement).
+                A probabilistic robot acknowledges the uncertainty (and uses models to abstract useful information).
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}
+                            \draw[very thick, dashed]
+                            (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle
+                            (2.5, 0) -- (3, 0) -- (3, 0.5) -- (2.5, 0.5) -- cycle;
+                        \end{scope}
+                        \draw (1.5, -0.5) edge[-latex, very thick, above] node{\shortstack{motion estimate\\$m = 1.00\mathrm{m}$\\$\sigma_m = 0.05\mathrm{m}$}} (8.5, -0.5);
+                        \begin{scope}[shift={(7, 0)}]
+                            \draw[very thick]
+                            (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle
+                            (2.5, 0) -- (3, 0) -- (3, 0.5) -- (2.5, 0.5) -- cycle;
+                        \end{scope}
+                        \node at (1.5, -1.75) {\shortstack{initial position estimate\\$x = 3.34\mathrm{m}, \sigma_x = 0.10\mathrm{m}$}};
+                        \draw (10, 0.25) edge[-latex, dotted, very thick, below] node{\shortstack{depth measurement estimate\\$z = 0.80\mathrm{m}$\\$\sigma_z = 0.05\mathrm{m}$}} (17, 0.25);
+                    \end{tikzpicture}
+                \end{center}
+                When we start with an uncertain position, and make an uncertain motion, the robot will have an uncertain state measurement.
+                Once the robot then performs some measurement, there will likely be some uncertainty in the result.
+            \subsubsection*{Probabilistic Inference}
+                We think of what we want to estimate, and then their probabilistic relation to things we can actually observe.
+                The following graph is one visualisation of a SLAM problem;
+                \begin{center}
+                    \begin{tikzpicture}[y=0.75cm]
+                        \node[draw, circle] (x0) at (0, 0) {$x_0$};
+                        \node[draw, circle] (x1) at (4, 0) {$x_1$};
+                        \node[draw, circle] (x2) at (8, 0) {$x_2$};
+                        \node[draw, circle] (x3) at (12, 0) {$x_3$};
+                        \node[draw, circle] (u1) at (3, 2) {$u_1$};
+                        \node[draw, circle] (u2) at (7, 2) {$u_2$};
+                        \node[draw, circle] (u3) at (11, 2) {$u_3$};
+                        \node[draw, circle] (z1) at (-1, -2) {$z_1$};
+                        \node[draw, circle] (z2) at (1, -2) {$z_2$};
+                        \node[draw, circle] (z3) at (3, -2) {$z_3$};
+                        \node[draw, circle] (z4) at (5, -2) {$z_4$};
+                        \node[draw, circle] (z5) at (7, -2) {$z_5$};
+                        \node[draw, circle] (z6) at (9, -2) {$z_6$};
+                        \node[draw, circle] (z7) at (11, -2) {$z_7$};
+                        \node[draw, circle] (z8) at (13, -2) {$z_8$};
+                        \node[draw, circle] (y1) at (2, -4) {$y_1$};
+                        \node[draw, circle] (y2) at (6, -4) {$y_2$};
+                        \node[draw, circle] (y3) at (10, -4) {$y_3$};
+
+                        \draw
+                        (u1) edge[-latex] (x1)
+                        (u2) edge[-latex] (x2)
+                        (u3) edge[-latex] (x3)
+                        (x0) edge[-latex] (x1)
+                        (x1) edge[-latex] (x2)
+                        (x2) edge[-latex] (x3)
+                        (x0) edge[-latex] (z1)
+                        (x1) edge[-latex] (z2)
+                        (x1) edge[-latex] (z4)
+                        (x1) edge[-latex] (z6)
+                        (x2) edge[-latex] (z3)
+                        (x2) edge[-latex] (z5)
+                        (x2) edge[-latex] (z7)
+                        (x3) edge[-latex] (z8)
+                        (y1) edge[-latex] (z1)
+                        (y1) edge[-latex] (z2)
+                        (y1) edge[-latex] (z3)
+                        (y2) edge[-latex] (z4)
+                        (y2) edge[-latex] (z5)
+                        (y3) edge[-latex] (z6)
+                        (y3) edge[-latex] (z7)
+                        (y3) edge[-latex] (z8);
+                    \end{tikzpicture}
+                \end{center}
+                Note that in the above diagram, the nodes $x_i$ denote the estimate of the location of the robot at some point in time.
+                We are also interested in estimating the locations of landmarks in the world (denoted by $y_i$ - fixed landmarks).
+                The sensors (such as camera or sonar) will make some sort of measurement relative to the position robot ($z_i$) - for example, at $x_1$ the robot observes $y_1, y_2, y_3$ with measurements $x_2, z_4, z_6$ respectively.
+                Finally, the control inputs (for the movement) are denoted by $u_i$.
+                \medskip
+
+                The process of \textbf{sensor fusion} combines data from many different sources to create useful estimates.
+                This state estimate can be used to decide the next action.
+                \medskip
+
+                Probabilities describe our state of knowledge (not randomness, which is rare in the real world).
+                For example, the physics for a coin flip are deterministic, however without this knowledge, we can only guess the outcome.
+                % We are using it (Bayesian viewpoint) as a tool to reason 
+                $$P(XZ) = P(Z\ |\ X)P(X) = P(X\ |\ Z)P(X) \Rightarrow \underbrace{P(X\ |\ Z)}_{(1)} = \frac{\overbrace{P(Z\ |\ X)}^{(2)}\overbrace{P(X)}^{(3)}}{\underbrace{P(Z)}_{(4)}}$$
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item posterior
+                    \item likelihood
+                    \item prior
+                    \item marginal likelihood
+                \end{enumerate}
+                In the state diagram, we have things we are interested in estimating (state variables) and things we can get from sensors (measurements / observations).
+                Typically state variables are represented with $X$ in the probabilities, with measurements being represented by $Z$.
+                Bayes' rule is used to incrementally digest new information; we have a prior estimate of $X$ already - $P(X)$.
+                From this, we want to get the probability of $X$ given $Z$ - $P(X\ |\ Z)$.
+                We want to obtain $P(Z\ |\ X)$, which is the likelihood of the measurement given the state variable.
+                \medskip
+
+                Consider the following example;
+                \begin{center}
+                    \begin{tikzpicture}[x=1.25cm]
+                        \draw
+                        (0, 0) -- (10, 0) -- (10, -2) -- (0, -2) -- cycle
+                        (3, 0) -- (3, -2)
+                        (5, 0) -- (5, -2);
+                        \node at (1.5, 0.5) {kitchen};
+                        \node at (1.5, -1) {$P(K) = 0.3$};
+                        \node at (4, 0.5) {bathroom};
+                        \node at (4, -1) {$P(B) = 0.2$};
+                        \node at (7.5, 0.5) {living room};
+                        \node at (7.5, -1) {$P(L) = 0.5$};
+                    \end{tikzpicture}
+                \end{center}
+                The robot starts completely lost, let the probability of it being in each room be proportional to the area (note that the probabilities are normalised).
+                Assume we also have some light sensor (which gives a thresholded value of it either being light or dark), which has had experiments performed in each of the rooms to obtain probabilities.
+                Assume the sensor also now reports it as being bright (hence we want to find the probability of it being in a room, \textbf{given} that it is bright).
+                \begin{align*}
+                    P(b\ |\ K) & = 0.8 & \text{bright 80\% of the time in the kitchen} \\
+                    P(K\ |\ b) & = \frac{P(K)P(b\ |\ K)}{P(b)} \\
+                    & = \frac{0.3 \times 0.8}{P(b)} \\
+                    & = \frac{0.24}{P(b)} \\
+                    & = 0.4 \\
+                    P(b\ |\ B) & = 0.3 & \text{bright 30\% of the time in the bathroom} \\
+                    P(B\ |\ b) & = \frac{P(B)P(b\ |\ B)}{P(b)} \\
+                    & = \frac{0.2 \times 0.3}{P(b)} \\
+                    & = \frac{0.06}{P(b)} \\
+                    & = 0.1 \\
+                    P(b\ |\ L) & = 0.6 & \text{bright 60\% of the time in the living room} \\
+                    P(L\ |\ b) & = \frac{P(L)P(b\ |\ L)}{P(b)} \\
+                    & = \frac{0.5 \times 0.6}{P(b)} \\
+                    & = \frac{0.3}{P(b)} \\
+                    & = 0.5
+                \end{align*}
+                However, note that the sum of the posteriors must also be equal to 1, hence;
+                $$P(K\ |\ b) + P(B\ |\ b) + P(L\ |\ b) = 1 \Rightarrow \frac{0.24 + 0.06 + 0.3}{P(b)} = 1 \Rightarrow P(b) = 0.6$$
+                Note that in the example above, we've digested information that suggests the robot being in the kitchen (due to the brightness), hence the probability of it being in the kitchen has gone up, whereas the probability of it being located in the bathroom has gone down.
+            \subsubsection*{Probability Distribution}
+                Discrete inference generalises to more possible states as the bins get smaller and smaller (for example, if we were to divide the floorplan into more zones).
+                As the width of the bins tend to 0, we have a continuous probability density function $p(x)$ at the limit.
+                The probability that a continuous parameter lies in the range $a$ to $b$ is;
+                $$P_{a \to b} \defint{a}{b}{p(x)}{x}$$
+                However, as the resolution becomes higher, it is becomes more expensive in terms of memory and computation.
+                \medskip
+
+                Gaussian distributions often represent the uncertainty in sensor measurements well, parametising a 1D distribution in two parameters ($\mu$ and $\sigma$);
+                $$p(x) = \frac{1}{\sqrt{2 \pi}\sigma} e^{-\frac{(x - \mu)^2}{2 \sigma^2}}$$
+                A Gaussian prior multiplied by a likelihood will produce a posterior tighter than both.
+                The product of two Gaussians is \textbf{always} another Gaussian.
+                However, there is only one peak, which may not always fit.
+            \subsubsection*{Particle Filtering}
+                Another representation is to use particles.
+                A probability distribution here is represented with a finite set of weighted samples (typically $N = 100$) of the state;
+                $$\{ \vec{x_i}, w_i \} = \left\{\begin{bmatrix}
+                    x_i \\ y_i \\ \theta_i
+                \end{bmatrix}, w_i\right\}\text{ where } \summation{i=1}{N}w_i = 1$$
+                Instead of storing a large table of numbers, we almost entirely ignore where the probability is low (close to 0), and focus on the areas where there is higher probability.
+                We want to store the probability distribution within the degrees of freedom of the robot.
+                The idea here is to test the hypothesis of where the robot is (the cloud of points) and narrow it down based on sensor observations - a good estimate is a tight clump of particles.
+                \medskip
+
+                In general, these steps are repeated every time the robot moves and makes measurements;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item motion prediction based on \textbf{proprioceptive} sensors
+                        \smallskip
+
+                        With blind motion, the particles should spread out more and more (due to a growing uncertainty).
+                        For this, we use the state changes with the zero mean noise terms ($e, f, g$) - these are generated randomly for \textbf{each} particle.
+                        \medskip
+
+                        Also note that the robot may move through variable step sizes, and we will need to scale the variance accordingly.
+                    \item measurement update based on outward-looking sensors
+                    \item normalisation
+                    \item resampling
+                        \smallskip
+
+                        Redistributes positions of particles - particles will spread out under motion, but will acquire different weights based on how well they agree with the sensor measurements, according to Bayes' rule (higher weights for more probable locations).
+                \end{enumerate}
+                At any point in time, our uncertain estimate of the location of the robot is represented by the whole particle set; we can make a point estimate of the current state by taking the (weighted) mean of the particles;
+                $$\vec{\bar{x}} = \summation{i = 1}{N} w_i\vec{x_i}$$
+                This state can be used to plan waypoint navigation.
+            \subsubsection*{Position-Based Path Planning}
+                Assume the current state of the robot is $(x, y, \theta)$, and we want to travel to a waypoint set at $(W_x, W_y)$.
+                We need to first rotate towards the waypoint, with the following direction vector;
+                $$\begin{bmatrix}
+                    d_x \\ d_y
+                \end{bmatrix} = \begin{bmatrix}
+                    W_x - x \\
+                    W_y - y
+                \end{bmatrix}$$
+                This can be used to obtain an \textbf{absolute} angular orientation $\alpha$, which the robot must drive in;
+                $$\alpha = \tan^{-1}\frac{d_y}{d_x}$$
+                We need to make sure that $\alpha$ is in the correct quadrant of $(-\pi, pi]$, as a standard $\tan^{-1}$ function would give a value in the range $(-\frac{\pi}{2}, \frac{\pi}{2}]$.
+                This can also be achieved with ~atan2(dy, dx)~ in many languages.
+                \medskip
+
+                Using this, we can obtain the angle the robot must rotate through as $\beta$ (and we should take care to shift this angle into the range $(-\pi, \pi]$ for efficient movement).
+                The robot should then drive through a distance $d$ in a straight line;
+                \begin{align*}
+                    \beta & = \alpha - \theta \\
+                    d & = \sqrt{d_x^2 + d_y^2}
+                \end{align*}
         \subsection*{Lecture 5 - Monte Carlo Localisation}
         \subsection*{Lecture 6 - Advanced Sonar Sensing}
         \subsection*{Lecture 7 - SLAM}
