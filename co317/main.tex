@@ -38,6 +38,8 @@
   \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
 }
 
+\usepgfplotslibrary{patchplots}
+
 \allowdisplaybreaks % allow environments to break
 \setlength\parindent{0pt} % no indent
 
@@ -2935,7 +2937,171 @@
                 This would be done in world space (rather than screen space), as this computation is expensive; we would rather do it once than to do it on every change of the camera position.
                 \medskip
 
-                Another approach is to create a (Binary Space Partition (BSP) Tree), where the space is recursively partitioned by planes.
+                Another approach is to create a \textbf{binary space partition (BSP) tree}, where the space is recursively partitioned by planes.
                 Each cell is a convex polyhedron.
                 Rays can be traced by recursion on the tree, and the construction enables a simple front-to-back traversal.
+        \subsection*{Lecture 12 - Splines I}
+            We can either think of splines as interpolating splines (defined by a start point, an end point, and a small set of points called \textbf{knots} or \textbf{control points} that they go through smoothly), or approximating splines which have the same points, but \textbf{don't need to pass through} these points.
+            Both will go through the start and end point.
+            \medskip
+
+            The simplest splines are equations in $x$ and $y$ (we are staying within 2D for now).
+            With three points, we can calculate $a_2, a_1, a_0$ for the polynomial spline;
+            $$y = a_2x^2 + a_1x + a_0$$
+            Only one curve will fit the data.
+            An issue with this method is that we cannot define splines where the resulting function would have two $y$ values for the same $x$.
+            \subsubsection*{Paramterisation}
+                Paramterisation involves a set of points and a set of parameters that scale some properties of a function.
+                We can write the spline in a vector form, with some parameter $\mu$ from 0 to 1;
+                $$\vec{P} = \vec{a_2}\mu^2 + \vec{a_1}\mu + \vec{a_0}$$
+                As before, we set up observations, and solve for the unknowns.
+                A trivial case would be $\mu = 0$, at the start of the curve, hence;
+                $$\vec{P_0} = \vec{a_2}0^2 + \vec{a_1}0 + \vec{a_0} \Rightarrow \vec{a_0} = \vec{P_0}$$
+                Suppose the spline ends at $\vec{P_2}$, at which point we have $\mu = 1$, and at $\mu = \frac{1}{2}$ it passes through $\vec{P_1}$;
+                \begin{align*}
+                    \vec{P_2} & = \vec{a_2}\mu^2 + \vec{a_1}\mu + \vec{a_0} \\
+                    & = \vec{a_2} + \vec{a_1} + \vec{a_0} \\
+                    & = \vec{a_2} + \vec{a_1} + \vec{P_0} \\
+                    \vec{P_1} & = \vec{a_2}\mu^2 + \vec{a_1}\mu + \vec{a_0} \\
+                    & = \frac{1}{4}\vec{a_2} + \frac{1}{2}\vec{a_1} + \vec{P_0}
+                \end{align*}
+                Note that this process works in however many dimensions we are working in.
+                Also note that there are many possibilities for what the spline could be fitted to (with the same points) depending on the $\mu$ values we give to each of the points.
+                \medskip
+
+                In general, these parametric polynomial splines have an order to match the number of control points; 3 control points leads to a quadratic, 4 control points leads to a cubic, and so on.
+                Higher order polynomials tend to be undesirable as they can overfit and oscillate.
+            \subsubsection*{Spline Patches}
+                To avoid the problem of oscillation, we can use spline patches, where splines are pieced together, each patch starting from the end of the previous patch.
+                The simplest (and most effective) way to calculate parametric spline patches is to use a cubic polynomial (which also tends to look natural).
+                The patch of the spline between $\vec{P_1}$ and $\vec{P_2}$ is given by;
+                $$\vec{P} = \vec{a_3}\mu^3 + \vec{a_2}\mu^2 + \vec{a_1}\mu + \vec{a_0}$$
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{axis}[
+                            xticklabels={,,},
+                            yticklabels={,,},
+                            axis on top=true,
+                            axis line style=thick,
+                            samples=90
+                        ]
+                            \addplot[very thick, patch, patch type=cubic spline, black] coordinates {
+                                (0, 0)
+                                (8, 3)
+                                (3, 1.75)
+                                (5, 1.25)
+                            };
+                            \node[label={0:{$\vec{P_0}$}}, circle, fill=black, inner sep=2pt] at (axis cs:0,0) {};
+                            \node[label={270:{$\vec{P_1}$}}, circle, fill=black, inner sep=2pt] at (axis cs:3,1.75) {};
+                            \node[label={270:{$\vec{P_2}$}}, circle, fill=black, inner sep=2pt] at (axis cs:5,1.25) {};
+                            \node[label={180:{$\vec{P_3}$}}, circle, fill=black, inner sep=2pt] at (axis cs:8,3) {};
+                        \end{axis}
+                    \end{tikzpicture}
+                \end{center}
+                Note that we want also want the connection between patches to be \textbf{smooth} - the gradients must match when two patches meet.
+                We can get the gradient at the points $\vec{P_1}$ and $\vec{P_2}$ (denote it as $\vec{P_1^\prime}$ and $\vec{P_2^\prime}$ respectively) as follows;
+                \begin{align*}
+                    \vec{P_1^\prime} & = \frac{1}{2} (\vec{P_2} - \vec{P_0}) \\
+                    \vec{P_2^\prime} & = \frac{1}{2} (\vec{P_3} - \vec{P_1})
+                \end{align*}
+                To calculate a spline patch joining $\vec{P_i}$ and $\vec{P_{i + 1}}$, we can do the following;
+                \begin{align*}
+                    \vec{P} & = \vec{a_3}\mu^3 + \vec{a_2}\mu^2 + \vec{a_1}\mu + \vec{a_0} \\
+                    \mu & = 0 & \text{at $\vec{P_i}$} \\
+                    \mu & = 1 & \text{at $\vec{P_{i + 1}}$} \\
+                    \vec{P_i} & = \vec{a_0} & \text{substituting values} \\
+                    \vec{P_{i + 1}} & = \vec{a_3} + \vec{a_2} + \vec{a_1} + \vec{a_0} \\
+                    \vec{P^\prime} & = 3\vec{a_3}\mu^2 + 2\vec{a_2}\mu + \vec{a_1} & \text{differentiating with respect to $\mu$} \\
+                    \vec{P_i^\prime} & = \vec{a_1} & \text{substituting $\mu$} \\
+                    \vec{P_{i + 1}^\prime} & = 3\vec{a_3} + 2\vec{a_2} + \vec{a_1}
+                \end{align*}
+                These four equations can then be put into matrix form as follows;
+                $$\begin{bmatrix}
+                    1 & 0 & 0 & 0 \\
+                    0 & 1 & 0 & 0 \\
+                    1 & 1 & 1 & 1 \\
+                    0 & 1 & 2 & 3
+                \end{bmatrix} \begin{bmatrix}
+                    \vec{a_0} \\
+                    \vec{a_1} \\
+                    \vec{a_2} \\
+                    \vec{a_3}
+                \end{bmatrix} = \begin{bmatrix}
+                    \vec{P_i} \\
+                    \vec{P_i^\prime} \\
+                    \vec{P_{i + 1}} \\
+                    \vec{P_{i + 1}^\prime}
+                \end{bmatrix}$$
+                Since the initial matrix is always the same, whether in 2D or 3D, and is well defined, we can just invert the matrix as follows, which is the same for every patch;
+                $$\begin{bmatrix}
+                    \vec{a_0} \\
+                    \vec{a_1} \\
+                    \vec{a_2} \\
+                    \vec{a_3}
+                \end{bmatrix} = \begin{bmatrix}
+                    1 & 0 & 0 & 0 \\
+                    0 & 1 & 0 & 0 \\
+                    -3 & -2 & 3 & -1 \\
+                    2 & 1 & -2 & 1
+                \end{bmatrix} \begin{bmatrix}
+                    \vec{P_i} \\
+                    \vec{P_i^\prime} \\
+                    \vec{P_{i + 1}} \\
+                    \vec{P_{i + 1}^\prime}
+                \end{bmatrix}$$
+            \subsubsection*{Smoothness}
+                Note a parametric curve is defined as the following (in 2D);
+                $$\vec{P}(\mu) = \begin{bmatrix}
+                    x(\mu) \\
+                    y(\mu)
+                \end{bmatrix}$$
+                We can use the following definitions for parametric continuity (where we look at the curve as a function rather than a shape) - note that the agreement happens at the junction between the two curves;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $C^0$ continuous \hfill $(x, y)$ values of the curve agree
+                    \item $C^1$ continuous (what we just did) \hfill both $(x, y)$ values and first derivatives of the curve agree
+                    \item $C^2$ continuous \hfill $(x, y)$ values, as well as first \textbf{and} second parametric derivatives all agree
+                    \item $G^1$ continuous
+                        \smallskip
+
+                        This is geometric continuity (note that $G^0$ is equivalent to $C^0$), where it is defined only with the shape of the curve.
+                        Here the first derivatives are proportional (hence the tangent vectors are parallel) at the junction.
+                        Note that the $(x, y)$ values must still agree.
+                        Higher order geometric continuity can be difficult to define.
+                \end{itemize}
+            \subsubsection*{Bezier Curves}
+                The main characteristics are that the end points are interpolated, and the slope at the end is the same as the line joining the end point to its neighbour.
+                A typical Bezier curve looks like the following;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[rbtb] (p0) at (0, 0) {};
+                        \node[rbtb] (p1) at (1, 4) {};
+                        \node[rbtb] (p2) at (4, 4.5) {};
+                        \node[rbtb] (p3) at (3, 1) {};
+                        \draw[very thick]
+                        (p0) .. controls (p1) and (p2) .. (p3)
+                        (p0) edge[dotted] (p1)
+                        (p1) edge[dotted] (p2)
+                        (p2) edge[dotted] (p3);
+                        \node at ($(p0) + (-0.5, 0)$) {$\vec{P_0}$};
+                        \node at ($(p1) + (-0.5, 0)$) {$\vec{P_1}$};
+                        \node at ($(p2) + (0.5, 0)$) {$\vec{P_2}$};
+                        \node at ($(p3) + (0.5, 0)$) {$\vec{P_3}$};
+                    \end{tikzpicture}
+                \end{center}
+                Paul de Casteljau's algorithm describes a geometric construction for computing and visualising a Bezier curve.
+                Similar to a cubic path, the parameter $\mu$ is 0 at the start of the curve, and 1 at the end.
+                This construction is recursive and made can be made for any value of $\mu$.
+                Drawing it is quite difficult (in TikZ), so just read the slides.
+            \subsubsection*{Bernstein Blending Function}
+                Splines (including Bezier curves) can be formulated as a blend of the control points.
+                The following vector line equation is a linear blend of two points (could be considered a two-point Bezier curve);
+                $$\vec{P} = (1 - \mu)\vec{P_0} + \mu\vec{P_1}$$
+                For $N + 1$ control points, we have the following;
+                \begin{align*}
+                    \vec{P}(\mu) & = \summation{i = 1}{N} W(N, i, \mu) \vec{P_i} \\
+                    W(N, i, \mu) & = {N \choose i} \mu^i (1 - \mu)^{N - i} & \text{Bernstein blending function}\\
+                    {N \choose i} & = \frac{N!}{(N - i)!i!}
+                \end{align*}
+                Note that with $N = 3$ (4 points), it expands to a cubic polynomial.
 \end{document}
