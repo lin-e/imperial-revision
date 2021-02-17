@@ -2004,5 +2004,205 @@
             \subsubsection*{Features}
                 For simple pre-processed images (like in our example), it might be fine to use the $28 \times 28$ pixel intensities as the feature vector.
                 However, generally it may not be ideal to use pixel intensities, since it isn't invariant to scale nor rotation (and is generally a much higher dimension).
+        \subsection*{Lecture 13 - Image Classification II}
+            \subsubsection*{Linear Classifier}
+                A linear classifier, in 2D, has the form;
+                $$w_1x_1 + w_2x_2 + b = 0$$
+                The rule of the classifier assigns a class $c$ on $x$ based on the following;
+                $$c = \begin{cases}
+                    1 & \text{if } w_1x_1 + w_2x_2 + b \geq 0 \\
+                    -1 & \text{otherwise}
+                \end{cases}$$
+                For a linear classifier, once we know $\vec{w}$ and $b$, we can discard the training data (unlike in KNN).
+                This is much faster in test time.
+                \medskip
 
-\end{document}
+                For a more general case, the linear model is as follows (where we have the \violet{weights / normal}, \teal{data / feature}, and \blue{bias});
+                $$\violet{\vec{w}} \cdot \teal{\vec{x}} + \blue{b} = 0$$
+                Similarly, we have the same rule to assign class $c$;
+                $$c = \begin{cases}
+                    1 & \vec{w} \cdot \vec{x} + b \geq 0 \\
+                    -1 & \text{otherwise}
+                \end{cases}$$
+            \subsubsection*{Linear SVM (Support Vector Machine)}
+                To determine the maximum margin hyperplane, we only need to look at the inner most points, which are the \textbf{support vectors}.
+                We would like the support vectors to fulfil the equations $\vec{w} \cdot \vec{x} + b = -1$ (blue points) and $= 1$ (red points), to allow other points to be easily classified.
+                We want to maximise the margin between the two dashed lines.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[sneg] at (2, 3) {};
+                        \node[sneg] at (3, 4) {};
+                        \node[sneg] at (1, 3) {};
+                        \node[sneg] at (2.5, 3.7) {};
+                        \node[sneg] at (1.2, 4) {};
+                        \node[sneg] at (4.5, 6) {};
+                        \node[sneg] at (3.5, 5) {};
+                        \node[sneg] at (4, 6) {};
+                        \node[sneg] at (1, 3) {};
+                        \node[sneg] at (1.6, 4) {};
+                        \node[sneg] at (0.6, 2) {};
+
+                        \node[spos] at (4.5, 3.5) {};
+                        \node[spos] at (3, 2) {};
+                        \node[spos] at (4, 2.4) {};
+                        \node[spos] at (2.5, 1.4) {};
+                        \node[spos] at (1.2, 0) {};
+                        \node[spos] at (4.5, 2.2) {};
+                        \node[spos] at (3.5, 2) {};
+                        \node[spos] at (4, 1.4) {};
+                        \node[spos] at (1.2, -0.4) {};
+                        \node[spos] at (1.1, 0) {};
+                        \node[spos] at (0.2, -1) {};
+
+                        \node[rbtb] (x1) at (2, 1) {};
+                        \node[rbtb] (x2) at (1, 2) {};
+
+                        \node at ($(x1) + (0, -0.5)$) {$\vec{x_1}$};
+                        \node at ($(x2) + (0, 0.5)$) {$\vec{x_2}$};
+
+                        \draw[very thick]
+                        (0, 0) -- (5, 5)
+                        (0, 1) edge[dashed] (5, 6)
+                        (0, -1) edge[dashed] (5, 4)
+                        (x1) edge[dashed, -latex] (x2);
+
+                        \node[anchor=west] at (5.25, 6) {$\vec{w} \cdot \vec{x} + b = 1$};
+                        \node[anchor=west] at (5.25, 5) {$\vec{w} \cdot \vec{x} + b = 0$};
+                        \node[anchor=west] at (5.25, 4) {$\vec{w} \cdot \vec{x} + b = -1$};
+                    \end{tikzpicture}
+                \end{center}
+                We want the margin between the two following lines to be as large as possible, and we can also derive the distance as follows;
+                \begin{align*}
+                    \vec{w} \cdot \vec{x} + b & = 1 \\
+                    \vec{w} \cdot \vec{x} + b & = -1 \\
+                    \vec{w} \cdot \vec{x_1} + b & = -1 & \text{let this be a point on the $-1$ plane} \\
+                    \vec{w} \cdot (\vec{x_1} + m\vec{n}) + b & = 1 & \text{move the point along the normal by the size of the margin to $\vec{x_2}$} \\
+                    m\vec{w} \cdot \vec{n} & = 2 & \text{from the previous two equations} \\
+                    \vec{n} & = \frac{\vec{w}}{|| \vec{w} ||}
+                \end{align*}
+                SVM then aims to solve optimise the following;
+                $$\max_{\vec{w}, b} \frac{2}{|| \vec{w} ||}$$
+                This is subject to the following constraints, for all $i = 1, \dots, N$ (note that $y_i$ denotes the label of the point);
+                \begin{align*}
+                    \vec{w} \cdot \vec{x_i} + b & \geq 1 & \text{if } y_i = 1 \\
+                    \vec{w} \cdot \vec{x_i} + b & \leq -1 & \text{if } y_i = -1
+                \end{align*}
+
+                However, we've assumed that all the points are linearly separable, which isn't always the case.
+                In this case, we cannot solve the optimisation problem, since the constraints require the data to be linearly separable.
+                This can be done with slack variables, $\xi_i \geq 0$ (for each data point).
+                This formulates the optimisation problem as
+                $$\min_{\vec{w}, b} || \vec{w} ||^2 + C\summation{i=1}{N} \xi_i$$
+                Subject to the following, for all data points ($\forall i$);
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\xi_i \geq 0$
+                    \item $y_i(\vec{w} \cdot \vec{x_i} + b) \geq 1 - \xi_i$
+                \end{itemize}
+                Note that $\xi_i$ will be 0 when the point is correctly classified or $0 < \xi_i \leq 1$ for points within the margin (but on the correct side of the hyperplane), otherwise it represents the distance from the margin.
+                In the above, $C$ is a regularisation term (a small $C$ will allow constraints to easily be fulfilled, whereas a large $C$ would make constraints difficult to ignore - typically leading to a tighter margin).
+            \subsubsection*{Optimisation}
+                Note that we can formulate the slack variable as;
+                $$\xi_i = \underbrace{\max(0, 1 - y_i(\vec{w} \cdot \vec{x_i} + b))}_\text{hinge loss}$$
+                Therefore, we aim to optimise the following function;
+                $$\min_{\vec{w}, b} || \vec{w} ||^2 + C\summation{i=1}{N} \max(0, 1 - y_i(\vec{w} \cdot \vec{x_i} + b))$$
+                However, note that both of these functions (a quadratic term and a hinge loss function) are \textbf{convex} functions (hence we know there is a minimum, and that a local minimum is also a global minimum).
+                Note that the non-negative weighted sum of two convex functions is also a convex function.
+                A convex function $f : X \to R$ satisfies the following;
+                $$\forall x_1, x_2 \in R,\ \forall t \in [0, 1]\ [f(tx_1 + (1 - t)x_2) \leq tf(x_1) + (1 - t)f(x_2)]$$
+                A line joining $(x_1, f(x_1))$ and $(x_2, f(x_2))$ will lie \textbf{above} the function curve.
+                There are two approaches to optimise this;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{gradient descent} \hfill used in large scale-optimisation
+                        \smallskip
+
+                        Note that the hinge loss function looks like the following;
+                        \begin{center}
+                            \begin{tikzpicture}
+                                \begin{axis}[
+                                    axis on top=false,
+                                    axis line style=thick,
+                                    domain=-3:3, samples=7,
+                                    axis lines=middle, xlabel=$t$, ylabel=$h$,
+                                    height=5cm, width=10cm,
+                                    enlargelimits=true,
+                                    xtick={-3,-2,...,3},
+                                    ytick={0,...,4},
+                                    xmin=-3, xmax=3,
+                                    ymin=0, ymax=4
+                                ]
+                                    \addplot[very thick, blue!20] {max(0, 1 - \x)};
+                                \end{axis}
+                            \end{tikzpicture}
+                        \end{center}
+                        While it is not differentiable, we can use a more generalised concept for a gradient, the \textbf{subgradient};
+                        $$\nabla_{\vec{w}}h = \begin{cases}
+                            -y_i\vec{x_i} & \text{if } y_i(\vec{w} \cdot \vec{x_i} + b) < 1 \\
+                            0 & \text{otherwise}
+                        \end{cases}$$
+                        This would be similar for $\nabla_bh$, however, we mainly focus on $\vec{w}$ for our derivation.
+                        For each iteration, we move along the negative of the gradient by some step length $\eta$;
+                        \begin{align*}
+                            \vec{w}^{(k + 1)} & = \vec{w}^{(k)} - \eta\nabla_{\vec{w}}\left(|| \vec{w} ||^2 + C\summation{i=1}{N} \max(0, 1 - y_i(\vec{w} \cdot \vec{x_i} + b))\right) \\
+                            & = \vec{w}^{(k)} - \eta\left(2\vec{w}^{(k)} + C \summation{i=1}{N} \nabla_{\vec{w}}h\right)
+                        \end{align*}
+                    \item \textbf{Lagrangian duality} (solves the dual problem) \hfill often used for SVM libraries
+                        \smallskip
+
+                        This is beyond the scope of the course, but works by solving the \textbf{dual} problem (given the \textbf{primal} problem).
+                        See \textbf{CO343} for more details about duality.
+                        \medskip
+
+                        In the dual problem, the result of many of the $a_i$ are 0, except for the points located on the margin (the support vectors).
+                        The solution of the primal problem is then given by;
+                        $$\vec{w} = \summation{i = 1}{N} a_i y_i \vec{x_i}$$
+                        $b$ can also be estimated with the support vectors by substituting back into the equation.
+                \end{itemize}
+            \subsubsection*{Classification}
+                At test time, classification can be done according to;
+                $$c = \begin{cases}
+                    1 & \text{if } f(\vec{x}) = \vec{w} \cdot \vec{x} + b \geq 0 \\
+                    -1 & \text{otherwise}
+                \end{cases}$$
+                This works quite well if the data can be linearly separable.
+                However, if the points are not linearly separable in the \textbf{original} feature space, it may be easier to transform the features.
+                Consider a dataset which has two classes, the first being a circle of points centred around some point $\vec{x_c}$, and another class being a ring of points around the first class.
+                Using the transformation $\vec{Phi}(\vec{x}) = (\vec{x} - \vec{x_c})^2$, the first class would have a lower value (since it is closer to $\vec{x_c}$, which is then squared) after the transformation, whereas the second class would have a much higher value, thus separating the points.
+                \medskip
+
+                Therefore, if we transform the feature vector using a function $\vec{\Phi}$, the classifier also must change;
+                $$f(\vec{x}) = \underbrace{\left(\summation{i}{} a_i y_i \vec{\Phi}(\vec{x_i})\right)}_\text{transformed $\vec{w}$} \cdot \vec{\Phi}\vec{x} + b$$
+                We can also define the kernel (different from image filtering) as;
+                $$\vec{k}(\vec{x_i}, \vec{x_j}) = \vec{\Phi}(\vec{x_i}) \cdot \vec{\Phi}(\vec{x_j})$$
+                The classifier (which is now a non-linear function) only contains the kernel;
+                $$f(\vec{x}) = \summation{i}{} a_i y_i \vec{k}(\vec{x_i}, \vec{x}) + b$$
+                The common kernels used for SVM are;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{linear kernel}
+                        $$\vec{k}(\vec{x_i}, \vec{x_j}) = \vec{x_i} \cdot \vec{x_j}$$
+                    \item \textbf{polynomial kernel}
+                        $$\vec{k}(\vec{x_i}, \vec{x_j}) = (\vec{x_i} \cdot \vec{x_j})^d \text{ or } (1 + \vec{x_i} \cdot \vec{x_j})^d$$
+                    \item \textbf{Gaussian kernel / radial basis function (RBF) kernel}
+                        $$\vec{k}(\vec{x_i}, \vec{x_j}) = e^{-\frac{|| \vec{x_i} - \vec{x_j} ||^2}{2 \sigma^2}}$$
+                \end{itemize}
+                Note that we only have binary classification at the moment.
+                For multi-class classification, we can take several approaches (considering the MNIST digit recognition example);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{one versus rest}
+                        \smallskip
+
+                        In this, we train a classifier for each of the 10 digits, the firs classifies between a digit that is 1 and not 1, the second being a classifier between 2 and not 2, and so on.
+                        The classifier which produces the highest response at test time determines the result;
+                        $$c = \argmax_{k = 1, \dots, K} f_k(\vec{x})$$
+                    \item \textbf{one versus one}
+                        \smallskip
+
+                        In contrast to before, we have a classifier for each pairing of digits - for example, we'd have a classifier for 1 versus 2, 1 versus 3, 2 versus 3, and so on.
+                        At test time, each classifier votes for the digit, and the majority vote wins.
+                        The number of classifiers we need for $K$ classes is;
+                        $$\frac{K(K - 1)}{2}$$
+                \end{itemize}
+\end{document}d
