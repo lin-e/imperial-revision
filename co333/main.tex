@@ -819,6 +819,138 @@
                     d & = \sqrt{d_x^2 + d_y^2}
                 \end{align*}
         \subsection*{Lecture 5 - Monte Carlo Localisation}
+            In this practical, we aim to perform localisation within a map (which is known by the robot in advance).
+            \begin{center}
+                \begin{tikzpicture}[x=0.33cm, y=0.33cm]
+                    \draw[very thick, teal]
+                    (5, 5) -- (7, 5) -- (7, 9) -- (3, 9) -- (3, 7) -- (1, 7) -- (1, 4) -- (3, 2) -- (7, 2) -- (7, 3) -- cycle;
+
+                    \draw[very thick, red] (5, 5) edge[-latex, dashed] (10, 5);
+                    \node[spos] at (5, 5) {};
+
+                    \draw[very thick]
+                    (0, 0) -- (10, 0) -- (10, 10) -- (0, 10) -- cycle
+                    (2, 1) -- (8, 1)
+                    (8, 1) -- (8, 7)
+                    (0, 2) -- (2, 2)
+                    (4, 3) -- (6, 3)
+                    (4, 3) -- (4, 7)
+                    (2, 5) -- (4, 5)
+                    (4, 7) -- (6, 7)
+                    (2, 8) -- (2, 10);
+                \end{tikzpicture}
+            \end{center}
+            MCL uses a cloud of weighted particles to represent the uncertain position, and can be thought of in two ways;
+            \begin{itemize}
+                \itemsep0em
+                \item a Bayesian probabilistic filter
+                \item similar to a genetic algorithm (survival of the fittest)
+                    \smallskip
+
+                    Each particle is a hypothesis, and we can test whether this is sensible or not by using the new measurement from the sonar.
+                    The particles are then assigned a fitness, either increased if they agree with the measurement, and decreased if not.
+                    The fitter particles will make more copies of themselves in the resampling stage (leading to the unfit ones dying out).
+            \end{itemize}
+            Note that with the weighted particle distribution, we can interpret it as a probability that the robot is within any multi-dimensional region of the state space being the sum of the weights within that region.
+            However, this could break if we select a very small region between particles - but this is a trade-off we make for performance.
+            \medskip
+
+            MCL targets both of the following problems;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{continuous localisation}
+                    \smallskip
+
+                    This is a tracking problem, where we want to estimate the robot's new position given the an estimate of its location in the last time-step.
+                    If we assume that we start at a perfectly known location, we can set the state of all particles to be the exact same.
+                    The weights would all be equal to $\frac{1}{N}$, and we have a spike representing the robot's location.
+                \item \textbf{global localisation}
+                    \smallskip
+
+                    In contrast, we only know the robot is within a certain region (somewhere within a room).
+                    Particles can be initialised to be random positions and orientations within the room, the weights are also all equal again.
+                    This is difficult with a single sensor
+            \end{itemize}
+            Our estimate of the robot's location is represented by th particle set, and we can get a point estimate of the current state by taking the mean of all the particles (if the weights weren't equal, it would be more biased towards the higher weights);
+            $$\bar{\vec{x}} = \summation{i=1}{N}w_i\vec{x_i}$$
+            \subsubsection*{Measurement Updates}
+                An update consists of applying Bayes Rule to each particle.
+                When we have a measurement $z$, the weights are updated as follows (the denominator in Bayes' rule is a constant that will be removed by normalisation, hence we ignore it);
+                $$w_{i (new)} = \violet{P(z\ |\ \vec{x_i})} \cdot w_i$$
+                The \violet{likelihood} of particle $i$ is the probability of getting the measurement $z$ given that $\vec{x_i}$ represents the true state.
+            \subsubsection*{Likelihood Functions}
+                A likelihood function fully describes the sensor's performance.
+                This function has two inputs; the measurement we've achieved ($z$) and the state variables (ground truth) $v$.
+                If there is no systematic error, and the uncertainty is constant, we would have multiple Gaussian distributions (assuming the sensor can be modelled as such) along the line $z = v$.
+                This is slightly difficult to visualise, but consider a Gaussian hill (multiple distributions).
+                If we took one slice (a specific $v$) value, we'd have a distribution with the mean at $v$.
+                \medskip
+
+                Different sensors will have different characteristics.
+                A sonar typically doesn't have much variation no matter the distance (when plotted, the shape stays the same and only the mean changes), whereas other sensors such as stereo vision camera system will have less accuracy the further away it is (hence the Gaussian becomes flatter as $v$ increases, representing larger spread).
+            \subsubsection*{Obtaining Ground Truth}
+                We can obtain the ground truth as follows;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[rbtb] (r) at (0, 0) {};
+                        \node[rbtb] (a) at (2, 3.33) {};
+                        \node[rbtb] (b) at (6, 2) {};
+                        \draw
+                        (0, 0) -- (1.25, 0)
+                        (a) -- (b)
+                        (0, 0) edge[-latex, above] node{$m$} (4.8, 2.4)
+                        (0, 0) ++(0:1) arc (0:26.6:1);
+
+                        \node at ($(a) + (-1, 0)$) {$(A_x, A_y)$};
+                        \node at ($(b) + (1, 0)$) {$(B_x, B_y)$};
+                        \node at ($(r) + (0, -0.5)$) {robot at $(x, y, \theta)$};
+                        \node at (1.25, 0.25) {$\theta$};
+                    \end{tikzpicture}
+                \end{center}
+                Note that $m$ is the forward distance (at angle $\theta$) to an \textbf{infinite wall} passing through the points $\vec{A}$ and $\vec{B}$;
+                $$m = \frac{(B_y - A_y)(A_x - x) - (B_x - A_x)(A_y - y)}{(B_y - A_y)\cos \theta - (B_x - A_x)\sin \theta}$$
+                \medskip
+
+                For each wall, we work out the value $m$.
+                One criteria is that the $m$ must be positive (since the sonar would give a positive measurement).
+                Furthermore, we also need to check if the point it intersects is actually between the endpoints of the wall (since the walls are considered to be infinite).
+                Additionally, if several points are valid, the closest one is the one it is actually responding to.
+                The point on the wall can be calculated as;
+                $$\begin{bmatrix}
+                    x + m\cos(\theta) \\
+                    y + m\sin(\theta)
+                \end{bmatrix}$$
+            \subsubsection*{Likelihood}
+                The likelihood should depend on the difference $z - m$; if this is small then it validates a particle (and weakens the particle if large).
+                A Gaussian function is usually a good model for the mathematical form for this, with the standard deviation $\sigma_s$ being based on our model of how uncertain the sensor is (and may either be constant or depend on $z$).
+                $$p(z\ |\ m) \propto e^{-\frac{(z - m)^2}{2\sigma_s^2}} \violet{+ K}$$ % check this
+                We may consider modifying the Gaussian distribution to make the likelihood function more \textbf{robust}.
+                This is more applicable in real-world robotics (which may give garbage data, possibly due to poor electronics etc.).
+                A Gaussian normally states that there is almost no chance of it getting a value very far from the mean, however by \textbf{adding a constant}, it creates a \textbf{heavy tail}, which gives a constant probability the sensor may report garbage data, uniformly distributed across the range of the sensor.
+                \medskip
+
+                In MCL, this causes the filter to be less aggressive in removing particles which are far from agreeing with a measurement.
+                This prevents a garbage measurement killing off particles in good positions.
+                \medskip
+
+                Another factor we may want to consider is the angle between the sonar direction and the normal to the wall, $\beta$.
+                If this is too large, the sonar reading may not be sensible.
+                $$\beta = \cos^{-1}\left(\frac{\cos \theta (A_y - B_y) + \sin \theta (B_x - A_x)}{\sqrt{(A_y - B_y)^2 + (B_x - A_x)^2}}\right)$$
+            \subsubsection*{Resampling}
+                All the weights should now be scaled to add up to 1;
+                $$w_{i(new)} = \frac{w_i}{\summation{i=1}{N} w_i}$$
+                Resampling involves generating the new set of $N$ particles, each having equal weights, but with a spatial distribution reflecting the probability density.
+                To do this, we copy the state of one of the previous particles with the probability according to the particle's weight.
+                This can be achieved by generating the cumulative probability distribution of the particles and generating a random number (between 0 and 1 if normalised), and picking the particle that this random number intersects.
+                It's possible to skip the normalisation step and resample from an unnormalised distribution in a similar way (for efficiency).
+            \subsubsection*{Compass Sensor}
+                This process is quite general, and can also be done with other sensors.
+                Consider a compass that measures the bearing $\beta$ relative to magnetic north.
+                The likelihood $P(\beta\ |\ \vec{x_i})$ only depends on the $\theta$ component of $\vec{x_i}$.
+                If the compass is working perfectly, then we have the following (where $\gamma$ denotes the magnetic bearing of the $x$ coordinate axis of frame $W$);
+                $$\beta = \gamma - \theta$$
+                The likelihood then depends on the difference between $\beta$ and $\gamma - \theta$;
+                $$e^{-\frac{(\beta - (\gamma - \theta))^2}{2\sigma_c^2}}$$
         \subsection*{Lecture 6 - Advanced Sonar Sensing}
         \subsection*{Lecture 7 - SLAM}
 \end{document}
