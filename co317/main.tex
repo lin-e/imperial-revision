@@ -2800,7 +2800,7 @@
                 Assuming that our viewing ray will intersect the sphere, we can substitute $\vec{q}$ with the line equation;
                 $$|\vec{p_0} + \mu\vec{d} - \vec{p_s}|^2 - r^2 = 0$$
                 If we allow $\Delta\vec{p} = \vec{p_0} - \vec{p_s}$ (and expand the dot product), we obtain the following quadratic equation (and corresponding solution);
-                $$\mu^2 + 2\mu(\vec{d} \cdot \Delta\vec{p}) + |\Delta\vec{p}|^2 - r^2 = 0 \Rightarrow \mu = \vec{d} \cdot \Delta\vec{p} \pm \sqrt{\violet{(\vec{d} \cdot \Delta\vec{p})^2 - |\Delta\vec{p}|^2 + r^2}}$$
+                $$\mu^2 + 2\mu(\vec{d} \cdot \Delta\vec{p}) + |\Delta\vec{p}|^2 - r^2 = 0 \Rightarrow \mu = -\vec{d} \cdot \Delta\vec{p} \pm \sqrt{\violet{(\vec{d} \cdot \Delta\vec{p})^2 - |\Delta\vec{p}|^2 + r^2}}$$
                 This gives us two solutions (since the ray would pass through the object) - in the case of solid objects, we want the one that's closer (hence the smaller $\mu$).
                 If the ray does not intersect, there will be no solution (negative under the square root; \violet{discriminant}) - if this is the case, we want to stop in order to save computation.
                 Once we have a value for $\mu$, we can plug it back into the line equation to obtain the position.
@@ -2831,7 +2831,7 @@
                 We can intersect a ray with a plane using the following (where $\vec{p_1}$ is a point on the plane, and $\vec{q}$ is a vector from the point on the plane to the intersection point);
                 $$\vec{p_1} + \vec{q} = \vec{p_0} + \mu$$
                 Since $\vec{q}$ would be perpendicular to the plane's normal $\vec{n}$, we can subtract $\vec{p_1}$ and multiply by the normal to obtain $\mu$;
-                $$\vec{q} \cdot \vec{n} = 0 (\vec{p_0} - \vec{p_1}) \cdot \vec{n} + \mu\vec{d} \cdot \vec{n} \Rightarrow \mu = -\frac{(\vec{p_0} - \vec{p_1}) \cdot \vec{n}}{\vec{d} \cdot \vec{n}}$$
+                $$\vec{q} \cdot \vec{n} = 0 = (\vec{p_0} - \vec{p_1}) \cdot \vec{n} + \mu\vec{d} \cdot \vec{n} \Rightarrow \mu = -\frac{(\vec{p_0} - \vec{p_1}) \cdot \vec{n}}{\vec{d} \cdot \vec{n}}$$
                 Note that a triangle is a smaller part of a plane;
                 \begin{center}
                     \begin{tikzpicture}
