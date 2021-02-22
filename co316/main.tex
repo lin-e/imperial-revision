@@ -2205,4 +2205,166 @@
                         The number of classifiers we need for $K$ classes is;
                         $$\frac{K(K - 1)}{2}$$
                 \end{itemize}
-\end{document}d
+        \subsection*{Lecture 14 - Image Classification III}
+            Note that a lot of this is also covered in \textbf{CO395}.
+            \subsubsection*{Neural Networks}
+                Neural networks are an algorithm to learn a model from the data for classification / regression problems.
+                Artificial neural networks are \textbf{inspired} by biology, but does not exactly model how a neuron works.
+                In the past few decades, neural networks have improved with more layers of connections (deeper), as well has having better hardware for faster computation and larger datasets for training.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[circle, inner sep=2pt, draw] (x1) at (0, 0) {$x_1$};
+                        \node[circle, inner sep=2pt, draw] (x2) at (0, -1) {$x_2$};
+                        \node[circle, inner sep=2pt, draw] (x3) at (0, -2) {$x_3$};
+                        \node[circle, inner sep=3pt, draw] (const) at (0, -3) {$1$};
+                        \node[circle, inner sep=2pt, draw] (f) at (4, -1.5) {$f$};
+                        \node (y) at (8, -1.5) {$y$};
+                        \node at (4, -0.75) {$\Sigma$};
+                        \node at (12, -1.5) {$y = f\left(\summation{i = 1}{3} w_i x_i + b\right)$};
+
+                        \draw
+                        (x1) edge[->, above] node{$w_1$} (f)
+                        (x2) edge[->, above] node{$w_2$} (f)
+                        (x3) edge[->, below] node{$w_3$} (f)
+                        (const) edge[->, below] node{$b$} (f)
+                        (f) edge[->] (y);
+                    \end{tikzpicture}
+                \end{center}
+                The simplest form of a neural network is a perceptron, using which has a single layer and uses the \textbf{Heaviside} step function as an activation function (where $\vec{w}$ and $b$ are optimised to match the ground truth);
+                $$y = \begin{cases}
+                    1 & \text{if } \vec{w} \cdot \vec{x} + b > 0 \\
+                    0 & \text{otherwise}
+                \end{cases}$$
+                Note that the difference (compared to SVMs) is that the non-linearity is added with an activation function $f(\vec{w} \cdot \vec{x} + b)$, whereas SVMs add non-linearity through feature transforms; $\vec{w} \cdot \vec{\Phi}(\vec{x}) + b$.
+                A common activation function is the logistic function / sigmoid;
+                $$f(z) = \frac{1}{1 + e^{-z}}$$
+                A neural network is formed by connecting neurons, where the outputs of a neuron can be the inputs of another;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[circle, inner sep=2pt, draw] (x1) at (0, 0) {$x_1$};
+                        \node[circle, inner sep=2pt, draw] (x2) at (0, -1) {$x_2$};
+                        \node[circle, inner sep=2pt, draw] (x3) at (0, -2) {$x_3$};
+                        \node[circle, inner sep=3pt, draw] (xc) at (0, -3) {$1$};
+                        \node[circle, inner sep=2pt, draw] (h1) at (3, 0) {\phantom{$x_1$}};
+                        \node[circle, inner sep=2pt, draw] (h2) at (3, -1) {\phantom{$x_2$}};
+                        \node[circle, inner sep=2pt, draw] (h3) at (3, -2) {\phantom{$x_3$}};
+                        \node[circle, inner sep=3pt, draw] (hc) at (3, -3) {$1$};
+                        \node[circle, inner sep=2pt, draw] (o2) at (6, -1) {\phantom{$x_2$}};
+                        \node[circle, inner sep=2pt, draw] (o3) at (6, -2) {\phantom{$x_3$}};
+                        \node (a1) at (9, -1) {$a_1$};
+                        \node (a2) at (9, -2) {$a_2$};
+
+                        \draw
+                        (x1) edge[->] (h1)
+                        (x2) edge[->] (h1)
+                        (x3) edge[->] (h1)
+                        (xc) edge[->] (h1)
+                        (x1) edge[->] (h2)
+                        (x2) edge[->] (h2)
+                        (x3) edge[->] (h2)
+                        (xc) edge[->] (h2)
+                        (x1) edge[->] (h3)
+                        (x2) edge[->] (h3)
+                        (x3) edge[->] (h3)
+                        (xc) edge[->] (h3)
+                        (h1) edge[->] (o2)
+                        (h2) edge[->] (o2)
+                        (h3) edge[->] (o2)
+                        (hc) edge[->] (o2)
+                        (h1) edge[->] (o3)
+                        (h2) edge[->] (o3)
+                        (h3) edge[->] (o3)
+                        (hc) edge[->] (o3)
+                        (o2) edge[->] (a1)
+                        (o3) edge[->] (a2);
+
+                        \node at (-0.5, 0.5) {$x_i$};
+                        \node at (0.5, 0.5) {$a_i^{(1)}$};
+                        \node at (2.5, 0.5) {$z_i^{(2)}$};
+                        \node at (3.5, 0.5) {$a_i^{(2)}$};
+                        \node at (5.5, -0.5) {$z_i^{(3)}$};
+                        \node at (6.5, -0.5) {$a_i^{(3)}$};
+                        \node at (1.5, 1.5) {$\mat{W^{(1)}}, \vec{b^{(1)}}$};
+                        \node at (4.5, 1.5) {$\mat{W^{(2)}}, \vec{b^{(2)}}$};
+                    \end{tikzpicture}
+                \end{center}
+                The output $a$ can be compared with the ground truth $y$ in a loss function $J$ (which we aim to minimise).
+                A training set is denoted as pairs of data $\vec{x}$ and ground truth labels;
+                $$\{(x_1, y_1), (x_2, y_2), \dots, (x_M, y_M)\}$$
+                An example of a loss function is MSE;
+                $$J(\vec{W}, \vec{b}) = \frac{1}{M} \summation{m = 1}{M} \frac{1}{2} ||a_m - y_m||^2$$
+            \subsubsection*{Optimising}
+                To calculate the output of a network $a$ given some input $x$, we use \textbf{forward propagation}.
+                The parameters $\mat{W}$ and $\vec{b}$ can be found with gradient descent and \textbf{backpropagation} can be used to calculate the gradient.
+                \medskip
+
+                In the diagram above, we can perform a calculation as follows (applying the activation function to the input of each neuron) - this can also be more compactly written in matrix notation (where the activation function is generally applied element-wise);
+                \begin{align*}
+                    z_i^{(2)} & = W_{i, 1}^{(1)}a_1^{(1)} + W_{i, 2}^{(1)}a_2^{(1)} + W_{i, 3}^{(1)}a_3^{(1)} + b_i^{(1)} \\
+                    a_i^{(2)} & = f\left(z_i^{(2)}\right) \\
+                    \vec{z^{(2)}} & = \mat{W^{(1)}}\vec{a^{(1)}} + \vec{b^{(1)}} \\
+                    \vec{a^{(2)}} & = f\left(\vec{z^{(2)}}\right)
+                    \intertext{More generally, for layer $l + 1$, we do the following;}
+                    \vec{z^{(l + 1)}} & = \mat{W^{(l)}}\vec{a^{(l)}} + \vec{b^{(l)}} \\
+                    \vec{a^{(l + 1)}} & = f\left(\vec{z^{(l + 1)}}\right)
+                \end{align*}
+                Gradient descent can be done as follows, given a learning rate $\alpha$ (note the equals here denotes reassignment, rather than equality);
+                \begin{align*}
+                    \mat{W} & = \mat{W} - \alpha \pdif{J}{\mat{W}} \\
+                    \vec{b} & = \vec{b} - \alpha \pdif{J}{\vec{b}}
+                \end{align*}
+                The backpropagation algorithm is based on the chain rule.
+                We can work out the derivative of a composition as follows;
+                \begin{align*}
+                    z & = g(f(x)) \\
+                    y & = f(x) \\
+                    z & = g(y) \\
+                    \dif{z}{x} & = \dif{z}{y} \dif{y}{x}
+                \end{align*}
+                Using the running example, we can quite easily derive $\pdif{J}{a}$, as well as $\pdif{a}{\mat{W^{(2)}}}$.
+                Therefore, we can use the chain rule;
+                $$\pdif{J}{\mat{W^{(2)}}} = \pdif{J}{a} \pdif{a}{\mat{W^{(2)}}}$$
+            \subsubsection*{Stochastic Gradient Descent}
+                SGD addresses the computational expense of performing forward and backward propagation for all samples in one go.
+                In SGD, a batch of $B$ samples are selected for performing the propagation.
+                For each iteration in the optimisation, we do the following;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item randomly select a batch of $B$ samples
+                    \item calculate the gradients $\pdif{J_B}{\mat{W}}$ and $\pdif{J_B}{\vec{b}}$ for \textbf{only} this batch
+                    \item update the parameters (note that $J_B$ denotes the loss for the $B$ samples)
+                        \begin{align*}
+                            \mat{W} & = \mat{W} - \alpha \pdif{J_B}{\mat{W}} \\
+                            \vec{b} & = \vec{b} - \alpha \pdif{J_B}{\vec{b}}
+                        \end{align*}
+                \end{enumerate}
+            \subsubsection*{Classification}
+                Note that MSE works for regression problems, where $y$ is a continuous variable.
+                However, this isn't optimal for classification problems, which can be binary ($y$ is 1 or 0) or multi-class (where $y$ is one of a number of classes).
+                \medskip
+
+                In binary classification, we only need a single neuron in the output layer.
+                The activation function could be the sigmoid function, which gives an output $\in (0, 1)$, which is in the range of probability.
+                Consider the case where we predict a probability of $0.9$ for class 1 (hence $0.1$ for class 0).
+                The ground truth has $y = 1$ (therefore the probability of class 1 is 1, and class 0 is 0).
+                A distance metric between the predicted probability and true probability can be used, namely cross entropy.
+                \medskip
+
+                The cross entropy between a true probability distribution $p$ and an estimated probability distribution $q$ is;
+                $$H(p, q) = -\summation{i}{} p_i\log(q_i)$$
+                In the general case (for two classes), we have $p = [y, 1 - y]$ and $q = [f(z), 1 - f(z)]$, hence;
+                $$H(p, q) = -[y\log(f(z)) + (1 - y)\log(1 - f(z))]$$
+                For $K$ classes, there are $K$ neurons in the output layer.
+                The activation function used would be softmax, to create a probability distribution;
+                $$f(z_i) = \frac{e^{z_i}}{\summation{k = 1}{K} e^{z_k}}$$
+                The true probability is represented with one-hot (only one element is 1) encoding;
+                $$p = [y_1, \dots, y_i, \dots, y_K] = [0, \dots, 1, \dots, 0]$$
+            \subsubsection*{Performance}
+                To create more training samples, data augmentation can be performed.
+                This applies affine transformations to the original samples, by performing translation, scaling, squeezing, and shearing.
+                \medskip
+
+                Note that a key limitation of MLP is the high number of parameters required.
+                As such, it's likely to scale poorly for larger images (and even more so if more channels are considered).
+                This is caused by the flattening of a 2D image into a single vector, rather than performing operators on 2D images.
+\end{document}
