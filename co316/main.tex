@@ -2367,4 +2367,259 @@
                 Note that a key limitation of MLP is the high number of parameters required.
                 As such, it's likely to scale poorly for larger images (and even more so if more channels are considered).
                 This is caused by the flattening of a 2D image into a single vector, rather than performing operators on 2D images.
+        \subsection*{Lecture 15 - Image Classification IV}
+            \subsubsection*{Convolutional Neural Networks}
+                In contrast to MLPs, CNNs assume inputs of 2D images and encode properties such as local connectivity and weight sharing into the architecture, reducing the number of parameters and making the computation more efficient.
+                \medskip
+
+                When we look at an image, we first look at local regions, process this information, and then combine information from different regions to form a global understanding.
+                In CNNs, each neuron will only see a \textbf{receptive field} (small local region) in the layer before it - this is also called local connectivity (reducing the number of parameters).
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \draw[very thick] (0, 0) -- (3, 2) -- (3, -3) -- (0, -5) -- cycle;
+                        \draw[very thick, fill=black!20] (1, -1) -- (2.5, 0) -- (2.5, -1) -- (1, -2) -- cycle;
+                        \node[draw, circle, inner sep=3pt] (n) at (5, -0.5) {\phantom{$x$}};
+
+                        \draw
+                        (1, -1) -- (n)
+                        (2.5, 0) -- (n)
+                        (2.5, -1) -- (n)
+                        (1, -2) -- (n);
+                    \end{tikzpicture}
+                \end{center}
+                Note in the example above, a neuron only depends on a small region in the previous layer, whereas a fully connect layer in an MLP depends on \textbf{all} the neurons in the previous layer.
+            \subsubsection*{Convolutional Layer}
+                In a CNN, convolutional layers are the basic building blocks.
+                Consider an input image of size $X \times Y \times C$ (note that $C$ denotes the number of channels, 3 for RGB, and 1 for greyscale).
+                If a neuron required a $5 \times 5 \times C$ cuboid of the input, it would have $5 \times 5 \times C + 1$ parameters (including one for bias).
+                \medskip
+
+                The input and output of the neuron are defined as follows (note that here we sum over 3 axes);
+                \begin{align*}
+                    z & = \summation{i, j, k}{} \mat{W}_{i, j, k} \vec{x}_{i, j, k} + b \\
+                    a & = f(z)
+                \end{align*}
+                However, we can add more neurons to form a $D \times 1 \times 1$ cuboid of output (where $D$ represents the depth).
+                Each of these neurons has its own set of weights and biases;
+                $$a_n = f\left(\summation{i, j, k}{} \mat{W_n}_{i, j, k} \vec{x}_{i, j, k} + b_n\right)$$
+                This window can be moved across the input image, which gives an output cuboid of size $X \times Y \times D$ - note that all of the windows use the same weights, allowing us to have a total of $5 \times 5 \times C \times D$ parameters for connection weights, and another $D$ for bias.
+                The convolutional kernel $\mat{W}$ has four dimensions - \blue{output depth}, \violet{kernel width}, \teal{kernel height}, \red{input depth};
+                $$a_d = f\left(\summation{i, j, k}{} \mat{W}_{\blue{d}, \violet{i}, \teal{j}, \red{k}}\vec{x}_{\violet{i}, \teal{j}, \red{k}} + b_{\blue{d}}\right)$$
+                The output feature map has three dimensions, the output depth, as well as the width and height.
+                \medskip
+
+                We can set a number of parameters for the layer;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{padding}
+                        \smallskip
+
+                        Recall that applying a $3 \times 3$ kernel on an image of shape $X \times Y$ will result in an output of $(X - 2) \times (Y - 2)$.
+                        Adding a padding of $p = 1$ gives a border of zeroes around the image.
+                        Given an input shape of $X_\text{in} \times Y_\text{in}$, a $k \times k$ kernel, $p \times p$ padding, we obtain the following output shape;
+                        $$X_\text{out} = X_\text{in} + 2p - k + 1$$
+                    \item \textbf{stride}
+                        \smallskip
+
+                        In order to move the window faster and obtain a downsampled grid, we can use a stride.
+                        For example, with $s = 2$, it the window to every other pixel.
+                        Consider the following; note that we have a padding $p = 1$ and stride $s = 2$ (crosses denote the centre of the kernel);
+                        \begin{center}
+                            \begin{tikzpicture}[x=0.66cm, y=0.66cm]
+                                \foreach \x in {0,...,6} {
+                                    \draw[fill=black!20] (\x, 0) -- (\x, 1) -- (\x + 1, 1) -- (\x + 1, 0) -- cycle;
+                                    \node at (\x + 0.5, 0.5) {$0$};
+                                    \draw[fill=black!20] (\x, 6) -- (\x, 7) -- (\x + 1, 7) -- (\x + 1, 6) -- cycle;
+                                    \node at (\x + 0.5, 6.5) {$0$};
+                                }
+                                \foreach \y in {1,...,5} {
+                                    \draw[fill=black!20] (0, \y) -- (0, \y + 1) -- (1, \y + 1) -- (1, \y) -- cycle;
+                                    \node at (0.5, \y + 0.5) {$0$};
+                                    \draw[fill=black!20] (6, \y) -- (6, \y + 1) -- (7, \y + 1) -- (7, \y) -- cycle;
+                                    \node at (6.5, \y + 0.5) {$0$};
+                                }
+                                \foreach \x in {0,...,7} {
+                                    \draw[very thick] (\x, 0) -- (\x, 7);
+                                }
+                                \foreach \y in {0,...,7} {
+                                    \draw[very thick] (0, \y) -- (7, \y);
+                                }
+                                \node at (1.5, 1.5) {$\times$};
+                                \node at (3.5, 1.5) {$\times$};
+                                \node at (5.5, 1.5) {$\times$};
+                                \node at (1.5, 3.5) {$\times$};
+                                \node at (3.5, 3.5) {$\times$};
+                                \node at (5.5, 3.5) {$\times$};
+                                \node at (1.5, 5.5) {$\times$};
+                                \node at (3.5, 5.5) {$\times$};
+                                \node at (5.5, 5.5) {$\times$};
+                            \end{tikzpicture}
+                        \end{center}
+                        This can be combined with the padding shape to obtain the following (given a stride of $s \times s$);
+                        $$X_\text{out} = \left\lfloor\frac{X_\text{in} + 2p - k}{s}\right\rfloor + 1$$
+                    \item \textbf{dilation}
+                        \smallskip
+
+                        For a neuron to have a larger receptive field, we can either keep the kernel size the same (but downsample the input image), or increase the kernel size (thus also increasing the number of parameters).
+                        Dilation aims to increase the region size without downsampling or adding more parameters.
+                        Consider the following - note that a \violet{violet} cross denotes the centre of the kernel, and regular crosses denote points which are taken into account (this is a $3 \times 3$ kernel, with dilation $d = 2$, hence we look at every other pixel);
+                        \begin{center}
+                            \begin{tikzpicture}[x=0.66cm, y=0.66cm]
+                                \draw[fill=black!20] (0, 7) -- (5, 7) -- (5, 2) -- (0, 2) -- cycle;
+                                \foreach \x in {0,...,7} {
+                                    \draw[very thick] (\x, 0) -- (\x, 7);
+                                }
+                                \foreach \y in {0,...,7} {
+                                    \draw[very thick] (0, \y) -- (7, \y);
+                                }
+                                \node at (2.5, 4.5) {\violet{$\times$}};
+                                \node at (0.5, 6.5) {$\times$};
+                                \node at (2.5, 6.5) {$\times$};
+                                \node at (4.5, 6.5) {$\times$};
+                                \node at (0.5, 4.5) {$\times$};
+                                \node at (4.5, 4.5) {$\times$};
+                                \node at (0.5, 2.5) {$\times$};
+                                \node at (2.5, 2.5) {$\times$};
+                                \node at (4.5, 2.5) {$\times$};
+                            \end{tikzpicture}
+                        \end{center}
+                \end{itemize}
+            \subsubsection*{Pooling Layer}
+                A pooling layer is another building block of CNNs, which make feature maps / representations smaller (similar to image downsampling).
+                Consider the following example, which performs max pooling with a $2 \times 2$ window and stride of 2;
+                \begin{center}
+                    \begin{tikzpicture}[x=0.66cm, y=0.66cm]
+                        \draw[fill=blue!20] (0, 2) -- (0, 4) -- (2, 4) -- (2, 2) -- cycle;
+                        \draw[fill=green!20] (2, 2) -- (2, 4) -- (4, 4) -- (4, 2) -- cycle;
+                        \draw[fill=red!20] (0, 0) -- (0, 2) -- (2, 2) -- (2, 0) -- cycle;
+                        \draw[fill=yellow!20] (2, 0) -- (2, 2) -- (4, 2) -- (4, 0) -- cycle;
+                        \foreach \x in {0,...,4} {
+                            \draw[very thick] (\x, 0) -- (\x, 4);
+                        }
+                        \foreach \y in {0,...,4} {
+                            \draw[very thick] (0, \y) -- (4, \y);
+                        }
+                        \begin{scope}[shift={(0.5, 0.5)}]
+                            \node at (0, 0) {$0$};
+                            \node at (1, 0) {$1$};
+                            \node at (2, 0) {$2$};
+                            \node at (3, 0) {$3$};
+                            \node at (0, 1) {$4$};
+                            \node at (1, 1) {$3$};
+                            \node at (2, 1) {$2$};
+                            \node at (3, 1) {$1$};
+                            \node at (0, 2) {$5$};
+                            \node at (1, 2) {$6$};
+                            \node at (2, 2) {$7$};
+                            \node at (3, 2) {$8$};
+                            \node at (0, 3) {$1$};
+                            \node at (1, 3) {$2$};
+                            \node at (2, 3) {$3$};
+                            \node at (3, 3) {$4$};
+                        \end{scope}
+                        \begin{scope}[shift={(6, 1)}]
+                            \draw[fill=blue!20] (0, 1) -- (0, 2) -- (1, 2) -- (1, 1) -- cycle;
+                            \draw[fill=green!20] (1, 1) -- (1, 2) -- (2, 2) -- (2, 1) -- cycle;
+                            \draw[fill=red!20] (0, 0) -- (0, 1) -- (1, 1) -- (1, 0) -- cycle;
+                            \draw[fill=yellow!20] (1, 0) -- (1, 1) -- (2, 1) -- (2, 0) -- cycle;
+                            \draw[very thick]
+                            (0, 0) -- (2, 0)
+                            (0, 1) -- (2, 1)
+                            (0, 2) -- (2, 2)
+                            (0, 0) -- (0, 2)
+                            (1, 0) -- (1, 2)
+                            (2, 0) -- (2, 2);
+                            \begin{scope}[shift={(0.5, 0.5)}]
+                                \node at (0, 0) {$4$};
+                                \node at (1, 0) {$3$};
+                                \node at (0, 1) {$6$};
+                                \node at (1, 1) {$8$};
+                            \end{scope}
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                Another form of pooling is average pooling.
+            \subsubsection*{LeNet-5}
+                This uses 7 layers in total (including the output layer but excluding the input layer).
+                A layer beginning with C denotes a convolutional layer, S denotes a pooling (subsampling) layer, and F denotes a fully connected layer.
+                The input image is of size $32 \times 32$.
+                \begin{itemize}
+                    \itemsep0em
+                    \item C1 \hfill $28 \times 28$ with depth of 6, using $5 \times 5$ convolutions
+                    \item S2 \hfill $14 \times 14$ with depth of 6, max pooling
+                    \item C3 \hfill $10 \times 10$ with depth of 16, using $5 \times 5$ convolutions
+                    \item S4 \hfill $5 \times 5$ with depth of 16
+                    \item C5 \hfill 120 neurons
+                    \item F6 \hfill 84 neurons
+                    \item output \hfill 10 classes
+                \end{itemize}
+                The same techniques can be used to optimise a loss function, as convolutional layers are mathematically similar to layers in MLP (just with more dimensions).
+            \subsubsection*{Deep Neural Networks}
+                A factor in the improvement of deep neural networks is hardware; namely GPUs.
+                They are ideal for training neural networks as convolutional operations can be performed in parallel using thousands of simpler (relative to CPU) cores on a GPU.
+                \medskip
+
+                Another factor is improvements in optimisation.
+                There are two main problems with previously mentioned approach; exploding gradient (where the gradient becomes too large for the algorithm to converge) and vanishing gradient (where the gradient becomes too small for the weights to change values).
+                An example of exploding gradient is when the current point is very close to a `cliff' - the gradient descent may overshoot up the cliff, causing it to not converge.
+                One solution is to perform gradient clipping (by value), which does the following for each element of the gradient $\vec{g}$;
+                $$g_i = \begin{cases}
+                    v_\text{min} & \text{if } g_i < v_\text{min} \\
+                    v_\text{max} & \text{if } g_i > v_\text{max} \\
+                    g_i & \text{otherwise}
+                \end{cases}$$
+                Another approach is to clip by the $\ell_2$-norm;
+                $$\vec{g} = \begin{cases}
+                    \frac{\vec{g}}{|| \vec{g} ||}v & \text{if } || \vec{g} || > v \\
+                    \vec{g} & \text{otherwise}
+                \end{cases}$$
+                On the other hand, the vanishing gradient problem can be caused on either extremes of the sigmoid function.
+                Recall that gradients are multiplied, therefore if any are zero (or close to zero), the propagated derivative will also be small;
+                \begin{align*}
+                    f(z) & = \frac{1}{1 + e^{-z}} & \text{sigmoid function} \\
+                    f^\prime(z) & = \frac{e^{-z}}{(1 + e^{-z})^2} \\
+                    & = f(z) (1 - f(z)) & \text{small if either are close to 0 or 1} \\
+                    \pdif{J}{\vec{z^{(l)}}} & = \left(\left(\mat{W^{(l)}}\right)^\top \pdif{J}{\vec{z^{(l + 1)}}}\right) \circ f^\prime\left(\vec{z^{(l)}}\right) & \text{propagated derivative}
+                \end{align*}
+                This can be addressed with different activation functions, for example;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{rectified linear unit (ReLU)}
+                        $$f(z) = \begin{cases}
+                            0 & z < 0 \\
+                            z & z \geq 0
+                        \end{cases}$$
+                        This gives the following subgradient;
+                        $$f^\prime(z) = \begin{cases}
+                            0 & z < 0 \\
+                            1 & z \geq 0
+                        \end{cases}$$
+                        This prevents gradients from vanishing when $z$ is large, however it becomes 0 with a negative $z$.
+                        This outperforms sigmoid as an activation function for deep neural networks.
+                    \item \textbf{leaky ReLU}
+                        $$f(z) = \begin{cases}
+                            0.01z & z < 0 \\
+                            z & z \geq 0
+                        \end{cases}$$
+                        Similar to ReLU, but gives some gradient for negative values,
+                    \item \textbf{parametric ReLU (PReLU)}
+                        $$f(z) = \begin{cases}
+                            az & z < 0 \\
+                            z & z \geq 0
+                        \end{cases}$$
+                        This is similar to leaky ReLU, however the parameter $a$ is learnt in training.
+                    \item \textbf{exponential linear unit (ELU)}
+                        $$f(z) = \begin{cases}
+                            a(e^z - 1) & z < 0 \\
+                            z & z \geq 0
+                        \end{cases}$$
+                \end{itemize}
+            \subsubsection*{AlexNet and VGG}
+                AlexNet is generally quite similar to LeNet, but is deeper.
+                It also uses ReLU for activation, and performs data augmentation by cropping random $224 \times 224$ regions from the original $256 \times 256$ images, as well as performing horizontal reflection and perturbing RGB values.
+                \medskip
+
+                VGG only uses $3 \times 3$ convolutional kernels, rather than larger kernels.
+                The convolution of two $3 \times 3$ kernels is equivalent to a $5 \times 5$, three kernels is equivalent to $7 \times 7$, and so on - this is deeper and reduces the number of parameters.
+                In addition, more non-linearity can be added as activation functions can be used after every small kernel.
 \end{document}
