@@ -2292,5 +2292,171 @@
                 Another note is that ~example.com~ cannot communicate with the relaxed domains, until it also relaxes itself.
                 Therefore, the really consists of a scheme, a host, a port, and a flag of whether the domain is relaxed.
             \subsubsection*{Scripting Attacks}
+                Consider the following components (principals) in a page;
+                \begin{itemize}
+                    \itemsep0em
+                    \item scripts (page origin)
+                    \item password form (page origin)
+                    \item regular content (page origin)
+                    \item comments posted by website users
+                    \item cookies and storage (page origin)
+                    \item \textit{jQuery} and scripts (other origins)
+                    \item like button (iframe from \textit{Facebook})
+                    \item advertisement (iframe from advertiser) - less trusted
+                \end{itemize}
+                There may also be script from an extension origin, bookmarklets which contain scripts from the user, or the location bar, which contains a URL from the user.
+                \medskip
+
+                XSS (Cross Site Scripting) is conceptually quite simple, and involves attacker-controlled input is displayed on a trusted page (and is executed as JavaScript, similar to SQL injections).
+                This can be quite critical to the security assumptions, as it can appear as the attacker controlling the entire origin in the browser; not only affecting other pages, but also accessing cookies and storage, and sending data to the attacker.
+                \medskip
+
+                DOM-based XSS involves an attacker-controlled parameter being in the page itself (such as in the URL, ~postMessage~, or a form field).
+                This can be as simple as the page printing out a URL parameter (in JavaScript), which is then treated as a script tag; causing code execution.
+                \medskip
+
+                On the other hand, reflected XSS involves the a parameter being embedded in the page \textbf{by the server}.
+                For example, in PHP, the following may occur;
+                \begin{lstlisting}
+                    <?php
+                        $name = $_GET["name"];
+                        echo "<html>
+                                <body>
+                                  Welcome user: $name
+                                </body>
+                              </html>";
+                    ?>
+                \end{lstlisting}
+                The most powerful is a \textbf{stored XSS}, where the malicious payload is \textbf{stored} on the server side, which is then injected for other users when they visit the site.
+                Examples of this include blog comments, user profile information, and general descriptions.
+                The code example for this is quite long, but basically involves the ~store.php~ endpoint saving the user's input into the database (escaped to prevent SQL injection), and the ~retrieve.php~ endpoint printing out the result from the database \textbf{directly}.
+                \medskip
+
+                Countermeasures for this are similar to that of other injection attacks, namely to not trust user input.
+                XSS filters, such as ~htmlspecialchars()~ in PHP exist, and filters should be based on whitelists - note that sanitisation also depends n on the context (URL encoding, HTML entity encoding, SQL context, etc.).
+                An alternative is to use templates, similar to prepared statements.
+                There is also a header (which is being deprecated due to false positives) ~X-XSS-Protection~, which blocks a script in the body if it is a URL parameter.
+                \medskip
+
+                Finding XSS vulnerabilities generally involve evading filters by discovering ways in which HTML or URLs are parsed too permissively.
+                A usual high-volume attack is to perform fuzzing.
+                \medskip
+
+                A self XSS attack involves tricking the user into copying and pasting JavaScript into the URL bar of the browser (such as to `enable' a feature).
+                However, it is difficult for a page to be protected from a user; \textit{Facebook} prevents this by detecting statistical anomalies (such as the rate in which pages are liked), and reverting side effects.
+                \medskip
+
+                Cross-channel scripting (XCS) involves injecting an XSS payload via a channel that isn't HTTP (similar to SQL injection via license plate).
+                This is typically used against embedded / IoT devices.
+                An example is naming a file with a malicious payload, which is then executed when displayed on some web panel for networked attached storage.
+                \medskip
+
+                Universal XSS involves performing injection from an attacker's page which can exploit vulnerabilities in a browser extension.
+                Scriptless attacks also exist, which involve attackers injecting CSS into a target page.
+                Using CSS, data from the page (such as credentials) can be exfiltrated over HTTP.
+                \medskip
+
+                Whatever script is running inside the same browsing context have the same page origin (and can interact with each other via variables, redefining the function, and changing the DOM) - they may also access cookies / storage of the page origin.
+                Scripts from other origins run as a page script, in the same way that a script from the page origin does (these are concerned with the goals of the web application).
+                Users can also run JavaScript inside the page, either through developer tools, bookmarklets, or URLs.
+                Extensions and developer tools can inject scripts into pages by writing into the DOM, and can therefore bypass SOP - extension developers are as powerful as the website author.
+                \medskip
+
+                However, iframe code keeps the iframe origin; only strings can be exchanged with the page, and cannot be restricted by the page.
+                \medskip
+
+                The following is an example of source code snooping, where we attempt to extract the ~secret\_key~ from the function;
+                \begin{lstlisting}
+                    <script id="id">
+                        var keyed = function(msg) {
+                            var secret_key = "foobar";
+                            ... use secret_key ..
+                        }
+                    </script>
+                \end{lstlisting}
+                The attacker could take either of the following approaches, either converting the function to a string, or using the DOM;
+                \begin{lstlisting}
+                    <script>
+                        alert(keyed.toString());
+                    </script>
+
+                    <script>
+                        alert(document.getElementById("id").innerHTML);
+                    </script>
+                \end{lstlisting}
+                A defence for this is to hide the state within closures (defends against the first approach), and also remove the script node itself (defends against the second approach);
+                \begin{lstlisting}
+                    <script id="id">
+                        var keyed = (function() {
+                            var secret_key = "foobar";
+                            return function(msg) { ... use secret_key ... }
+                        })();
+                        (e=document.getElementById("id")).parentNode.removeChild(e);
+                    </script>
+                \end{lstlisting}
+                This defends against a script running in the same page, but not an extension or a user.
+                \medskip
+
+                In the following example for \textbf{prototype poisoning}, the first time ~x~ is checked, it will evaluate to 1, however due to the redefinition, it will return ~0~ when performing the division.
+                This causes a division by zero, which was supposed to be avoided by the ~safe\_div~ function - generally this can be used to cause unexpected side effects.
+                \begin{lstlisting}
+                    <script>
+                        function safe_div(x, y) {
+                            if (x != 0) return y / x;
+                        }
+                    </script>
+
+                    <script>
+                        Object.prototype.valueOf = function() {
+                            this.valueOf = function() { return 0 };
+                            return 1;
+                        };
+                        safe_div({}, 2); // divide by 0
+                    </script>
+                \end{lstlisting}
+                A simple defence in this case is to include type checking, which would add an error if ~typeof x !== 'number'~ was satisfied.
+                A more general defence is to avoid reliance on inheritance when it is outside your control (note that ~c~ shadows the inheritance);
+                \begin{lstlisting}
+                    Object.prototype.a = 42; // attacker controlled
+                    b = {};
+                    b.a; // returns 42 (intended by attacker)
+
+                    c = {a:undefined};
+                    c.a; // returns undefined
+                \end{lstlisting}
+                Same-origin iframes can contain content supplied by the user (and is exposed to XSS attacks); the iframe's access needs to be restricted towards other more trusted iframes.
+                Cross-origin iframes may display malicious content, and the web application may need to restrict the iframe's ability to run JavaScript.
+                \medskip
+
+                HTML5 has a ~sandbox~ attribute for iframes, which tells the browser to create a new origin, which isn't used by anything else in the page, and also prevents scripting / active behaviour.
+                This can be relaxed with a number of parameters, such as ~allow-same-origin~ which prevents it from running scripts, but doesn't segregate it to a new origin.
+                Behaviour can also be reintroduced, with flags such as ~allow-scripts~, which allows active behaviour (similarly for ~popups~, ~forms~, ~pointer-lock~, and ~top-navigation~).
+                Consider the following;
+                \begin{lstlisting}
+                    # site: http://a.com/main.html
+                    <iframe src="http://a.com/f1.html" sandbox></iframe>
+                    <iframe src="http://a.com/f2.html" sandbox="allow-scripts"></iframe>
+
+                    # site: http://a.com/f1.html (origin is new_origin_1)
+                    <script> ... access DOM ... </script>
+                    <script> ... postMessage ... </script>
+
+                    # site: http://a.com/f2.html (origin is new_origin_2)
+                    <script> ... access DOM ... </script>
+                    <script> ... postMessage ... </script>
+                \end{lstlisting}
+                Note that neither ~f1~ nor ~f2~ can access the DOM, due to SOP and the different origins, however ~f2~ can communicate with ~postMessage~, whereas ~f1~ cannot (due to ~allow-scripts~).
+                \medskip
+
+                Content Security Policy (CSP) is a way to directly specify the sandbox at the HTTP level in a response as we serve a resource.
+                The server sends a response header telling the browser what resources can be loaded, what scripts can be executed, and from where.
+                This can also be used to set the ~sandbox~ attribute of loaded iframes.
+                For example, if the site ~http://a.com~ has the following header;
+                \begin{center}
+                    ~Content-Security-Policy: default-src 'self' http://c.com; img-src *~
+                \end{center}
+                This allows, by default, only resources from itself (~http://a.com~), and ~http://c.com~.
+                However, it allows images from all sources.
+                If there is an iframe from ~http://b.com~, it will not be rendered, however images can be.
             \subsubsection*{Browser Storage}
 \end{document}
