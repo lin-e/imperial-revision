@@ -2459,4 +2459,105 @@
                 However, it allows images from all sources.
                 If there is an iframe from ~http://b.com~, it will not be rendered, however images can be.
             \subsubsection*{Browser Storage}
+                Recall that HTTP is a stateless protocol (each request / response exchange is independent of the previous one, hence the client and server need to keep state).
+                The server can keep state by saving files / accessing databases, however \textit{Netscape} introduced cookies which stored key-value pairs on the browser on behalf of a website.
+                These are used for storing preferences, session tokens, and to track users.
+                The current specifications guarantees at least; 4096 bytes per cookies, 50 cookies per domain, and a total of 3000 cookies.
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item first client request has no cookies
+                    \item server sets \textbf{each} cookie with a response header;
+                        \begin{center}
+                            ~Set-Cookie: name = value; [(attribute = [= value];)*]~
+                        \end{center}
+                        Note that there are optional attributes that inform the browser how to handle the cookie;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item ~Domain = domain~
+                                \smallskip
+
+                                This sends a cookie back when ~domain~ is the suffix of the requested domain; note that these cannot be trivial suffixes.
+                                By default it's set to the host of URL causing the response.
+                            \item ~Path = path~
+                                \smallskip
+
+                                Prevents unnecessary cookies being sent - only sends the cookie back when ~path~ is the prefix of the requested path (hence a cookie for ~example.com/login~ isn't sent in a request for ~example.com/~).
+                            \item ~Expires = date~
+                                \smallskip
+
+                                If the date is in the future, the cookie is stored on file until ~date~ (persistent).
+                                If the date is in the past, the cookie is immediately deleted.
+                                By default, it is set to ~Null~, which only keeps the cookie in memory while the browser is open (session-only).
+                            \item ~Secure~
+                                \smallskip
+
+                                Only send the cookie over HTTPS (provides confidentiality)
+                            \item ~HttpOnly~
+                                \smallskip
+
+                                Prevents non-HTTP APIs (such as JavaScript) from accessing the cookie (due to risks of cookie theft via XSS).
+                            \item ~SameSite~
+                                \smallskip
+
+                                Attempts to prevent cookies being sent across domains to avoid information leakage or certain attacks.
+                                ~Strict~ only allows for the cookie to be sent from a page with the same domain.
+                        \end{itemize}
+                    \item browser includes relevant cookies in for subsequent requests in \textbf{one} request header
+                        \begin{center}
+                            ~Cookie: (name = value;)*~
+                        \end{center}
+                        Note that attributes aren't included.
+                \end{enumerate}
+                Cookies can also be accessible to JavaScript, with ~document.cookie~ providing access to all (in scope) cookies in the document origin;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{write} \hfill ~document.cookie="userid=1, path=/; secure";~
+                    \item \textbf{delete} \hfill ~document.cookie="userid=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";~
+                    \item \textbf{read} (will not show ~HttpOnly~ cookies) \hfill ~alert(document.cookie);~
+                \end{itemize}
+                Note that a cookie origin consists of a domain a path (and is therefore not the same as the origins previously discussed).
+                A cookie is identified by the name and origin, and its scope is determined by the origin and secure attributes - the browser will send all the ~name=value~ pairs (that are in scope) to the server, but not attributes.
+                Since the server doesn't see cookie attributes, it cannot tell if the cookie is ~HttpOnly~ (therefore, cannot be certain whether it was written by JavaScript).
+                Furthermore, it ~example.com~ cannot tell if the cookie was set by ~subdomain.example.com~ (which may have trust implications).
+                \medskip
+
+                Also note that we can add cookies (even with the same name) manually by running a script which gives the cookies the same origin as the actual site - all of this is sent back to the server, and it s therefore up to the server to make sense of it.
+                \medskip
+
+                Note that the path attribute doesn't restrict the visibility of cookies (since it was done for efficiency reasons).
+                For example; ~example.com~ could open an iframe at ~example.com/login~, and then access ~document.cookie~ of the iframe due to SOP ignoring the path.
+                Note that ~secure~ doesn't guarantee integrity (~secure~ cookies an be set by JavaScript).
+                \medskip
+
+                HTML5 provides Web Storage and Indexed Database APIs (the former is which is easier to use and has wider adoption) - this implements client-side state with lists of key-value pairs;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~window.localStorage~
+                        \smallskip
+
+                        This is associated to the page origin, and the data is persistent (kept unless it is deleted).
+                    \item ~window.sessionStorage~
+                        \smallskip
+
+                        This is associated to the page origin as well as the current tab.
+                        The data is deleted when the tab is closed.
+                \end{itemize}
+                This can be accessed in JavaScript;
+                \begin{itemize}
+                    \itemsep0em
+                    \item ~store.length~ \hfill obtain length of list
+                    \item ~store.key(n)~ \hfill return $~n~^{~th~}$ key
+                    \item ~store.k == store.getItem(k)~ \hfill read value of ~k~
+                    \item ~store.setItem(k, v)~ \hfill set value of ~k~ to ~v~
+                    \item ~store.removeItem(k)~ \hfill remove entry with key ~k~
+                    \item ~store.clear()~ \hfill delete all entries
+                \end{itemize}
+                This isn't set over HTTP (therefore it is up to the page on how the server is involved, either via AJAX or another method).
+                \medskip
+
+                Resident XSS involves setting a value in ~localStorage~ via some means of XSS.
+                The data is then displayed without sanitisation, which causes the script to be run.
+                Note that this is harder to clean up, as the payload is in the user's storage, which will persist even after the site is fixed (for the initial XSS to be patched).
+                A general countermeasure is to not trust values that aren't under your control; therefore values stored in the browser should be stored just like any other user input.
+                Stored data should be periodically checked, updated, or purged.
 \end{document}
