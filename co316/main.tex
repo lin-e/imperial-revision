@@ -2711,4 +2711,122 @@
             \subsubsection*{Performance}
                 Note that backbone networks can be changed out to improve performance.
                 The meta architecture (Faster RCNN, R-FCN, SSD, etc.) combined with the backbone network can be used to observe trade-offs between speed and accuracy.
+        \subsection*{Lecture 17 - Image Segmentation}
+            This is an even more detailed understanding than a bounding box; where there is a label class for each pixel (0 for background, etc.) - this can generate a segmentation mask.
+            Instance segmentation gives each instance (such as each person) a unique label.
+            \subsubsection*{Thresholding}
+                This is one of the simplest methods for segmentation, and converts a greyscale image into a binary label map.
+                At each pixel, the label is defined as follows;
+                $$f(x) = \begin{cases}
+                    1 & \text{if } I(x) \geq \text{threshold} \\
+                    0 & \text{otherwise}
+                \end{cases}$$
+                This requires no training data, and the only parameter we require is the threshold.
+                This relies on the intensity histogram being split into two classes, which can easily be split with a threshold.
+            \subsubsection*{K-means}
+                Generally, there can be more than two classes.
+                K-means can provide a simple method for clustering by estimating cluster parameters.
+                Each cluster can be represented by its centre, with each data point (pixel intensity) being associated to the nearest centre.
+                The optimal centres minimise the intra-class variance (note $C_k$ denotes data points which are associated with cluster $k$);
+                $$\min \summation{k = 1}{K} \summation{x \in C_k}{} (x - \mu_k)^2$$
+                This can be reformulated with $\delta_{x, k}$, which denotes membership (whether $x$ is assigned to cluster $k$ or not) - the two unknowns are the membership and the cluster centre.
+                $$\min \summation{k = 1}{K} \summation{x}{} \delta_{x, k}(x - \mu_k)^2$$
+                If we know $\delta_{x, k}$ (the association between data and clusters), we can work out $\mu_k$, and vice versa.
+                However, we don't know either of these initially.
+                \medskip
+
+                This can be done iteratively, by taking some initial guess for \textbf{either} of these parameters.
+                The algorithm is already covered in \textbf{CO395} (take initial guess for cluster centres, compute $\delta_{x, k}$, update $\mu_k$, and so on).
+                \medskip
+
+                In order to determine the number of clusters ($K$), we can calculate the intra-class variance for each value of $K$.
+                The clustering can also be performed on other features, such as colour similarity (possibly combined with position).
+                $x$ becomes a feature vector, rather than a scalar.
+            \subsubsection*{Gaussian Mixture Model (GMM)}
+                K-means performs a hard assignment of a data point $x$ to a cluster $k$.
+                GMMs allow for soft assignment by assuming each cluster is a Gaussian distribution.
+                The probability that $x_j$ is in cluster $k$ is;
+                $$P(y_j = k\ |\ x_i, \pi_k, \mu_k, \sigma_k) = \pi_k \cdot \frac{1}{\sqrt{2 \pi}\sigma_k} e^{-\frac{(x - \mu_k)^2}{2\sigma_k^2}}$$
+                The process for updating this is very similar to K-means (algorithm is detailed in \textbf{CO395} again).
+                The parameters are updated as follows ($j \in [1, N]$);
+                \begin{align*}
+                    \pi_k & = \frac{\summation{j}{} P(y_j = k)}{N} \\
+                    \mu_k & = \frac{\summation{j}{} P(y_j = k) \cdot x_j}{\summation{j}{} P(y_j = k)} \\
+                    \sigma^2_k & = \frac{\summation{j}{} P(y_j = k) \cdot (x_j - \mu_k)^2}{\summation{j}{} P(y_j = k)} \\
+                \end{align*}
+                The class is then assigned by maximum probability;
+                $$c = \argmax_c P(y_j = c\ |\ x_j, \pi_c, \mu_c, \sigma_c)$$
+                This method is used in \textit{Microsoft PowerPoint}, which as two clusters ($K = 2$).
+                Segmentation is then performed with constraints (such as smoothness, or user editing using GrabCut).
+            \subsubsection*{CNNs}
+                The pixel-wise segmentation map will have to manually be annotated by humans (which can be used as ground truth).
+                For simplicity, we assume we have this data (pairs of images with their respective segmentation maps).
+                The ideas are the same as before; moving a window across an image and applying the classification network to each pixel.
+                However, applying the network to many windows is expensive - we would rather develop a network which provides a pixel-wise probability map (rather than single probability vectors).
+                \medskip
+
+                The last feature map (before the fully connected layers) of AlexNet is of size $13 \times 13$, downsampled by a factor of $16$ from $224 \times 224$.
+                Each pixel in this feature map encodes information regarding a $16 \times 16$ region in the input image.
+                Instead of using fully connected layers to obtain probability vectors, we can obtain pixel-wise classification results from the feature map.
+                A process called \textbf{convolutionalization} replaces the fully connected layers with convolutional layers (hence creating a fully convolutional network) to enable the network to produce a pixel-wise probability map (each class will have a heat map, whereas before a class would be a single value in the probability vector).
+                Note that the depth of the final convolutional network represents the number of classes (the ground truth would be one-hot encoded heat maps).
+                \medskip
+
+                Note that we will need to apply an upsampling operation to obtain a pixel-wise prediction (since the feature map is downsampled).
+                A transposed convolution can be used to achieve this.
+                Consider the following, which has a stride of 2 (the windows jump by 2) - each pixel in the input contributes to a $3 \times 3$ window in the output, with some weights;
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \foreach \x in {0,...,4} {
+                            \draw[thick] (\x, 0) -- (\x, 4);
+                        }
+                        \foreach \y in {0,...,4} {
+                            \draw[thick] (0, \y) -- (4, \y);
+                        }
+
+                        \begin{scope}[shift={(6, -2)}]
+                            \foreach \x in {0,...,8} {
+                                \draw[thick] (\x, 0) -- (\x, 8);
+                            }
+                            \foreach \y in {0,...,8} {
+                                \draw[thick] (0, \y) -- (8, \y);
+                            }
+                        \end{scope}
+
+                        \node[violet] at (0.5, 3.5) {$\times$};
+                        \node[teal] at (1.5, 3.5) {$\times$};
+
+                        \draw[very thick, violet, dashed] (5, 7) -- (8, 7) -- (8, 4) -- (5, 4) -- cycle;
+                        \draw[very thick, teal, dashed] (7, 7) -- (10, 7) -- (10, 4) -- (7, 4) -- cycle;
+                    \end{tikzpicture}
+                \end{center}
+                A convolution in 1D can be represented as follows (note that the input is $\vec{x}$, which denotes a vertical region, and the kernel is a $3 \times 1$ region);
+                $$\begin{bmatrix}
+                    w_1 & w_2 & w_3 & 0 \\
+                    0 & w_1 & w_2 & w_3
+                \end{bmatrix} \begin{bmatrix}
+                    x_1 \\ x_2 \\ x_3 \\ x_4
+                \end{bmatrix} = \begin{bmatrix}
+                    y_1 \\ y_2
+                \end{bmatrix}$$
+                A transposed convolution can then be represented as;
+                $$\begin{bmatrix}
+                    w_1 & 0 \\
+                    w_2 & w_1 \\
+                    w_3 & w_2 \\
+                    0 & w_3
+                \end{bmatrix} \begin{bmatrix}
+                    x_1 \\ x_2
+                \end{bmatrix} = \begin{bmatrix}
+                    y_1 \\ y_2 \\ y_3 \\ y_4
+                \end{bmatrix}$$
+                A classification network can be transformed into a segmentation network by replacing the fully connected layers with convolutional and transposed convolutional layers.
+                \medskip
+
+                Segmentation is a pixel-wise classification problem; therefore at each pixel we can define a classification loss (such as cross entropy) - the segmentation loss would then be the average classification loss.
+                The segmentation loss can be optimised to train the network.
+                \medskip
+
+                It is possible for the same network to perform image segmentation as well as object detection.
+                The input is the convolutional feature map, which is fed into two branches - detection (combining classification and localisation) and segmentation (which is fully convolutional).
 \end{document}
