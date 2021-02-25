@@ -952,5 +952,146 @@
                 The likelihood then depends on the difference between $\beta$ and $\gamma - \theta$;
                 $$e^{-\frac{(\beta - (\gamma - \theta))^2}{2\sigma_c^2}}$$
         \subsection*{Lecture 6 - Advanced Sonar Sensing}
+            \subsubsection*{Global Localisation}
+                MCL can be used to attempt global localisation by initialising particles within a room (and random orientation for each particle).
+                However, this is computationally expensive due to the number of particles, and requires a number of measurements before a location is obtained.
+                A ring of sensors may improve this.
+                \medskip
+
+                After a single depth measurement, for example 20cm, only the ones (relatively) closer to the boundaries of the room would be kept - but this may still be ambiguous.
+                With more measurements, we narrow down the robot's position further and further.
+                Ambiguity can also be reduced with extra measurements from other sensors, such as with a compass.
+            \subsubsection*{Recognition}
+                This is for when the robot can be in one of $N$ possible positions.
+                In a prior training phase, the robot is manually placed in each of these locations, and rotated to take a spaced set of sonar measurements (such as one per degree).
+                This creates a \textbf{signature / place descriptor} for the region (which would could be a plot of robot angle ($x$ axis) against depth measurement on the $y$ axis, essentially just a table of numbers).
+                \medskip
+
+                If the environment is varied, such as with different shapes or obstacles, the signature will be different for each place.
+                At run-time, when the robot is actually lost (in one of these random locations), the robot takes a new signature and checks if any of the existing descriptors are similar.
+                \medskip
+
+                Two histograms can be compared with the sum of squared differences $D_k$, note that $H_m(i)$ is the new measurement, and $H_k(i)$ is the saved signature;
+                $$D_k = \summation{i}{} = (H_m(i) - H_k(i))^2$$
+                The location with the lowest $D_k$ is the most likely, however this should be checked against a threshold in the case the robot isn't in one of these locations.
+                \medskip
+
+                If the test histogram and the saved histogram can be brought into agreement with a shift, the robot is likely to be in the same place but rotated - at test time, all shifts are tested (the amount of shift to get the best agreement is the measurement of the rotation).
+                \medskip
+
+                However, this is quite computationally expensive.
+                An alternative is to use a \textbf{depth histogram}, which has depth on the $x$ axis and frequency on the $y$ axis - note that this is now \textbf{rotation invariant} and can be tested in one check (rather than for each rotation step).
+                Each of the depths are binned (for example in 10cm increments) and counted for frequency.
+                Once the location is found, the shifting procedure can be performed for a single location to determine the robot's orientation.
+                \medskip
+
+                This could be trained as a neural network, with the input being a test signature and the output being $x, y$ coordinates representing the location of the robot.
+                The neural network could attempt to interpolate between the known location signatures.
+            \subsubsection*{Probabilistic Occupancy Grid Mapping}
+                In contrast to before, we know exactly where the robot is, however we do not know what the scene is.
+                \medskip
+
+                We define an area on the ground in which we would like to map, and choose a resolution for a grid.
+                For each cell $i$, we store and update the probability of occupancy - $P(O_i)$.
+                Of $P(O_i) = 1$, we are certain that the cell is occupied by an obstacle (normally represented by a black cell).
+                Similarly, if $P(E_i) = 1$ (white cell), we are certain the cell is empty (note that $P(O_i) + P(E_i) = 1$) - the intermediate probabilities represent uncertain knowledge.
+                By default, all the probabilities of occupancy are set to some constant prior value (such as $0.5$) - however, it may be reasonable to initialise this at a lower value, since it may be more likely that the room has more empty space than not.
+                Our map is of a high quality when the majority of the cells are close to 1 or 0.
+                \begin{center}
+                    \begin{tikzpicture}[x=0.33cm, y=0.33cm]
+                        \fill[black!50] (0, 0) -- (22, 0) -- (22, 20) -- (0, 20) -- cycle;
+                        \fill[black!80] (10, 16) -- (13, 16) -- (13, 17) -- (10, 17) -- cycle;
+                        \fill[black!20] (10, 16) -- (13, 16) -- (13, 12) -- (12, 12) -- (12, 0) -- (11, 0) -- (11, 11) -- (10, 11) -- cycle;
+                        \foreach \x in {0,...,22} {
+                            \draw[very thick] (\x, 0) -- (\x, 20);
+                        }
+                        \foreach \y in {0,...,20} {
+                            \draw[very thick] (0, \y) -- (22, \y);
+                        }
+                        \begin{scope}[shift={(11.4, 0)}]
+                            \draw[very thick, fill=white] (0, 0) circle (1.5);
+                            \draw[very thick, dashed]
+                            (0, 0) -- (-1.5, 16)
+                            (0, 0) -- (1.5, 16);
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                Note that for sonar in reality, we have a narrow cone, rather than a single beam.
+                Suppose a sonar measurement $Z$ gives a depth of $d$ (bouncing off the closest object).
+                This not only tells us that there is likely an obstacle at a distance of $d$ in front of the robot (thus increasing the probabilities), but the cells in front of the robot which are less than $d$ away are also likely to be empty (thus we should decrease the probabilities).
+                This measurement doesn't give any information about the other cells, which aren't in the beam.
+                We must test if each cell lies in the beam.
+                \medskip
+
+                Consider the following diagram; note that the size of vector $\vec{z}$ is $d$.
+                The vector $\vec{c}$ is distance from a robot at $(x, y, \theta)$ to a single cell $\vec{g}$.
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=1.5cm]
+                        \begin{scope}[rotate={-45}]
+                            \draw[very thick] (0, 0) circle (1);
+                            \fill[black!20] (0, 0) -- (75:4) arc(75:105:4) -- cycle;
+                            \fill[white!20] (0, 0) -- (75:3.5) arc(75:105:3.5) -- cycle;
+                            \draw[very thick, dashed]
+                            (0, 0) -- (75:4) arc(75:105:4) -- cycle
+                            (75:3.5) arc(75:105:3.5);
+                            \draw[dashed] (75:3.75) arc(75:105:3.75);
+                            \draw[very thick] (0, 0) edge[-latex, near end, above] node{$\vec{z}$} (0, 3.75);
+                            \begin{scope}[rotate={107.5}]
+                                \draw (3.5, 0) edge[<->, left, near end] node{$\sigma$} (3.75, 0);
+                            \end{scope}
+                        \end{scope}
+                        \begin{scope}[rotate={35}]
+                            \node[spos] (g) at (3, 0) {};
+                            \draw[very thick] (0, 0) edge[-latex, very near end, below] node{$\vec{c}$} (g);
+                        \end{scope}
+                        \draw[thick, violet] (0:1.5) arc(0:45:1.5);
+                        \draw[thick, teal] (35:2) arc(35:45:2);
+                        \node[violet] at (1.6, 0.5) {$\theta$};
+                        \node[teal] at (1.7, 1.4) {$\beta$};
+                        \draw[very thick] (0, 0) -- (2, 0);
+                    \end{tikzpicture}
+                \end{center}
+                We can obtain the following vectors, and use them as follows;
+                \begin{align*}
+                    \vec{z} & = \begin{bmatrix}
+                        d \cos \theta \\
+                        d \sin \theta
+                    \end{bmatrix} \\
+                    \vec{c} & = \begin{bmatrix}
+                        g_x - x \\
+                        g_y - y
+                    \end{bmatrix} \\
+                    \beta & = \cos^{-1} \frac{\vec{z} \cdot \vec{c}}{| \vec{z} | \cdot | \vec{c} |}
+                \end{align*}
+                Note that we want to check if $\beta$ is less than the half-angle of the beam (such that it's actually in the beam).
+                If the following holds, then the cell is in the grey region (endpoint of the beam);
+                $$\left| | \vec{z} | - | \vec{c} | \right| < \sigma$$
+                On the other hand, if the following holds, then the cell is in the white region;
+                $$| \vec{c} | < | \vec{z} | - \sigma$$
+                For each cell, we can apply Bayes rule to get a posterior probability for each cell.
+                Note that we are assuming independence, which is an approximation as this isn't necessarily true in reality.
+                $$P(O_i\ |\ Z) = \frac{P(Z\ |\ O_i)P(O_i)}{P(Z)}$$
+                Note that since $P(O_i\ |\ Z) + P(E_i\ |\ Z) = 1$, we can avoid calculating $P(Z)$ by calculating $P(E_i\ |\ Z)$;
+                $$P(E_i\ |\ Z) = \frac{P(Z\ |\ E_i)P(E_i)}{P(Z)}$$
+                We can divide the two equations as follows, to obtain a ratio;
+                $$\left(\frac{P(O_i\ |\ Z)}{P(E_i\ |\ Z)}\right) = \left(\frac{P(Z\ |\ O_i)}{P(Z\ |\ E_i)}\right) \left(\frac{P(O_i)}{P(E_i)}\right)$$
+                Note that we can use the odds notation (since $E_i = \bar{O_i}$);
+                $$o(A) = \frac{P(A)}{P(\bar{A})}$$
+                For example, if $P(O_i)$ is high, then $P(E_i)$ must be low, hence the odds are very high (close to positive infinity for a high probability), and vice versa (will be very close to zero).
+                This can be used as follows (and logs can be taken);
+                $$o(O_i\ |\ Z) = \left(\frac{P(Z\ |\ O_i)}{P(Z\ |\ E_i)}\right) o(O_i) \Rightarrow \ln o(O_i\ |\ Z) = \ln \left(\frac{P(Z\ |\ O_i)}{P(Z\ |\ E_i)}\right) + \ln o(O_i)$$
+                We typically store the log of odds allowing for updates to be performed in an additive way.
+                Note that probability $0.5$ will have log odds of 0, a positive log odd means a probability $> 0.5$ (and similarly $< 0.5$ for negative log odds) - these are typically capped at certain limits.
+                \medskip
+
+                Note that the update term is defined as follows, for each cell;
+                $$U = \ln \frac{\overbrace{P(Z\ |\ O_i)}^\text{(1)}}{\underbrace{P(Z\ |\ E_i)}_\text{(2)}}$$
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item probability of obtaining the sensor value we did, given the cell is occupied
+                    \item probability of obtaining the sensor value we did, given the cell is empty
+                \end{enumerate}
+                Typically, we assign $U$ (the log ratio) a constant value, such as $5$ (a constant positive value) for cells at the end of the beam (distance of the cell is approximately the measured depth), and $-2$ (a constant negative value) for cells inside the beam (cell is closer than the measured depth).
+                This will gradually converge.
         \subsection*{Lecture 7 - SLAM}
 \end{document}
