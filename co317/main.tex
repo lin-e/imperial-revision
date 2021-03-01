@@ -3270,4 +3270,95 @@
                 This just needs to be done for all four corners for $\mu$ and for $\nu$.
                 These values can then be put into the cubic spline patch equation (with the precomputed matrix), allowing us to work out a single boundary curve.
                 Once done for the remaining boundary curves, it can be blended together.
+        \subsection*{Lecture 14 - Warping and Morphing}
+            Warping leaves the content the same, but applies some transformation to the content to make it appear different.
+            This doesn't affect attributes such as the colour, texture maps (and coordinates), and normals.
+            \medskip
+
+            Morphing changes both the geometry of the image, as well as the content.
+            The aim is to find an average between two objects (not an average of two images of objects, but rather an image of the average objects).
+            \subsubsection*{Blending}
+                Image blending determines how to combine attributes associated with geometric primitives.
+                Some methods are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{cross-dissolve} \hfill $I = (1 - t) \cdot I_A + t \cdot I_B$
+                        \smallskip
+
+                        It is easy to perform morphing with cross-dissolve when the images are aligned.
+                        However, if the images aren't aligned, such as being taken from different perspectives, some morphing is required to align the images.
+                    \item \textbf{adaptive cross-dissolve}
+                    \item \textbf{alpha-channel blending} \hfill done in OpenGL if alpha is defined
+                    \item \textbf{z-buffer blending}
+                \end{itemize}
+            \subsubsection*{Morphing}
+                Morphing involves warping twice (once for each image) and then blending.
+                If we are able to obtain this warping somehow, the algorithm for morphing is simple;
+                \begin{lstlisting}
+                    for each intermediate frame time t do
+                        warp0 = WarpImage(image0, t)
+                        warp1 = WarpImage(image1, t)
+                        for each pixel p in FinalImage do
+                            Result(p) = (1 - t) * warp0 + t warp1
+                        done
+                    done
+                \end{lstlisting}
+            \subsubsection*{Warping}
+                Note that warping changes the domain of the image, whereas filtering changes the range.
+                Given some transformation in the coordinates $(x^\prime, y^\prime) = \vec{T}(x, y)$, and a source image $f(x, y)$, we want to compute a transformed image $g(x^\prime, y^\prime) = f(\vec{T}(x, y))$.
+                We send each pixel in the original image $f(x, y)$ to the corresponding location $(x^\prime, y^\prime)$ in the second image.
+                However, if we were to enlarge an image, some interpolation may be required between pixels.
+                If the pixel lands between two pixels, the colour is distributed among the neighbouring pixels.
+                \medskip
+
+                In inverse warping, if the pixel comes from between two pixels, we can interpolate the colour value from its neighbours.
+                \medskip
+
+                Correspondences are used to define corresponding points in images, and can be user defined.
+                The deformation field can then be defined with these support points.
+                Instead of defining points, we can instead define pairs of lines on two images (Beier-Neeley).
+                Mapping from $\vec{p}$ to $\vec{p^\prime}$ can be done as follows (note that $\vec{x}, \vec{y}$ are the start and end points of the original line, and similar for $\vec{x^\prime}, \vec{y^\prime}$);
+                \begin{align*}
+                    u & = \frac{(\vec{p} - \vec{x}) \cdot (\vec{y} - \vec{x})}{|| \vec{y} - \vec{x} ||^2} \\
+                    v & = \frac{(\vec{p} - \vec{x}) \cdot \mathrm{perpendicular}(\vec{y} - \vec{x})}{|| \vec{y} - \vec{x} ||} \\
+                    \vec{p^\prime} & = \vec{x^\prime} + u \cdot (\vec{y^\prime} - \vec{x^\prime}) + \frac{v \cdot \mathrm{perpendicular}(\vec{y^\prime} - \vec{x^\prime})}{|| \vec{y^\prime} - \vec{x^\prime} ||}
+                \end{align*}
+                For each pixel $\vec{p}$ in the destination image, find the corresponding $u$ and $v$, and then find $\vec{p^\prime}$ in the source image for $u$ and $v$.
+                \medskip
+
+                We can define as many lines as we like, which do not need to form an orthogonal basis.
+                The underlying grid can be warped with respect to these lines.
+                If we have a point related to two lines, we need to build an average (possibly weighted) according to these lines.
+                The weighting can be defined as follows (note that the distance is the distance from $X$ to the line $L[i]$, and $a, b, p$ are constants controlling the warp);
+                $$\mathrm{weight}[i] = \left(\frac{\mathrm{length}[i]^p}{a + \mathrm{dist}[i]}\right)^b$$
+                The warping pseudocode is as follows;
+                \begin{lstlisting}
+                    for each destination pixel p do
+                        psum = (0, 0)
+                        wsum = (0, 0)
+                        for each line L[i] in destination do
+                            p'[i] = p transformed by (L[i], L'[i])
+                            psum += p'[i] * weight[i]
+                            wsum += weight[i]
+                        done
+                        p' = psum / wsum
+                        destination(p) = source(p')
+                    done
+                \end{lstlisting}
+                Another way is to perform warping with control points (which are labelled).
+                For each of these control points, we have a displacement vector, which can be interpolated at a given pixel.
+                The convex hull of the control points is partitioned into a set of triangles.
+                The pixel should lie within one of these triangles, and can be defined with barycentric coordinates.
+                Once the triangle mesh is moved, according to the displacement vectors, the point can be placed within the same triangle, with the same barycentric coordinates.
+                However, while this performs continuous deformations, we no can no longer guarantee that straight lines will remain straight after these transformations when crossing boundaries.
+                \medskip
+
+                Note that there are an exponential number of triangulations for a given set of points.
+                A triangulation of a set of points in a plane is a partition of the convex hull to triangle whose vertices are the points and do not contain other points.
+                No triangles are overlapping.
+                A brute force algorithm is to randomly select two sites, if the edge connecting them doesn't intersect any previous edge, we keep it, otherwise we discard and continue until this can no longer be done.
+                \medskip
+
+                If $\alpha(T) = (\alpha_1, \alpha_2, \dots, \alpha_{3t})$ is the vector of the angles in triangulation $T$ in increasing order, we can say that a triangulation $T_1$ is better than $T_2$ if $\alpha(T_1) > \alpha(T_2)$ (in lexicographical order).
+                The Delaunay triangulation maximises smallest angles.
 \end{document}
