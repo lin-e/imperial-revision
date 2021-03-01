@@ -2560,4 +2560,144 @@
                 Note that this is harder to clean up, as the payload is in the user's storage, which will persist even after the site is fixed (for the initial XSS to be patched).
                 A general countermeasure is to not trust values that aren't under your control; therefore values stored in the browser should be stored just like any other user input.
                 Stored data should be periodically checked, updated, or purged.
+        \subsection*{Week 7}
+            \subsubsection*{Secure Sessions}
+                Due to HTTP being a stateless protocol, any time an action requires authorisation, a user's identity must be established.
+                HTTP provides basic authentication (however, this is sends the credentials in clear text, therefore HTTPS should be used at the very least).
+                HTTP digest authentication involves sending a hash of the password as well as a server-generated nonce (as well as other fields such as time stamp, client IP, etc.) - this doesn't protect other fields / headers.
+                This is quite limited as this requires contact with the authentication server for every request, it is difficult for the user as they need to close the browser to sign out, as well as requiring reauthentication for each web asset.
+                \medskip
+
+                There are also a number of security issues associated with this, as the credentials are sent for every request.
+                While there is a sort of a salt, a MITM can tamper with the digest nonce to launch an offline dictionary attack.
+                Additionally, the dialogue is easy to spoof.
+                \medskip
+
+                The key idea of a session is that when a user first requests  a page from the server it will receive the content, as well as an unused token $T$.
+                Both the browser and the server share this information, which associates the state to the same virtual identity.
+                Every subsequent request is bound to this identity.
+                Once the client authenticates via some method (which is more flexible, efficient, and complex than HTTP authentication), the same token can be used whenever authorisation is required (thus only needing this process to be done once).
+                A sensitive interaction now only requires the token, and once the session is done (after some log out), the token can be invalidated.
+                This session token is also known as session id, ~SID~, ~SSID~, ~PHPSESSIONID~, etc. and is typically implemented as cookies.
+                \medskip
+
+                An attack against this is session fixation;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item attacker obtains an unauthenticated token by connecting the the web server
+                    \item the browser (victim) visits the attacker's page and obtains the token
+                    \item the browser then authenticates with the token (from the attacker's page), which is successful
+                    \item the attacker now has an authenticated token, which can has the victim's permissions - this performs elevation of privilege, as the attacker can perform authorised actions on behalf of the user
+                \end{enumerate}
+                This can easily be prevented by issuing a new token after logging in.
+                By doing this, the browser will receive a token $T^\prime$ (different from $T$) after a successful authentication.
+                \medskip
+
+                Another attack is session hijacking, where the attacker obtains a valid token (either through guessing, some MITM attack, or XSS).
+                Mitigations for this involve sending the tokens only over HTTPS (it's still possible when HTTP is used after logging in over HTTPS), and restricting the window of opportunity for an attacker by invalidating sessions after logging out.
+                \textit{Firesheep} is an extension that is used for PoC session hijacking.
+                \medskip
+
+                Secure tokens should be used.
+                These cannot be spoofed, as the tokens are made unpredictable due to randomness.
+                While tokens can be stolen, access should be restricted to the client-context (such as the IP, the browser fingerprint, SSL session ID, etc.) - however, this may lead to the user being logged out (such as IP changes, changes in SSL session ID when the the browser is reopened), and also the attacker can often use the same browser.
+                \medskip
+
+                An example of a secure token contains some data, which consists of (timestamp, random value, user ID, login status, client-context).
+                There are then two options;
+                \begin{itemize}
+                    \itemsep0em
+                    \item
+                        \smallskip
+
+                        The server keeps the data, and a small token is sent to the client (just a hash of the data).
+                        This requires a database lookup for each request, which introduces some overhead.
+                    \item
+                        \smallskip
+
+                        The information could also be kept on the client, however it must be protected with a message authentication code, to ensure that the server is the only one that can issue this token (such that the client cannot forge it).
+                        The server will still need to track login status.
+                \end{itemize}
+                CSRF (cross-site request forgery) exploits the trust between the browser and the target and the authority that the client has to access session data.
+                The attacker tricks the user into issuing a request that has unintended side-effects for the user - it is sufficient for the user to visit a malicious page, or to click on a link crafted by the attacker.
+                \medskip
+
+                This can be used to perform DNS hijacking;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item malicious JavaScript is loaded, and forces a local machine to change the router's DNS settings (the default credentials are often known, and it can also be easy to guess IP address of a router) by issuing a request
+                    \item the router now uses a malicious DNS for all connected devices
+                    \item devices that now attempt to connect to target sites are redirected to fake websites to capture credentials
+                \end{enumerate}
+                A session CSRF can be seen here;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node at (0, 1) {~attacker.com~};
+                        \node at (4, 1) {victim browser};
+                        \node at (8, 1) {~bank.com~};
+                        \draw
+                        (0, 0.5) edge[-latex] (0, -3.5)
+                        (4, 0.5) edge[-latex] (4, -3.5)
+                        (8, 0.5) edge[-latex] (8, -3.5);
+                        \draw
+                        (4, 0) edge[-latex, above] node{(1)} (0, 0)
+                        (0, -1) edge[-latex, above] node{(2)} (4, -1)
+                        (4, -2) edge[-latex, above] node{(3)} (8, -2)
+                        (8, -3) edge[-latex, above] node{(4)} (4, -3);
+                    \end{tikzpicture}
+                \end{center}
+                Note that the user is authorised to transfer the money, however, they did not intend to do so.
+                This performs the following steps;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item victim visits attacker's site \hfill ~GET /~
+                    \item attacker's site has a form which mimics a ~/transfer~ endpoint on the bank's site, which is automatically filled and submitted
+                    \item victim sends request over, \textbf{with} session \hfill ~POST /transfer ... Cookie: SessionID=...~
+                    \item bank website replies with success message
+                \end{enumerate}
+                A partial mitigation for this is to use ~POST~ for sensitive, state changing actions, however as we can see in the above example, this isn't completely secure.
+                An alternative is to embed a second token as a form field on the authenticated page; this isn't visible to the attacker in the spoofed form, but will be available when accessed on the proper page.
+                This can either be the same token in the form and cookie, and the server checks if both are the same, or alternatively uses different tokens in the form and in the cookie (the server will know which two correspond).
+                The latter is more secure and flexible and this can be different for each form.
+                These should be HTTP only cookies, so that the attacker cannot read it.
+                The ~SameSite~ attribute should be used for session cookies as it prevents access to an existing session via an external link.
+                \medskip
+
+                SOP doesn't prevent different origins from exchanging data, if both parties are willing to.
+                However, it does prevent cross-origin AJAX, which prevents the attacker from stealing an anti-CSRF token by loading the target page (for example, requesting the bank's transfer page and reading the token from the response).
+                However, this may be desired for some sites.
+                CORS (Cross-Origin Resource Sharing) relaxes SOP for servers which enable it.
+                The browser attaches ~Origin=origin~ header to the cross-origin AJAX request (this is set to ~null~ on a redirect),
+                If the \textbf{server} accepts cross-domain requests from ~origin~, it replies with the ~Access-Control-Allow-Origin: origin~ (or ~*~ for any origin, which can be in the case where there is no sensitive data on a given endpoint).
+                If the server doesn't care about CORS, the response reaches the browser, but will be discarded.
+                \medskip
+
+                A similar attack is login CSRF.
+                After visiting the attacker's page, the attacker forces the victim's browser to login with attacker controlled credentials, for example to ~google.com~.
+                The site now sets a cookie for a session (associated with the attacker's account).
+                Any subsequent requests to the target site, such as searches, will have the information saved into the attacker's account.
+                Another example is using this method for \textit{PayPal}, where the victim enters their credit card information into the website, but as the attacker's account.
+                \medskip
+
+                The anti-CSRF token no longer applies, as there is no session token yet.
+                This can be mitigated by validating the ~Referer~ or ~Origin~ headers (for example, if a ~POST~ request to an endpoint had ~Referer: http://attacker.com/page~, it would be suspicious).
+                However, there are a number of legitimate reasons why these headers may not be present, such as these headers being stripped by proxies or disabled by the user.
+                The login form should be embedded on a dedicated page, served over HTTPS, on a segregated domain which serves no other resources (~login.google.com~ instead of ~www.google.com~ giving some isolation).
+                No external scripts or iframes should be on the form.
+                \medskip
+
+                Secure sessions should have the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item use HTTPS wherever possible (even before or after the login)
+                    \item segregate login in a secure domain
+                    \item change the token after login
+                    \item protect sensitive actions with anti-CSRF token (related to the session token), or use ~SameSite~ cookies
+                    \item use specific (harder to generate and maintain, but better protection) and short-lived token (MITM can launch replay attacks if reused)
+                    \item check ~Referer~ header when possible
+                    \item ask for re-authentication for very sensitive actions (transferring money, changing credentials, deleting account, etc.)
+                    \item session should expire or have less access after some idle time
+                \end{itemize}
+            \subsubsection*{Browser Fingerprinting}
+            \subsubsection*{Web User Tracking}
 \end{document}
