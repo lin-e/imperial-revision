@@ -2829,4 +2829,215 @@
 
                 It is possible for the same network to perform image segmentation as well as object detection.
                 The input is the convolutional feature map, which is fed into two branches - detection (combining classification and localisation) and segmentation (which is fully convolutional).
+        \subsection*{Lecture 18 - Motion I}
+            \subsubsection*{Optic Flow}
+                Optic flow methods estimate optic flow.
+                Optic flow (motion) is how brightness / intensity moves in videos.
+                The output of this is a flow field, with the same dimension as the video, and describes displacement at each pixel.
+                \medskip
+
+                A video is a 2D-$t$ image sequence captured over time, hence it is a function of three parameters; space $(x, y)$, and time $t$.
+                For each point $(x, y)$ at time $t$, we want to estimate its corresponding position $(x + u, y + v)$ at time $t + 1$.
+                To do this, we make three assumptions;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{brightness constancy}
+                        \smallskip
+
+                        If we have two time frames from a video, we assume that two corresponding points will have the same greyscale intensities.
+                    \item \textbf{small motion}
+                        \smallskip
+
+                        The motion between two successive frames is very small.
+                    \item \textbf{spatial coherence}
+                        \smallskip
+
+                        For pixels which are connected to each other (neighbours), the motion should be similar.
+                \end{itemize}
+            \subsubsection*{Optic Flow Constraint}
+                We have the following, based on the brightness constancy assumption (where $I$ denotes intensity, $(x, y, t)$ denotes spatial and temporal coordinates, and $(u, v)$ denotes displacement);
+                $$\underbrace{I(x + u, y + v, t + 1)}_\text{new position} = I(x, y, t)$$
+                We can perform first-order Taylor expansion (disregarding the higher-order terms) on the left-hand term, based on the small motion assumption;
+                $$I(x + u, y + v, t + 1) \approx I(x, y, t) + \pdif{I}{x}u + \pdif{I}{y}v + \pdif{I}{t}$$
+                Combining those two equations leads to the following, the \textbf{optical flow constraint equation};
+                $$\pdif{I}{x}u + \pdif{I}{y}v + \pdif{I}{t} = 0$$
+                Note that if we use $I_x, I_y, I_t$ to denote partial derivatives, this can be written as the following, where we have the \blue{spatial gradient}, \violet{displacement}, and \teal{temporal gradient};
+                $$\blue{I_x}\violet{u} + \blue{I_y}\violet{v} + \teal{I_t} = 0$$
+            \subsubsection*{Lucas-Kanade Method}
+                Since there are two unknowns ($u, v$), this is an underdetermined system, which requires another constraint.
+                The Lucas-Kanade method addresses this with the spatial coherence assumption (where we assume the flow is constant within a small neighbourhood).
+                The optic flow constraint equation at each pixel $p$;
+                $$\begin{bmatrix}
+                    I_x(p) & I_y(p)
+                \end{bmatrix} \begin{bmatrix}
+                    u \\ v
+                \end{bmatrix} = -I_t(p)$$
+                We assume that $u, v$ are the same for a small neighbourhood, such as a $3 \times 3$ window, giving a system of linear equations;
+                $$\underbrace{\begin{bmatrix}
+                    I_x(p_1) & I_y(p_1) \\
+                    I_x(p_2) & I_y(p_2) \\
+                    \vdots & \vdots \\
+                    I_x(p_N) & I_y(p_N)
+                \end{bmatrix}}_{\mat{A}} \underbrace{\begin{bmatrix}
+                    u \\ v
+                \end{bmatrix}}_{\vec{x}} = \underbrace{-\begin{bmatrix}
+                    I_t(p_1) \\
+                    I_t(p_2) \\
+                    \vdots \\
+                    I_t(p_N)
+                \end{bmatrix}}_{\vec{b}}$$
+                However, this system is now overdetermined (more equations than unknowns) - the unknowns can be estimated with the least square method;
+                $$x = \argmin_x || \mat{A}\vec{x} - \vec{b} ||^2$$
+                The least square solution can be obtained as follows;
+                \begin{align*}
+                    \vec{x} & = \left(\mat{A}^\top\mat{A}\right)^{-1}\mat{A}^\top\vec{b} & \text{Moore-Penrose / pseudo inverse} \\
+                    & = \begin{bmatrix}
+                        u \\ v
+                    \end{bmatrix} \\
+                    \mat{A}^\top\mat{A} & = \summation{p}{} \begin{bmatrix}
+                        I_x^2 & I_xI_y \\
+                        I_xI_y & I_y^2
+                    \end{bmatrix} \\
+                    \mat{A}^\top\vec{b} & = -\summation{p}{} \begin{bmatrix}
+                        I_xI_t \\
+                        I_yI_t
+                    \end{bmatrix}
+                \end{align*}
+                Note that the matrix $\mat{A}^\top\mat{A}$ also appears in the Harris detector.
+                Optic flow (estimating motion) is related to the cornerness response (estimating corners).
+                In linear algebra, we know that the condition number is the ratio between its minimum and maximum eigenvalues;
+                $$\mathrm{cond}\left(\mat{A}^\top\mat{A}\right) = \frac{| \lambda_\text{max} |}{| \lambda_\text{min} |}$$
+                For flat regions, we are likely to have a large condition number due to a small $\lambda_\text{min}$, hence calculating the inverse becomes sensitive to small changes.
+                On the other hand, due to larger $\lambda_\text{min}$ in corners, we are likely to have small condition numbers - this leads to the inverse being more numerically stable and more robust flow estimation.
+                Intuitively, the motion of a corner is easier to track than the motion on an edge or a corner.
+                \medskip
+
+                This is known as the \textbf{aperture problem}.
+                The motion of a line is ambiguous when looking through an aperture, since the motion component parallel to the line cannot be inferred based on visual input.
+                However, the motion of a corner is clearer to define, even through an aperture.
+                \medskip
+
+                To perform the Lucas-Kanade method, we first need to calculate the image gradients $I_x, I_y$, either with finite differences (between neighbouring pixels), or Sobel / Prewitt filters, as well as $I_t$ - calculated with the finite difference between neighbouring time frames.
+                Then, for each pixel, we apply the least square solution as mentioned above.
+                \medskip
+
+                Note that in the small motion assumption, we use $\approx$, rather than $=$, since we are ignoring higher-order terms.
+                This can occasionally influence the performance.
+                This assumption no longer holds when the motion is large (when $(u, v)$ are large).
+                An approach to estimate this is to introduce a multi-scale / multi-resolution framework.
+                The idea is that the motion will look small in a downsampled resolution, even when it is large in the original resolution.
+                For example, a displacement of 8 pixels becomes a displacement of 1 pixel at scale 4 (where the image has been downsampled by a factor of 8).
+                An image pyramid is a multi-scale representation of an image, where the first layer (scale 1) is the original resolution.
+                The next layer above is downsampled by a factor of 2 (scale 2), and the image after is another factor of 2 (hence scale 3 being downsampled by a factor of 4 overall).
+                \medskip
+
+                Using two pyramids, for two consecutive frames, the flow is estimated from the coarsest resolution (highest scale) downwards.
+                After this is done, incremental flow is estimated on the the next resolution; the final flow field is obtained by summing all incremental flows.
+                \medskip
+
+                For example, assume we obtain an estimate $u^{(4)}, v^{(4)}$ for images $I$ and $J$ at scale 4.
+                This becomes $2u^{(4)}, 2v^{(4)}$ at scale 3 (the initial values).
+                Then incremental flow is calculated for the two following images;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $I(x, y)$ at time $t$
+                    \item $J_\text{warped} = J(x + 2u^{(4)}, y + 2v^{(4)})$ at time $t + 1$
+                \end{itemize}
+                This is then accumulated.
+                \medskip
+
+                The multi-scale Lucas-Kanade method is as follows, where the following is done for each scale $l$ (from coarse to fine);
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item upsample flow estimate from previous scale
+                        \begin{align*} % check this?
+                            u^{(l - 1)} & = 2u^{(l - 1)} \\
+                            v^{(l - 1)} & = 2v^{(l - 1)}
+                        \end{align*}
+                    \item compute warped image
+                        $$J_\text{warped}^l = J^l(x + u^{(l - 1)}, y + v^{(l - 1)})$$
+                    \item compute $I_x, I_y, I_t$ for image $I^l$ and $J_\text{warped}^l$ at this scale; $I_x, I_y$ are computed from $I^l$
+                        $$I_t = J_\text{warped}^l(x + u^{(l - 1)}, y + v^{(l - 1)}) - I^l(x, y)$$
+                    \item estimate incremental flow
+                        $$\begin{bmatrix}
+                            u^\delta \\ v^\delta
+                        \end{bmatrix} = \left(\mat{A}^\top\mat{A}\right)^{-1}\mat{A}^\top\vec{b}$$
+                    \item update flow at this scale
+                        \begin{align*}
+                            u^{(l)} & = u^{(l - 1)} + u^\delta \\
+                            v^{(l)} & = v^{(l - 1)} + v^\delta
+                        \end{align*}
+                \end{enumerate}
+            \subsubsection*{Horn-Schunck Method}
+                This is an optimisation-based method, defining a global energy functional (a cost function) for the flow.
+                Note that we still have the optic flow constraint equation, however this defines a global energy functional for all the pixels, rather an solving the constraint for each pixel as in Lucas-Kanade;
+                $$E(u, v) = \iint\limits_{(x, y) \in \Omega} \underbrace{(I_x u + I_y v + I_t)^2}_\text{(1)} + \underbrace{\alpha(|\nabla u|^2 + |\nabla v|^2)}_\text{(2)} \mathrm{d}x\mathrm{d}y$$
+                Note that (1) relates to the optic flow constraint equation, as we want to minimise it (thus bringing it close to 0).
+                On the other hand (2) is a smoothness term; minimising the gradients for $u$ and $v$, thus minimising the change between adjacent vectors in both $u$ and $v$ (leading to neighbouring pixels having similar values).
+                Together, this aims to enforce the optic flow constraint, and achieve a smooth flow field.
+                This is integrated over all pixels in image $\Omega$.
+                Note that $u = u(x, y)$ and $v = v(x, y)$, which are unknown \textbf{functions} defined on the image pixels.
+                \medskip
+
+                A function is a mapping from a variable to a value, such as $f(x) = x^2$ (mapping a variable $x$ to a value).
+                This can be minimised with regard to $x$;
+                $$\min_x f(x)$$
+                On the other hand, a functional is a mapping from a function to a value, such as $E(f) = \int f(x) \mathrm{d}x$.
+                This can be minimised with regard to $f$;
+                $$\min_f E(f)$$
+                If $L(x, y, u, u_x, u_y)$ is the integrand (term inside integral) of the energy, minimising the functional comes down to solving the associated Euler-Lagrange equation (outside the scope of this course);
+                \begin{align*}
+                    \pdif{L}{u} - \pdif{}{x}\pdif{L}{u_x} - \pdif{}{y}\pdif{L}{u_y} & = 0 \\
+                    \pdif{L}{v} - \pdif{}{x}\pdif{L}{v_x} - \pdif{}{y}\pdif{L}{v_y} & = 0
+                \end{align*}
+                Therefore we have the following (note that $\Delta$ is the Laplace operator, $\Delta := \partial_{xx} + \partial_{yy}$ - the sum of the second order derivatives);
+                \begin{align*}
+                    (I_x u + I_y v + I_t) I_x - \alpha\Delta u = 0 \\
+                    (I_x u + I_y v + I_t) I_y - \alpha\Delta v = 0
+                \end{align*}
+                However, the Laplacian can be approximated using finite differences, where we have $\bar{u}$ being the local average in a small region (this is shown in the slides);
+                $$\Delta u = \bar{u} - u$$
+                Plugging this into the above, we can obtain the following (after reorganising), giving an equation system for $u$ and $v$;
+                \begin{align*}
+                    (I_x^2 + \alpha)u + I_x I_y v & = \alpha \bar{u} - I_x I_t \\
+                    I_x I_y u + (I_y^2 + \alpha)v & = \alpha \bar{v} - I_y I_t
+                \end{align*}
+                This can be solved to obtain the following, which allows us to estimate $u, v, \bar{u}, \bar{v}$ iteratively (with $u$ starting at 0, giving an estimate for $\bar{u}$, which can be used to estimate $u$, and so on);
+                \begin{align*}
+                    u & = \bar{u} - \frac{I_x(I_x \bar{u} + I_y \bar{v} + I_t)}{I_x^2 + I_y^2 + \alpha} \\
+                    v & = \bar{v} - \frac{I_y(I_x \bar{u} + I_y \bar{v} + I_t)}{I_x^2 + I_y^2 + \alpha}
+                \end{align*}
+                The implementation of the method is as follows;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item compute the gradients $I_x, I_y, I_t$
+                    \item initialise the flow field $u = 0$ and $v = 0$
+                    \item for each iteration $k$
+                        \begin{enumerate}[a.]
+                            \itemsep0em
+                            \item calculate the average flow field
+                                $$\bar{u}^{(k)}, \bar{v}^{(k)}$$
+                            \item update the flow field
+                                \begin{align*}
+                                    u^{(k + 1)} & = \bar{u}^{(k)} - \frac{I_x(I_x \bar{u}^{(k)} + I_y \bar{v}^{(k)} + I_t)}{I_x^2 + I_y^2 + \alpha} \\
+                                    v^{(k + 1)} & = \bar{v}^{(k)} - \frac{I_y(I_x \bar{u}^{(k)} + I_y \bar{v}^{(k)} + I_t)}{I_x^2 + I_y^2 + \alpha}
+                                \end{align*}
+                        \end{enumerate}
+                    \item terminate if change of the value is smaller than a threshold / maximum number of iterations reached
+                \end{enumerate}
+            \subsubsection*{Learning-Based Flow Methods}
+                Recently, learning-based flow methods have become popular, where a CNN takes in an input (which is two frames of an image, at times $t$ and $t + 1$), and outputs a flow field.
+                A flow field can be visualised with a displacement vector (an arrow) at each pixel.
+                Another approach is to use the colour wheel, where the hue denotes the flow orientation, and the saturation denotes the flow magnitude (less saturated for low magnitude).
+                \medskip
+
+                The ground truth for optic flow fields can be generated with external data, or by generating synthetic data.
+                The former can be done by projecting movements between 3D point clouds onto a 2D image plane.
+                Another approach is to generate images by moving and rendering 3D objects, where we know the ground truth flow field.
+                \medskip
+
+                The average end-point error ($EE$) can be used to evaluate the performance of a method, if the ground truth is available, by using the difference between displacement vectors;
+                $$EE = \frac{1}{N} \summation{x, y}{} \sqrt{(u(x, y) - u_{GT}(x, y))^2 + (v(x, y) - v_{GT}(x, y))^2}$$
+                Another method is to warp image $I$ to frame $J$, using the estimated flow field.
+                If the field is accurate, the images should be almost identical (which can be quantified by calculating the MSE between $I$ and $J$).
 \end{document}
