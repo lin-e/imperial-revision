@@ -2699,5 +2699,78 @@
                     \item session should expire or have less access after some idle time
                 \end{itemize}
             \subsubsection*{Browser Fingerprinting}
+                The purpose of browser fingerprinting is to recognise the same browser instance (a particular browser on a particular device) across website visits.
+                This can be used for authentication (such as notifications when logging in from a new device), authorisation (preventing session hijacking), access control (restricting access to a particular device), as well as tracking.
+                \medskip
+
+                Passive fingerprinting cannot be detected by a client and is based on information the client offers to the server - this includes the ciphersuite available to the client, IP addresses, and various headers (such as ~User-Agent~, ~Accept~, ~Accept-Encoding~, and ~Accept-Language~ directly revealing information).
+                This does not affect the target, but can only obtain information exposed by the target.
+                \medskip
+
+                Active fingerprinting is based on deploying JavaScript on the client and running checks, or by using the plugins on the client.
+                This can include techniques such as checking the fonts, installed plugins, time-zone, screen properties (resolution, colour depth, etc.), and looking at ~<canvas>~ element which expose GPU / graphic drivers.
+                This can be detected and prevented, and can also disrupt the target, but can gather more information.
+                \medskip
+
+                Commercial fingerprinting is provided by some private companies, mostly to marketers.
+                \medskip
+
+                A key trade-off is precision (a good fingerprint should be different for any two devices) versus stability (should not change over time).
+                Embedding more attributes leads to more precision, but will decrease stability.
+                A fingerprint is a set of attributes, and once this is known, a hash can be used to reduce traffic (if the fingerprint is stable).
+                If there is a minor increase in the version of the browser / OS, and all other attributes remain the same, we can likely conclude that it is the same device.
+                \medskip
+
+                We can obtain entropy statistics representing the uniqueness of the browser (for example, if we have an uncommon browser or screen resolution, it may reveal more).
+                Note that these statistics aren't typically representative; for example, these sites are likely to be more frequently accessed by privacy-conscious users.
+                Some features may also be highly correlated; for example screen size and operating system.
+                \medskip
+
+                Some users may want to fight fingerprinting, either for privacy reasons, or to commit crime (avoiding detection).
+                Special browsers can be used, such as \textit{Tor}, or to use specific extensions, options, or proxies.
+                Known fingerprinters can be blacklisted, which is done automatically, or HTTP requests could be rewritten to hide sensitive information, or plugins / JavaScript could be disabled.
+                However, these solutions may affect the browsing experience.
+                A target could be mimicked by spoofing information to report the fingerprinting of a target system.
+                Similarly, information could be spoofed to report a common fingerprint.
+                Another approach could be to destabilise the fingerprint, by reporting some attributes differently (leading to unique results to the fingerprinter, causing instability).
+                \begin{center}
+                    \begin{tabular}{|c|c|c|c|}
+                        \hline
+                        \textbf{attack point} & \textbf{entropy} & \textbf{defence} & \textbf{how} \\
+                        \hline
+                        user-agent string & H & spoof & modify BOM navigator \\
+                        plugins & H & spoof / randomise / disable flash & modify BOM navigator \\
+                        fonts & H & spoof / randomise / disable flash & modify ~offsetHeight~/~Width~ \\
+                        HTTP accept header & H & spoof & ~Chrome.webRequest~ API \\
+                        screen resolution & M / L & spoof & modify BOM screen \\
+                        ~DoNotTrack~ & M / L & spoof & modify BOM navigator \\
+                        language & M / L & spoof & modify BOM navigator \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                Note that modifying the user agent string should be done consistently between the HTTP headers and the BOM navigator object.
+                An example of the fonts spoofing is as follows (note that we essentially perform prototype poisoning);
+                \begin{lstlisting}
+                    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
+                        ...
+                        get: function() {
+                            return this.clientWidth + (getRandomInt(-5, 5) / 100) * this.clientWidth;
+                        },
+                        set: function(val) {
+                            this.setAttribute('offsetWidth', val);
+                        }
+                    });
+                \end{lstlisting}
+                There are a number of techniques, but they often come at the cost of usability.
+                \medskip
+
+                There is an arms race between a fingerprinter and an `attacker' (someone who is attempting to avoid fingerprinting).
+                Robustness becomes another parameter to choose attributes (difficult to spoof, or if spoofed, will lead to too much tradeoff).
+                For example, network latency can be spoofed by introducing an artificial delay, or reducing the screen size (both of which harm the browsing experience).
+                \medskip
+
+                The attacker needs to avoid inconsistencies in the data (HTTP headers need to be consistent with DOM), and implausible configurations should be avoided (large screen size on an phone OS).
+                Note that the presence of anti-fingerprinting behaviour can also be treated as a fingerprintable feature - libraries now include code to detect spoofing attempts.
+                Attackers also need to avoid spoofing results to legitimate requests, in order to not affect user experience (such as only spoofing when called by specific code).
             \subsubsection*{Web User Tracking}
 \end{document}
