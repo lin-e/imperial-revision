@@ -3104,4 +3104,170 @@
                     {N \choose i} & = \frac{N!}{(N - i)!i!}
                 \end{align*}
                 Note that with $N = 3$ (4 points), it expands to a cubic polynomial.
+        \subsection*{Lecture 13 - Splines II}
+            \subsubsection*{Non-Parametric Surfaces}
+                A non-parametric surface can be constructed from Cartesian equations directly, for example, given a certain $x, z$ coordinate, we can determine a $y$ coordinate.
+                These have the same problems as non-parametric splines.
+                \medskip
+
+                Since there are 9 scalar unknowns (due to symmetry) in the following, we need to specify 9 points in which the surface needs to pass through;
+                $$\begin{bmatrix}
+                    x & y & z & 1
+                \end{bmatrix} \begin{bmatrix}
+                    a & b & c & d \\
+                    b & e & f & g \\
+                    c & f & h & j \\
+                    d & g & j & 1
+                \end{bmatrix} \begin{bmatrix}
+                    x \\y \\ z \\ 1
+                \end{bmatrix} = 0$$
+                This multiplies out to $ax^2 + ey^2 + hz^2 + 2bxy + 2cxz + 2fyz + 2dx + 2gy + 2jz + 1 = 0$.
+            \subsubsection*{Parametric Surfaces}
+                This can be extended as follows, using the following vector equation, where we have 6 unknown parameter vectors;
+                $$\vec{P}(\mu, \nu) = \begin{bmatrix}
+                    \mu & \nu & 1
+                \end{bmatrix} \begin{bmatrix}
+                   \vec{a} & \vec{b} & \vec{c} \\
+                   \vec{b} & \vec{d} & \vec{e} \\
+                   \vec{c} & \vec{e} & \vec{f}
+                \end{bmatrix} \begin{bmatrix}
+                    \mu \\ \nu \\ 1
+                \end{bmatrix} = \vec{a}\mu^2 + \vec{d}\nu^2 + 2\vec{b}\mu\nu + 2\vec{c}\mu + 2\vec{e}\nu + \vec{f}$$
+                Two parameters are needed to represent the two degrees of freedom (forwards, backwards, left, and right).
+                \medskip
+
+                For the 6 unknown parameter vectors, we require 6 support points.
+                An example of how they can be arranged is as follows;
+                \begin{center}
+                    \begin{tabular}{|c|cccccc|}
+                        \hline
+                        & $\vec{P_0}$ & $\vec{P_1}$ & $\vec{P_2}$ & $\vec{P_3}$ & $\vec{P_4}$ & $\vec{P_5}$ \\
+                        \hline
+                        $\mu$ & 0 & 0 & 1 & 1 & $\frac{1}{2}$ & $\frac{1}{2}$ \\
+                        $\nu$ & 0 & 1 & 0 & 1 & 0 & 1 \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+                Using these values in the equation above, we obtain the following (which can be used to solve for the unknowns, since the $\vec{P}$s are known);
+                \begin{align*}
+                    \vec{P_0} & = \vec{f} \\
+                    \vec{P_1} & = \vec{d} + 2\vec{e} + \vec{f} \\
+                    \vec{P_2} & = \vec{a} + 2\vec{c} + \vec{f} \\
+                    \vec{P_3} & = \vec{a} + 2\vec{b} + 2\vec{c} + \vec{d} + 2\vec{e} + \vec{f} \\
+                    \vec{P_4} & = \frac{1}{4}\vec{a} + \vec{c} + \vec{f} \\
+                    \vec{P_5} & = \frac{1}{4}\vec{a} + \vec{b} + \vec{c} + \vec{d} + 2\vec{e} + \vec{f}
+                \end{align*}
+                Since $\mu, \nu \in [0, 1]$, the bounding contours can be found by substituting $0$ or $1$ for either of these parameters, allowing us to define 4 splines;
+                \begin{align*}
+                    \vec{P}(0, \nu) & = \vec{d}\nu^2 + 2\vec{e}\nu + \vec{f} \\
+                    \vec{P}(1, \nu) & = \vec{a} + 2(\vec{b} + \vec{e})\nu + 2\vec{c} + \vec{d}\nu^2 + \vec{f} \\
+                    \vec{P}(\mu, 0) & = \vec{a}\mu^2 + 2\vec{c}\mu + \vec{f} \\
+                    \vec{P}(\mu, 1) & = \vec{a}\mu^2 + 2(\vec{b} + \vec{c}) + \vec{d} + 2\vec{e} + \vec{f}
+                \end{align*}
+                This can be extended to higher orders, giving more variety in shape and control, such as with the tensor product;
+                $$\vec{P}(\mu, \nu) = \begin{bmatrix}
+                    \mu^3 & \mu^2 & \mu & 1
+                \end{bmatrix} \begin{bmatrix}
+                    \vec{a} & \vec{b} & \vec{c} & \vec{d} \\
+                    \vec{b} & \vec{e} & \vec{f} & \vec{g} \\
+                    \vec{c} & \vec{f} & \vec{h} & \vec{j} \\
+                    \vec{d} & \vec{g} & \vec{j} & \vec{k}
+                \end{bmatrix} \begin{bmatrix}
+                    \nu^3 \\ \nu^2 \\ \nu \\ 1
+                \end{bmatrix}$$
+            \subsubsection*{Cubic Spline Patches}
+                Generally, it is more effective to create complex surfaces with a patch method, by joining a lot of simple surfaces continuously.
+                For simplicity, bind $\mu$ and $\nu$ to the $x, z$ plane.
+                At each corner, we need to interpolate the points, and also set the gradients $\pdif{y}{x}$ and $\pdif{y}{z}$ to match the adjacent patch.
+                \medskip
+
+                The partial derivatives are done in the same way as the derivatives before, by taking the central difference (but in both directions).
+                The following three values need to be matched at each corner;
+                \begin{center}
+                    \hfill $\vec{P}(\mu, \nu)$
+                    \hfill $\dfrac{\partial\vec{P}(\mu, \nu)}{\partial\mu}$
+                    \hfill $\dfrac{\partial\vec{P}(\mu, \nu)}{\partial\nu}$
+                    \hfill \phantom{}
+                \end{center}
+                It is sufficient to work out these values for just the corners (rather than an entire edge).
+                As usual, we adopt the convention that the corners have parameter values $(0, 0)$, $(0, 1)$, $(1, 0)$, and $(1, 1)$.
+                \medskip
+
+                In the diagram below, we can see how the splines join points;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=2cm]
+                        \node[rbtb] (pij1) at (0, 0) {};
+                        \node[rbtb] (pi1j1) at (2, -1.5) {};
+                        \node[rbtb] (pij) at (-1, -1.5) {};
+                        \node[rbtb] (pi1j) at (1, -2) {};
+                        \draw
+                        (pij1) edge[bend left=30, right] node{$\vec{P}(\mu, 1)$} (pi1j1)
+                        (pij) edge[bend left=10, below] node{$\vec{P}(\mu, 0)$} (pi1j)
+                        (pij) edge[bend left=20, left] node{$\vec{P}(0, \nu)$} (pij1)
+                        (pi1j) edge[bend right=20, right] node{$\vec{P}(1, \nu)$} (pi1j1);
+                        \node at ($(pij) + (-0.25, -0.25)$) {$\vec{P_{i, j}}$};
+                        \node at ($(pi1j) + (0, -0.25)$) {$\vec{P_{i + 1, j}}$};
+                        \node at ($(pi1j1) + (0.5, 0)$) {$\vec{P_{i + 1, j + 1}}$};
+                        \node at ($(pij1) + (0, 0.25)$) {$\vec{P_{i, j + 1}}$};
+                    \end{tikzpicture}
+                \end{center}
+                In 2D, we can establish a relationship between the bounding splines and the surface parameterisation - we can use the parameters to blend splines together.
+                The Coons patch defines internal points by linear interpolation of the edge curves;
+                $$\displaylines{
+                    \vec{P}(\mu, \nu) = \vec{P}(\mu, 0)(1 - \nu) + \vec{P}(\mu, 1)\nu + \vec{P}(0, \nu)(1 - \mu) + \vec{P}(1, \nu)\mu - \cr
+                    \underbrace{\vec{P}(0, 1)(1 - \mu)\nu - \vec{P}(1, 0)\mu(1 - \nu) - \vec{P}(0, 0)(1 - \mu)(1 - \nu) - \vec{P}(1, 1)\mu\nu}_\text{subtract corners}
+                }$$
+                To render a spline patch, it can be transformed into polygons by selecting a grid of points, such as $\mu = {0.0, 0.1, 0.2, \dots, 1.0}$ (and same for $\nu$), and triangulate to that grid.
+                For speed, we can use large polygons and apply Gouraud / Phong shading.
+                For accuracy however, we can use smaller polygons chosen to match the pixel size.
+                We can perform the polygonisation at runtime, and modify the parameters depending on the factors such as the distance from the camera.
+                \medskip
+
+                There is no closed form solution for performing ray casting on patches (since the patch equation is fourth order).
+                Ray marching can be used as a numerical approximation (by performing testing), however, this is expensive to run.
+                \medskip
+
+                A numerical ray-patch algorithm involves the following;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item polygonise the patch at a low resolution, such as $4 \times 4$
+                    \item calculate ray intersection with the 32 triangles, and find the closest intersection
+                    \item polygonise the immediate area of the intersection to calculate a better estimate
+                    \item continue until best estimate found
+                \end{enumerate}
+                This may be multiple intersections between the ray and surface, therefore an intersection found may not necessarily be the nearest (hence it will be necessary to do a ray intersection with each patch).
+                This should work well in most cases, if the object is relatively smooth.
+            \subsubsection*{Example Question}
+                A terrain map defined on an $x, y$ grid is as follows, and we want to determine the Coons patch on the four centre points;
+                \begin{center}
+                    \begin{tabular}{cc|cccc}
+                        & \multicolumn{5}{c}{$y, \nu \rightarrow$} \\
+                        & & 3 & 4 & 5 & 6 \\
+                        \cline{2-6}
+                        & 8 & $\cdot$ & \red{10} & 9 & $\cdot$ \\
+                        \cline{4-5}
+                        $x, \mu$ & 9 & 14 & \multicolumn{1}{|c}{12} & \multicolumn{1}{c|}{11} & 10 \\
+                        $\downarrow$ & 10 & 15 & \multicolumn{1}{|c}{\blue{13}} & \multicolumn{1}{c|}{14} & 10 \\
+                        \cline{4-5}
+                        & 11 & $\cdot$ & 10 & 11 & $\cdot$
+                    \end{tabular}
+                \end{center}
+                The corners are defined directly in the question;
+                \begin{align*}
+                    \vec{P}(0, 0) & = (9, 4, 12) \\
+                    \vec{P}(0, 1) & = (9, 5, 11) \\
+                    \vec{P}(1, 0) & = (10, 4, 13) \\
+                    \vec{P}(1, 1) & = (10, 5, 14)
+                \end{align*}
+                We can then determine gradients as follows, for example;
+                $$\left.\pdif{\vec{P}}{\mu}\right|_{(0, 0)} = \frac{\blue{\begin{bmatrix}
+                    10 \\ 4 \\ 13
+                \end{bmatrix}} - \red{\begin{bmatrix}
+                    8 \\ 4 \\ 10
+                \end{bmatrix}}}{2} = \begin{bmatrix}
+                    1 \\ 0 \\ \frac{3}{2}
+                \end{bmatrix}$$
+                This just needs to be done for all four corners for $\mu$ and for $\nu$.
+                These values can then be put into the cubic spline patch equation (with the precomputed matrix), allowing us to work out a single boundary curve.
+                Once done for the remaining boundary curves, it can be blended together.
 \end{document}
