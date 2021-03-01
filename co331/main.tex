@@ -2773,4 +2773,68 @@
                 Note that the presence of anti-fingerprinting behaviour can also be treated as a fingerprintable feature - libraries now include code to detect spoofing attempts.
                 Attackers also need to avoid spoofing results to legitimate requests, in order to not affect user experience (such as only spoofing when called by specific code).
             \subsubsection*{Web User Tracking}
+                Examples of web tracking include keeping information about the user (either implicitly or explicitly), such as choosing preferences, as well as having a profile on a page.
+                Preferences, demographic data, and browsing history are collected by marketers to profile users for advertising.
+                Similarly, user presence online (on different devices) is correlated by law enforcement to identify individuals.
+                \medskip
+
+                First party trackers are iframes and scripts from the same origin as the website visited.
+                On the other hand, third party trackers are typically not related to the website visited, and are included in cross-domain iframes and resources.
+                These learn about your behaviour by being included by the host.
+                Tracking can happen across devices, when logging in to the same profile on different devices.
+                Browsing patterns can be also be used to identify a user (when the patterns are similar on a desktop as well as on mobile).
+                \medskip
+
+                The browser supports tracking via cookies (in order to store information in the browser about the user).
+                For example, two pages may include advertising iframes, both of which are from the same site; ~src=http://tracker.com/ad.html~.
+                The processing engine at ~tracker.com~ will know that a user has visited both sites as it receives both requests.
+                However, the interesting tracking information may also be copied to another tracker, which will also know about the user in the same way that the original tracker does.
+                With this tracking network, the browsing history (on sites with advertisements) can effectively be reconstructed.
+                \medskip
+
+                Besides cookies, trackers can use a number of other tricks to store information in the browser;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{supercookies} \hfill other storage (HTML storage / plugin storage)
+                    \item \textbf{cached resources}
+                        \smallskip
+
+                        The server could tell the browser to cache a script ~track.js?uid=123~ (append a tracking identifier) - telling it to keep it only on the local cache for a long amount of time.
+                        The script saves the state to a variable in the script, and other pages loading the same script will have the same value in the variable store.
+                        The resource name can be changed to force a cache miss to reset the state.
+                    \item \textbf{cache headers}
+                        \smallskip
+
+                        The ~ETag~ header (intended for cache validation) could be used as a simplified cookie, where the tracking ID is put in this header.
+                        Similar request / response header pairs can be used.
+                \end{itemize}
+                Trackers can send information back to the server in a number of ways;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{explicit HTTP} \hfill AJAX, loading of resources, etc.
+                    \item \textbf{implicit HTTP}
+                        \smallskip
+
+                        W3C beacons are used to perform asynchronous and non-blocking delivery of data to minimise resource contention; ~navigator.sendBeacon('/collector', data);~.
+                        Opening a new tab in Chrome sends a ~new\_tab~ request to Google.
+                        The search bar sends a request for each character typed.
+                        Pre-rendering is done when the browser loads links on the current page, to improve loading times.
+                    \item other plugins \hfill possibly using sockets
+                \end{itemize}
+                Even if cookies are deleted, other saved tracking data (mentioned above) can be used to bring them back (cookie respawning / zombie cookies).
+                Even if the cache is cleared, as well as local and session storage, Flash cookies (LSOs) can be used to respawn them (and since LSOs can be shared by Flash instances, cookies can migrate across browsers).
+                If a fingerprint is precise enough, it can be used to respawn tracking data, even if all the data was reset.
+                \medskip
+
+                There is a ~DoNotTrack~ header, which is more a preference rather than a protection.
+                This is mostly interpreted as to not \textbf{target} the user based on collected data, however data is still collected by the tracker.
+                The ~Referrer-Policy~ header can be set to prevent cross-domain referrer leaks.
+                Since tracking is generally profitable, it's unlikely that the servers will provide protections, therefore client-side protection is better.
+                \medskip
+
+                Private browsing prevents persistent state between browsing sessions, however fingerprinting can still be used, as well as other side-channels.
+                Browser-based countermeasures include blocking third party cookies, however a third party iframe can still open a popup, which would set a first party cookie.
+                Plugins can also disabled (such as Flash, which is no longer supported), as well as disabling JavaScript (however this will damage the user experience).
+                Browsers are now including tracking defences as a selling point.
+                \textit{Safari}'s \textit{Intelligent Tracking Prevention} is the most complex, which analyses URL parameters to controls cookies, local storage lifetime, and scope.
 \end{document}
