@@ -1093,5 +1093,123 @@
                 \end{enumerate}
                 Typically, we assign $U$ (the log ratio) a constant value, such as $5$ (a constant positive value) for cells at the end of the beam (distance of the cell is approximately the measured depth), and $-2$ (a constant negative value) for cells inside the beam (cell is closer than the measured depth).
                 This will gradually converge.
-        \subsection*{Lecture 7 - SLAM}
+        \subsection*{Lecture 7 - SLAM (Simultaneous Localisation and Mapping)}
+            SLAM can be formally defined as a body (robot) with quantitative sensors (cameras / odometry) moving through a previously unknown, static environment, mapping it and calculating its egomotion.
+            This is needed when the robot must be truly autonomous, little is known about the environment, when we can't place artificial beacons, and when the robot actually needs to know where it is (for example, a robot vacuum may not need SLAM as it can eventually reach all of the room with bounces).
+            \medskip
+
+            SLAM is uncertain of the position of the robot and observes the world through sensors.
+            In MCL, we were given a map of the environment, which we don't have here.
+            Features are values in the robot's memory that can represent the shape of the world (such as corners in the scene).
+            Ideally we have a finite set of features that can be observed from different viewpoints in order to localise the robot's position.
+            \subsubsection*{Propagating Uncertainty}
+                Since we need to map and localise, it seems like a chicken and egg problem; however, we can make progress if we assume the robot is the only thing moving (the world is static).
+                Note that both the map and the location are uncertain.
+                We extend probabilistic estimation to the features of the map; a joint distribution over the states of both the mapped world and the robot, which is gradually updated over time.
+                Instead of just estimating the uncertain position of the robot, we also estimate the uncertain position of features in the scene.
+                \medskip
+
+                In SLAM, we don't have a coordinate frame, therefore we typically denote the starting position of the robot as the origin.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \draw (0, 0) -- (10, 0) -- (10, 8) -- (0, 8) -- cycle;
+                        \node[rbtb] (a) at (3, 1) {};
+                        \node[rbtb] (b) at (2, 7) {};
+                        \node[rbtb] (c) at (9, 6.5) {};
+                        \draw[dashed, violet] (a) circle (0.5);
+                        \node[spos] (r0) at (5, 1.5) {};
+                        \draw (r0) edge[dashed, violet, -latex] (a);
+                        \node[spos] (r1) at (5, 4) {};
+                        \draw (r0) edge[teal, bend left=30, -latex] (r1);
+                        \draw[dashed, teal] (r1) circle (1);
+                        \draw[dashed, blue] (b) circle (1.5);
+                        \draw[dashed, blue] (c) circle (1.5);
+                        \draw
+                        (r1) edge[dashed, blue, -latex] (b)
+                        (r1) edge[dashed, blue, -latex] (c);
+                        \node[spos] (r2) at (5.5, 2) {};
+                        \draw (r1) edge[red, bend left=30, -latex] (r2);
+                        \draw[dashed, red] (r2) circle (1.5);
+
+                        \draw[dashed, black!33] (b) circle (1);
+                        \draw[dashed, black!33] (c) circle (1);
+                        \draw[dashed, black!33] (r2) circle (0.75);
+                        \draw (r2) edge[dashed, black!33, -latex] (a);
+
+                        \draw[dashed, black!66] (a) circle (0.4);
+                        \draw[dashed, black!66] (b) circle (0.75);
+                        \draw[dashed, black!66] (c) circle (0.75);
+                        \draw[dashed, black!66] (r2) circle (0.5);
+                        \draw (r2) edge[dashed, black!66, -latex] (b);
+
+                        \node at ($(a) + (0, 0.5)$) {$A$};
+                        \node at ($(b) + (0, 0.5)$) {$B$};
+                        \node at ($(c) + (0, 0.5)$) {$C$};
+                    \end{tikzpicture}
+                \end{center}
+                Looking at the diagram above, we can observe the following steps;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \violet{(violet)} - the robot starts with no uncertainty, and observes landmark $A$ with some uncertainty (due to sensor variance) and acknowledges this (possibly represented with a point cloud, or similar)
+                    \item \teal{(teal)} - the robot drives forward (assume blindly) with some odometry, but we know there is some error; the uncertainty in the position of the robot grows
+                    \item \blue{(blue)} - the robot observes new landmarks $B$ and $C$, which has some sensor variance and also inherits the uncertain position of the robot (hence the uncertainty is the sum of the robot's position, and some sensor error) - however, note that the positions relative to each other ($B$, $C$, and the robot) are well known, but has higher global uncertainty due to the robot
+                    \item \red{(red)} - robot drives back (once again, assume blindly) towards start; the uncertainty grows even further
+                    \item \textcolor{black!33}{(light grey)} - the robot remeasures $A$ (causing a loop closure); importantly $A$ has very little uncertainty, and by observing it, we can reduce the robot's uncertainty - another important point is that due to the correlation between the position of the robot and the points $B$ and $C$, the uncertainty in the two other points also reduce
+                    \item \textcolor{black!66}{(dark grey)} - the robot remeasures $B$, note that the uncertainties of $C$ and $A$ also shrink
+                \end{enumerate}
+                Note that the uncertainty in the position of the landmarks will reduce, but the uncertainty in the position of the robot may fluctuate with movement.
+                With enough time moving around the scene, the landmarks should eventually converge and we have known locations - meaning we have a situation similar to MCL where the only uncertainty is the position of the robot.
+            \subsubsection*{Joint Gaussian Uncertainty}
+                We assume all measurements are reasonably well characterised by Gaussian distributions.
+                The Extended Kalman Filter is a non-linear version of a Kalman Filter.
+                \medskip
+
+                We have a state vector $\hat{\vec{x}}$ which represents all the things we're interested in estimating, for example $\hat{\vec{x_v}}$ (the coordinates of the robot), and the coordinates of all the features / landmarks $\hat{\vec{y_1}}, \hat{\vec{y_2}}, \dots$ - this may be a \textbf{long} state vector (for instance, the robot may be 3 parameters, and each of the features are 3D point positions - hence we'd have a total of 303 elements if we had 100 features), representing the mean / `single best estimate';
+                $$\hat{\vec{x}} = \begin{bmatrix}
+                    \hat{\vec{x_v}} \\
+                    \hat{\vec{y_1}} \\
+                    \hat{\vec{y_2}} \\
+                    \vdots
+                \end{bmatrix}$$
+                We also have a covariance matrix, which has the same dimension (therefore we'd have a $303 \times 303$ in our previous example).
+                Note that the off-diagonal blocks represent the correlation information (the diagonals are similar to the matrices we made in the first lab assignment) - for example $\mat{P_{\vec{x_v}, \vec{y_2}}}$ represents the correlation of our estimate of the robot's position with the estimate of the position of landmark 2.
+                $$\mat{P} = \begin{bmatrix}
+                    \mat{P_{\vec{x_v}, \vec{x_v}}} & \mat{P_{\vec{x_v}, \vec{y_1}}} & \mat{P_{\vec{x_v}, \vec{y_2}}} & \cdots \\
+                    \mat{P_{\vec{y_1}, \vec{x_v}}} & \mat{P_{\vec{y_1}, \vec{y_1}}} & \mat{P_{\vec{y_1}, \vec{y_2}}} & \cdots \\
+                    \mat{P_{\vec{y_2}, \vec{x_v}}} & \mat{P_{\vec{y_2}, \vec{y_1}}} & \mat{P_{\vec{y_2}, \vec{y_2}}} & \cdots \\
+                    \vdots & \vdots & \vdots & \ddots
+                \end{bmatrix}$$
+            \subsubsection*{SLAM with Single Camera}
+                The most useful features are point landmarks.
+                If there are a set of landmarks in the (3D) world, they will project into different positions depending on the location of the camera.
+                We typically use the image position of landmarks, and as the camera moves around, the image positions change - giving us information both about how the camera is moving as well as the 3D structure of the map.
+                \medskip
+
+                \textit{MonoSLAM} has the goal of building a map of the scene with a single camera.
+                In 3D space, texture patches represent each landmark.
+                These patches will start with higher uncertainty when initialised (depth uncertainty), which will reduce as it's observed more frequently.
+                \medskip
+
+                This idea is used in consumer products, such as robot vacuums, \textit{ARKit} / \textit{ARCore} in iOS / Android respectively, as well as headsets (such as \textit{Oculus}).
+            \subsubsection*{Limitations}
+                The technique of having a joint probabilistic state for everything doesn't extend to all problems we're interested in.
+                Some issues include the size of the computation (with regards to the state vector, as well as the large covariance matrix), which increases further with more landmarks (becoming impossible to update).
+                When the uncertainty becomes too large, it becomes difficult to obtain the positions accurately.
+                \medskip
+
+                The key idea is to make a large map out of a set of local tiles.
+                Locally, we perform the joint estimation previously mentioned, but at some point, once the map becomes `large' enough, we save the map as a tile and start making a new tile.
+                Each of these tiles are relatively accurate, and we store a relative position of this tile.
+                However, note that when more tiles are built, the incremental uncertainty between tiles will increase (for example, once we perform this around a building, we may end up back where we start, but we've estimated a different location).
+                We need to add a place recognition component, which allows us to check if we're at a previously visited location (similar to signature recognition).
+                If we determine that we're back to a previous position, we can perform some global optimisation which pulls the tiles together to make it globally consistent; this is \textbf{loop closure}.
+                \medskip
+
+                SLAM can be \textbf{purely topological}, with a graph-based representation by only using place recognition.
+                A record of visited places is kept (as well as how they connect together).
+                \medskip
+
+                When two places are close together (according to the recognition component), we can update the metric map (which has incorrect drift) using \textbf{pose graph optimisation / relaxation}.
+                Essentially, if we have some particular estimate of the nodes (when we end a tile) in the map (at a particular time), we want to determine the likelihood of the relative measurements that we've made.
+                We want the measurements that are most likely, given the new information that two nodes are close together.
 \end{document}
