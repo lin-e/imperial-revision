@@ -3040,4 +3040,117 @@
                 $$EE = \frac{1}{N} \summation{x, y}{} \sqrt{(u(x, y) - u_{GT}(x, y))^2 + (v(x, y) - v_{GT}(x, y))^2}$$
                 Another method is to warp image $I$ to frame $J$, using the estimated flow field.
                 If the field is accurate, the images should be almost identical (which can be quantified by calculating the MSE between $I$ and $J$).
+        \subsection*{Lecture 19 - Motion II}
+            For object tracking, we don't care about the movement for each pixel, but rather the displacement vector for each bounding box.
+            \subsubsection*{Lucas-Kanade Tracker}
+                We use the same assumptions we made in optic flow, of constant brightness and small motion.
+                It aims to estimate the motion from the \textbf{template image} $J$ (time $t$) to image $I$ (in the next time frame, time $t + 1$).
+                $$\min_{u, v}E(u, v) = \overbrace{\summation{x}{} \summation{u}{} \underbrace{(I(x, y) - J(x + u, y + v))^2}_\text{squared difference between images}}^\text{sum over all pixels}$$
+                We assume the template moves by a vector $(u, v)$, and assume that it will become the same as image $I$.
+                Our goal is to find how the template moves from frame to frame, hence finding the position of the template in successive time frames.
+                \medskip
+
+                To optimise this, we can differentiate $E$ with respect to both of the variables, and set the derivatives to be 0;
+                $$\pdif{E}{u} = -2 \summation{x}{} \summation{y}{} [I(x, y) - J(x + u, y + v)]\pdif{J}{x} = 0$$
+                $$\pdif{E}{v} = -2 \summation{x}{} \summation{y}{} [I(x, y) - J(x + u, y + v)]\pdif{J}{y} = 0$$
+                Note that we apply the chain rule to obtain the $\pdif{J}{x}$ term (and same for the second equation);
+                $$\pdif{(-J)}{u} = -\pdif{J(x + u)}{(x + u)} \cdot \underbrace{\pdif{(x + u)}{u}}_{= 1}$$
+                Note that we can use Taylor expansion, since we have the small motion assumption, which gives us the following;
+                $$\pdif{E}{u} = -2 \summation{x}{} \summation{y}{} [I(x, y) - J(x, y) - \pdif{J}{x}u - \pdif{J}{y}v]\pdif{J}{x} = 0$$
+                $$\pdif{E}{v} = -2 \summation{x}{} \summation{y}{} [I(x, y) - J(x, y) - \pdif{J}{x}u - \pdif{J}{y}v]\pdif{J}{y} = 0$$
+                Note that we also have $\pdif{I}{t} = I(x, y) - J(x, y)$ (temporal gradient), and due to small motion we can approximate $\pdif{J}{x}$ with $\pdif{I}{x}$ (similarly for $\pdif{J}{y}$ with ${I}{y}$).
+                \medskip
+
+                This can therefore be rewritten as;
+                $$\pdif{E}{u} = -2 \summation{x}{} \summation{y}{} [-I_t - I_xu - I_yv]I_x = 0$$
+                $$\pdif{E}{v} = -2 \summation{x}{} \summation{y}{} [-I_t - I_xu - I_yv]I_y = 0$$
+                This can also be written in the following matrix form;
+                $$-\summation{x}{} \summation{y}{} \begin{bmatrix}
+                    I_xI_t \\
+                    I_yI_t
+                \end{bmatrix} - \summation{x}{} \summation{y}{} \begin{bmatrix}
+                    I_x^2 & I_xI_y \\
+                    I_xI_y & I_y^2
+                \end{bmatrix} \begin{bmatrix}
+                    u \\ v
+                \end{bmatrix} = 0$$
+                By rearranging, we can solve for the motion as follows;
+                $$\begin{bmatrix}
+                    u \\ v
+                \end{bmatrix} = \left(\summation{x}{} \summation{y}{} \begin{bmatrix}
+                    I_x^2 & I_xI_y \\
+                    I_xI_y & I_y^2
+                \end{bmatrix}\right)^{-1} \summation{x}{} \summation{y}{} \begin{bmatrix}
+                    I_xI_t \\
+                    I_yI_t
+                \end{bmatrix}$$
+                Compared to Lucas-Kanade optic flow, we are summing over pixels within the \textbf{template image} (Lucas-Kanade tracker), whereas the former sums over a small neighbourhood.
+                In the general case, where the motion is more complex, we can use a parametric model for this motion, for example (note that if we have the identity matrix for $\mat{M}$, we only have translation as before);
+                \begin{align*}
+                    W(x, y; p) & = \begin{bmatrix}
+                        m_1 & m_2 \\
+                        m_3 & m_4
+                    \end{bmatrix} \begin{bmatrix}
+                        x \\ y
+                    \end{bmatrix} + \begin{bmatrix}
+                        t_x \\ t_y
+                    \end{bmatrix} \\
+                    \min_{u, v} E(u, v) & = \summation{x}{} \summation{y}{} (I(x, y) - J(W(x, y; p))))^2
+                \end{align*}
+                The Lucas-Kanade method is a classical method, which has assumptions that may not hold.
+                For example, the brightness constancy assumption may not always hold, and it doesn't learn discriminative features for this template (since it only uses pixel intensities).
+            \subsubsection*{Correlation Filter}
+                In a correlation filter, we aim to maximise the correlation between template features (in the current time frame) and image features (in the next time frame).
+                $$(f \star h)[n] = \summation{m = -\infty}{\infty} f[m]h[n + m]$$
+                The correlation can be more robust to illumination changes, compared to the sum of squared differences.
+                \medskip
+
+                In 2D images, we have a search window (in the next time frame) and a box with the same size as the template.
+                The box is moved around in the search window, and we can calculate the correlation for each of these positions (taking the maximum).
+                We can use more discriminative features, such as those learnt from CNNs.
+                A recent approach uses Siamese (twin / two) networks to compare features.
+                The networks takes in a template at $t$ (size $127 \times 127 \times 3$), and a search window at $t + 1$ (size $255 \times 255 \times 3$), which is passed through convolutional layers to obtain feature maps ($6 \times 6 \times 128$ and $22 \times 22 \times 128$ respectively), which goes into a correlation function giving a score map ($17 \times 17 \times 1$).
+                Each pixel in the score map relates to a position of the search window.
+                \medskip
+
+                These can be trained with a supervised learning approach (the convolutional layers can be imported from a backbone network).
+                Paired images can be extracted from videos and annotated (we can annotate the centre of objects in successive frames, and draw a region where the score is $1$ for high correlation, and $-1$ outside) - this defines a ground truth for the score map.
+            \subsubsection*{Tracking by Detection}
+                Note that object tracking can be thought of as performing object detection at each frame.
+                In tracking, we have typically have an initial bounding box, and we only care about how a single object moves, without considering objects in the background.
+                \medskip
+
+                Since we are only interested in the object in the initial bounding box, we can learn specific features.
+                We can perform online learning (using information from the video as it's being streamed), compared to offline (which uses data from an existing training set).
+                For object tracking, we are more interested in online learning (where we want to show results in real time).
+                \medskip
+
+                At each sliding window, we perform two tasks (for object detection);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{classification}
+                        \smallskip
+
+                        Note that in detection, this is connected to $K$ classes (one for each class), whereas in object tracking we only perform binary classification.
+                    \item \textbf{localisation}
+                        \smallskip
+
+                        The localisation branch remains connected to 4 variables, and this enables us to vary the size of the bounding box if needed.
+                \end{itemize}
+                Positive and negative samples are extracted from the first time frame (manually drawn positive samples).
+                Note that \textbf{hard samples} are objects that look quite similar to the object we want to track.
+                We can perform data augmentation to obtain more training data (translation, rotation, scaling, etc.).
+                As we get more samples from more time frames, we can also use them for training.
+                The majority of the network can be pre-trained with large datasets, only the last few layers need to be trained online.
+                There are fewer parameters in the classification and localisation branches, which can be trained with fewer samples.
+            \subsubsection*{Action Recognition}
+                This is closely related to motion, but we want to classify videos into classes (similar to how images are classified in object detection).
+                It is typically difficult to recognise actions from a single static image, whereas we can understand actions better with videos.
+                The pipeline is quite similar to image classification.
+                \medskip
+
+                We can extract features from both the image (static), as well as from motion (dynamic).
+                The former could give information about the edges / objects in the image, whereas the latter could give us temporal features such as optic flow fields.
+                These can be combined to train a classifier.
+                Two-Stream 3D-ConvNet (2D-$t$, one temporal dimension) takes images in one 3D ConvNet, and optic flow in another, which is then combined to give an action class.
 \end{document}
