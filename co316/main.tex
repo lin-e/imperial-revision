@@ -3153,4 +3153,230 @@
                 The former could give information about the edges / objects in the image, whereas the latter could give us temporal features such as optic flow fields.
                 These can be combined to train a classifier.
                 Two-Stream 3D-ConvNet (2D-$t$, one temporal dimension) takes images in one 3D ConvNet, and optic flow in another, which is then combined to give an action class.
+        \subsection*{Lecture 20 - Camera Model}
+            The camera model describes the mapping from the 3D world to a 2D image.
+            We denote the 3D coordinates as $\vec{X}$ and the 2D coordinates as $\vec{x}$.
+            The mapping is described with a camera matrix, $\mat{P}$;
+            $$\vec{x} = \mat{P}\vec{x}$$
+            \subsubsection*{Pinhole Camera}
+                This is the simplest case, but can be generalised to other cameras.
+                A pinhole is simply a very small hole (for example, in a board).
+                Note we have a \textbf{dark room} on the left side of the board, and that the image is flipped;
+                \begin{center}
+                    \begin{tikzpicture}[x=-1cm]
+                        \draw[very thick]
+                        (0, 0.1) -- (0, 1)
+                        (0, -0.1) -- (0, -1);
+                        \node[rbtb] (a0) at (-1, 0.5) {};
+                        \node[rbtr] (b0) at (-1, -0.5) {};
+                        \node[inner sep=1pt, circle, draw=black, fill=red] (a1) at (0.5, 0.25) {};
+                        \node[inner sep=1pt, circle, draw=black, fill=black] (b1) at (0.5, -0.25) {};
+                        \draw
+                        (a0) -- (b0)
+                        (a1) -- (b1);
+                        \draw[dashed]
+                        (a0) -- (b1)
+                        (b0) -- (a1);
+                        \draw[dotted, teal, thick] (-0.5, -1) -- (-0.5, 1);
+                    \end{tikzpicture}
+                \end{center}
+                We want to model how $\vec{X} = (X, Y, Z)^\top$ is mapped to $\vec{x} = (x, y)^\top$ on the image plane.
+                The image plane is rotated by 180 degrees and put as a \textbf{virtual} image plane in front of the pin hole (see the teal line above).
+                This is more convenient, as the image is no longer flipped.
+                \medskip
+
+                The pinhole is treated as the camera origin, and the distance from the camera origin to the image plane is referred to as the focal length $f$.
+                In one dimension, we can use \textbf{similar triangles};
+                \begin{center}
+                    \begin{tikzpicture}[x=1.5cm, y=1.5cm]
+                        \draw
+                        (0, 0) edge[-latex] (0, 1.5)
+                        (0, 0) edge[-latex] (3.5, 0)
+                        (0, 0) -- (3, 1)
+                        (1.5, 0) edge[dashed, right] node {$f\frac{Y}{Z}$} (1.5, 0.5)
+                        (3, 0) edge[dashed, right] node {$Y$} (3, 1);
+                        \node at (0, -0.25) {$C$};
+                        \node at (1.5, -0.25) {$f$};
+                        \node at (3, -0.25) {$Z$};
+                    \end{tikzpicture}
+                \end{center}
+                This therefore gives us the following mapping;
+                $$(X, Y, Z) \to \left(f\frac{X}{Z}, f\frac{Y}{Z}\right)$$
+                Homogeneous coordinates provide some convenience in geometry, as $(x, y, 1)$ represents the same point as $(kx, ky, k)$ for any non-zero $k$ (and similarly for 3D).
+                In homogeneous coordinates, this becomes the following (see \textbf{CO317});
+                $$(X, Y, Z, 1) \to \left(f\frac{X}{Z}, f\frac{Y}{Z}, 1\right) \text{ or } (fX, fY, Z)$$
+                This is a perspective projection, where the object will appear smaller as the distance increases.
+                Pinhole cameras can be generalised to lens cameras, which also has similar triangles along the central ray.
+                The mapping for a pinhole camera can be represented in the following matrix notation;
+                $$\begin{bmatrix}
+                    X \\ Y \\ Z \\ 1
+                \end{bmatrix} \to \begin{bmatrix}
+                    fX \\ fY \\ Z
+                \end{bmatrix} = \begin{bmatrix}
+                    f & 0 & 0 & 0 \\
+                    0 & f & 0 & 0 \\
+                    0 & 0 & 1 & 0
+                \end{bmatrix} \begin{bmatrix}
+                    X \\ Y \\ Z \\ 1
+                \end{bmatrix}$$
+            \subsubsection*{Principal Point Offset}
+                For example, in a CCD array, the image origin is typically defined at the bottom / top left, hence the image coordinate system's origin my differ from the \textbf{principal point} $\vec{p} = (p_x, p_y)$ (which would be in the centre of the image plane).
+                To account for this shift, $(X, Y, Z, 1)$ should be mapped to $(f\frac{X}{Z} + p_x, f\frac{Y}{Z} + p_y, 1)$;
+                $$\begin{bmatrix}
+                    fX + p_xZ \\
+                    fY + p_yZ \\
+                    Z
+                \end{bmatrix} = \begin{bmatrix}
+                    f & 0 & p_x & 0 \\
+                    0 & f & p_y & 0 \\
+                    0 & 0 & 1 & 0
+                \end{bmatrix} \begin{bmatrix}
+                    X \\ Y \\ Z \\ 1
+                \end{bmatrix}$$
+                This can be written more concisely as follows;
+                \begin{align*}
+                    \mat{K} & = \begin{bmatrix}
+                        f & 0 & p_x \\
+                        0 & f & p_y \\
+                        0 & 0 & 1
+                    \end{bmatrix} \\
+                    \vec{x} & = \begin{bmatrix}[c|c]
+                        \mat{K} & \vec{0}
+                    \end{bmatrix} \vec{X_\text{cam}}
+                \end{align*}
+            \subsubsection*{World Coordinate System}
+                Note that we're currently working in the camera's coordinate system (which is defined within the camera itself).
+                However, the camera is actually moving in the \textbf{world coordinate system}.
+                We can simply subtract the translation $\vec{C}$, if only translation is involved.
+                However, if there is also rotation, we need to factor in a 3D rotation matrix $\mat{R}$;
+                $$\vec{X_\text{cam}} = \mat{R}(\vec{X} - \vec{C})$$
+                Note that we are using \textbf{inhomogeneous coordinates} (no `1' at the end), hence $\vec{X} = (X, Y, Z)^\top$.
+                Using homogeneous coordinates, we can write the transformation as;
+                $$\underbrace{\begin{bmatrix}
+                    X_\text{cam} \\
+                    Y_\text{cam} \\
+                    Z_\text{cam} \\
+                    1
+                \end{bmatrix}}_{\vec{X_\text{cam}}} = \begin{bmatrix}
+                    \mat{R} & -\mat{R}\vec{C} \\
+                    0 & 1
+                \end{bmatrix} \underbrace{\begin{bmatrix}
+                    X \\ Y \\ Z \\ 1
+                \end{bmatrix}}_{\vec{X}}$$
+            \subsubsection*{Camera Matrix}
+                We first perform a mapping from the (homogenous) world coordinate ($\vec{X}$) to the camera coordinate ($\vec{X_\text{cam}}$), which is then mapped to the image coordinate ($\vec{x}$).
+                Hence we have the following (note that the matrices in \violet{violet}, when multiplied together, is the \textbf{pinhole camera matrix});
+                $$\vec{x} = \violet{\begin{bmatrix}
+                    f & 0 & p_x & 0 \\
+                    0 & f & p_y & 0 \\
+                    0 & 0 & 1 & 0
+                \end{bmatrix}} \underbrace{\violet{\begin{bmatrix}
+                    \mat{R} & -\mat{R}\vec{C} \\
+                    0 & 1
+                \end{bmatrix}} \vec{X}}_{= \vec{X_\text{cam}}}$$
+                Note that the camera matrix can be written more concisely as the following (the column of 0s removes the bottom row of the world transformation);
+                $$\mat{P} = \begin{bmatrix}
+                    f & 0 & p_x \\
+                    0 & f & p_y \\
+                    0 & 0 & 1
+                \end{bmatrix} \begin{bmatrix}
+                    \mat{R} & -\mat{R}\vec{C}
+                \end{bmatrix} = \mat{K} \begin{bmatrix}[c|c]
+                    \mat{R} & -\mat{R}\vec{C}
+                \end{bmatrix} = \mat{K}\mat{R} \begin{bmatrix}[c|c]
+                    \mat{I} & -\vec{C}
+                \end{bmatrix}$$
+                We have a total of 9 degrees of freedom (3 intrinsic (internal to the camera) parameters, $(f, p_x, p_y)$ and 6 extrinsic (world to camera, outside of the camera) parameters to describe the 3 for 3D rotation and 3 for 3D translation).
+                \medskip
+
+                Note that we're still representing the image coordinates in the same units as the camera coordinates (such as millimetres), however we want to have some conversion ratio $k_x, k_y$ (such as pixels per millimetre);
+                $$\left(f\frac{X}{Z} + p_x, f\frac{Y}{Z} + p_y, 1\right) \text{ converted to } \underbrace{\left(k_x\left(f\frac{X}{Z} + p_x\right), k_y\left(f\frac{Y}{Z} + p_y\right), 1\right)}_{(\alpha_xX + x_0, \alpha_yY + y_0, 1)}$$
+                This converts the camera matrix to the following;
+                $$\mat{P} = \begin{bmatrix}
+                    \alpha_x & 0 & x_0 \\
+                    0 & \alpha_y & y_0 \\
+                    0 & 0 & 1
+                \end{bmatrix} \begin{bmatrix}
+                    \mat{R} & -\mat{R}\vec{C}
+                \end{bmatrix}$$
+                However, $\alpha_x$ and $\alpha_y$ may differ, such that the pixels are \textbf{anisotropic} (such as rectangular pixels), leading to 10 degrees of freedom.
+                This can be increased to 11 degrees of freedom when we account for skew (note that $s = 0$ for most cameras), when the axes are not orthogonal, giving us the most general camera matrix;
+                $$\mat{P} = \begin{bmatrix}
+                    \alpha_x & s & x_0 \\
+                    0 & \alpha_y & y_0 \\
+                    0 & 0 & 1
+                \end{bmatrix} \begin{bmatrix}
+                    \mat{R} & -\mat{R}\vec{C}
+                \end{bmatrix}$$
+            \subsubsection*{Calibration}
+                Assume that we know the 3D structure, we want to estimate the camera matrix (photographer pose) from a 2D image.
+                Given a set of points $\{\vec{X_i}, \vec{x_i}\}$, we want to estimate the matrix $\mat{P}$, which is similar to many problems previously encountered.
+                We can either solve this as an (overdetermined) equation system, or to formulate this as an optimisation problem.
+                \medskip
+
+                This mapping is formulated as;
+                $$\begin{bmatrix}
+                    x \\ y \\ z
+                \end{bmatrix} = \begin{bmatrix}
+                    p_1 & p_2 & p_3 & p_4 \\
+                    p_5 & p_6 & p_7 & p_8 \\
+                    p_9 & p_10 & p_11 & p_12
+                \end{bmatrix} \begin{bmatrix}
+                    X \\ Y \\ Z \\ 1
+                \end{bmatrix} = \begin{bmatrix}
+                    \vec{p_1}^\top \\
+                    \vec{p_2}^\top \\
+                    \vec{p_3}^\top
+                \end{bmatrix} \vec{X}$$
+                The second form allows us to have the following;
+                \begin{align*}
+                    x & = \vec{p_1}^\top \vec{X} \\
+                    y & = \vec{p_2}^\top \vec{X} \\
+                    z & = \vec{p_3}^\top \vec{X}
+                    \intertext{Converted into inhomogeneous image coordinates, we have;}
+                    x & = \frac{\vec{p_1}^\top \vec{X}}{\vec{p_3}^\top \vec{X}} \\
+                    y & = \frac{\vec{p_2}^\top \vec{X}}{\vec{p_3}^\top \vec{X}}
+                \end{align*}
+                Rearranged, we obtain the following two equations;
+                $$\vec{p_1}^\top \vec{X} - \vec{p_3}^\top \vec{X}x = 0$$
+                $$\vec{p_2}^\top \vec{X} - \vec{p_3}^\top \vec{X}y = 0$$
+                By transposing both sides;
+                $$\vec{X}^\top\vec{p_1} - \vec{X}^\top\vec{p_3}x = 0$$
+                $$\vec{X}^\top\vec{p_2} - \vec{X}^\top\vec{p_3}y = 0$$
+                This can now be written in matrix form, where $\vec{p_i}$ is a $4 \times 1$ vector;
+                $$\underbrace{\begin{bmatrix}
+                    \vec{X}^\top & 0 & -\vec{X}^\top x \\
+                    0 & \vec{X}^\top & -\vec{X}^\top y
+                \end{bmatrix}}_{2 \times 12} \underbrace{\begin{bmatrix}
+                    \vec{p_1} \\
+                    \vec{p_2} \\
+                    \vec{p_3}
+                \end{bmatrix}}_{12 \times 1} = \vec{0}$$
+                For $n$ pairs of coordinates, the overdetermined system can be formed as follows;
+                $$\underbrace{\begin{bmatrix}
+                    \vec{X_1}^\top & 0 & -\vec{X_1}^\top x_1 \\
+                    0 & \vec{X_1}^\top & -\vec{X_1}^\top y_1 \\
+                    \vdots & \vdots & \vdots \\
+                    \vec{X_n}^\top & 0 & -\vec{X_n}^\top x_n \\
+                    0 & \vec{X_n}^\top & -\vec{X_n}^\top y_n
+                \end{bmatrix}}_{2n \times 12} \underbrace{\begin{bmatrix}
+                    \vec{p_1} \\
+                    \vec{p_2} \\
+                    \vec{p_3}
+                \end{bmatrix}}_{12 \times 1} = \vec{0}$$
+                Due to this form, the solution $\vec{p}$ is the null space of $\mat{A}$ (the large matrix) - this can be solved with the following optimisation problem, note that we add a constraint $|| \vec{p} ||^2 = 1$ as we want to exclude trivial solutions (where $\vec{p} = \vec{0}$);
+                $$\vec{p} = \argmin_{\vec{p}} || \mat{A} \vec{p} ||^2$$
+                This can be solved by performing singular value decomposition for the matrix $\mat{A}$ (see \textbf{CO233}), where $\mat{U}$ and $\mat{V}$ are orthogonal, and $\mat{\Sigma}$ is diagonal.
+                $\vec{p}$ is the column of $\mat{V}$ corresponding to the \textbf{smallest singular value};
+                $$\underbrace{\mat{A}}_{m \times n} = \underbrace{\mat{U}}_{m \times m}\underbrace{\mat{\Sigma}}_{m \times n}\underbrace{\mat{V}^\top}_{n \times n}$$
+                Once we have this solution, w can rearrange the elements to form the camera matrix, establishing the mapping from 3D to 2D.
+                \medskip
+
+                We can obtain these data points (pairs of camera and image coordinates) with references objects (such as a checkerboard), which we can use to identify correspondences between points in the image and scene via a manual process.
+                \medskip
+
+                This can be used to relate information from the 3D world to 2D images, which is utilised in AR or object tracking for drones.
+            \subsubsection*{Multiple View Geometry}
+                We only consider a single perspective.
+                However, if the camera is moved, multiple view geometry is used (where the image coordinates differ based on the perspective of the camera).
 \end{document}
