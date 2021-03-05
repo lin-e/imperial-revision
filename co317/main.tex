@@ -2755,7 +2755,7 @@
                 \end{center}
                 Since we cannot perform recursion in GLSL, this should be done iteratively (which can be done for the reflections, refraction would require state to be stored).
             \subsubsection*{Precision Problems}
-                However; while this will work completely fine in practice (as well as the majority of the time), consider the case where we have a sphere and a ray.
+                However; while this will work completely fine in theory (as well as the majority of the time), consider the case where we have a sphere and a ray.
                 Due to rounding errors, the intersection point between these two may end up \textbf{inside} inside the sphere (beneath the surface), and when we cast the shadow ray from the intersection point, it will end up intersecting with itself again, hence leading to unwanted self occlusion (note that the dashed lines represent the issue caused by the rounding error, and the solid lines represent the desired effect) - the effect is obviously exaggerated here;
                 \begin{center}
                     \begin{tikzpicture}
