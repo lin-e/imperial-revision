@@ -3564,5 +3564,111 @@
 
                 Another approach is to subdivide the patches if the discontinuities exceed some threshold (with quad-trees / oct-trees).
         \subsection*{Lecture 16 - Special Effects}
-            
+            There are two types of special effects we can do in graphic scenes, the first performs image processing techniques on rendered scenes, independent of the geometric scene (such as filters), as well as a number of CGI `tricks'.
+            \subsubsection*{Billboards}
+                In lieu of rendering particle systems for clouds, we can show textures, which are always angled to be facing the camera.
+                This can be done removing rotation in the model view matrix, but maintaining scale;
+                $$\begin{bmatrix}
+                    a_0 & a_4 & a_8 & a_{12} \\
+                    a_1 & a_5 & a_9 & a_{13} \\
+                    a_2 & a_6 & a_{10} & a_{14} \\
+                    a_3 & a_7 & a_{11} & a_{15}
+                \end{bmatrix} \Rightarrow \begin{bmatrix}
+                    s_0 & & & a_{12} \\
+                    & s_1 & & a_{13} \\
+                    & & s_2 & a_{14} \\
+                    a_3 & a_7 & a_{11} & a_{15}
+                \end{bmatrix}$$
+                This results in the billboard appearing at the right position and scale, but facing the camera.
+                \medskip
+
+                This can be used for terrain such as trees; the texture for the leaves could be procedurally generated and placed in the scene as billboards (leading to the illusion of complex objects).
+                The leaves could then be animated by moving the planes (however, this works better with small billboards, otherwise it may look unrealistic).
+            \subsubsection*{Particle Systems}
+                The idea is that we have a fixed number of particles, first emitted by a source, moves through space independently, and eventually dies.
+                The latter is important as we may need to reuse the position when we have a fixed buffer size (dying means being reset back to the origin).
+                These particles have a number of attributes;
+                \begin{itemize}
+                    \itemsep0em
+                    \item position
+                    \item velocity (speed and direction vector)
+                    \item colour (may not be needed, if we're using billboards)
+                    \item lifetime (how many frames since being emitted from the source)
+                    \item shape / size
+                \end{itemize}
+                Particle systems are the key to video effects, such as fire, clouds, explosions, etc.
+                Nowadays, the bottlenecks typically are in the physics engines controlling the particle movement, rather than the number of particles.
+                \medskip
+
+                Before we write a frame, we typically perform a particle system update.
+                Motion may be controlled by external forces, such as user interaction, vector fields (simulating fluid flow), or even interacting with each other (adding further complexity).
+                A typical structure would be as follows;
+                \begin{lstlisting}
+                    struct particle {
+                        float t;          // lifetime
+                        float v;          // speed
+                        float x, y, z;    // coordinates
+                        float xd, yd, zd; // direction
+                        float alpha;      // fade alpha
+                    }
+                \end{lstlisting}
+                Note that with following vector fields, the way we sample it matters.
+                With infinitely small steps we may be able to get the exact movement, however with any other approximation, we're likely to accumulate some error.
+                The Euler method uses relatively small steps (see slides, but we don't need to know this, see \textit{Runge-Kutta}).
+            \subsubsection*{Fog}
+                Fog is often used by game developers to hide the inability to render a large scene in real time.
+                This is also a useful depth cue, as a faint object can be deemed further away.
+                Note that this is done with a simple blend, where we have the surface colour $\vec{c_s}$, the fog colour $\vec{c_f}$, and the fog factor $f$;
+                $$\vec{c} = f\vec{c_s} + (1 - f)\vec{c_f}$$
+                There are a number of ways to determine the fog factor, all of which are heuristic;
+                \begin{align*}
+                    f & = \frac{d_\text{end} - d}{d_\text{end} - d_\text{start}} & \text{linear fog} \\
+                    f & = e^{-d_f \cdot d} & \text{exponential fog} \\
+                    f & = e^{(-d_f \cdot d)^2} & \text{squared exponential fog} \\
+                    d & = \text{fragment distance} \\
+                    d_\text{start} & = \text{fog start} \\
+                    d_\text{end} & = \text{fog end} \\
+                    d_f & = \text{fog density}
+                \end{align*}
+                The implementation is simply applying the equation.
+            \subsubsection*{Post Processing Effects}
+                Note at this point, we've rendered the scene into textures (which has both colour and depth information).
+                The most common effect is depth of field, which is an effect of the imperfection of the cameras we use (and have gotten used to).
+                This can be used to guide the user's attention, and is used to simulate actual cameras.
+                OpenGL uses pinhole cameras, which has everything in focus, which cannot be done by a real lens system.
+                The main difference here is aperture (note we have an infinitely small aperture in computer graphics).
+                \medskip
+
+                One solution is to adapt the camera model.
+                This isn't possible in the traditional OpenGL pipeline (possible in the ray tracer).
+                Another solution would be to blur based on depth buffer;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item render scene to texture
+                    \item draw quad
+                        \begin{itemize}
+                            \itemsep0em
+                            \item compute circle of confusion (based on scene depth buffer)
+                            \item blur image using convolution / sampling (window depends on CoC)
+                        \end{itemize}
+                \end{enumerate}
+                Note that this can lead to undesirable artifacts, such as discontinuities, or colour bleeding.
+                Using more complex effects can fix this, but with more complex mathematics.
+                \medskip
+
+                Another imperfection of cameras is motion blur, due to the shutter speed.
+                If something is moving faster than the shutter, it will be blurred.
+                Continuous motion blur (correct) works out the vector fields and performs pixel distortion accordingly.
+                On the other hand, approximated (discrete) motion blur renders the object multiple times with different transparency values at different positions.
+                Similarly, there can still be colour bleeding (when slow foreground objects bleed into fast moving background objects).
+                \medskip
+
+                Lens flare is caused by a reflection of the aperture mechanism on the lens.
+                They are easy to implement, and look like the aperture (have the same shape), and will always lie on a line from the light source through the centre of the image.
+                All we need to do is to pick a single lens flare texture and randomly place it on the line.
+                \medskip
+
+                Sketching effects can be done either from the z-buffer or in the object space, using differential operators such as Sobel or Laplace.
+                Silhouettes can either be contour (outer, just the outline), or occluding contour (inner).
+                Creases can be local maxima / minima of the curvature (in the object itself).
 \end{document}
