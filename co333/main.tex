@@ -212,6 +212,61 @@
     \rule{\textwidth}{0.1pt}
     \section*{CO333 - Robotics \hfill (60019)}
         \subsection*{Lecture 1 - Introduction to Robotics}
+            A robot is a physically-embodied (has a presence in the world), artificially intelligent device with sensing (onboard sensors, such as camera and touch) and actuation (acts on the world).
+            The robot must change the information from its sensors and convert it into action.
+            \medskip
+
+            A washing machine could be considered a robot, since it also has sensing, actuation, and processing.
+            A distinction between an appliance and a robot could be drawn by the workspace of the device; whether it is inside (clothes in a washing machine, has a high degree of control) or outside (robot in the world, more uncertainty) of the device.
+            The outside world is more complex and harder to control, thus requiring more cognitive ability.
+            \medskip
+
+            Industrial robot arms are one of the most widely and successfully used robots.
+            However, these operate in controlled environment and repetitive movements (the environment has been set up to make the job of the robot as easy as possible).
+            On the other hand, experimental mobile robots are tested in a wide range of challenging scenarios, requiring perception to have some understanding of their complex and changing surroundings.
+            Indoor environments can also have a high level of complexity.
+            \medskip
+
+            Mobile robotics require a number of competences;
+            \begin{itemize}
+                \itemsep0em
+                \item movement control
+                \item obstacle avoidance
+                \item localisation
+                \item mapping
+                \item path planning
+                \item any other specialised task the robot needs to achieve
+            \end{itemize}
+            Real robots need to deal with the noisy nature of sensors and actuators.
+            These can also be divided into two main areas; field robotics and service robotics.
+            The former includes sending robots to perform jobs that humans may not want to (such as exploration, inspection, search and rescue, mining and transport, and military).
+            On the other hand, service robotics are jobs that humans can do (but would rather not do), such as domestic cleaning, medical robots, transport, and entertainment.
+            \medskip
+
+            A robot's autonomy can be defined in a number of levels;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item teleoperation \hfill directly controlled by a human (such as surgical robots)
+                \item semi-autonomous / supervised
+                \item fully autonomous \hfill untethered and self-contained (such as robot vacuums)
+            \end{enumerate}
+            The Mars Rovers \textit{Spirit} and \textit{Opportunity} were not fully autonomous (plans updated based on images recieved, robot moves extremely slowly, and detect obstacles with some local autonomy).
+            \textit{Curiosity} was larger (almost car sized) but carried scientific instruments, however also had a small amount of autonomy as before.
+            \medskip
+
+            The winner of the DARPA challenge in 2005 used cameras as well as a laser range finder (which had limited distance), as the longer range of the camera allowed for faster speeds since the car would be able to look further ahead.
+            The next iteration looked at an urban setting (closer to what current AVs are looking at), which navigates to specific points in a town (rather than just a track on a desert).
+            This required more sophisticated sensors, to achieve all-around awareness.
+            Some surprising situations still require humans to adapt to.
+            There are typically some elements of machine learning (on top of the hand-engineered use of the map), learning from the human driving the vehicle (or also tested in simulations).
+            \medskip
+
+            The state of the art for mobile robots or walking robots, include \textit{Spot} by \textit{Boston Dynamics}, which has more sensing and autonomy compared to previous robots which followed pre-planned paths.
+            These are being made for commercial use (such as inspecting building sites), with sensors (5 different camera rigs to determine shape of terrain) and mapping technology built in, allowing it to work in a number of environments.
+            Another example includes \textit{Skydio}, which is marketed as a self flying camera (drone), which tracks the user, and avoids obstacles.
+            Robot vacuums are a more common example of a commercial product.
+            It's fairly safe (unlikely to injure someone if it goes wrong), and only really works in 2D.
+            Simple algorithms, such as performing random bounces (random rotation after bouncing off an obstacle), work well.
         \subsection*{Lecture 2 - Robot Motion}
             A definition of a robot is something that can \textbf{move} and \textbf{sense}, and uses some sort of information processing to link the two.
             Robots might want to move in the water, fly in the air, walk (legged) on land, or work in space.
