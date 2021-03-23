@@ -3044,7 +3044,7 @@
             For object tracking, we don't care about the movement for each pixel, but rather the displacement vector for each bounding box.
             \subsubsection*{Lucas-Kanade Tracker}
                 We use the same assumptions we made in optic flow, of constant brightness and small motion.
-                It aims to estimate the motion from the \textbf{template image} $J$ (time $t$) to image $I$ (in the next time frame, time $t + 1$).
+                It aims to estimate the motion from the \textbf{template image} $I$ (time $t$) to image $J$ (in the next time frame, time $t + 1$).
                 $$\min_{u, v}E(u, v) = \overbrace{\summation{x}{} \summation{u}{} \underbrace{(I(x, y) - J(x + u, y + v))^2}_\text{squared difference between images}}^\text{sum over all pixels}$$
                 We assume the template moves by a vector $(u, v)$, and assume that it will become the same as image $I$.
                 Our goal is to find how the template moves from frame to frame, hence finding the position of the template in successive time frames.
