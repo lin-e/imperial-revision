@@ -2955,9 +2955,9 @@
                             v^{(l + 1)} & = 2v^{(l + 1)}
                         \end{align*}
                     \item compute warped image
-                        $$J_\text{warped}^l = J^l(x + u^{(l - 1)}, y + v^{(l - 1)})$$
+                        $$J_\text{warped}^l = J^l(x + u^{(l + 1)}, y + v^{(l + 1)})$$
                     \item compute $I_x, I_y, I_t$ for image $I^l$ and $J_\text{warped}^l$ at this scale; $I_x, I_y$ are computed from $I^l$
-                        $$I_t = J_\text{warped}^l(x + u^{(l - 1)}, y + v^{(l - 1)}) - I^l(x, y)$$
+                        $$I_t = J_\text{warped}^l(x, y) - I^l(x, y)$$
                     \item estimate incremental flow
                         $$\begin{bmatrix}
                             u^\delta \\ v^\delta
