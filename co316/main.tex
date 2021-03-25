@@ -2951,8 +2951,8 @@
                     \itemsep0em
                     \item upsample flow estimate from previous scale
                         \begin{align*} % check this?
-                            u^{(l - 1)} & = 2u^{(l - 1)} \\
-                            v^{(l - 1)} & = 2v^{(l - 1)}
+                            u^{(l + 1)} & = 2u^{(l + 1)} \\
+                            v^{(l + 1)} & = 2v^{(l + 1)}
                         \end{align*}
                     \item compute warped image
                         $$J_\text{warped}^l = J^l(x + u^{(l - 1)}, y + v^{(l - 1)})$$
@@ -2964,8 +2964,8 @@
                         \end{bmatrix} = \left(\mat{A}^\top\mat{A}\right)^{-1}\mat{A}^\top\vec{b}$$
                     \item update flow at this scale
                         \begin{align*}
-                            u^{(l)} & = u^{(l - 1)} + u^\delta \\
-                            v^{(l)} & = v^{(l - 1)} + v^\delta
+                            u^{(l)} & = u^{(l + 1)} + u^\delta \\
+                            v^{(l)} & = v^{(l + 1)} + v^\delta
                         \end{align*}
                 \end{enumerate}
             \subsubsection*{Horn-Schunck Method}
