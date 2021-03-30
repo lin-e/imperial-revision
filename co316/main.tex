@@ -233,7 +233,7 @@
                     \node[blue] at (1.5, 1.5) {$B$};
                 \end{tikzpicture}
             \end{center}
-            We consider the detection of the intersection over union (IoU) is above $0.5$;
+            We consider it a detection when the intersection over union (IoU) is above $0.5$;
             $$\text{IoU} = \frac{\red{A} \cap \blue{B}}{\red{A} \cup \blue{B}} > 0.5$$
             Another more complex piece of information we can extract is to perform \textbf{image segmentation}, allowing us to draw contours for each object.
             \subsubsection*{Applications}
@@ -3320,7 +3320,7 @@
                 \end{bmatrix} = \begin{bmatrix}
                     p_1 & p_2 & p_3 & p_4 \\
                     p_5 & p_6 & p_7 & p_8 \\
-                    p_9 & p_10 & p_11 & p_12
+                    p_9 & p_{10} & p_{11} & p_{12}
                 \end{bmatrix} \begin{bmatrix}
                     X \\ Y \\ Z \\ 1
                 \end{bmatrix} = \begin{bmatrix}
