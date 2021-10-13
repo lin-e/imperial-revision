@@ -338,4 +338,249 @@
                 In general, the key for storing data on a disk is to store data together if it's queried together.
                 Random access should be avoided, preferably use sequential access.
                 Data structures should be aligned for page size - for example, if a data structure were to have a few bytes in the next page, an additional page would have to be retrieved, despite mostly being irrelevant.
+        \subsection*{1.2 - Main Memory Indexing}
+            The general trend is that we have more main memory as time goes on.
+            The hardware trends show that CPU speed and main memory capacity doubles every 18 months, however memory speed only grows by 10\% per year.
+            \medskip
+
+            This means that many databases, typically OLTP, can fit into main memory; OLAP is still in the order of petabytes, if not more.
+            Memory access has become the new bottleneck for main memory databases.
+            There is no longer a uniform random access model (NUMA), meaning that we can no longer assume that accessing each piece of data in memory takes the same amount of time.
+            Cache performance has become crucial.
+            \medskip
+
+            The memory hierarchy is as follows.
+            Note that a cache \textbf{line} is the smallest unit that can be retrieved from the cache, and data structures should be aligned to a line in a similar way to pages.
+            \begin{itemize}
+                \itemsep0em
+                \item CPU (registers)
+                \item L1 cache, takes 1 cycle, 8-64 KB, 32 bytes per line
+                \item L2 cache, takes 2 - 10 cycles, 64 - 128 bytes per line
+                \item TLB, takes 10 - 100 cycles, 64 entries / pages
+            \end{itemize}
+            The cache performance is crucial, similar to the disk cache / buffer pool, however the DBMS doesn't have direct control of this.
+            \subsubsection*{Improving Cache Performance}
+                The primary factors are the cache capacity and data locality, the former is a given and can't be changed, whereas we can do something about the locality.
+                An example with non-random access, such as a scan or index traversal is by clustering data structures to a multiple of a cache line, as well as squeezing more useful data into a cache line.
+                On the other hand, with random access, such as in a hash join, the data should be partitioned to fit in cache / TLB.
+                CPU is often also traded for memory access, such as compression (requires more CPU processing, but reduces storage usage).
+            \subsubsection*{Trees}
+                The lecture then goes through an example of a tree index, where each node holds 2 entries.
+                Each node can point to three other nodes, where the values are either below, in between the two values, or higher than both.
+                \medskip
+
+                The B+ tree is quite similar, but all leaf nodes are connected.
+                This allows for faster execution of range queries, as the nodes are connected without traversing up and down the tree.
+                The \textbf{order} is the minimum number of keys or pointers in a non-leaf node and the \textbf{fanout} of a node is the number of pointers out of the node.
+                These have the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item balanced - leaves are at the same level, leading to predictable performance when traversing down the tree (same for every node)
+                    \item every node, other than the root, must be at least half full meaning it becomes balanced
+                    \item searching is $\log_d(n)$, where $d$ is the order and $n$ is the number of entries
+                    \item insertion involves finding the leaf to insert to, splitting if the node is full and adjusting index accordingly; has a similar cost to searching, have to find all the way down, and may have to split all the way back up
+                    \item deletion is similar, find leaf node, delete, and merge neighbouring nodes if required (not half-full)
+                \end{itemize}
+                \textbf{Cache sensitive search trees} can be thought of as a B+ tree that has been optimised specifically for main memory.
+                The basic approach for this is to improve locality, with each node of the tree fitting into an L2 cache line, as the penalty of an L2 miss is significantly higher than that of an L1 miss, and can fit more nodes in L2 than L1.
+                Keys are fixed length (from variable length) by the use of dictionary compression, letting us know the size of a child node.
+                Child pointers are also eliminated; previously we had multiple pointers to point to each of the child nodes, however we now only need one pointer to a single child node as we know the size.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \begin{scope}[shift={(0, 0)}]
+                            \begin{scope}[shift={(0, 0)}]
+                                \node at (0, 0) {$2$};
+                                \draw
+                                (-1, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-1, 0.5) -- cycle
+                                (-0.5, -0.5) -- (-0.5, 0.5)
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(-1.5, -2)}]
+                                \node at (0, 0) {$1$};
+                                \draw
+                                (-1, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-1, 0.5) -- cycle
+                                (-0.5, -0.5) -- (-0.5, 0.5)
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(1.5, -2)}]
+                                \node at (0, 0) {$3$};
+                                \draw
+                                (-1, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-1, 0.5) -- cycle
+                                (-0.5, -0.5) -- (-0.5, 0.5)
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(-3, -4)}]
+                                \node at (0, 0) {$1$};
+                                \draw
+                                (-0.5, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-0.5, 0.5) -- cycle
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(-1, -4)}]
+                                \node at (0, 0) {$2$};
+                                \draw
+                                (-0.5, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-0.5, 0.5) -- cycle
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(1, -4)}]
+                                \node at (0, 0) {$3$};
+                                \draw
+                                (-0.5, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-0.5, 0.5) -- cycle
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(3, -4)}]
+                                \node at (0, 0) {$4$};
+                                \draw
+                                (-0.5, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-0.5, 0.5) -- cycle
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+
+                            \draw
+                            (-0.75, 0) edge[->] (-1.5, -1.5)
+                            (0.75, 0) edge[->] (1.5, -1.5)
+                            (-2.25, -2) edge[->] (-3, -3.5)
+                            (-0.75, -2) edge[->] (-1, -3.5)
+                            (0.75, -2) edge[->] (1, -3.5)
+                            (2.25, -2) edge[->] (3, -3.5)
+                            (-2.25, -4) edge[->] (-2.25, -5)
+                            (-0.25, -4) edge[->] (-0.25, -5)
+                            (1.75, -4) edge[->] (1.75, -5)
+                            (3.75, -4) edge[->] (3.75, -5);
+                        \end{scope}
+
+                        \begin{scope}[shift=({10, 0})]
+                            \draw
+                            (-1.5, 0.5) -- (1.5, 0.5) -- (1.5, -0.5) -- (-1.5, -0.5) -- cycle
+                            (-0.5, 0.5) -- (-0.5, -0.5)
+                            (0.5, 0.5) -- (0.5, -0.5);
+                            \node at (-1, 0) {$1$};
+                            \node at (0, 0) {$2$};
+                            \node at (1, 0) {$3$};
+
+                            \begin{scope}[shift={(-3, -4)}]
+                                \node at (0, 0) {$1$};
+                                \draw
+                                (-0.5, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-0.5, 0.5) -- cycle
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(-1, -4)}]
+                                \node at (0, 0) {$2$};
+                                \draw
+                                (-0.5, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-0.5, 0.5) -- cycle
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(1, -4)}]
+                                \node at (0, 0) {$3$};
+                                \draw
+                                (-0.5, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-0.5, 0.5) -- cycle
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+                            \begin{scope}[shift={(3, -4)}]
+                                \node at (0, 0) {$4$};
+                                \draw
+                                (-0.5, -0.5) -- (1, -0.5) -- (1, 0.5) -- (-0.5, 0.5) -- cycle
+                                (0.5, -0.5) -- (0.5, 0.5);
+                            \end{scope}
+
+                            \draw
+                            (-1.5, -0.5) edge[dotted, ->] (-3, -3.5)
+                            (-0.5, -0.5) edge[dotted, ->] (-1, -3.5)
+                            (0.5, -0.5) edge[dotted, ->] (1, -3.5)
+                            (1.5, -0.5) edge[dotted, ->] (3, -3.5)
+                            (-2.25, -4) edge[->] (-2.25, -5)
+                            (-0.25, -4) edge[->] (-0.25, -5)
+                            (1.75, -4) edge[->] (1.75, -5)
+                            (3.75, -4) edge[->] (3.75, -5);
+                        \end{scope}
+                    \end{tikzpicture}
+                \end{center}
+                In the example above, we assume a cache line size of 24 bytes, a key size (and pointer size) of 4 bytes.
+                The B+ tree on the left is 2-way, with 3 misses, and the CSS tree is 4-way, with only 2 misses.
+                \medskip
+
+                CSS has the best search / space balance; second best search to hash, which has poor space, and also second best space to binary search, which has poor search.
+                The space taken is roughly half that of a B+ tree.
+                However, this cannot support dynamic updates as the fan-out and array size must both be fixed.
+                \medskip
+
+                A \textbf{CSB+} tree addresses this.
+                Children of the same node are stored in an array / node group and the parent only has a single pointer to the child array.
+                This has a similar search performance to the CSS tree, and has good update performance if no split occurs.
+                Splits are still required as we still have a maximum capacity of an array, which requires allocating new memory.
+                \medskip
+
+                A variant of this is a CSB+ tree with segments; the child array is divided into segments, typically 2, with one child pointer per segment.
+                This improves split performance, but worsens search performance.
+                Another variant is a full CSB+ tree, which is a CSB+ tree with a pre-allocated children array, obviously requiring more space but is good for search and insertion (no more memory needs to be allocated, as it's all allocated).
+                It's important to note that none of these are as \textbf{flexible} as B+ trees, but perfectly fine for certain workloads.
+                \medskip
+
+                The general performance is as follows, for search, CSS is fastest, followed by full CSB+ (joined with CSB+), then followed by CSB+ with segments, and finally B+.
+                On the other hand, with insertion, B+ has the best, roughly equal to full CSB+, which is followed by CSB+ with segments, then CSB+, and finally CSS.
+                Generally, full CSB+ is ideal if space isn't a concern, CSB+ (and with segments) is ideal if there are more reads than insertions, and finally CSS is best when read-only.
+            \subsubsection*{Cache Conscious Join Method}
+                Typically, in vertical decomposed storage, what we want to do when we join in main memory is to partition a base table into $m$ arrays, where $m$ is the number of attributes.
+                Variable length fields should also be converted to fixed length fields via the use of dictionary compression.
+                For example;
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm]
+                        \draw
+                        (0, 0) -- (10, 0) -- (10, -4) -- (0, -4) -- cycle
+                        (0, -1) -- (10, -1)
+                        (2, 0) -- (2, -4)
+                        (4, 0) -- (4, -4);
+                        \node at (1, -0.5) {$A$};
+                        \node at (3, -0.5) {$B$};
+                        \node at (7, -0.5) {$C$};
+
+                        \draw (11, -2) edge[->] (15, -2);
+                        \draw
+                        (16, 0) -- (18, 0) -- (18, -4) -- (16, -4) -- cycle
+                        (16, -1) -- (18, -1)
+                        (19, 0) -- (21, 0) -- (21, -4) -- (19, -4) -- cycle
+                        (19, -1) -- (21, -1)
+                        (22, 0) -- (24, 0) -- (24, -4) -- (22, -4) -- cycle
+                        (22, -1) -- (24, -1)
+                        (25, 0) -- (31, 0) -- (31, -4) -- (25, -4) -- cycle
+                        (25, -1) -- (31, -1)
+                        (24, -1.5) edge[->] (25, -2.5)
+                        (24, -2.5) edge[->] (25, -1.5)
+                        (24, -3.5) edge[->] (25, -3.5);
+                        \node at (17, -0.5) {$A$};
+                        \node at (20, -0.5) {$B$};
+                        \node at (23, -0.5) {$C$};
+                        \node at (28, -0.5) {~dict~ $C$};
+                    \end{tikzpicture}
+                \end{center}
+                Each array contains a pair of OID (uniquely identifies an entry) and value for the $i^\text{th}$ attribute.
+                Reconstruction is a simple array access in this case.
+                Joins are much more efficient, as we no longer have to read all the data.
+                \medskip
+
+                The existing equal-join methods;
+                \begin{itemize}
+                    \itemsep0em
+                    \item sort-merge
+                        \subitem one of the relations will not fit in cache, likely meaning we have to read into cache multiple times (take smaller of two relations in main memory)
+                    \item hash join \hfill bad if the inner relation doesn't fit into cache
+                    \item clustered hash join
+                        \subitem one pass to generate cache-sized partitions, take each partition and join it with the other relation, and so on, best of the three solutions, but can be bad if the number of partitions exceed the number of cache lines / TLB entries - can lead to cache thrashing
+                \end{itemize}
+                This can be addressed with \textbf{radix join}, which first partitions one of the relations and ensure that we partition it into partitions such that we have matching partitions based on $B$ bits of the attribute.
+                Matching partitions are joined, nested-loop can be done for small ($\leq 8$ tuples) partitions or a hash join for larger partitions, which is $\leq$ L1 cache, L2 cache, or TLB size (with L1 being ideal).
+                This avoids thrashing, compared to clustered hash join.
+                Saving these cache misses outweighs the cost of performing extra partitions.
+            \subsubsection*{Conclusion}
+                The cache performance is important and will become more important as main memory grows.
+                The key to this is to cluster data (into a cache line); data that is read together should be written and stored together.
+                Irrelevant data should be omitted, including pointers and the use of vertical decomposition.
+                Partitions should be done to avoid thrashing.
+            \subsubsection*{Spatial Data}
+                Spatial data is data with any three dimensions; such as points.
+                It has queries such as range queries, nearest neighbours, etc.
+                Objects near each other should be stored on the same disk page / cache line, however, there isn't an ordering on data in three dimensions (two objects that are close in 1 dimension could be far apart in another).
+                \medskip
+
+                This then goes over an example with reducing computation.
+                In the example, checking a range on non-uniform (spatial) partitioning is expensive, as there are many irrelevant points.
+                The computation is reduced by using several grids of varying detail; if the range covers the majority of a cell it's checked on that level of detail, if not, it's checked on a lower level of detail.
 \end{document}
