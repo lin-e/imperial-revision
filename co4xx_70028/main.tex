@@ -200,6 +200,10 @@
 \tikzset{spos/.style={inner sep=2pt, circle, draw=black, fill=blue!20}}
 \tikzset{sneg/.style={inner sep=2pt, circle, draw=black, fill=red!20}}
 
+% Backup diagram
+\tikzset{budw/.style={inner sep=2pt, circle, draw=black, fill=white}}
+\tikzset{budb/.style={inner sep=2pt, circle, draw=black, fill=black}} % same as rbtb
+
 % Joins
 \newcommand\ljoin{\stackrel{\mathclap{\normalfont\mbox{\tiny L}}}{\bowtie}}
 \newcommand\rjoin{\stackrel{\mathclap{\normalfont\mbox{\tiny R}}}{\bowtie}}
@@ -355,4 +359,293 @@
                 Consider the following example, where there are two actions, $a_1, a_2$ where we either play the lottery (costing 1), or save (not costing anything).
                 The two states, $s_1$ and $s_2$ correspond to winning or losing the lottery.
                 $$a^* = \argmax_{a_i} \summation{j = 1}{2} \mathcal{R}_{s_j}^{a_j}P[s_j\ |\ a_i]$$
- \end{document}
+        \subsection*{Markov Decision Process}
+            The emphasis decision process, with decision being the key, combines the policies with MRPs.
+            The MDP consists of the following;
+            \begin{itemize}
+                \itemsep0em
+                \item $\mathcal{S}$ \hfill state space
+                \item $\mathcal{A}$ \hfill action space
+                \item $\mathcal{P}_{ss^\prime}^a$ \hfill transition probability $p(s_{t + 1}\ \vline\ s_t, a_t)$
+                    \subitem probability of transitioning to the next state $s_{t + 1}$, given the current state $s_t$ and action $a_t$ taken
+                \item $\gamma \in [0, 1]$ \hfill discount factor
+                \item $\mathcal{R}_{ss^\prime}^a = r(s, a, s^\prime)$ \hfill immediate reward function
+                    \subitem in temporal notation, $r_{t + 1} = r(s_{t + 1}, s_t, a_t)$ - reward is collected upon the transition from $s_t$ to $s_{t + 1}$, which occurs at time $t + 1$
+                \item $\pi$ \hfill policy, can be either stochastic or deterministic
+                    \subitem stochastic is written as the following; $\vec{a} \sim p_\pi(\vec{a}\ \vline\ \vec{s}) = \pi(\vec{a}\ \vline\ \vec{s}) \equiv \pi(a, s)$ - being a probability distribution
+                    \subitem deterministic is written as $\vec{a} = \pi(\vec{s})$ (indicator function)
+            \end{itemize}
+            Note that the transition probability and policy both take the action into account, as parameters.
+            We can graphically represent this as follows, with nodes denoting variables, and edges denoting conditional dependencies between these variables;
+            \begin{center}
+                \begin{tikzpicture}]
+                    \node (rt1) at (0.25, 0) {$r_{t + 1}$};
+                    \node (st) at (-1, -1) {$s_t$};
+                    \node (st1) at (1, -1) {$s_{t + 1}$};
+                    \node (at) at (-0.25, -2) {$a_t$};
+
+                    \draw
+                    (st) edge[->] (at)
+                    (st) edge[->] (rt1)
+                    (st) edge[->] (st1)
+                    (at) edge[->] (rt1)
+                    (at) edge[->] (st1)
+                    (st1) edge[->] (rt1);
+                \end{tikzpicture}
+            \end{center}
+            This tells us that the action $a_t$ depends on the current state $s_t$, the next state $s_{t + 1}$ depends on both the action and the current state, and the reward $r_{t + 1}$ depends on all three.
+            \subsubsection*{Value Function}
+                The goodness of a given state is defined with the value function (where $R_t$ is a discounted total return, and $r_{t + k + 1}$ are immediate rewards);
+                $$V^\pi(s) = \mathbb{E}_\pi[R_t\ |\ S_t = s] = E\left[\summation{k = 0}{\infty}  \gamma^kr_{t + k + 1}\ \vline\ S_t = s\right]$$
+                This is quite similar to the derivation of the Bellman equation for MRPs, but now including the action (see the policies $\pi$).
+                Note that expectation is a linear operator, hence we can justify the final line, also note in the penultimate line we separate out the \violet{next reward} from the discounted rewards;
+                \begin{align*}
+                    V^\pi(s) & = \mathbb{E}_\pi[R_t\ |\ S_t = s] \\
+                    & = \mathbb{E}_\pi\left[\summation{k = 0}{\infty} \gamma^kr_{t + k + 1}\ \vline\ S_t = s\right] \\
+                    & = \mathbb{E}_\pi\left[\violet{r_{t + 1}} + \gamma\summation{k = 0}{\infty} \gamma^kr_{t + k + 2}\ \vline\ S_t = s\right] \\
+                    & = \mathbb{E}[r_{t + 1}\ |\ S_t = s] + \gamma\mathbb{E}\left[\summation{k = 0}{\infty} \gamma^kr_{t + k + 2}\ \vline\ S_t = s\right]
+                \end{align*}
+            \subsubsection*{Backup Diagrams}
+                We start at a white node, at a particular state $s$ (since we are conditioning on a particular state $S_t = s$).
+                From this state, we can take several actions, represented by the black nodes, which leads us to following states $s^\prime$, with a reward $r$.
+                This state value information is transferred back up to $s$ from its successor state $s^\prime$, performing the \textbf{update} or \textbf{backup} operation at the heart of the reinforcement learning method.
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[budw] (o) at (0, 0) {};
+                        \node[budb] (ol) at (-1, -1) {};
+                        \node[budb] (oc) at (0, -1) {};
+                        \node[budb] (or) at (1, -1) {};
+                        \node[budw] (oll) at (-1.25, -2) {};
+                        \node[budw] (olr) at (-0.75, -2) {};
+                        \node[budw] (ocl) at (-0.25, -2) {};
+                        \node[budw] (ocr) at (0.25, -2) {};
+                        \node[budw] (orl) at (0.75, -2) {};
+                        \node[budw] (orr) at (1.25, -2) {};
+
+                        \draw
+                        (o) -- (ol)
+                        (o) -- (oc)
+                        (o) -- (or)
+                        (ol) -- (oll)
+                        (ol) -- (olr)
+                        (oc) -- (ocl)
+                        (oc) -- (ocr)
+                        (or) -- (orl)
+                        (or) edge[right] node{$r$} (orr);
+
+                        \node at (0, 0.25) {$s$};
+                        \node at (1.25, -0.75) {$a$};
+                        \node at (1.75, -2) {$s^\prime$};
+                    \end{tikzpicture}
+                \end{center}
+                In order to calculate the value of state $s$, we need to average over all possible traces, which is what's going on behind the scenes in the expectation operator - an average weighted by probabilities.
+                All of which live inside the MDP;
+                \begin{itemize}
+                    \itemsep0em
+                    \item probability of the chosen action $a$ is given by the policy $P[a\ \vline\ s] = \pi(a, s)$
+                    \item probability of a transition to $s^\prime$ is given by the transition probability $P[s^\prime\ \vline\ s, a] = \mathcal{P}_{ss^\prime}^a$
+                    \item instantaneous reward $r$ is given by the reward function $r(s, a, s^\prime) = \mathcal{R}_{ss^\prime}^a$
+                    \item the value of the next state $s^\prime$, weighted by the probability functions is given recursively by $v(s^\prime)$
+                \end{itemize}
+                Writing it out, note that we have the value function of the state $s^\prime$ in \violet{violet};
+                \begin{align*}
+                    \mathbb{E}[r_{t + 1}\ |\ S_t = s] & = \summation{a \in \mathcal{A}}{} P\left[a\ |\ s\right] \left(\summation{s^\prime \in \mathcal{S}}{} P[s^\prime\ |\ s, a] r(s, a, s^\prime)\right) \\
+                    \mathbb{E}\left[\summation{k = 0}{\infty} \gamma^kr_{t + k + 2}\ \vline\ S_t = s\right] & = \summation{a \in \mathcal{A}}{} P\left[a\ |\ s\right] \left(\summation{s^\prime \in \mathcal{S}}{} P[s^\prime\ |\ s, a] \violet{\summation{k = 0}{\infty} \gamma^kr_{t + k + 2}}\right) \\
+                    V^\pi(s^\prime) & = \mathbb{E}[R_{t + 1}\ \vline\ S_{t + 1} = s^\prime] \\
+                    & = \mathbb{E}\left[\summation{k = 0}{\infty} \gamma^kr_{t + k + 2}\ \vline\ S_{t + 1} = s^\prime\right]
+                \end{align*}
+                We can combine all of this as follows;
+                \begin{align}
+                    V^\pi(s) & = \mathbb{E}_\pi [R_t\ |\ S_t = s] \\
+                    & = \mathbb{E}_\pi\left[\summation{k = 0}{\infty} \gamma^kr_{t + k + 1}\ \vline\ S_t = s\right] \\
+                    & = \mathbb{E}_\pi\left[r_{t + 1} + \gamma\summation{k = 0}{\infty} \gamma^kr_{t + k + 2}\ \vline\ S_t = s\right] \\
+                    & = \summation{a \in \mathcal{A}}{} \pi(a, s) \left(\summation{s^\prime \in \mathcal{S}}{} \mathcal{P}_{ss^\prime}^a \left(\mathcal{R}_{ss^\prime}^a + \gamma\mathbb{E}_\pi\left[\summation{k = 0}{\infty} \gamma^kr_{t + k + 2}\ \vline\ S_{t + 1} = s^\prime\right]\right)\right) \\
+                    & = \summation{a \in \mathcal{A}}{} \pi(a, s) \summation{s^\prime \in \mathcal{S}}{} \mathcal{P}_{ss^\prime}^a (\mathcal{R}_{ss^\prime}^a + \gamma V^\pi(s^\prime))
+                \end{align}
+                Here we are performing the following steps;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \setcounter{enumi}{1}
+                    \item write the definition of the return
+                    \item separate immediate reward
+                    \item split expectation in two, as it's a linear operator, also write out expectation weighted by probabilities, and using proper notation for policies $\pi(a, s)$, transition probabilities $\mathcal{P}_{ss^\prime}^a$, and reward function $\mathcal{R}_{ss^\prime}^a$
+                    \item substitute with recursive definition
+                \end{enumerate}
+                This is a consistency condition imposed on the value function and also has a unique solution.
+                Computing the value function for an arbitrary policy is known as policy evaluation or prediction problem.
+                Now, we need to iterate applications to obtain better estimates - note that the subscripts in $V_1(s), V_2(s), \dots, V_k(s)$ denote iterations, not states; this is guaranteed to converge.
+                This is known as iterative policy evaluation.
+                A stopping condition can be achieved by checking that the \textbf{largest} change in the value function, between iterations, is below a certain small threshold.
+                This can be formalised as follows - note that the value function is on a particular policy;
+                \begin{enumerate}
+                    \itemsep0em
+                    \item input $\pi$, the policy to be evaluated
+                    \item initialise $V(s) = 0$ for all $s \in \mathcal{S}^+$
+                    \item repeat the following until $\Delta < \theta$ (where $\theta$ is some small positive number)
+                        \begin{enumerate}
+                            \itemsep0em
+                            \item $\Delta \leftarrow 0$
+                            \item for each $s \in \mathcal{S}$;
+                                \begin{enumerate}
+                                    \itemsep0em
+                                    \item $v \leftarrow V(s)$ \hfill store old value
+                                    \item $V(s) \leftarrow \summation{a \in \mathcal{A}}{} \pi(a, s) \summation{s^\prime \in \mathcal{S}}{} \mathcal{P}_{ss^\prime}^a (\mathcal{R}_{ss^\prime}^a + \gamma V^\pi(s^\prime))$ \hfill sweep through successors, a full backup
+                                    \item $\Delta \leftarrow \max(\Delta, | v - V(s) |)$
+                                \end{enumerate}
+                        \end{enumerate}
+                    \item output $V \approx V^\pi$
+                \end{enumerate}
+                Note that this replaces values, in place, converging faster than a two-array method, which would have both an old and new array.
+            \subsubsection*{Stair Climbing MDP}
+                Consider the following example; for brevity, a \violet{violet} edge means a Right action, and a \teal{teal} edge denotes a Left action.
+                $P$ and $G$ are both absorbing / terminal states, assume we start at $s_3$ with $\gamma = 0.9$, an unbiased policy (such that all actions are equally probable) with $\pi(s, L) = \pi(s, R) = 0.5$, hence randomly selecting actions.
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm]
+                        \node[state] (p) at (0, 0) {$P$};
+                        \node[state] (s1) at (1, 0) {$s_1$};
+                        \node[state] (s2) at (2, 0) {$s_2$};
+                        \node[state] (s3) at (3, 0) {$s_3$};
+                        \node[state] (s4) at (4, 0) {$s_4$};
+                        \node[state] (s5) at (5, 0) {$s_5$};
+                        \node[state] (g) at (6, 0) {$G$};
+                        \draw
+                        (s1) edge[->, violet, above, bend left=45] node{$-1$} (s2)
+                        (s2) edge[->, violet, above, bend left=45] node{$-1$} (s3)
+                        (s3) edge[->, violet, above, bend left=45] node{$-1$} (s4)
+                        (s4) edge[->, violet, above, bend left=45] node{$-1$} (s5)
+                        (s5) edge[->, violet, above, bend left=45] node{$10$} (g)
+                        (s5) edge[->, teal, below, bend left=45] node{$1$} (s4)
+                        (s4) edge[->, teal, below, bend left=45] node{$1$} (s3)
+                        (s3) edge[->, teal, below, bend left=45] node{$1$} (s2)
+                        (s2) edge[->, teal, below, bend left=45] node{$1$} (s1)
+                        (s1) edge[->, teal, below, bend left=45] node{$-10$} (p);
+                    \end{tikzpicture}
+                \end{center}
+                Note that in the first iteration, the only changes are to $s_1$ and $s_5$, as they are the only ones with successor states that have different rewards (all other states will cancel out), also note the symmetry stemming from the symmetrical problem.
+                \begin{center}
+                    \begin{tabular}{|c|ccccccc|}
+                        $V$ & $P$ & $s_1$ & $s_2$ & $s_3$ & $s_41$ & $s_5$ & $G$ \\
+                        \hline
+                        $V_0$ & $0$ & $0$ & $0$ & $0$ & $0$ & $0$ & $0$ \\
+                        $V_1$ & $0$ & $-5.5$ & $0$ & $0$ & $0$ & $5.5$ & $0$ \\
+                        $V_2$ & $0$ & $-5.5$ & $-2.48$ & $0$ & $2.48$ & $5.5$ & $0$ \\
+                        $V_2$ & $0$ & $-6.61$ & $-2.48$ & $0$ & $2.48$ & $6.61$ & $0$ \\
+                        $\vdots$ & & & & & & & \\
+                        $V_\infty$ & $0$ & $-6.9$ & $-3.1$ & $0$ & $3.1$ & $6.9$ & $0$
+                    \end{tabular}
+                \end{center}
+                Note that we are still equally likely to go to the left, despite being significantly worse; thus knowing the value of the policy can improve the policy.
+            \subsubsection*{State-Action Value Function}
+                This takes in two parameters; a state $s$ and an action $a$, giving us a function that determines the value of taking a certain action at a state.
+                $$Q^\pi(s, a) = \mathbb{E}[R_t\ |\ S_t = s, A_t = a] = \mathbb{E}\left[\summation{k = 0}{\infty} \gamma^k r_{t + k + 1}\ \vline\ S_t = s, A_t = a\right]$$
+                The relation between the state value function and this is;
+                $$V^\pi(s) = \summation{a \in \mathcal{A}}{} \pi(s, a)Q^\pi(s, a)$$
+            \subsubsection*{Bellman Optimality Equations}
+                Previously, we discussed arbitrary policies.
+                However, we can define an ordering on policies (such that some policies are better than others) by saying a policy is better than, or equal to, another policy if its expected return is also greater than or equal to the other policy for all states; $\pi \geq \pi^\prime$ iff $\forall s \in \mathcal{S}\ [V^\pi(s) \geq V^{\pi^\prime}(s)]$.
+                As such, the optimal value function is defined as;
+                $$V^*(s) = \max_\pi V^\pi(s), \forall s \in \mathcal{S}$$
+                We call the policy $\pi^*$ which maximises the value function the optimal policy; there will always be at least one, but multiple can exist.
+                Similarly, there is also an optimal state-action value function;
+                $$Q^*(s, a) = \max_\pi Q^\pi(s, a), \forall s \in \mathcal{S}, a \in \mathcal{A} = \mathbb{E}[r_{t + 1} + \gamma V^*(s_{t + 1})\ |\ S_t = s, A_t = a]$$
+                The Bellman equations for these are called Bellman Optimality equations.
+                \medskip
+
+                We have already seen the backup diagram for the value function, and the state-action value function backup diagram is similar (you can think of them as the black nodes and its children);
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[budb] (o) at (0, 0) {};
+                        \node[budw] (ol) at (-1, -1) {};
+                        \node[budw] (or) at (1, -1) {};
+                        \node[budb] (oll) at (-1.25, -2) {};
+                        \node[budb] (olr) at (-0.75, -2) {};
+                        \node[budb] (orl) at (0.75, -2) {};
+                        \node[budb] (orr) at (1.25, -2) {};
+
+                        \node at (0, 0.25) {$s, a$};
+                        \node at (1.25, -1) {$s^\prime$};
+                        \node at (1.75, -2) {$a^\prime$};
+
+                        \draw
+                        (o) -- (ol)
+                        (o) edge[right] node{$r$} (or)
+                        (ol) -- (oll)
+                        (ol) -- (olr)
+                        (or) -- (orl)
+                        (or) -- (orr);
+                    \end{tikzpicture}
+                \end{center}
+                The white nodes are associated with the value function $V^\pi(s)$, the black nodes with the value-action function $Q^\pi(s, a)$, and the paths between the nodes taken with probability $\pi(s, a)$.
+                The relationship for the function, on just the value function backup diagram can be shown as follows;
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[budw] (o) at (0, 0) {};
+                        \node[budb] (ol) at (-1, -1) {};
+                        \node[budb] (oc) at (0, -1) {};
+                        \node[budb] (or) at (1, -1) {};
+
+                        \node at (0, 0.5) {$s$};
+                        \node at (-1, -1.5) {$a_1$};
+                        \node at (0, -1.5) {$a_2$};
+                        \node at (1, -1.5) {$a_3$};
+
+                        \node (v) at (3, 0) {$V^\pi(s)$};
+                        \node (q) at (3, -1) {$Q^\pi(s, a)$};
+                        \node (p) at (-3, -0.5) {$\pi(s, a)$};
+
+                        \draw
+                        (o) -- (ol)
+                        (o) -- (oc)
+                        (o) -- (or)
+                        (v) edge[->] (o)
+                        (q) edge[->] (or)
+                        (p) edge[->] (-0.5, -0.5);
+                    \end{tikzpicture}
+                \end{center}
+                If we want the optimal value for a state, only actions that give the highest value should be chosen;
+                \setcounter{equation}{0}
+                \begin{align}
+                    V^*(s) & = \max_{a \in \mathcal{A}} \summation{a \in \mathcal{A}}{} \pi(s, a) Q^\pi(s, a) \\
+                    & = \max_a Q^{\pi^*}(s, a) \\
+                    & = \max_a \mathbb{E}[R_t\ |\ S_t = s, A_t = a] \\
+                    & = \max_a \mathbb{E}\left[\summation{k = 0}{\infty} \gamma^k r_{t + k + 1}\ \vline\ S_t = s, A_t = a\right] \\
+                    & = \max_a \mathbb{E}\left[r_{t + 1} + \gamma\summation{k = 0}{\infty} \gamma^k r_{t + k + 2}\ \vline\ S_t = s, A_t = a\right] \\
+                    & = \max_a \mathbb{E}[r_{t + 1} + \gamma V^*(s_{t + 1})\ |\ S_t = s, A_t = a] \\
+                    & = \max_a \summation{s^\prime}{} P[s^\prime\ |\ s, a] (r(s, a, s^\prime) + \gamma V^*(s^\prime)) \\
+                    & = \max_a \summation{s^\prime}{} \mathcal{P}_{ss^\prime}^a (\mathcal{R}_{ss^\prime}^a + \gamma V^*(s^\prime))
+                \end{align}
+                We perform the following steps;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \setcounter{enumi}{2}
+                    \item write down definition of state-action value function, being the expected return conditioned on $s$ and $a$
+                    \item perform usual expansion with the maximum on the left
+                    \setcounter{enumi}{6}
+                    \item replace with probabilities
+                \end{enumerate}
+                There is no reference to any particular policy and must therefore be satisfied by all optimal policies.
+                The optimality equation expresses that the value of a state under an optimal policy is equal to the expected return of the best action from the state.
+                This can be done similarly for $Q^*$, except the maximum is now on the inside;
+                \begin{align*}
+                    Q^*(s, a) & = \mathbb{E}\left[r_{t + 1} + \gamma\max_{a^\prime} Q^*(s_{t + 1}, a^\prime)\ \vline\ S_t = s, A_t = a\right] \\
+                    & = \summation{s^\prime}{} \mathcal{P}_{ss^\prime}^a \left(\mathcal{R}_{ss^\prime}^a + \gamma\max_{a^\prime} Q^*(s^\prime, a^\prime)\right)
+                \end{align*}
+                Notice that the equation doesn't require $\pi^*$ at all, which is useful as we don't need to know the optimal policy to solve the optimality equations.
+                For finite MDPs, this equation has a unique solution, independent of the policy.
+                The bellman optimality equation is a set of $N$ non-linear equations, where $N = |\mathcal{S}|$, with $N$ unknowns.
+                \medskip
+
+                An explicit solution for the optimality equation provides one route for an optimal policy - however we are often going to encounter a high-dimensional problem (large state space).
+                This also assumes the following, which are rarely true;
+                \begin{itemize}
+                    \itemsep0em
+                    \item we accurately know the dynamics of the environment
+                    \item we have the resources to find the solution
+                    \item the Markov property
+                \end{itemize}
+                We therefore often settle for approximate solutions.
+                \medskip
+
+                The BOE convergence theorem states that for an MDP with finite state and action space, the optimality equations have a unique solution and the values produced by iteration converge to the solution of the equations.
+                The proof of this rests on the Banach Fixed Point / Contraction Mapping Theorem.
+\end{document}
