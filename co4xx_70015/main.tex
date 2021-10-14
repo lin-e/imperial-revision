@@ -284,4 +284,55 @@
                 \dif{^2L}{a^2} & = \summation{n = 1}{N} 2x_n^2 \\
                 & \geq 0
             \end{align*}
+        \subsubsection*{Lecture 1.3 - Scalar-by-vector Differentiation}
+            The previous example is too simple for real applications - we will need to differentiate by more parameters (vectors).
+            Consider the following example, a polynomial, which has 4 vectors parametising it - each vector now corresponds to a single cubic polynomial;
+            \begin{align*}
+                f(x) & = \theta_3x^3 + \theta_2x^2 + \theta_1x + \theta_0 \\
+                & = \vec{\theta}^\top\vec{\phi}(x) \\
+                \vec{\phi}(x) & = \begin{bmatrix}
+                    x^3 & x^2 & x & 1
+                \end{bmatrix}^\top
+            \end{align*}
+            Our goal still remains to understand how a function changes with our parameter and to characterise what an optimum is for a function of a vector.
+            Both of these change a multi-dimensional problem into many 1-dimensional problems.
+            \medskip
+
+            We want to change it into a 1-dimensional question; instead of asking about a change to $\vec{\theta}$, we ask what happens when we move along a particular line / direction.
+            A directional derivative is how much the function changes, when we move in a direction $\vec{v}$;
+            $$\nabla_{\vec{v}}L(\vec{\theta}) = \limit{h}{0}\frac{L(\vec{\theta} + h\vec{v}) - L(\vec{\theta})}{h}$$ % assuming a mistake in the slides, the -L(theta) wasn't there
+            The distance that we move away from the starting point ($\vec{\theta}$) is determined by \textbf{both} the norm / scale of the direction vector $\vec{v}$, as well as $h$.
+            If we can understand how the function changes based on a change in \textbf{any} direction, we can fully characterise differentiation with respect to a vector.
+            \medskip
+
+            Consider the following example, where we deal with two parameters (also notice the second equality holds as the values in \violet{violet} are equal and cancel each other out);
+            \begin{align*}
+                \nabla_{\vec{v}}L(\vec{\theta}) & = \limit{h}{0}\frac{L(\theta_1 + hv_1, \theta_2 + hv_2) - L(\theta_1, \theta_2)}{h} \\
+                & = \limit{h}{0}\underbrace{\frac{L(\theta_1 + hv_1, \theta_2 + hv_2) - \violet{L(\theta_1, \theta_2 + hv_2)}}{h}}_\text{only change in first parameter} + \underbrace{\frac{\violet{L(\theta_1, \theta_2 + hv_2)} - L(\theta_1, \theta_2)}{h}}_\text{only change in second parameter} \\
+                & = \limit{h}{0}\frac{L(\theta_1 + h^\prime, \theta_2 + h^\prime\frac{v_2}{v_1}) - \violet{L(\theta_1, \theta_2 + h^\prime\frac{v_2}{v_1})}}{\frac{h^\prime}{v_1}} + \frac{\violet{L(\theta_1, \theta_2 + h^{\prime\prime})} - L(\theta_1, \theta_2)}{\frac{h^{\prime\prime}}{v_2}} \\
+                & = \pdif{L}{\theta_1}v_1 + \pdif{L}{\theta_2}v_2
+            \end{align*}
+            This means that we can find the gradient in any direction with the partial derivatives, as we chose arbitrary $v_1, v_2$.
+            With a partial derivative, we change only one coordinate at a time - see the following for a function $f : \mathbb{R}^N \to \mathbb{R}$;
+            \begin{align*}
+                y & = f(\vec{x}) \\
+                x & = \begin{bmatrix}
+                    x_1 \\ \vdots \\ x_N
+                \end{bmatrix} \\
+                \pdif{f}{x_i} & = \limit{h}{0} \frac{f(x_1, \dots, x_{i - 1}, \violet{x_i + h}, x_{i + 1}, \dots, x_N) - f(\vec{x})}{h}
+            \end{align*}
+            The Jacobian vector collects all partial derivatives into a row vector;
+            $$\dif{f}{\vec{x}} = \begin{bmatrix}
+                \pdif{f}{x_1} & \cdots & \pdif{f}{x_N}
+            \end{bmatrix} \in \mathbb{R}^{1 \times N}$$
+            We now want to know which direction to go in, to decrease the value of the function the most.
+            The directional derivative can be written as the inner product;
+            $$\nabla_{\vec{v}}f(\vec{\theta}) = \dif{f}{\vec{\theta}}\vec{v} = \left|\dif{f}{\vec{\theta}}\right|\left|\vec{v}\right| \cos \beta$$
+            We can maximise this by making $\cos \beta$ as large as possible, since the norms of the two vectors are fixed.
+            If we choose a unit vector $\vec{v}$, we want the largest value possible, hence $\cos \beta = 1$, so the angle between the vectors should be zero (such that $\beta = 0$).
+            As such, we move in the direction of the Jacobian / gradient vector.
+            \medskip
+
+            We can reuse the intuition from the 1-D case, where moving in either direction doesn't change your value - the directional derivative should be zero in \textbf{all directions} (hence the zero vector, $\vec{0}$).
+            Additionally, to verify it's a minimum, we want the second directional derivative to also be positive in \textbf{all directions}.
 \end{document}
