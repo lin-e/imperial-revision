@@ -335,4 +335,118 @@
 
             We can reuse the intuition from the 1-D case, where moving in either direction doesn't change your value - the directional derivative should be zero in \textbf{all directions} (hence the zero vector, $\vec{0}$).
             Additionally, to verify it's a minimum, we want the second directional derivative to also be positive in \textbf{all directions}.
+        \subsection*{Lecture 1.4 - Vector-by-vector Differentiation}
+            Recall the motivating example of linear regression;
+            $$L(\vec{\theta}) = \summation{n = 1}{N}(y_n - \vec{\phi}(x_n)^T\vec{\theta})^2 = || \vec{y} - \violet{\mat{\Phi}(X) \vec{\theta}} ||^2$$
+            We could either manually take partial derivatives of $L$, which would be laborious, or consider it as a composition of a vector-to-vector function (the \violet{matrix multiplication}) and a vector-to-scalar function (the norm of the vector squared);
+            \begin{center}
+                \hfill $f(\vec{g}(\vec{\theta}))$ \hfill $f : \mathbb{R}^D \to \mathbb{R}$ \hfill $g : \mathbb{R}^E \to \mathbb{R}^D$ \hfill
+            \end{center}
+            There is a multivariate chain rule, for scalars it is as follows (where $f$ is a function of $a$ and $b$, both of which are functions of $t$);
+            $$\dif{f(a(t), b(t))}{t} = \pdif{f}{a} \dif{a}{t} + \pdif{f}{b} \dif{b}{t}$$
+            This can be generalised as follows, for $\vec{g}(t) \in \mathbb{R}^D$, and both are vectors - allowing us to write it as an inner product;
+            $$\dif{f(\vec{g}(t))}{t} = \summation{i = 1}{D} \pdif{f}{g_i} \dif{g_i}{t} = \underbrace{\dif{f}{\vec{g}}}_\text{row} \cdot \underbrace{\dif{\vec{g}}{t}}_\text{col}$$
+            This only works as we've defined the differentiation of a function with respect to a vector as a row vector - which we will use for the remainder of the course.
+            Similarly, the second part of the sum is the derivative of a column vector, which remains a column vector.
+            Consider the following example, with $f : \mathbb{R}^2 \to \mathbb{R}$ and $\vec{x} : \mathbb{R} \to \mathbb{R}^2$;
+            \begin{align*}
+                f(\vec{x}) & = f(x_1, x_2) \\
+                & = x_1^2 + 2x_2 \\
+                \vec{x}(t) & = \begin{bmatrix}
+                    x_1(t) \\ x_2(t)
+                \end{bmatrix} \\
+                & = \begin{bmatrix}
+                    \sin(t) \\ \cos(t)
+                \end{bmatrix} \\
+                \dif{f}{\vec{x}} & \in \mathbb{R}^{1 \times 2} \\
+                \dif{\vec{x}}{t} & \in \mathbb{R}^2 \\
+                \dif{f}{t} & = \violet{\dif{f}{\vec{x}}} \teal{\dif{\vec{x}}{t}} \\
+                & = \violet{\begin{bmatrix}
+                    \pdif{f}{x_1} & \pdif{f}{x_2}
+                \end{bmatrix}} \teal{\begin{bmatrix}
+                    \pdif{x_1}{t} \\ \pdif{x_2}{t}
+                \end{bmatrix}} \\
+                & = \violet{\begin{bmatrix}
+                    2\sin(t) & 2
+                \end{bmatrix}} \teal{\begin{bmatrix}
+                    \cos(t) \\ -\sin(t)
+                \end{bmatrix}} \\
+                & = 2\sin(t)(\cos(t) - 1)
+            \end{align*}
+            A similar rule applies when differentiating with respect to a vector (note previously we only did it with respect to a scalar).
+            Similarly, this just requires collecting all the partial derivatives, and the same chain rule applies for $\vec{g}(\vec{x}) \in \mathbb{R}^D$;
+            $$\pdif{f(\vec{g}(\vec{x}))}{x_j} = \summation{i = 1}{D} \pdif{f}{g_i} \dif{g_i}{x_j}$$ % assuming slides incorrect again, it uses f(g(t)) instead of f(g(x))
+            Once collected, this becomes matrix multiplication, which can be written in vector form;
+            $$\dif{f(\vec{g}(\vec{x}))}{\vec{x}} = \underbrace{\dif{f}{\vec{g}}}_\text{row} \cdot \underbrace{\dif{\vec{g}}{\vec{x}}}_\text{mat}$$
+            Note that the matrix is the derivative of a column vector ($\vec{g}$) with respect to an input vector $\vec{x}$.
+            We instead put the elements in each row (similar to how we did it for a vector by scalar) - the elements of $\vec{g}$ ($i$) are along the column, and the dimensions of the derivative ($j$) are along the row.
+            If $f$ gave a vector as an output, we'd end up with a matrix by matrix multiplication.
+            \medskip
+
+            Consider the following example, where we have $f : \mathbb{R}^N \to \mathbb{R}^M$, $\vec{y} = \vec{f}(\vec{x}) \in \mathbb{R}^M$, and $\vec{x} \in \mathbb{R}^N$;
+            $$\begin{bmatrix}
+                \violet{y_1} \\ \vdots \\ \teal{y_M}
+            \end{bmatrix} = \begin{bmatrix}
+                \violet{f_1(\vec{x})} \\ \vdots \\ \teal{f_M(\vec{x})}
+            \end{bmatrix} = \begin{bmatrix}
+                \violet{f_1(x_1, \dots, x_N)} \\ \vdots \\ \teal{f_M(x_1, \dots, x_N)}
+            \end{bmatrix}$$
+            The collection of all partial derivatives is called a Jacobian matrix;
+            $$\begin{bmatrix}
+                \violet{\dif{y_1}{\vec{x}}} \\ \vdots \\ \teal{\dif{y_M}{\vec{x}}}
+            \end{bmatrix} = \begin{bmatrix}
+                \violet{\pdif{f_1}{x_1}} & \violet{\cdots} & \violet{\pdif{f_1}{x_N}} \\
+                \vdots & & \vdots \\
+                \teal{\pdif{f_M}{x_1}} & \teal{\cdots} & \teal{\pdif{f_M}{x_N}}
+            \end{bmatrix} \in \mathbb{R}^{M \times N}$$
+            In general, a function $\vec{f} : \mathbb{R}^N \to \mathbb{R}^M$ has a gradient that is a matrix $\mathbb{R}^{M \times N}$, or has the number of target dimensions ($M$) $\times$ the number of input dimensions ($N$);
+            $$\mathrm{d}\vec{f}[m, n] = \pdif{f_m}{x_n}$$
+            Recall that for matrix multiplication, the second dimension of the first matrix must match with the first dimension of the second matrix.
+            A function composition is constrained that the output dimension of $\vec{h}$ must be the same as the input dimension of $\vec{g}$ to compute $\vec{g}(\vec{h}(\vec{x}))$ when we have $\vec{f}(\vec{x}) = (\vec{g} \circ \vec{h})(\vec{x})$.
+            This ensures the shapes of the chain rule will \textbf{always} work out.
+            For $\vec{f}: \mathbb{R}^N \to \mathbb{R}^M$, $\vec{g}: \mathbb{R}^L \to \mathbb{R}^M$, and $\vec{h}: \mathbb{R}^N \to \mathbb{R}^L$, we have the following shapes;
+            $$\underbrace{\dif{\vec{f}}{\vec{x}}}_{M \times N} = \underbrace{\dif{\vec{g}}{\vec{h}}}_{M \times L} \underbrace{\dif{\vec{h}}{\vec{x}}}_{L \times N}$$
+            Consider the following example, of a matrix multiplication $\vec{f}(\vec{x}) = \mat{A}\vec{x}$ where we have $\mat{A} \in \mathbb{R}^{M \times N}$ and $\vec{x} \in \mathbb{R}^N$;
+            \begin{align}
+                \begin{bmatrix}
+                    y_1 \\ \vdots \\ y_M
+                \end{bmatrix} & = \begin{bmatrix}
+                    f_1(\vec{x}) \\ \vdots \\ f_M(\vec{x})
+                \end{bmatrix} \\
+                & = \begin{bmatrix}
+                    A_{1, 1}x_1 + A_{1, 2}x_2 + \cdots + A_{1, N}x_N \\
+                    \vdots \\
+                    A_{M, 1}x_1 + A_{M, 2}x_2 + \cdots + A_{M, N}x_N
+                \end{bmatrix} \\
+                f_i(\vec{x}) & = \summation{k = 1}{N} A_{i, k}x_k \\
+                \pdif{f_i}{x_j} & = \summation{k}{} A_{i, k} \pdif{x_k}{x_j} \\
+                & = \summation{k}{} A_{i, k} \delta_{k, j} \\
+                & = A_{i, j}
+            \end{align}
+            Note the following steps in particular;
+            \begin{enumerate}[(1)]
+                \itemsep0em
+                \setcounter{enumi}{2}
+                \item write out each scalar in the vector with index notation by writing the sum explicitly allowing us to take the derivative of an arbitrary element in the output vector with respect to an arbitrary element in the input vector
+                \item take differential operator inside by sum rule
+                \item matrix value is constant, so we end up taking a partial derivative of $x_k$ by $x_j$ - partial derivative only changes $x_j$ and keeps everything else constant, hence it will be zero when $k \neq j$ and 1 when $k = j$ (indicator function, $\delta$)
+                \item end up with $A_{i, j}$ as it's the only case the indicator function is non-zero
+            \end{enumerate}
+            Therefore, we get the result that $\dif{f}{x} = \mat{A} \in \mathbb{R}^{M \times N}$.
+            \medskip
+
+            Consider the following, which is similar to the loss function, where $\vec{x} \in \mathbb{R}^N, \mat{A} \in \mathbb{R}^{M \times N}, \vec{e}, \vec{y} \in \mathbb{R}^M$;
+            \begin{align*}
+                L(\vec{e}) & = \frac{1}{2} || \vec{e} ||^2 \\
+                & = \frac{1}{2} \vec{e}^\top\vec{e} \\
+                \vec{e} & = \vec{y} - \mat{A}\vec{x} \\
+                \dif{L}{\vec{x}} & = \pdif{L}{\vec{e}} \pdif{\vec{e}}{\vec{x}} \\
+                \pdif{L}{e_i} & = \pdif{}{e_i} \summation{j}{} \frac{1}{2} e_j^2 \\
+                & = \summation{j}{} \frac{1}{2} 2e_j \pdif{e_j}{e_i} \\
+                & = e_i \\
+                \pdif{L}{\vec{e}} & = \vec{e}^\top \\
+                \pdif{\vec{e}}{\vec{x}} & = -\mat{A} \\
+                \pdif{L}{\vec{x}} & = e^\top(-\mat{A}) \\
+                & = -(\vec{y} - \mat{A}\vec{x})^\top\mat{A}
+            \end{align*}
 \end{document}
