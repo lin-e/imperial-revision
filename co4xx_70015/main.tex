@@ -230,5 +230,58 @@
             A good function has the property $f(\vec{x_i}, \vec{\theta^*}) \approx y_i$; the output of the function closely matches the outputs of the training points.
             This can be defined with a \textbf{loss function}, for example;
             $$L(\vec{\theta}) = \summation{i = 1}{N} (y_i - f(\vec{x_i}, \vec{\theta}))^2$$
-            Therefore, a good function is chosen by minimising the loss; $\vec{\theta^*} = \argmin_{\vec{\theta}}L(\vec{\theta})$
+            Therefore, a good function is chosen by minimising the loss; $\vec{\theta^*} = \argmin_{\vec{\theta}}L(\vec{\theta})$.
+        \subsection*{Lecture 1.2 - Scalar Differentiation}
+            We can plot the loss against the parameters for a function.
+            This raises two questions; how to change the parameter to make the loss smaller and how we know if we can't get a better loss.
+            The derivative is defined as the limit of the difference quotient (as usual);
+            $$f^\prime(x) = \dif{f}{x} = \limit{h}{0} \frac{f(x + h) - f(x)}{h}$$
+            Several examples of this are as follows;
+            \begin{center}
+                \begin{tabular}{c|c}
+                    $f(x)$ & $f^\prime(x)$ \\
+                    \hline
+                    $x^n$ & $nx^{n - 1}$ \\
+                    $\sin(x)$ & $\cos(x)$ \\
+                    $\tanh(x)$ & $1 - \tanh^2(x)$ \\
+                    $e^x = \exp(x)$ & $e^x$ \\
+                    $\log(x)$ & $\frac{1}{x}$
+                \end{tabular}
+            \end{center}
+            There are also the following rules which combine the basic functions;
+            \begin{itemize}
+                \itemsep0em
+                \item sum rule \hfill describes the derivative of sum of two functions
+                    $$(f(x) + g(x))^\prime = f^\prime(x) + g^\prime(x)$$
+                \item product rule \hfill similarly, for multiplication
+                    $$(f(x)g(x))^\prime = f^\prime(x)g(x) + f(x)g^\prime(x)$$
+                \item chain rule \hfill describes how to differentiate functions that are composed
+                    $$(g \circ f)^\prime(x) = (g(f(x)))^\prime = g^\prime(f(x))f^\prime(x)$$
+                \item quotient rule \hfill describes division, special case of the product rule
+                    $$\left(\frac{f(x)}{g(x)}\right)^\prime = \frac{f^\prime(x)g(x) - f(x)g^\prime(x)}{(g(x))^2}$$
+            \end{itemize}
+            This tells us how to change the input in the function; the gradient tells us how much the output changes based on an increase in the input.
+            We first compute the derivative function at a point to find the point's gradient.
+            If the gradient is negative, this tells us the function will decrease if we increase the input (hence increase to minimise), and vice versa; decrease for positive gradients - this is the idea behind gradient descent.
+            \medskip
+
+            Similarly, we know we are done (at a minimum for the loss function) when there is nothing that can be done to lower the output, hence the gradient must be 0.
+            However, this isn't sufficient to tell us that we have reached a minimum, as a maximum also has a gradient of zero.
+            A minimum has a decreasing function followed by an increasing function; hence the gradient of the gradient (second derivative) is positive.
+            \medskip
+
+            However, this only gives us a local minima.
+            We should be concerned with getting stuck in a local minima (rather than a global minima) when dealing with non-convex functions.
+            Working through a simple example, with a linear regression problem (aiming to find an optimal $a$) - the final step takes the second derivative to verify we have a minimum;
+            \begin{align*}
+                f(x) & = a \cdot x \\
+                L(a) & = \summation{n = 1}{N} (f(x_n) - y_n)^2 \\
+                \dif{L}{a} & = \summation{n = 1}{N} 2(ax_n - y_n)x_n \\
+                & = \summation{n = 1}{N} 2ax_n^2 - 2x_ny_n \\
+                & = 0 \\
+                2a\summation{n}{} x_n^2 & = \summation{n}{} 2x_ny_n \\
+                a & = \frac{\summation{n}{} 2x_ny_n}{\summation{n}{} x_n^2} \\
+                \dif{^2L}{a^2} & = \summation{n = 1}{N} 2x_n^2 \\
+                & \geq 0
+            \end{align*}
 \end{document}
