@@ -449,4 +449,27 @@
                 \pdif{L}{\vec{x}} & = e^\top(-\mat{A}) \\
                 & = -(\vec{y} - \mat{A}\vec{x})^\top\mat{A}
             \end{align*}
+        \subsection*{Lecture 1.5 - Hessians}
+            We still want to get the second derivative, in order to verify that we have a minima and not a maxima.
+            The chain rule we have in place only works with derivatives of scalars, or column vectors (when differentiating with respect to vectors).
+            We've currently defined the vertical axis to be outputs and the horizontal axis for variables we're differentiating by.
+            This convention no longer holds when we are taking second derivatives, we we need to take the second derivative along a row vector;
+            $$\nabla_{\vec{v}}\underbrace{\left[\dif{f}{\vec{\theta}}\vec{v}\right]}_\text{scalar} = \underbrace{\dif{}{\vec{\theta}}\left[\dif{f}{\vec{\theta}}\vec{v}\right]}_\text{row vector}\vec{v}$$
+            Solving this in a way that only involves taking derivatives with respect to scalars;
+            \setcounter{equation}{0}
+            \begin{align}
+                \dif{f}{\vec{\theta}}\vec{v} & = \summation{j}{} \pdif{f}{\theta_j}v_j \\
+                \pdif{}{\theta_i}\left[\dif{f}{\vec{\theta}}\vec{v}\right] & = \summation{j}{} \pdif{}{\theta_j}\pdif{f}{\theta_j}v_j \\
+                & = \summation{j}{} \pdif{^2f}{\theta_i\partial \theta_j} v_j \\
+                \nabla_{\vec{v}}\left[\dif{f}{\vec{\theta}}\vec{v}\right] & = \vec{v}^\top\mat{H}\vec{v}
+            \end{align}
+            This involves the following steps;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item expand out in terms of summation components (partial derivatives multiplied by vector component)
+                \item take partial derivative of the scalar, using sum rule
+                \item obtain a row vector where we multiply against the second partial derivatives
+                \item the matrix $\mat{H}$ (Hessian) contains all second partial derivatives of the function $f$
+            \end{enumerate}
+            We are at the minimum if $\mat{H}$ is positive definite ($\forall \vec{v}\ \vec{v}^\top\mat{H}\vec{v} \geq 0$) - positive eigenvalues.
 \end{document}
