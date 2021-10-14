@@ -14,3 +14,4 @@ materials/*
 # ignore testing, and programming practice
 co000/*
 ignored/*
+*/ignore.*

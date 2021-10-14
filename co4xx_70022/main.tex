@@ -583,4 +583,39 @@
                 This then goes over an example with reducing computation.
                 In the example, checking a range on non-uniform (spatial) partitioning is expensive, as there are many irrelevant points.
                 The computation is reduced by using several grids of varying detail; if the range covers the majority of a cell it's checked on that level of detail, if not, it's checked on a lower level of detail.
+        \subsection*{October 14 - Live Lecture}
+            Learned indexing combines machine learning with indexing.
+            The same concept of an index applies, but machine learning models aid to accelerate this lookup, for example by learning distributions.
+            These models are typically small and simple, such as interpolation - however, they understand distributions better than existing structures such as B trees.
+            The primary challenge is that these models need to fit into main memory, or even the cache to be faster.
+            \medskip
+
+            The fundamental problem of a join is to join two relations on a shared attribute.
+            If one of the iterations is small, you can iterate over the smaller relation and lookup the related element in the larger relation.
+            There are typically two phases in a join, with a build (scanning through the smaller relation and building a hash table), and a probe phase where the second input relation is scanned, and the hash table of the first relation is probed for the matching tuple.
+            The problem with this is when the hash table is large, leading to a large number of cache misses.
+            One solution is to ensure the hash table can be broken into chunks that fit into cache.
+            However, if there are too many partitions, the build phase involves many writes into different partitions, leading to many writes into different locations (thus leading to many TLB misses).
+            The radix join addresses this by iteratively partitioning into cache. % ?
+            \medskip
+
+            The data in a B+ tree exists in the leaves.
+            Any other numbers in internal nodes only exist to help guide the search.
+            \medskip
+
+            An adjacent block doesn't necessarily mean a short / small seek distance.
+            The abstract concept of an adjacent block could also be called a temporally close block; could be short seek distance or based on rotation.
+            Note that the platter is rotating constantly, and by the time the head has finished moving, a different block would be under the head, not necessarily one that is physically nearby.
+            If data is written together, it will be stored on adjacent (the abstract concept) blocks, which may still be spread over the disk physically.
+            \medskip
+
+            When there's indexing in main memory, the performance is so much faster, the index needs much fewer instructions, otherwise it may be faster to just scan.
+            On the other hand, on disks, the performance is relatively slower, allowing for more complex indices.
+            This applies even for high-throughput devices.
+            \medskip
+
+            DBMS doesn't typically bypass the OS, at least not without a custom OS or specific hardware.
+            However, it organises its files or data separately, not leaving it to the OS, as well as handling its own cache and database pages (managed by the database system itself).
+            Typically, database systems stores the data in and builds on the OS filesystem.
+            You can't force the disk to read / write in a specific physical location, but you can help it write in one go.
 \end{document}
