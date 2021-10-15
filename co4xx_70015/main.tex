@@ -472,4 +472,151 @@
                 \item the matrix $\mat{H}$ (Hessian) contains all second partial derivatives of the function $f$
             \end{enumerate}
             We are at the minimum if $\mat{H}$ is positive definite ($\forall \vec{v}\ \vec{v}^\top\mat{H}\vec{v} \geq 0$) - positive eigenvalues.
+        \subsection*{Lecture 2 - Matrix Derivatives and Backpropagation}
+            Defining a function with respect to a number of parameters, and taking a derivative (by doing many simple problems) can be time consuming.
+            % $$\pdif{L}{\vec{\theta}} = \pdif{}$$
+
+            Consider a loss function;
+            \begin{align*}
+                L & = \frac{1}{2} || \vec{e} ||^2 & \vec{e} \in \mathbb{R}^N \\
+                \vec{e} & = \vec{y} - \mat{A}\vec{c} & \mat{A} \in \mathbb{R}^{N \times D} \\
+                \vec{c} & = \sin \vec{x} & \vec{x} \in \mathbb{R}^D \\
+                % \dif{L}{\vec{x}} & 
+                \pdif{L}{x_j} & = \pdif{}{x_j} \frac{1}{2} \summation{n = 1}{N} \left(y_n - \summation{i}{} A_{n, i} \sin x_i\right)^2 \\
+                & = \frac{1}{2} \cdot 2 \cdot \summation{n = 1}{N} \left(y_n - \summation{i}{} A_{n, i} \sin x_i\right) \cdot \pdif{}{x_j} \left[y_n - \summation{i}{} A_{n, i} \sin x_i\right] \\
+                & = \summation{n = 1}{N} \left(y_n - \summation{i}{} A_{n, i} \sin x_i\right) \summation{i}{} \pdif{}{x_j} (A_{n, i} \sin x_i) \\
+                & = \summation{n = 1}{N} \left(y_n - \summation{i}{} A_{n, i} \sin x_i\right) \cdot -\summation{i}{} A_{n, i} \cos x_i \pdif{x_i}{x_j} \\
+                & = \summation{n = 1}{N} \left(y_n - \summation{i}{} A_{n, i} \sin x_i\right) \cdot -\summation{i}{} A_{n, i} \cos x_i \delta_{ij} \\
+                & = \summation{n = 1}{N} \left(y_n - \summation{i}{} A_{n, i} \sin x_i\right) \cdot - A_{n, j} \cos x_j \\
+                \dif{L}{\vec{x}} & = \underbrace{\dif{L}{\vec{e}}}_{1 \times N} \cdot \underbrace{\dif{\vec{e}}{\vec{c}}}_{N \times D} \cdot \underbrace{\dif{\vec{c}}{\vec{x}}}_{D \times D} \\
+                \pdif{L}{e_j} & = \pdif{}{e_j} \left[\frac{1}{2} \summation{n = 1}{N} e_n^2 \right] \\
+                & = \frac{1}{2} \summation{n = 1}{N} \pdif{}{e_j} e_n^2 \\
+                & = \summation{n}{} e_n \delta_{nj} \\
+                & = e_j \\
+                \pdif{e_i}{c_j} & = \pdif{}{c_j} \left[y_i - \summation{k}{} A_{i, k}c_k\right] \\
+                & = -\summation{k}{} A_{i,k} \pdif{c_k}{c_j} \\
+                & = -\summation{k}{} A_{i,k} \delta_{kj} \\
+                & = -A_{i,j} \\
+                \intertext{collect $j$s along row and $i$s down column}
+                \dif{\vec{e}}{\vec{c}} & = -\mat{A} \\
+                \pdif{c_i}{x_j} & = \pdif{}{x_j} \sin x_i \\
+                & = \cos x_i \pdif{x_i}{x_j} \\
+                & = (\cos x_i) \delta{ij} & \text{note}
+            \end{align*}
+            Note that previously we only had sums with the indicator function; in this case, we only have $\cos x_i$ along the diagonal, and zeroes elsewhere.
+            \medskip
+
+            Consider the linear regression problem;
+            \begin{align*}
+                L(\vec{\theta}) & = \frac{1}{2} || \vec{y} - \mat{\Phi}(\vec{X}) \vec{\theta} ||^2 \\
+                \vec{\theta} & \in \mathbb{R}^3 \\
+                \mat{\Phi}(\vec{X}) & \in \mathbb{R}^{N \times 3} \\
+                \vec{y} & \in \mathbb{R}^N \\
+                \vec{\phi}(x) & = \begin{bmatrix}
+                    1 \\ x \\ x^2
+                \end{bmatrix} \\
+                \mat{\Phi}(\vec{X}) & = \begin{bmatrix}
+                    \vec{\phi}^\top(x_1) \\
+                    \vec{\phi}^\top(x_2) \\
+                    \vdots
+                \end{bmatrix} \\
+                f(x) & = \vec{\phi}(x)^\top\vec{\theta} \\
+                & = \theta_0 + \theta_1x + \theta_2x^2 \\
+                L(\vec{e}) & = \frac{1}{2} || \vec{e} ||^2 \\
+                \vec{e} & = \vec{y} - \mat{\Phi}(\vec{X})\vec{\theta} \\
+                \dif{L}{\vec{\theta}} & = \dif{L}{\vec{e}} \cdot \dif{\vec{e}}{\vec{\theta}} \\
+                \dif{L}{\vec{e}} & = \vec{e}^\top \\
+                \dif{\vec{e}}{\vec{\theta}} & = -\mat{\Phi}(\vec{X}) \\
+                & = (\vec{y} - \mat{\Phi}(\vec{X})\vec{\theta})^\top \cdot - \mat{\Phi}(\vec{X}) \\
+                & = 0 \\
+                \vec{\theta}^\top \mat{\Phi}(\vec{X})^\top\mat{\Phi}(\vec{X}) & = \vec{y}^\top\mat{\Phi}(\vec{X}) \\
+                \vec{\theta}^\top \underbrace{[\mat{\Phi}(\vec{X})^\top\mat{\Phi}(\vec{X})][\mat{\Phi}(\vec{X})^\top\mat{\Phi}(\vec{X})]^{-1}}_{\mat{I}} & = \vec{y}^\top\mat{\Phi}(\vec{X})[\mat{\Phi}(\vec{X})^\top\mat{\Phi}(\vec{X})]^{-1}
+            \end{align*}
+            The basis function can also be a learnable feature, with $\phi : \mathbb{R}^D \to \mathbb{R}^L$ and $\sigma$ being an activation function;
+            \begin{align*}
+                \vec{x} \in \mathbb{R}^D \\
+                \vec{\theta} \in \mathbb{R}^L \\
+                f(\vec{x}) & = \vec{\phi}(\vec{x})^\top \vec{\theta} \\
+                \vec{\phi}(x) & = \sigma(\mat{A}\vec{x} + \vec{b})
+            \end{align*}
+            This can be repeated deeper by replacing the $\vec{x}$ with $\vec{\phi^\prime}(\vec{x})$ (with $\mat{A^\prime}$ and $\vec{b^\prime}$ similarly), and so on.
+            The idea is that we have a layer that takes in the output of the previous layer as follows (eventually, this stops with $f_0$ being $x$, the input);
+            $$f_l (f_{l - 1}) = \sigma(\mat{A_l} f_{l - 1} + \vec{b_l})$$
+            Note for brevity, we combine $\mat{A_i}$ and $\vec{b_i}$ as $\theta_i$;
+            \begin{center}
+                \begin{tikzpicture}[x=2cm, y=2cm]
+                    \node[state] (x) at (0, 0) {$x$};
+                    \node[state] (f1) at (1, 0) {$f_1$};
+                    \node[state] (f2) at (2, 0) {$f_2$};
+                    \node[state] (f3) at (3, 0) {$f_3$};
+                    \node[state] (fk) at (4, 0) {$f_k$};
+                    \node[state] (l) at (5, 0) {$L$};
+                    \node[state] (t1) at (1, -1) {$\theta_1$};
+                    \node[state] (t2) at (2, -1) {$\theta_2$};
+                    \node[state] (t3) at (3, -1) {$\theta_3$};
+
+                    \draw
+                    (x) edge[->] (f1)
+                    (f1) edge[->] (f2)
+                    (f2) edge[->] (f3)
+                    (f3) edge[->, dashed] (fk)
+                    (fk) edge[->] (l)
+                    (t1) edge[->] (f1)
+                    (t2) edge[->] (f2)
+                    (t3) edge[->] (f3);
+                \end{tikzpicture}
+            \end{center}
+            If we want to learn in this model, we need to take derivatives with respect to all parameters we've defined ($\mat{A}$ and $\vec{b}$ in each layer).
+            However, the former is a matrix; hence we need to take the derivative of a function with respect to a matrix, such as (note that this is no longer matrix multiplication, even if they both look like matrices; will be explained later);
+            $$\dif{}{\theta} \vec{x}^\top \mat{A}(\theta) \vec{x} \text{ or } \dif{}{\mat{A}} || \mat{A}\vec{x} - \vec{y} ||^2$$
+            When taking the derivative of a vector with respect to a vector, we had two indices which could be nicely represented in a matrix.
+            But in the case of differentiating with respect to a matrix, we have the indices of the vector, as well as a grid of indices in the matrix.
+            \medskip
+
+            Functions of matrices are no different to functions of vectors; they're still just functions of many different numbers - hence a function of a matrix $\mat{A} \in \mathbb{R}^{M \times N}$ remains a multivariate function.
+            \begin{align*}
+                f(\mat{A}) & = || \mat{A}\vec{x} - \vec{y} ||^2 \\
+                f(A_{1, 1}, A_{2, 1}, \dots, A_{M, 1}, \dots, A_{M, N}) & = \summation{i}{} \left(\summation{i,j}{} A_{i, j} x_j - y_i\right)
+            \end{align*}
+            The chain rule remains the same; where we compute all the partial derivatives with respect to the elements;
+            \begin{align*}
+                f(\vec{g}) = || \vec{g} ||^2 \\
+                \vec{g}(\mat{A}) & = \mat{A}\vec{x} - \vec{y} \\
+                \pdif{f}{A_{i, j}} & = \summation{k}{} \pdif{f}{g_k} \pdif{g_k}{A_{i, j}}
+            \end{align*}
+            Another example;
+            \begin{align*}
+                f(\mat{A}) & = \vec{x}^\top\mat{A}\vec{x} \\
+                \pdif{f}{\theta} & = \summation{j,k}{} \pdif{f}{A_{j, k}} \pdif{A_{j, k}}{\theta}
+            \end{align*}
+            The difficulty lies in defining the notation that uses well-defined mathematical operations.
+            The chain rule worked well before as we had a nice multiplication in the form of matrix multiplication; this is no longer the case here (see the note prior).
+            Recall the previous notation;
+            $$\dif{f}{\theta} = \dif{f}{\mat{A}} \dif{\mat{A}}{\theta} \text{ and } \dif{f}{\mat{A}} = \dif{f}{\vec{g}} \dif{\vec{g}}{\mat{A}}$$
+            A derivative of a vector with respect to a matrix is a rank 3 tensor (a vector can be seen as a rank 1 tensor, and a matrix as rank 2).
+            This representation with higher-dimensional tensors generalises well.
+            Recall that a function $\vec{f} : \mathbb{R}^N \to \mathbb{R}^M$ ($M$ target dimensions and $N$ input dimensions) has the following;
+            $$\dif{\vec{f}}{\vec{x}} \in \mathbb{R}^{M \times N}\text{,\ \ \ \ } \mathrm{d}\vec{f}[m, n] = \pdif{f_m}{x_n}$$
+            This generalises when the sizes of the inputs are matrices instead, for example $\mat{f} : \mathbb{R}^{M \times N} \to \mathbb{R}^{P \times Q}$, where the gradient is a tensor;
+            $$\dif{\mat{f}}{\mat{X}} \in \mathbb{R}^{M \times N}\text{,\ \ \ \ } \mathrm{d}\mat{f}[p, q, m, n] = \pdif{f_{p, q}}{X_{m, n}}$$
+            Applying the chain rule to a particular matrix valued function - take the example of $f \in \mathbb{R}$ being a scalar function of $\mat{A} \in \mathbb{R}^{(P \times Q) \times (N \times M)}$, which is a function of $\vec{\theta} \in \mathbb{R}^L$;
+            \setcounter{equation}{0}
+            \begin{align}
+                \underbrace{\dif{f}{\vec{\theta}}}_{1 \times L} & = \underbrace{\dif{f}{\mat{A}}}_{1 \times (N \times M)} \underbrace{\dif{\mat{A}}{\vec{\theta}}}_{(N \times M) \times L} \\
+                & = \dif{f}{\mathrm{vec}\vec{A}} \cdot \dif{\mathrm{vec}\vec{A}}{\vec{\theta}} \\
+                \mathrm{vec}\begin{bmatrix}
+                    a & b \\
+                    c & d
+                \end{bmatrix} & = \begin{bmatrix}
+                    a \\ c \\ b \\ d
+                \end{bmatrix}
+            \end{align}
+            \begin{enumerate}[(1)]
+                \itemsep0em
+                \item the issue is that we end up with a tensor $\mathbb{R}^{(N \times M) \times L}$
+                \item we're now back to doing differentiating with vectors, leading to matrix multiplication
+                \item note that changing a matrix into a vector gives a column vector of the matrix by columns
+            \end{enumerate}
+            Automatic differentiation packages keep track of all these axes in these higher order tensors which contain these derivatives and figure out which axes to sum over by looking at the input shape of the function $f : \mathbb{R}^{N \times M} \to \mathbb{R}$, consistent with the matrix valued chain rule.
+            The most unambiguous way to deal with this is to write it all as a vector, leading to matrix multiplication.
 \end{document}
