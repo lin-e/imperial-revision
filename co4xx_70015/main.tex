@@ -120,6 +120,10 @@
 \newcommand{\bnfsep}[0]{\ |\ }
 \newcommand{\concsep}[0]{\ ||\ }
 
+\newcommand{\mbbr}[0]{\mathbb{R}}
+\newcommand{\mbbn}[0]{\mathbb{N}}
+\DeclareMathOperator*{\diag}{diag}
+
 \newcommand{\axiom}[1]{\AxiomC{#1}}
 \newcommand{\unary}[1]{\UnaryInfC{#1}}
 \newcommand{\binary}[1]{\BinaryInfC{#1}}
@@ -420,7 +424,7 @@
                 \end{bmatrix} \\
                 f_i(\vec{x}) & = \summation{k = 1}{N} A_{i, k}x_k \\
                 \pdif{f_i}{x_j} & = \summation{k}{} A_{i, k} \pdif{x_k}{x_j} \\
-                & = \summation{k}{} A_{i, k} \delta_{k, j} \\
+                & = \summation{k}{} A_{i, k} \delta_{kj} \\
                 & = A_{i, j}
             \end{align}
             Note the following steps in particular;
@@ -619,4 +623,98 @@
             \end{enumerate}
             Automatic differentiation packages keep track of all these axes in these higher order tensors which contain these derivatives and figure out which axes to sum over by looking at the input shape of the function $f : \mathbb{R}^{N \times M} \to \mathbb{R}$, consistent with the matrix valued chain rule.
             The most unambiguous way to deal with this is to write it all as a vector, leading to matrix multiplication.
+            \subsubsection*{Example of Multivariate Function}
+                The function is $f : \mbbr^{N \times M} \to \mbbr^N$, defined as;
+                \begin{align*}
+                    \vec{f} & = \underbrace{\mat{A}}_{N \times M} \underbrace{\vec{x}}_{M \times 1} \\
+                    \dif{\vec{f}}{\mat{A}} & \in \mbbr^{N \times (N \times M)} \\
+                    \pdif{f_i}{A_{j, k}} & = \pdif{}{A_{j, k}} \left(\summation{m}{} A_{i, m} x_m\right) \\
+                    & = \summation{m}{} \pdif{A_{i, m}}{A_{j, k}}x_m \\
+                    & = \summation{m}{}\delta_{nj} \delta_{mk} x_m \\
+                    & = \delta_{ij} x_k
+                \end{align*}
+                This gives the following three-dimensional tensor, taking the convention of putting the outputs ($i$) along the column.
+                Note that there are zeroes everywhere, other than the \violet{leading diagonal} on $i,j$ where the elements of $\vec{x}$ are.
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \draw
+                        (0, 0) -- (5, 0) -- (5, -5) -- (0, -5) -- cycle
+                        (2, 2) -- (7, 2) -- (7, -3)
+                        (0, 0) -- (2, 2)
+                        (5, 0) -- (7, 2)
+                        (5, -5) -- (7, -3);
+
+                        \begin{scope}
+                            \draw
+                            (-1, 1) edge[->, left] node{$k$} (0, 2)
+                            (-1, 1) edge[->, above] node{$j$} (0.4, 1)
+                            (-1, 1) edge[->, left] node{$i$} (-1, -0.4);
+                        \end{scope}
+
+                        \draw[violet] (0, 0) edge[dashed] (5, -5);
+                        \node (bl) at (0.5, -4.5) {$\vec{0}$};
+                        \node (tr) at (4.5, -0.5) {$\vec{0}$};
+                        \node (x1) at (0.5, -0.5) {$\vec{x}$};
+                        \node (x2) at (1.5, -1.5) {$\vec{x}$};
+                        \node (x3) at (2.5, -2.5) {$\vec{x}$};
+                        \draw
+                        (x1) edge[->, dashed] ($(x1) + (1, 1)$)
+                        (x2) edge[->, dashed] ($(x2) + (1, 1)$)
+                        (x3) edge[->, dashed] ($(x3) + (1, 1)$)
+                        (bl) edge[->, dashed] ($(bl) + (1, 1)$)
+                        (tr) edge[->, dashed] ($(tr) + (1, 1)$);
+                    \end{tikzpicture}
+                \end{center}
+            \subsubsection*{Backpropagation}
+                Recall that a neural network is essentially a stack of function estimators, such that the output of a previous function becomes the input of the next function.
+                The loss function is typically something with respect to an error producing output (observed value $y_i$ compared to some computed value $f_i$).
+                As such, $L$ is a function of all the parameters that make up the network; $L(\mat{A_1}, \vec{b_1}, \mat{A_2}, \vec{b_2}, \dots)$, which can also be written with $\vec{\theta}$ parameters.
+                Consider the following example of a single-layer network;
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=2cm]
+                        \node[state] (x) at (0, 0) {$x$};
+                        \node[state] (z) at (1, 0) {$z$};
+                        \node[state] (f) at (2, 0) {$f$};
+                        \node (ab) at (1, -1) {$\mat{A}, \vec{b}$};
+
+                        \draw
+                        (x) edge[->] (z)
+                        (z) edge[->, above] node{$\sigma$} (f)
+                        (ab) edge[->] (z);
+                    \end{tikzpicture}
+                \end{center}
+                In this example, let $\sigma$ (activation function) be $\tanh$ applied to some linear transformation (which we can denote $\vec{z}$), with $\vec{z} \in \mbbr^M, \vec{x} \in \mbbr^N, \mat{A} \in \mbbr^{M \times N}, \vec{b} \in \mbbr^M$.
+                Also note that we have a loss function, $L$;
+                \begin{align*}
+                    \vec{\theta} & = \{\mat{A}, \vec{b}\} \\
+                    L(\vec{\theta}) & = \frac{1}{2} || \vec{e} ||^2 \\
+                    \vec{e} & = \vec{y} - \vec{f}_{\vec{\theta}}(\vec{x}) \\
+                    \vec{f} & = \tanh(\underbrace{\mat{A}\vec{x} + \vec{b}}_{\vec{z}}) \\
+                    \underbrace{\pdif{L}{\vec{e}}}_{1 \times M} & = \vec{e}^\top \\
+                    \underbrace{\pdif{\vec{e}}{\vec{f}}}_{M \times M} & = -\mat{I} \\
+                    \underbrace{\pdif{\vec{f}}{\vec{b}}}_{M \times M} & = \underbrace{\pdif{\vec{f}}{\vec{z}}}_{M \times M} \underbrace{\pdif{\vec{z}}{\vec{b}}}_{M \times M} \\
+                    \underbrace{\pdif{\vec{f}}{\mat{A}}}_{M \times (M \times N)} & = \underbrace{\pdif{\vec{f}}{\vec{z}}}_{M \times M} \underbrace{\pdif{\vec{z}}{\mat{b}}}_{M \times (M \times N)} \\
+                    \pdif{\vec{f}}{\vec{z}} & = \diag(1 - \tanh^2(\vec{z})) \\
+                    \pdif{\vec{z}}{\vec{b}} & = \mat{I} \\
+                    \pdif{\vec{z}}{\mat{A}} & = \begin{bmatrix}
+                        \vec{x}^\top & \cdots & \vec{0}^\top & \cdots & \vec{0}^\top \\
+                        \vdots & \ddots & \vdots & \ddots & \vdots \\
+                        \vec{0}^\top & \cdots & \vec{x}^\top & \cdots & \vec{0}^\top \\
+                        \vdots & \ddots & \vdots & \ddots & \vdots \\
+                        \vec{0}^\top & \cdots & \vec{0}^\top & \cdots & \vec{x}^\top
+                    \end{bmatrix}
+                \end{align*}
+                If we blindly applied the rules we know, we'd be able to solve it with many computations of partial derivatives.
+                The idea behind backpropagation is to find an order of computing partial derivatives that maximally reuses what we've computed.
+                Consider the following;
+                $$L(\vec{\theta_1}, \vec{\theta_2}, \dots, \vec{\theta_K}) = || \vec{y} - \vec{f_{\vec{\theta_K}}}(\vec{f_{\vec{\theta_{K - 1}}}}(\dots \vec{f_{\vec{\theta_2}}}(\vec{f_{\vec{\theta_1}}}(\vec{x})) \dots))||^2$$
+                This has the following relation (anything that hasn't been previously computed is in \violet{violet});
+                \begin{align*}
+                    \pdif{L}{\vec{\theta_K}} & = \violet{\pdif{L}{\vec{f_K}} \pdif{\vec{f_K}}{\vec{\theta_K}}} \\
+                    \pdif{L}{\vec{\theta_{K - 1}}} & = \pdif{L}{\vec{f_K}} \violet{\pdif{\vec{f_K}}{\vec{f_{K - 1}}} \pdif{\vec{f_{K - 1}}}{\vec{\theta_{K - 1}}}} \\
+                    \pdif{L}{\vec{\theta_{K - 2}}} & = \pdif{L}{\vec{f_K}} \pdif{\vec{f_K}}{\vec{f_{K - 1}}} \violet{\pdif{\vec{f_{K - 1}}}{\vec{f_{K - 2}}} \pdif{\vec{f_{K - 2}}}{\vec{\theta_{K - 2}}}} \\
+                    \pdif{L}{\vec{\theta_{K - 3}}} & = \pdif{L}{\vec{f_K}} \pdif{\vec{f_K}}{\vec{f_{K - 1}}} \pdif{\vec{f_{K - 1}}}{\vec{f_{K - 2}}} \violet{\pdif{\vec{f_{K - 2}}}{\vec{f_{K - 3}}} \pdif{\vec{f_{K - 3}}}{\vec{\theta_{K - 3}}}} \\
+                    \pdif{L}{\vec{\theta_i}} & = \pdif{L}{\vec{f_K}} \pdif{\vec{f_K}}{\vec{f_{K - 1}}} \cdots \violet{\pdif{\vec{f_{i + 1}}}{\vec{f_i}} \pdif{\vec{f_i}}{\vec{\theta_i}}}
+                \end{align*}
+                All the partial gradients that are carried around are vectors, being significantly more computationally efficient than matrices.
 \end{document}
