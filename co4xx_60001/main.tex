@@ -490,4 +490,129 @@
 
                 A simple pipeline with 5 stages can run at 5 - 9 GHz, limited by the \textbf{critical} path (slowest pipeline stage).
                 The main tradeoff is to do more per cycle or to increase the clock rate.
+            \subsection*{Introduction to Caches}
+                In \textit{Intel Skylake}, there are L3 caches between the cores, an L2 cache associated with each individual core, as well as L1 data and instruction caches deeply embedded in the processor.
+                In the past, RAM access time was close to the CPU's cycle time, hence there was little need for cache.
+                However, the gap between the processor and the memory grows by around 50\% each year, leading to a growing gap (despite DRAM performance still increasing) - access times can be above 100 cycles.
+                The lecture then goes into the memory hierarchy.
+                \medskip
+
+                Caches works due to the principal of locality, of which there are two types - most (if not all) modern architectures rely heavily on locality;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{temporal locality} - if an item is referenced, it will be used again soon (loops, reuse)
+                    \item \textbf{spatial locality} - if an item is reference, items (addresses) close by tend to be used soon (straightline code, array access)
+                \end{itemize}
+                Consider a direct mapped cache, of size 1KB and blocks that are 32 bytes wide (32 blocks, as $1024 = 32 \times 32$).
+                For a cache of size $2^N$ bytes, the uppermost $32 - N$ bits are the cache tag, with the lowest $M$ bits being the byte select (the block size is $2^M$);
+                \begin{center}
+                    \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+                        \node at (0.5, 0.5) {~31~};
+                        \node at (21.5, 0.5) {~10~};
+                        \node at (22.5, 0.5) {~9~};
+                        \node at (26.5, 0.5) {~5~};
+                        \node at (27.5, 0.5) {~4~};
+                        \node at (31.5, 0.5) {~0~};
+                        \draw
+                        (0, 0) -- (32, 0) -- (32, -1) -- (0, -1) -- cycle
+                        (22, 0) -- (22, -1)
+                        (27, 0) -- (27, -1);
+                        \node at (11, -0.5) {cache tag};
+                        \node at (11, -1.5) {e.g. ~0x50~};
+                        \node at (24.5, -0.5) {cache index};
+                        \node at (24.5, -1.5) {e.g. ~0x01~};
+                        \node at (29.5, -0.5) {byte select};
+                        \node at (29.5, -1.5) {e.g. ~0x00~};
+                    \end{tikzpicture}
+                \end{center}
+                The example would select the second row (bytes 32 to 63), and take byte 32.
+                \begin{center}
+                    \begin{tabular}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|c}
+                        \cline{1-4}
+                        byte 31 & $\cdots$ & byte 1 & byte 0 & 0 \\
+                        \cline{1-4}
+                        byte 63 & $\cdots$ & byte 33 & \violet{byte 32} & 1 \\
+                        \cline{1-4}
+                        \multicolumn{4}{|c|}{$\vdots$} \\
+                        \cline{1-4}
+                        byte 1023 & $\cdots$ & byte 993 & byte 992 & 1 \\
+                        \cline{1-4}
+                    \end{tabular}
+                \end{center}
+                The role of the cache tag is to add metadata, including comparing the tag in the table with the tag in the cache.
+                If it matches, and the valid bit is set, then we have a cache hit, otherwise a cache miss.
+                \medskip
+
+                This has a problem; cache location 0 can be occupied by data from main memory locations 0, 32, 64, and so on, similarly for location 1 being occupied by memory locations 1, 33, 65.
+                Consider the following program, in C;
+                \begin{lstlisting}
+                    int A[256];
+                    int B[256];
+                    int r = 0;
+                    for (int i = 0; i < 10; ++i) {
+                      for (int j = 0; j < 64; ++j) {
+                        r += A[j] + B[j];
+                      }
+                    }
+                \end{lstlisting}
+                The memory will be allocated contiguously, each being 256 bytes (or 8 32 byte cache lines).
+                The 1KB direct-map cache should be able to hold all the integers (as it's only a total of 512B).
+                However; ~A[0]~ and ~B[0]~ would have identical address bits (for the cache index), meaning they will map to the same place, as well as all subsequent values.
+                This means they will continuously displace each other, and only use a subset of the cache.
+                \medskip
+
+                This is solved with an associative cache - for an $N$-way set associative cache, there are $N$ entries for each cache index (typically 2 to 4); $N$ direct mapped caches operated in parallel.
+                The cache index selects a set from the cache, the two tags are compared, and the data is selected based on the matching tag result (if either leads to a hit, it's a hit, otherwise a miss).
+                \medskip
+
+                However, this leads to adding extra hardware, which is on the \textbf{critical path} for determining whether it's a cache hit or miss (adding an additional MUX introduces another gate delay, which we already have few of).
+                \medskip
+
+                An example is the \textit{Intel Pentium 4 Level-1 Cache}.
+                This had a capacity of 8KB (total data it can store), blocks of size 64 bytes (128 blocks in the cache), $N = 4$ (4-way set associative cache), leading to 32 sets.
+                The index was 5 bits, to select one of the 32 sets, leading to a tag of 21 bits ($32 - 5 - 6$, subtracting the index and the 6 to address the byte within the block).
+                The access time of this was 2 cycles.
+                \medskip
+
+                There are 4 questions for memory hierarchy;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item where can a block be placed in the upper level? \hfill \textbf{block placement}
+                        \smallskip
+
+                        In a direct-mapped cache, there is only one cache location it can be placed in, determined by its low-order address bits.
+                        In an 2-way set-associative cache, it can be placed in either of the two cache locations corresponding to the set determined by low-order address bits.
+                        A fully-associative cache, it can be placed in any location - more associativity leads to the issues;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item more comparisons (more transistors, more energy, larger)
+                            \item better hit rate (a lot of associativity leads to diminishing returns)
+                            \item more predictable; reduced storage layout sensitivity (cache hits are independent of storage layout)
+                        \end{itemize}
+                    \item how is a block found if it's in the upper level \hfill \textbf{block identification}
+                        \smallskip
+
+                        In addition to the memory required to store the cached data, we need metadata (valid, cache tag) to tell us whether we have a hit or not.
+                        The tag doesn't need to include the block offset nor the cache index.
+                        As associativity increases, the index shrinks (less indices) and expands the tag.
+                    \item which blocks should be replaced on a miss? \hfill \textbf{block replacement}
+                        \smallskip
+
+                        In a direct-mapped cache, there is no choice to be made, and it can only replace one block.
+                        However, with an associative cache we ideally want to choose to replace the block that will be reused least-soon.
+                        LRU (least recently used) is a good approximation, random is very good for large caches (LRU only beats random for small caches).
+                        A program that periodically sweeps over an array that doesn't fully fit into cache would be bad in LRU.
+                    \item what happens on a write? \hfill \textbf{write strategy}
+                        \smallskip
+
+                        On a store instruction, we need to check if that address is cached.
+                        If it is, then we must update it.
+                        However, we need to decide whether to write to the next level of the memory hierarchy (write through), main memory, or not (write back).
+                        The latter only updates the cache and not the next level of the hierarchy \textbf{until} the block is evicted (replaced) - this requires an additional status bit to indicate whether the block is clean or dirty.
+                        The write back strategy has an advantage with repeated writes to the same location as the writes are absorbed without propagating to main memory - this may include writing to successive elements in an array.
+                        Write through ensures the rest of the system gets updated more promptly.
+                        This helps with cache coherency, however it does not solve it entirely, as other processes may have their own cached copies of this data.
+                \end{enumerate}
+                The lecture then continues about the bottom of the memory hierarchy (large machines with robot arms for tapes), as well as architectures that don't have caches and therefore don't depend on locality in access patterns.
+                The latter has the idea that with enough threads, memory latency can be hidden.
 \end{document}
