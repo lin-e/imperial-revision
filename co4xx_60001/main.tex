@@ -615,4 +615,31 @@
                 \end{enumerate}
                 The lecture then continues about the bottom of the memory hierarchy (large machines with robot arms for tapes), as well as architectures that don't have caches and therefore don't depend on locality in access patterns.
                 The latter has the idea that with enough threads, memory latency can be hidden.
+            \subsection*{Turing Tax Discussion}
+                A stored-program computer is a machine that fetches instructions from memory and executes them.
+                \textit{John Backus} dubbed the limitation of the stored-program mode being serial (one instruction at a time) the \textit{von Neumann bottleneck}, and suggested writing our programs in a way that expresses the data dependencies without prematurely committing to the exact order the instructions should be executed in (functional programming).
+                \medskip
+
+                \textit{Alan Turing} proposed the idea of a universal / single device which can implement any computable function without further configuration, given the right program.
+                The tax refers to the overhead for execution time, manufacturing cost of the machine, or the energy required for computation.
+                The aim is to characterise the cost difference between programming a general purpose machine to do a job, versus designing a application-specific machine for it.
+                \medskip
+
+                H.264 encoding is dominated by 5 stages, applied to a stream of macroblocks (blocks of the video) - the remaining steps correspond to finding a compact encoding;
+                \begin{enumerate}[(i)]
+                    \itemsep0em
+                    \item \textbf{IME} Integer Motion Estimation \hfill motion relative to previous frame
+                    \item \textbf{FME} Fractional Motion Estimation \hfill refines the previous estimate
+                    \item \textbf{IP} Intra Prediction
+                    \item \textbf{DCT/Quant} Transform and Quantisation
+                    \item \textbf{CABAC} Context Adaptive Binary Arithmetic Coding
+                \end{enumerate}
+                An ASIC, fully customised for this task, was able to outperform \textit{Intel Pentium} at a significantly lower energy consumption and smaller size.
+                \medskip
+
+                Turing Tax is present in our pipeline in many stages.
+                The instruction fetch, maintaining PC, handling and predicting branches are all tasks that could be avoided in a specialised machine.
+                Routing paths be replaced by colocating the producer and consumer together, shortening wires.
+                Registers are also used to pass instructions from one instruction to the next; in a special-purpose machine, this can be a single piece of wire connecting units.
+                The ALU can be configured to do many different things in our pipeline, but in a specialised machine, we may have several ALUs, each specific to a particular operation.
 \end{document}
