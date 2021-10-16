@@ -642,4 +642,137 @@
                 Routing paths be replaced by colocating the producer and consumer together, shortening wires.
                 Registers are also used to pass instructions from one instruction to the next; in a special-purpose machine, this can be a single piece of wire connecting units.
                 The ALU can be configured to do many different things in our pipeline, but in a specialised machine, we may have several ALUs, each specific to a particular operation.
+        \subsection*{Chapter 2}
+            \subsubsection*{Dynamic Scheduling, Out-of-order Execution, Register Renaming}
+                Consider the following instructions;
+                \begin{lstlisting}
+                    DIVD F0,F2,F4
+                    ADDD F10,F0,F8
+                    SUBD F12,F8,F14
+                \end{lstlisting}
+                Note that division can take many cycles (and is slow) and that the ~SUBD~ instruction doesn't use anything in either of the preceding instructions.
+                The key idea is to allow an instruction that is behind a stall to proceed.
+                \medskip
+
+                There are a number of constraints on execution order (note that anything in ~monospace~ denotes an instruction, ~I~ refers to instruction ~I~);
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item ~J~ is \textbf{data dependent} on ~I~ if ~J~ tries to read an operand before ~I~ writes it;
+                        \begin{lstlisting}
+                            I: ADD R1,R2,R3
+                            J: SUB R4,R1,R3
+                        \end{lstlisting}
+                        It can also be the case that ~J~ is data dependent on ~K~ which is dependent on ~I~.
+                        A Read After Write hazard is when a true dependence causes a hazard in the pipeline.
+                    \item There are two types of \textbf{name dependence}, both of which have instructions that use the same register / memory location (called a name)
+                        \begin{lstlisting}
+                            I: SUB R4,R1,R3
+                            J: ADD R1,R2,R3
+                            K: MUL R6,R1,R7
+                        \end{lstlisting}
+                        The first kind is anti-dependence / Write After Read, where ~J~ writes an operand before ~I~ reads it, caused by the reuse of name ~R1~.
+                    \item The second type is called an \textbf{output dependence}, where ~J~ writes the operand before ~I~ does;
+                        \begin{lstlisting}
+                            I: SUB R1,R4,R3
+                            J: ADD R1,R2,R3
+                            K: MUL R6,R1,R7
+                        \end{lstlisting}
+                        ~K~ needs to get the correct ~R1~, also called a Write After Write hazard.
+                \end{enumerate}
+                The decode stage can be renamed to issue; which decodes the instruction and checks for any structural hazards.
+                There will also be a later read operands stage, where the operands are actually collected.
+                In the issue stage, the register ~F0~ is checked and we may see that it's marked with some bit that indicates the value isn't ready yet and is being computed by an instruction that's in-flight.
+                This stage may collect the operands if they are already available, otherwise discover where they will come from and collect it later in the read operands step.
+                \medskip
+
+                The lecture goes into the \textit{IBM 360/91}, which had a small number of FP registers in the instruction set.
+                This prevented compiler scheduling for avoiding load-use stalls.
+                \medskip
+
+                Consider the following series of instructions, at the issue stage (multiply ~F1~ and ~F2~ into ~F0~, store into address ~X~, and similar for the next two instructions);
+                \begin{lstlisting}
+                    MUL F0,F1,F2
+                    FD F0,X
+                    MUL F0,F2,F3
+                    FD F0,Y
+                \end{lstlisting}
+                The issue stage consults the registers and allocates the instruction being issued to a reservation station.
+                The reservation station for each functional unit holds the opcode and the two operands; both of which need to be present before the instruction can progress to the functional unit.
+                The registers can hold a value and tags (different to the ones we saw in cache); if the tag is null, then the value is valid (for example, the tag for ~F0~ would be null if no instruction in the machine is producing a value for ~F0~).
+                If it isn't null, then it will indicate the ID of the functional unit that will produce the result for that register.
+                \medskip
+
+                In our example, there are 4 registers ~F0~ to ~F3~ and 4 reservation stations (~MUL1~, ~MUL2~, ~Store1~, ~Store2~).
+                Going through the instructions;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item issue unit looks at instruction 1 and collects the operands from the source registers ~F1~ and ~F2~ (assume no instructions in the machine currently; the tag is null and the value is present)
+                    \item allocate the multiply operation to the first unit ~MUL1~ by copying the values from ~F1~ and ~F2~, and update ~F0~ with the ID of the multiply unit (~MUL1~)
+                    \item issue looks at instruction 2 and sees ~F0~ is waiting for ~MUL1~
+                    \item allocate the operation to ~Store1~ by copying in the tag ~MUL1~
+                    \item issue looks at instruction 3 and collects the results from the source registers, which are present
+                    \item allocate the operation to ~MUL2~, and overwrite ~F0~ with the ID of the unit ~MUL2~
+                    \item similar for the second store, but keeps the tag ~MUL2~ in the reservation station
+                \end{enumerate}
+                There is a common data bus that connects the results of the functional units to \textbf{both} the registers as well as the reservation stations.
+                When ~MUL1~ finishes, a signal is sent and anything listening for that tag will be updated - since ~Store1~ had the tag from the registers and is waiting on ~MUL1~, it would get the value.
+                On the other hand, if ~MUL2~ were to somehow finish before, it would update the value in the register (as well as the ~Store2~ reservation station), but not the ~Store1~ reservation station.
+                \medskip
+
+                We typically think of registers as a location where data is stored, but in the \textit{Tomosulo} design, the register becomes a tag that connects the production of the value to where it needs to be delivered to.
+                At issue time, we are decoding the dependent structure of the program dynamically, and arranging for the forwarding wiring to deliver resulting operands to the functional units at the right time.
+                \medskip
+
+                Another walkthrough of the same instructions is as follows.
+                Assume that the value fields of ~F1~ and ~F2~ are already populated;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item instruction 1 issued; \textbf{values} of ~F1~ and ~F2~ are routed to ~MUL1~'s operands 1 and 2 respectively, as both tags are null, the tag of ~F0~ is updated with ID of ~MUL1~, stating that the value will come from there
+                    \item instruction 2 issued; \textbf{tag} of ~F0~ (~MUL1~) is routed to ~Store1~ as well as address ~X~
+                    \item instruction 3 issued; \textbf{values} of ~F2~ and ~F3~ routed to ~MUL2~'s operands (since both tags are null again), and tag of ~F0~ is \textbf{overwritten} with ID of ~MUL2~, updating where the value will come from
+                    \item instruction 4 issued; \textbf{tag} of ~F0~ (~MUL2~) is routed to ~Store2~ as well as address ~Y~
+                    \item at this point, nothing has completed yet; both store units are waiting for a value matching the tag to be broadcasted on the common data bus, ~F0~ is also waiting
+                    \item ~MUL1~ finishes; broadcasts the result on CDB with the ~MUL1~ tag - ~Store1~ picks up the value and stores to memory, ~F0~ doesn't do anything as it's now waiting for ~MUL2~
+                    \item ~MUL2~ finishes; also does the broadcast, picked up by ~Store2~ which stores to memory, ~F0~ also updates its value
+                \end{enumerate}
+                There are three stages of this algorithm;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{issue}
+                        \smallskip
+
+                        Gets the instruction from FP operation queue.
+                        If the reservation station is free (hence no structural hazard), the instruction is issued and operands are sent (renaming registers).
+                    \item \textbf{execute}
+                        \smallskip
+
+                        Actually operands on operands when \textbf{both} operands are ready.
+                        If they aren't both ready, then watch the CDB for a result.
+                    \item \textbf{write result}
+                        \smallskip
+
+                        Write to the CDB for all units that are waiting, and also mark the RS as available.
+                \end{enumerate}
+                This relies on two busses, the first data bus which goes from issue to the registers, as well as the common data bus which goes from the functional units to the reservation stations as well as the registers.
+                \medskip
+
+                However, this design is complex, leading to many comparators on the common data bus.
+                The CDB also limits performance as it needs to connect multiple functional units to multiple destinations - the number of functional units that can complete per cycle is dependent on the number of CDBs (one in our case).
+                Finally, the trickiest issue is non-precise interrupts.
+                \medskip
+
+                As a loop is essentially the same instructions, a compiler wold have to introduce new registers to be able to find a static schedule.
+                The scheme effectively implements register renaming.
+                Consider the following example with a loop (load using ~R1~ as a pointer, multiply with that result with some constant into ~F4~ and store it into the same place, then decrement the pointer down to zero);
+                \begin{lstlisting}
+                    Loop:
+                        LD      F0 0(R1)
+                        MULTD   F4 F0 F2
+                        SD      F4 0(R1)
+                        SUBI    R1 R1 #8
+                        BNEZ R1 Loop
+                \end{lstlisting}
+                Assume multiply takes 4 cycles, loads take 8 cycles (misses the L1 cache, hits L2 cache), assume integer instructions and store instructions don't use the CDB.
+                See the slides for the actual pipeline; but it essentially allows for four iterations of the loop to be running (in-flight) in parallel with each other.
+                A more realistic scenario is that the second iteration has a hit on the L1 cache, which dynamically adapts the schedule based on cache hits / misses, something that is very valuable in dynamic scheduling.
 \end{document}
