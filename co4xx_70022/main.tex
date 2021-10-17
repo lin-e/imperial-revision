@@ -729,4 +729,135 @@
                     The access pattern for this involves small sequential writes which causes a HDD to incur rotational delays.
             \end{enumerate}
             In general, they can be used as a helper on the memory level (not changing the DBMS), adapt the I/O pattern with small DBMS changes, or to fully change storage management.
+        \subsection*{2.2 - In-Memory Databases}
+            OLAP deals with large amounts of data (data warehousing / data mining) where we look at the output of operational databases, turn them into historical databases and run large, complex, aggregation queries.
+            The queries are long running and deal with a large number of tables, and are mostly read-only (only analysing the business).
+            On the other hand, OLTP are primarily transactions, hence many small updates.
+            There are very few tables touched, with generated queries (not typically human-written).
+            \medskip
+
+            OLAP databases are in the order of petabytes, which need to be stored on disks or similar.
+            On the other hand, transactional databases are quite small and not growing much; it's possible to buy a TB of main memory.
+            \medskip
+
+            On the \textit{Shore DBMS} prototype, only 4\% of the CPU cycles are spent on actual useful work, whereas the remaining 96\% are spent (equally) on latching, recovery (dealing with the log file), locking, and the buffer pool (reading and writing between main memory and disk).
+            To improve the performance, improving overhead in processing (better data structures etc., only improves 4\% of the actual performance).
+            However, deploying in main memory gets rid of the buffer pool entirely, leading to a solid improvement in performance.
+            \medskip
+
+            We have three choices of solutions;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{OldSQL} \hfill legacy RDBMS
+                    \smallskip
+
+                    Traditional SQL doesn't scale well in the distributed sense.
+                \item \textbf{NoSQL} \hfill give up ACID properties to accelerate performance
+                    \smallskip
+
+                    ACID properties and transactions are difficult to scale out.
+                    Also gives up SQL; the SQL is translated at compile time to a sequence of low level operations (difficult to do).
+                    High level queries are also good for abstraction.
+                    Giving up data consistency can also be a big issue with NoSQL.
+                    \medskip
+
+                    This is appropriate for non-transactional systems, without shared state, and single record transactions that are commutative.
+                \item \textbf{NewSQL} \hfill preserves SQL and ACID
+                    \smallskip
+
+                    This has both SQL and ACID, and performance and scalability is provided through modern software architecture.
+                    It requires solutions for the following, all of which are large sources of overhead;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item \textbf{traditional record level locking} \hfill timestamp order
+                        \item \textbf{buffer pool overhead} \hfill removed when moved to main memory
+                        \item \textbf{latching for shared data structures} \hfill single-threading for small operations
+                        \item \textbf{write-ahead logging} \hfill how to address failure
+                    \end{itemize}
+            \end{itemize}
+            The example we're going to use for NewSQL is \textit{VoltDB}.
+            It's all in main-memory (no buffer pool), small single threaded transaction (no concurrency, hence no locks or latches required), and has durability and availability through copies (redundancy) - therefore no traditional log is required.
+            Now the 95\% of the cycles are for useful work (with the remainder still being used for some locking).
+            \textit{VoltDB} currently runs a subset of SQL, on clusters with LAN and WAN replication.
+            It can scale to 384 cores.
+            The only locking involved is for multi-partition operations.
+            \medskip
+
+            For each of the solutions, only NewSQL is suitable for new OLTP;
+            \begin{itemize}
+                \itemsep0em
+                \item OldSQL is too slow and doesn't scale
+                \item NoSQL lacks consistency guarantees and has no language to express queries on a high level (difficult to use)
+                \item NewSQL is fast, scalable, consistent, and supports a high level language
+            \end{itemize}
+            There is a partition per physical CPU core, hence each physical server typically has multiple \textit{VoltDB} partitions.
+            Tables can either be \textbf{partitioned} or \textbf{replicated}.
+            The former has a single column acting as the partitioning key, allowing rows to be spread across all partitions by the partition column.
+            This is better for data with a high modification frequency (transactional data) as it reduces the amount of data being touched.
+            On the other hand, the latter has all rows existing in \textbf{all} partitions and is better for mostly static data.
+            \medskip
+
+            Similarly, there are also two types of work, which are both ACID.
+            Single-partition work happens within a single partition (and requires no locking as it's in a single thread) and is more suitable for the majority of transactional work.
+            On the other hand, multi-partition work where we have queries that touch multiple partitions.
+            \medskip
+
+            Consider the following ``schema'', where we have three partitions (customer IDs 1 and 4 are in partition 1, 2 and 5 in partition 2, and 3 and 6 in partition 3);
+            \begin{lstlisting}
+                table orders (partitioned):
+                    customer_id (partition key)
+                    order_id
+                    product_id
+
+                table products (replicated):
+                    product_id
+                    product_name
+            \end{lstlisting}
+            Examples of queries are;
+            \begin{itemize}
+                \itemsep0em
+                \item ~select count(*) from orders where customer\_id = 5~ \hfill single (p2)
+                \item ~select count(*) from orders where product\_id = 3~ \hfill multi
+                    \subitem multi-partition as we don't partition on ~product\_id~, however it's a read operation and no locking is required
+                \item ~insert into orders (customer\_id, order\_id, product\_id) values (3,302,2)~ \hfill single (p3)
+                    \subitem single-partition if all the values fit in the same partition
+                \item ~update products set product\_name = 'spork' where product\_id = 3~ \hfill multi
+                    \subitem updating replicated data requires some locking
+            \end{itemize}
+            In each partition there is a work queue where the queries are coming in.
+            There is data for the table and the indices, and a single execution engine which executes requests sequentially - once again, no locking is required as there is no parallelism.
+            \medskip
+
+            The database is constructed from the schema (DDL), the work (Java stored procedures), and the project containing users, groups, and partitioning.
+            The \textit{VoltCompiler} creates an application catalogue distributed to all machines.
+            All access is via Java stored procedures, a single invocation is a transaction that is committed on success, limiting round trips between the DB and the application.
+            Communication with the client is asynchronous.
+            \medskip
+
+            This scales by adding more machines (or more RAM for more main memory).
+            There is high availability from K-safety for redundancy, and snapshots are available, either scheduled, continuous, or on demand (which can be spooled to a data warehouse).
+            \medskip
+
+            Due to the asynchronous calls, invocations are sent and responses are pulled from the server, allowing a single client to generate more than 100K transactions per second (TPS) - the client will behave synchronously if required.
+            \begin{lstlisting}
+                traditional:
+                  salary = get_salary(employee_id);
+                VoltDB:
+                  callProcedure(asyncCallback, "get_salary", employee_id);
+            \end{lstlisting}
+            However, it doesn't support client-side transaction control (the client cannot perform a rollback) - a stored procedure will commit if it's successful and rollback otherwise.
+            The procedure can can call for rollback.
+            \medskip
+
+            The lack of concurrency can be beneficial, but it's also important to ensure that any single query is short (transactions should execute in microseconds).
+            `Inventory' type applications benefit from this.
+            Since locking doesn't have to be considered, dead-locks aren't a concern either.
+            As other transactions wait for the running transaction to complete, nothing intensive should be done in a stored procedure (requesting web pages, etc.) - this is useful for OLTP but not OLAP.
+            This is optimised for throughput, not latency.
+            \medskip
+
+            A subset of SQL is supported; ~SELECT~, ~INSERT~ (with values), ~UPDATE~, and ~DELETE~.
+            Aggregations such as ~AVG~, ~COUNT~, ~MAX~, ~MIN~, and ~SUM~ are also supported.
+            Functionality will be added over time, but can be done in Java already.
+            The execution plan is created at compile time (can be analysed), but may lead to performance issues if there's a drastic change to the cardinality of data (recompile and redeploy in this case).
 \end{document}
