@@ -618,4 +618,115 @@
             However, it organises its files or data separately, not leaving it to the OS, as well as handling its own cache and database pages (managed by the database system itself).
             Typically, database systems stores the data in and builds on the OS filesystem.
             You can't force the disk to read / write in a specific physical location, but you can help it write in one go.
+        \subsection*{2.1 - Solid State Storage}
+            Flash disks can be used as secondary storage or as a caching layer, with the main advantage over traditional disks being that random reads are as fast as sequential reads.
+            Disadvantages are slower random writes and a limited number of write cycles.
+            Data is organised in pages, which is organised in \textbf{flash blocks}.
+            Similar to RAM, the time to retrieve a page isn't related to the location.
+            The internals of a flash package are as follows;
+            \begin{center}
+                \begin{tikzpicture}[x=0.25cm, y=0.25cm]
+                    \node (d) at (-10, 2) {dies};
+                    \node (pl) at (-10, -1.5) {planes};
+                    \node (b) at (-10, -7.5) {blocks};
+                    \node (pa) at (-10, -13.5) {pages};
+
+                    \draw
+                    (d) edge[->] (-3, 2)
+                    (pl) edge[->] (-2, -1.5)
+                    (b) edge[->] (-1, -7.5)
+                    (pa) edge[->] (0, -13.5);
+
+                    \draw
+                    (-4, 4) -- (44, 4) -- (44, -19) -- (-4, -19) -- cycle
+                    (-3, 3) -- (15, 3) -- (15, -18) -- (-3, -18) -- cycle
+                    (25, 3) -- (43, 3) -- (43, -18) -- (25, -18) -- cycle
+                    (15, -7.5) -- (25, -7.5)
+                    (20, -7.5) -- (20, -19);
+                    \foreach \x in {0, 10} {
+                        \begin{scope}[shift={(\x, 0)}]
+                            \draw (-2, 2) -- (4, 2) -- (4, -17) -- (-2, -17) -- cycle;
+                            \foreach \y in {0, -6, -12} {
+                                \begin{scope}[shift={(0, \y)}]
+                                    \draw
+                                    (-1, 1) -- (3, 1) -- (3, -4) -- (-1, -4) -- cycle
+                                    (0, 0) -- (2, 0) -- (2, -3) -- (0, -3) -- cycle
+                                    (0, -1) -- (2, -1)
+                                    (0, -2) -- (2, -2);
+                                \end{scope}
+                            };
+                        \end{scope}
+                    };
+                \end{tikzpicture}
+            \end{center}
+            There are many of these within an SSD, which in turn is structured as an interface (either SATA or PCI) connected to the internal CPU which is connected to internal memory and the flash controller, which is connected to many flash packages.
+            There are no moving parts, hence no mechanical limitations.
+            The flash controller helps to ensure the entire drive degrades at roughly the same rate (wear levelling), preventing the capacity from shrinking.
+            The access time depends on the bandwidth of the flash packages, device organisation as well as software efficiency.
+            The flash translation layer (FTL) is the firmware that manages the hardware.
+            \medskip
+
+            A write involves copying the page we are writing to a new page and then deleting the old page, leading to slower random writes.
+            On the other hand, if we do a serial write, we can keep it in memory until we have a full flash page.
+            Deletion takes time (and is typically on the block level, rather than page) as the pages are densely packed and a high voltage is required to erase a page, seeping into other pages.
+            Blocks are isolated from each other, but pages are not (would waste space).
+            \medskip
+
+            As the latency gap between CPU and RAM grew, caches were introduced to bridge the gap.
+            Similarly, the gap between RAM and HDD can be bridged with SSMs (solid state memory) as a cache or buffer.
+            \medskip
+
+            Today, only flash and PCM (phase change memory) are pursued commercially.
+            PCM could be placed below flash in the memory hierarchy as the density is still too low.
+            \medskip
+
+            DBMS is traditionally designed around a HDD model (buffer management, etc).
+            Transactions are only really there (ACID properties) as we need to run things in parallel (since we're waiting on disk and don't want to block).
+            Similarly, query plans are also HDD optimisations in the sense they prefer sequential over random access.
+            \medskip
+
+            Flash can either be used to replace HDDs, act as an intermediate layer between HDD and RAM, or be used with HDDs on the same level.
+            The correct use depends on the workload, such as the amount of data or how the data is accessed, as well as future trends in terms of density.
+            \medskip
+
+            Some uses of SSDs in databases;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item \textbf{flash-only OLTP}
+                    \smallskip
+
+                    OLTP is dominated by random reads and writes, which is very bad for disks, but much faster on flash.
+                    With random writes, when used naively in place of a HDD, the throughput drops substantially over time, with significant variance.
+                    \medskip
+
+                    The append / pack algorithm; for an append-only operation, we write sequentially as much as we can.
+                    No updates are done in place, but rather the old page is invalidated (after reading the content) and a new page is written.
+                    Once we run out of space, we reclaim the space and reorganise the storage and continue to write the pages in append-only.
+                    Essentially, random writes are transformed into sequential writes and a garbage collection step takes place (with some overhead).
+                    This adapts the properties of the algorithm to the underlying hardware.
+                \item \textbf{flash-aided business intelligence (OLAP)}
+                    \smallskip
+
+                    These are typically read-only queries, with very few scattered updates and complex queries.
+                    There are typically two choices - for freshness, updates are performed in-place (with the queries), whereas for performance, updates are done in batches (separate from queries).
+                    However, there may be stale data in the latter case.
+                    \medskip
+
+                    Flash can be used as a write cache for analytics.
+                    Incoming data is written to the SSD, which is then merged with data from the disks to answer a query.
+                    We are only using SSDs where it's beneficial; for random accesses.
+                    This essentially buffers updates on flash rather than memory, which is larger, cheaper, and also persistent.
+                    Of course, this comes with limitations including avoiding random writes (which we saw how to overcome earlier), as well as a limited number of writes due to endurance issues.
+                    \medskip
+
+                    The concept behind \textbf{Materialised Sort-Merge (MaSM)} is that we have a system for large scans of tables (like OLAP) which keeps the data on disk when it does it well, but puts updates (where the performance is poor) on SSDs.
+                    The data is then merged when queried.
+                \item \textbf{logging on flash + HDD}
+                    \smallskip
+
+                    Transaction logging is a major bottleneck.
+                    Logs are typically what transactions are to be executed (so it can be redone on a failure), which are small sequential writes.
+                    The access pattern for this involves small sequential writes which causes a HDD to incur rotational delays.
+            \end{enumerate}
+            In general, they can be used as a helper on the memory level (not changing the DBMS), adapt the I/O pattern with small DBMS changes, or to fully change storage management.
 \end{document}
