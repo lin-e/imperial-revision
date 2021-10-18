@@ -859,5 +859,246 @@
             A subset of SQL is supported; ~SELECT~, ~INSERT~ (with values), ~UPDATE~, and ~DELETE~.
             Aggregations such as ~AVG~, ~COUNT~, ~MAX~, ~MIN~, and ~SUM~ are also supported.
             Functionality will be added over time, but can be done in Java already.
-            The execution plan is created at compile time (can be analysed), but may lead to performance issues if there's a drastic change to the cardinality of data (recompile and redeploy in this case).
+            The execution plan is created at compile time (can be analysed), but may lead to performance issues if there's a drastic change to the cardinality of data (recompile and redeploy in this case)
+        \subsection*{3 - Graph Databases}
+            The example in this lecture will use \textit{Neo4j}, other examples include \textit{OrientDB}, \textit{InfiniteGraph}, and \textit{AllegroGraph}.
+            A graph database is a fundamentally different model from traditional relational databases, where we have nodes and relationships between the nodes.
+            \medskip
+
+            Graph databases are fairly powerful (and as general as RDBMS, with a fairly direct correspondence between them for translation).
+            Works very well if they fit in the main memory of the machine.
+            Graph queries check which nodes are connected together.
+            Additionally, it's easy to query and scales well on one machine.
+            However, scaling out (to multiple machines) is quite difficult - we have graph queries that query relationships between nodes, however this may lead to querying different machines.
+            \medskip
+
+            A graph is an abstract representation of a set of objects, with pairs of these objects (also known as vertices or nodes) connected by links (also referred to as edges, arcs, or relationships).
+            The different types of graphs are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{undirected} \hfill no indication of direction
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (a) at (0, 0) {};
+                            \node[state] (b) at (4, 0) {};
+                            \draw (a) -- (b);
+                        \end{tikzpicture}
+                    \end{center}
+                \item \textbf{directed} \hfill indication of direction, obviously
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (a) at (0, 0) {};
+                            \node[state] (b) at (4, 0) {};
+                            \draw (a) edge[->] (b);
+                        \end{tikzpicture}
+                    \end{center}
+                \item \textbf{pseudo} \hfill only one relationship, pointing to itself
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (a) at (0, 0) {};
+                            \draw (a) edge[->, loop, out=45, in=-45, distance=1cm] (a);
+                        \end{tikzpicture}
+                    \end{center}
+                \item \textbf{multi} \hfill multiple relationships between nodes
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (a) at (0, 0) {};
+                            \node[state] (b) at (4, 0) {};
+                            \draw
+                            (a) edge[->] (b)
+                            (a) edge[->, bend left=30] (b);
+                        \end{tikzpicture}
+                    \end{center}
+                \item \textbf{hyper} \hfill multiple outgoing relationships
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (a) at (0, 0) {};
+                            \node[state] (b0) at (4, 2) {};
+                            \node[state] (b1) at (4, 0) {};
+                            \node[state] (b2) at (4, -2) {};
+                            \draw
+                            (a) edge[->] (b0)
+                            (a) edge[->] (b1)
+                            (a) edge[->] (b2);
+                        \end{tikzpicture}
+                    \end{center}
+                \item \textbf{weighted} \hfill associated weight with the relationship
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (a) at (0, 0) {};
+                            \node[state] (b) at (4, 0) {};
+                            \draw (a) edge[below] node{$0.3$} (b);
+                        \end{tikzpicture}
+                    \end{center}
+                \item \textbf{labelled} \hfill labels for nodes and relationships
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (a) at (0, 0) {$A$};
+                            \node[state] (b) at (4, 0) {$B$};
+                            \draw (a) edge[->, below] node{knows} (b);
+                        \end{tikzpicture}
+                    \end{center}
+                \item \textbf{property}
+                    \begin{center}
+                        \begin{tikzpicture}
+                            \node[state] (a) at (0, 0) {};
+                            \node[state] (b) at (8, 0) {};
+                            \draw (a) edge[->, below] node{\shortstack{~type: has\_brother~\\~since: 12/16/1980~}} (b);
+                            \node at (0, -1) {\shortstack{~name: Adam~\\~age: 32~}};
+                            \node at (8, -1) {\shortstack{~name: Brian~\\~age: 31~}};
+                        \end{tikzpicture}
+                    \end{center}
+                    This is the closest to what \textit{Neo4j} uses.
+                    In this property graphs, nodes and relationships can have arbitrary properties, typically key-value pairs.
+            \end{itemize}
+            Consider a many-to-many relationship in a typical RDBMS, in this example we have ~people~, ~departments~, and ~department\_member~ tables (where the latter joins the former two).
+            In a graph model, there could simply be relationships from each entry in ~people~ to each of the entries in ~department~, with a ~belongs\_to~ (or similar) relationship.
+            This eliminates the requirement for joins, which can be complicated if many joins are involved.
+            A graph data model can be easily constructed by writing down the entities involved as nodes and then creating relationships between them.
+            From here, properties (key-value pairs) can be added in to the nodes and relationships.
+            It's generally quite similar to ER mapping, but we don't need to consider cardinality.
+            \medskip
+
+            A graph databases has an explicit graph structure, with each node knowing its adjacent nodes (has links to) - which ideally lives in the same machine.
+            Each node has indices for its neighbouring nodes to allow for fast access; the cost for a local step remains the same even if the number of nodes increase, however it can become slower if the hops are to different machines (network latency).
+            \medskip
+
+            To translate to \textit{Neo4j};
+            \begin{itemize}
+                \itemsep0em
+                \item each entity table is a label on nodes
+                \item each row in an entity table is a node, with the columns being node properties
+                \item add unique constraints for business primary keys and indices for attributes which are frequently looked up
+            \end{itemize}
+            A node can have relationships and properties.
+            A relationship has a start and end node, has a relationship type which is uniquely identified by a name, and can have properties.
+            Property keys are strings, whereas property values can either be a primitive type or an array of a primitive type.
+            A path in \textit{Neo4j} is one or more nodes with connection relationships that can be retrieved as a query or the result of a traversal.
+            Querying this in a traditional relational database could be very inefficient as you may end up querying tables multiple times.
+            \medskip
+
+            Cypher is very similar to SQL, but for graphs.
+            It is a declarative (no need to tell it how to retrieve things), pattern-matching language.
+            Some examples are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item retrieves all pairs of nodes that are connected with a relationship; doesn't specify \textbf{what} relationship
+                    \begin{lstlisting}
+                        START a=node(*) // now optional
+                        MATCH (a)-->(b) // a and b are just placeholders (connection is important)
+                        RETURN a, b;
+                    \end{lstlisting}
+                \item find all nodes with an outgoing relationship and get a specific property (~name~ in this case) - no set property schema (similar to document databases), just ensure no name collisions
+                    \begin{lstlisting}
+                        START a=node(*)
+                        MATCH (a)-->()
+                        RETURN a.name;
+                    \end{lstlisting}
+                \item find all actors which have acted in a movie
+                    \begin{lstlisting}
+                        START a=node(*)
+                        MATCH (a)-[:ACTED_IN]->(m)
+                        RETURN a, m;
+                    \end{lstlisting}
+                \item with paths, note that ~(a)-->(b)-->(c)~ is different from ~(a)-->(b)<--(c)~
+                \item get actor and director names for movie titles;
+                    \begin{lstlisting}
+                        START a=node(*)
+                        MATCH (a)-[:ACTED_IN]->(m)<-[:DIRECTED]-(d)
+                        // equivalent to the following (since m is named);
+                        // MATCH (a)-[:ACTED_IN]->(m), (m)<-[:DIRECTED]-(d)
+                        // MATCH (a)-[:ACTED_IN]->(m), (d)-[:DIRECTED]->(m)
+                        RETURN a.name, m.title, d.name;
+                    \end{lstlisting}
+                \item sorting and limit can also be done (same as SQL) (count movies actors and directors have worked together in);
+                    \begin{lstlisting}
+                        START a=node(*)
+                        MATCH (a)-[:ACTED_IN]->(m)<-[:DIRECTED]-(d)
+                        RETURN a.name, d.name, count(*) AS count
+                        ORDER BY(count) DESC
+                        LIMIT 5;
+                    \end{lstlisting}
+                \item aggregations
+                    Aggregations can also be done in a similar way;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item ~count(x)~ \hfill add number of occurrences
+                        \item ~min(x)~ \hfill get lowest value
+                        \item ~max(x)~ \hfill get highest value
+                        \item ~avg(x)~ \hfill average of numeric values
+                        \item ~collect(x)~ \hfill collects into an array (`transposes' a column)
+                    \end{itemize}
+                    An example of this is as follows, where we get the actors and directors who have worked together (and an array of movie titles);
+                    \begin{lstlisting}
+                        START a=node(*)
+                        MATCH (a)-[:ACTED_IN]->(m)<-[:DIRECTED]-(d)
+                        RETURN a.name, d.name, collect(m.title);
+                    \end{lstlisting}
+                \item find a specific node (query all nodes); in this example we search for the name ~John Smith~
+                    \begin{lstlisting}
+                        START n=node(*)
+                        WHERE has(n.name) AND n.name = "John Smith"
+                        RETURN n;
+                    \end{lstlisting}
+                    Note that the ~has(n.name)~ part ensures that the ~name~ property exists.
+                    This is required as we don't know that every node has this property.
+                \item create a new ~KNOWS~ relationships between actors and directors who have worked together
+                    \begin{lstlisting}
+                        START a=node(*)
+                        MATCH (a)-[:ACTED_IN|DIRECTED]->()<-[:ACTED_IN|DIRECTED]-(b)
+                        CREATE UNIQUE (a)-[:KNOWS]->(b);
+                    \end{lstlisting}
+                \item paths can have variable lengths - the following example matches the following paths; ~(a)-->(b)~, ~(a)-->()-->(b)~, or ~(a)-->()-->()-->(b)~
+                    \begin{lstlisting}
+                        START a=node(*)
+                        MATCH (a)-[*1..3]->(b)
+                        RETURN a, b;
+                    \end{lstlisting}
+                    This is quite difficult to represent in a traditional relational database.
+                    An application of this is as follows, where we try to find the friends-of-friends of ~John Smith~;
+                    \begin{lstlisting}
+                        MATCH (john)-[:KNOWS*2]->(fof)
+                        WHERE has(john.name) AND john.name = "John Smith"
+                        RETURN DISTINCT fof.name;
+                    \end{lstlisting}
+                \item this searches for movies in which ~Keanu Reeves~ played ~Neo~ - note that it also shows that properties can be sets
+                    \begin{lstlisting}
+                        MATCH (actor)-[r:ACTED_IN]->(movie)
+                        WHERE "Neo" IN r.roles AND actor.name = "Keanu Reeves"
+                        RETURN DISTINCT movie.title;
+                    \end{lstlisting}
+                \item actors who worked with ~Gene Hackman~ and are also directors (constraints can also be patterns)
+                    \begin{lstlisting}
+                        MATCH (gene)-[:ACTED_IN]->(movie)<-[:ACTED_IN]-(n)
+                        WHERE (n)-[:DIRECTED]->() AND gene.name = "Gene Hackman"
+                        RETURN DISTINCT n.name;
+                    \end{lstlisting}
+                \item creating a node and adding properties % not sure if it should be a.tagline or movie.tagline, but whatever
+                    \begin{lstlisting}
+                        CREATE ({title:"Mystic River", released:1993}); // create new node
+
+                        // similar to SQL, adding a tagline
+                        START movie=node(*)
+                        MATCH (movie)
+                        WHERE movie.title = "Mystic River"
+                        SET movie.tagline = "Lorem Ipsum"
+                    \end{lstlisting}
+                \item creating a relationship
+                    \begin{lstlisting}
+                        CREATE UNIQUE (kevin)-[:ACTED_IN {roles:["Sean"]}]->(movie)
+                        WHERE movie.title = "Mystic River" AND kevin.name = "Kevin Bacon";
+                    \end{lstlisting}
+                \item deleting relationships (remove all relationships for ~John Smith~)
+                    \begin{lstlisting}
+                        MATCH (a)-[r]->()
+                        WHERE a.name = "John Smith"
+                        DELETE r;
+                    \end{lstlisting}
+                    Similarly, if we wanted to delete ~John Smith~ and relationships (regardless of whether any exist);
+                    \begin{lstlisting}
+                        MATCH (a)-[r?]->()
+                        WHERE a.name = "John Smith"
+                        DELETE r, a;
+                    \end{lstlisting}
+            \end{itemize}
 \end{document}
