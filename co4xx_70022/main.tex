@@ -860,6 +860,32 @@
             Aggregations such as ~AVG~, ~COUNT~, ~MAX~, ~MIN~, and ~SUM~ are also supported.
             Functionality will be added over time, but can be done in Java already.
             The execution plan is created at compile time (can be analysed), but may lead to performance issues if there's a drastic change to the cardinality of data (recompile and redeploy in this case)
+        \subsection*{October 18 - Live Lecture}
+            With SSDs, each page has a limited number of write cycles (around 3,000 per page).
+            However, we cannot write to a specific page directly anyways, as this abstracted away by the firmware.
+            One important thing to keep in mind is that due to this limitation on SSDs, there may be issues when replacing a HDD for a write-heavy workload.
+            Wear-levelling attempts to spread the writes evenly (as much as possible).
+            To minimise writes, we should pack writes to be in the sizes of pages.
+            When we scan (read sequentially), we are typically limited by the bandwidth of the connection rather than the devices.
+            \medskip
+
+            The need for transactions comes from the use of concurrency, which is in place to keep the CPU busy (in traditional databases).
+            However, this is not a concern in \textit{VoltDB} as operations are done in serial.
+            Locks are to separate user transactions (and protects database contents during entire transactions) and latches are used to separate threads (and protects in-memory data structures during critical sections).
+            \medskip
+
+            A concrete example for a fine-grained index versus a coarse-grained one is as follows.
+            The former would index every element of an array whereas the latter could take a bunch of entries and index on that; once you're in the `bunch', you still have to perform a scan within it.
+            This reduces the complexity by reducing the number of items indexed.
+            \medskip
+
+            While \textit{VoltDB} could be constrained by the network bandwidth, however it would likely not reach a bottleneck as the operations are very small (OLTP).
+            Additionally, we can't increase transactions indefinitely as it still takes time to process (CPU would be overwhelmed first).
+            \medskip
+
+            Append-pack requires more space on the SSD as there is redundant data.
+            There is garbage collection to run over the data and pack it together, similar to how defragmentation works.
+            There will be some extra work to do (to check whether the page is valid),, however overall it's fast enough.
         \subsection*{3 - Graph Databases}
             The example in this lecture will use \textit{Neo4j}, other examples include \textit{OrientDB}, \textit{InfiniteGraph}, and \textit{AllegroGraph}.
             A graph database is a fundamentally different model from traditional relational databases, where we have nodes and relationships between the nodes.
