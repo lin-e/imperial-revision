@@ -122,6 +122,8 @@
 
 \newcommand{\mbbr}[0]{\mathbb{R}}
 \newcommand{\mbbn}[0]{\mathbb{N}}
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
 \DeclareMathOperator*{\diag}{diag}
 
 \newcommand{\axiom}[1]{\AxiomC{#1}}
@@ -717,4 +719,141 @@
                     \pdif{L}{\vec{\theta_i}} & = \pdif{L}{\vec{f_K}} \pdif{\vec{f_K}}{\vec{f_{K - 1}}} \cdots \violet{\pdif{\vec{f_{i + 1}}}{\vec{f_i}} \pdif{\vec{f_i}}{\vec{\theta_i}}}
                 \end{align*}
                 All the partial gradients that are carried around are vectors, being significantly more computationally efficient than matrices.
+        \subsection*{Lecture 3 - Probability and Statistics}
+            \subsubsection*{Overfitting}
+                Recall the curve fitting problem was to find to find a curve that predicts well for unseen inputs, by minimising the loss on the training points.
+                The idea is that it needs to fit the training data well, to fit for unseen data.
+                $$L(\vec{\theta}) = \summation{n}{} (f(\vec{x}_n; \vec{\theta}) - y_n)^2$$
+                Consider how many basis functions we should use (considering polynomial);
+                $$q \in 0, \dots, Q: \vec{\phi}(x) = \begin{bmatrix}
+                    1 & \cdots & x^q
+                \end{bmatrix}^\top$$
+                For each order we add, we have a more `wiggly' function that approaches our training data.
+                However, as we get closer to the training data, our predictions further away from our training points start to become more erratic.
+                $$f_M(\vec{x}_n; \vec{\theta}) = \summation{m = 0}{M} x^m \theta_m$$
+                For models $M_1 \leq M_2$, the model $M_2$ can represent all functions that $M_1$ can - therefore increasing the order can never worsen the fit on the training data.
+                Closed-form optimisation will find the exact minimum, hence (the training loss will always get smaller when we add basis functions);
+                $$\min_{\vec{\theta}}L_{M_2}(\vec{\theta}) \leq \min_{\vec{\theta}}L_{M_1}(\vec{\theta})$$
+                Typical practice is to split data into a training and a test set.
+                The training set is actually used to find the parameters of a model and the test data shows how well the data predicts on unseen data.
+                We can estimate some loss on the training set, using argmin (which finds the argument that minimises a function);
+                $$\vec{\theta}^* = \argmin_{\vec{\theta}}L(\vec{\theta})$$
+                $$L_\text{test} = \frac{1}{N_\text{test}}(f(x_n; \vec{\theta}^*) - y_n)^2$$
+                The training error should decrease with higher polynomial degrees, whereas the test error should also decrease until a certain point, when it starts to increase (overfitting).
+            \subsubsection*{Probability Theory}
+                We need to formalise this as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\Omega$ \hfill set of all possible outcomes
+                        \subitem for a die; $\Omega = \{1, 2, 3, 4, 5, 6\}$
+                    \item $E = \{\omega_i \in \Omega\}_{i = 1}^I$ \hfill event is a set of outcomes
+                        \subitem for an event that states the value of the die is greater than 3; $E = \{4, 5, 6\}$
+                    \item $\mathcal{A}$ \hfill set of all events (a set of sets)
+                    \item $X, Y$ \hfill random variables (functions on outcomes to the target set $\tau$, simplifies event structure)
+                        $$X: \Omega \to \tau$$
+                \end{itemize}
+                Consider $\Omega$ to be all possible outcomes of a presidential election (can have varying granularity).
+                This could be from the level of what each person voted, and so on.
+                $X(\omega)$ is a simple binary outcome, whether person $X$ is president or not (1 or 0, respectively).
+                \medskip
+
+                For the scenario of flipping two coins, $\Omega = \{HT, TH, HH, TT\}$.
+                Let $X(\omega)$ be the number of heads;
+                $$X(\omega) = \begin{cases}
+                    0 & TT \\
+                    1 & HT, TH \\
+                    2 & HH
+                \end{cases}$$
+                A probability measure is a function on sets with the following properties;
+                \begin{itemize}
+                    \itemsep0em
+                    \item maps from a particular element in the set of all possible events to a real value, larger than $0$
+                        $$P : \mathcal{A} \to \mbbr, P(E) \geq 0$$
+                    \item probability of the set of outcomes is equal to 1 (something always happens)
+                        $$P(\Omega) = 1$$
+                    \item union of events is the sum when there is no intersection % see recording
+                        $$P\left(\bigcup\limits_{i = 1}{\infty} E_i\right) = \summation{i}{} P(E_i) \text{ when } E_i \cap E_j = \emptyset\ \forall i, j, i \neq j$$
+                \end{itemize}
+                These axioms describe the reasoning about frequencies of recurring events and the plausibility of beliefs.
+                Our goal is to compute probabilities on the outcomes of random variables (all possible outcomes of $\Omega$ such that $X(\omega)$ is in $S$ - what is the set of all outcomes that would give the random variable values that we care about);
+                $$P_X(S) = P(X \in S) = P(X^{-1}(S)) = P(\{\omega \in \Omega : X(\omega) \in S\})$$
+                We can also have multiple random variables as an outcome of the same event.
+                Using the concrete example of the presidential election;
+                \begin{align*}
+                    X(\omega) & = \begin{cases}
+                        1 & \text{person $X$ wins} \\
+                        0 & \text{otherwise}
+                    \end{cases} \\
+                    Y(\omega) & = \begin{cases}
+                        1 & \text{person $X$ wins Arkansas} \\
+                        0 & \text{otherwise}
+                    \end{cases}
+                \end{align*}
+                Similarly, we can ask probabilities on the pairs, with the same intuition;
+                $$P_{X, Y}(S) = P((X, Y) \in S) = P(\{\omega \in \Omega : (X(\omega), Y(\omega)) \in S\})$$
+                We might want to compute the probability of an event happening for a random variable.
+                For a finite target set, we just need to specify the probability of each of these outcomes ($\frac{1}{6}$ for each die face).
+                Note that for a single event, common notation could be $P(X = x) = p_X(x)$, or even lazier $p(x)$ (with the $x$ implying a random variable $X$).
+                Similar notation can be used for multiple random variables; $P(X = x, Y = y) = P_{X, Y}(x, y) = P(x, y)$.
+                In the discrete case, probabilities juts need to be specified for each pair.
+                \medskip
+
+                If we have the probabilities of multiple random variables, we can use this to find the probability of just one of the RVs.
+                This is marginal probability.
+                For example, if we have $p_{X, Y}(x, y)$ and we just want $p(x)$;
+                \begin{align*}
+                    P(X = x) & = P((X, Y) \in \{((x, y) : y \in \tau_Y)\}) \\
+                    & = \summation{y \in \tau_Y}{} p_{X, Y}(x, y)
+                \end{align*}
+                An example of this is from \textit{MacKay}; looking at a certain row of the joint table and normalise the occurrences on the same row to sum to 1.
+                Conditional probability is as follows;
+                \begin{align*}
+                    P(X = x\ |\ Y = y) & = \frac{P(X = x, Y = y)}{\summation{x^\prime}{} P(X = x^\prime, Y = y)}\\
+                    & = \frac{P(X = x, Y = y)}{P(Y = y)} \\
+                    P(A\ |\ B) & = \frac{P(A \cap B)}{P(B)}
+                \end{align*}
+                The two rules are as follows (and Bayes' rule can be derived);
+                \begin{itemize}
+                    \itemsep0em
+                    \item sum rule \hfill $p(x) = \summation{y}{} p(x, y)$
+                    \item product rule \hfill $p(x, y) = p(y\ |\ x)p(x) = p(y)p(x\ |\ y)$
+                    \item Bayes' rule \hfill $p(y\ |\ x) = \frac{p(x\ |\ y)p(y)}{p(x)}$
+                \end{itemize}
+                Statistical independence states that two events are independent if $P(A \cap B) = P(A)P(B)$ or $P(A\ |\ B) = P(A)$ - or $A$ doesn't depend on $B$.
+                Two random variables are independent if $p(X = x, Y = y) = p(x)p(y)$, also written as $X \independent Y$.
+                \medskip
+
+                However, when it's a continuous random variable, the probability of any particular outcome is zero.
+                This is the case where we have $X : \Omega \to \mbbr$
+                However, it's more meaningful to ask $P(a \leq X \leq b)$, which can be specified as follows;
+                $$P(a \leq X \leq b) = \defint{a}{b}{f_X(x)}{x} = \defint{a}{b}{p(x)}{x}$$
+                And similarly for multiple random variables;
+                $$P(a \leq X \leq b, c \leq Y \leq d) = \defint{a}{b}{\defint{c}{d}{f_{X, Y}(x, y)}{y}}{x}$$
+                The rules are similar;
+                \begin{itemize}
+                    \itemsep0em
+                    \item sum rule \hfill $p(x) = \int_y p(x, y) \mathrm{d}y$
+                    \item product and Bayes' rule are exactly the same (note we are using the shorthand $f_X(x) = p(x)$ when $x \in \mbbr$)
+                \end{itemize}
+                The general form of a \textbf{moment} is as follows;
+                $$\mathbb{E}_X[g(X)] = \indefint{p(x)g(x)}{x}$$
+                For a distribution over a vector, the mean vector works similar to the partial derivatives from before (note $\vec{a}$ is just any `direction');
+                \begin{align*}
+                    p(\vec{x}) & = p(x_1, x_2, \dots) \\
+                    \mathbb{E}_{\vec{X}}[\vec{a}^\top\vec{x}] & = \indefint{\vec{a}^\top\vec{x}p(\vec{x})}{\vec{x}} \\
+                    & = \indefint{\summation{i}{} a_i x_i p(\vec{x})}{\vec{x}} \\
+                    & = \summation{i}{} a_i \indefint{x_i p(\vec{x})}{\vec{x}} \\
+                    & = \summation{i}{} a_i \indefint{x_i p(x_i) p(\{x_j\}_{i \neq j}\ |\ x_i)}{\vec{x}} \\
+                    & = \summation{i}{} a_i \indefint{x_i p(x_i)}{x_i} \underbrace{\indefint{p(\{x_j\}_{i \neq j}\ |\ x_i)}{\{x\}}}_{= 1} \\
+                    & = \vec{a}^\top\vec{\bar{x}}
+                \end{align*}
+                A similar approach can be taken for variance;
+                \begin{align*}
+                    \mathbb{V}_{\vec{X}}[\vec{a}^\top\vec{x}] & = \indefint{(\vec{a}^\top\vec{x} - \vec{a}^\top\vec{\bar{x}})p(\vec{x})}(\vec{x}) \\
+                    & = \indefint{\left(\summation{i}{} a_ix_i - a_i-\bar{x}_i\right)\left(\summation{j}{} a_jx_j - a_j-\bar{x}_j\right)p(\vec{x})}{\vec{x}} \\
+                    & = \summation{i}{} \summation{j}{} a_i a_j \indefint{(x_i - \bar{x}_i)(x_j - \bar{x}_j)p(x_i, x_j)}{\{x_i, x_j\}} \\
+                    & = \vec{x}^\top\mat{\Sigma}{\vec{a}}
+                \end{align*}
+                \begin{figure}[h!]\includegraphics[width=\linewidth]{2021-10-19-17-58-57.png}\end{figure}
+                The intuition for the direction, for variance, is that we look at the variance in the scalar random variables along a given direction.
 \end{document}
