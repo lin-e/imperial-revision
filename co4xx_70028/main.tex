@@ -671,4 +671,193 @@
             \medskip
 
             The session then goes into a refresher on probabilities.
+        \subsection*{Dynamic Programming}
+            Dynamic programming refers to algorithms that can be used to compute optimal policies, with a perfect model of the environment as a MDP.
+            In particular, DP methods require the distribution of next events, the environment's dynamics (may not be easy to determine in practice).
+            Despite these limitations, it provides a useful conceptual framework for understanding RL algorithms.
+            All of these ML methods can be seen as other ways to obtain the same effect as DP, without assuming a perfect model and with less computation.
+            Note that we only consider finite MDPs (those with finite state and action spaces).
+            \medskip
+
+            Consider a triangle of numbers, with the goal of getting the maximum sum of a path.
+            A path starts at the top of the triangle and moves to adjacent numbers in the row below.
+            The brute force solution would be simply to perform an exhaustive search and compute the cost for every path.
+            This has a complexity of $\mathcal{O}(2^{n - 1})$, where $n$ is the number of rows in the triangle.
+            On the other hand, the dynamic programming approach has a time complexity of $\mathcal{O}(n)$, where $n$ is the number of nodes.
+            The triangle is split into small sub-triangles, computing the maximum path in as single pass working bottom-up.
+            For every cell in the triangle, we find the maximum value of the nodes below it and add it to the node value.
+            \medskip
+
+            DP exploits the fact that decisions that span several time points can often break down recursively.
+            In the example above, we broke down a large problem into simpler sub-problems that could be solved recursively.
+            The Principal of Optimality states that an optimal policy has the property that whatever the initial state and initial decision are the remaining decision must constitute an optimal policy with regards to the state resulting from the first decision.
+            A problem with an optimal substructure is one that can be solved by breaking into sub-problems and recursively finding optimal solutions.
+            For DP to be applied, the problem must have;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{optimal substructure} - solution can be obtained by the combination of solutions to sub-problems
+                \item \textbf{overlapping sub-problems} - space of sub-problems must be small; a recursive algorithm should solve the same sub-problem rather than generating new ones
+                    \subitem if the optimal solution is found by combining solutions for non-overlapping sub-problems, it is ``divide and conquer'' instead (such as quick sort)
+            \end{itemize}
+            We compute the value of a policy to find a better policy.
+            Let the value function $V^\pi(s)$ (determined) represent how good it is to follow the current policy $\pi$ from state $s$.
+            Let there also be another policy $\pi^\prime$ such that $\pi^\prime(s) = a^\prime$ - we want to know whether it's better to change to this new policy which differs from $\pi$ in certain actions.
+            A solution would be to select for $s$ a different action, but otherwise use the old policy.
+            The value is by definition $Q^\pi(s, a^\prime)$.
+            If $Q^\pi(s, a^\prime) > V^\pi(s)$ (it's better to select $a^\prime$ in state $s$ and follow $\pi(s)$ after that), then the new policy is better overall.
+            \medskip
+
+            Policy improvement theorem states the following.
+            Let there be any two deterministic policies $\pi, \pi^\prime$ such that $\forall s \in \mathcal{S}\ Q^\pi(s, \pi^\prime(s)) \geq V^\pi(s)$.
+            Then $\pi^\prime$ must be as good (or better than) $\pi$;
+            $$\forall s \in \mathcal{S}\ V^{\pi^\prime}(s) \geq V^\pi(s)$$
+            If the first inequality is strict in \textbf{any} state, then the latter must be strict in \textbf{at least one}.
+            \setcounter{equation}{0}
+            \begin{align}
+                \pi(s) & = a \\
+                \pi^\prime(s) & = \argmax_{a \in \mathcal{A}} Q^\pi(s, a) \\
+                Q^\pi(s, \pi^\prime(s)) & = \max_{a \in \mathcal{A}} Q^\pi(s, a) \\
+                & \geq Q^\pi(s, \pi(s)) \\
+                & = V^\pi(s)
+            \end{align}
+            \begin{enumerate}[(1)]
+                \itemsep0em
+                \item start with a deterministic policy
+                \item we can always be as good or improve by acting greedily (argmax picks the best action, in terms of $Q$ value) - this creates a new greedy policy
+                \setcounter{enumi}{3}
+                \item improves the value from any state $s$ for at one step
+            \end{enumerate}
+            This improves the value function $V^{\pi^\prime}(s) \geq V^\pi(s)$ as follows;
+            \begin{align*}
+                V^\pi(s) & \leq Q^\pi(s, \pi^\prime(s)) \\
+                & = \mathbb{E}[R_{t + 1} + \gamma V^\pi(S_{t + 1})\ |\ S_t = s]_{\pi^\prime} \\
+                & \leq \mathbb{E}[R_{t + 1} + \gamma Q^\pi(S_{t + 1}, \pi^\prime(S_{t + 1}))\ |\ S_t = s] \\
+                & \leq \mathbb{E}[R_{t + 1} + \gamma R_{t + 2} + \gamma Q^\pi(S_{t + 2}, \pi^\prime(S_{t + 2}))\ |\ S_t = s] \\
+                & \leq \mathbb{E}[R_{t + 1} + \gamma R_{t + 2} + \dots\ |\ S_t = s] \\
+                & = V^{\pi^\prime}(s)
+            \end{align*}
+            We only do this while there is still improvement, hence we haven't reached the halting condition;
+            $$Q^\pi(s, \pi(s^\prime)) = \max_{a \in \mathcal{A}} Q^\pi(s, a) = Q^\pi(s, \pi(s)) = V^\pi(s)$$ % is it supposed to be \pi^\prime(s) rather than \pi(s^\prime) ?
+            This means that the Bellman Optimality Equation has been satisfied (hence $\forall s \in \mathcal{S}\ V^\pi(s) = V^{\pi^*}(s) = V^*(s)$ and $\pi = \pi^*$);
+            $$V^\pi(s) = \max_{a \in \mathcal{A}} Q^\pi(s, a)$$
+            Policy iteration involves finding a sequence of monotonically improving policies and value functions.
+            This is done by improving a policy $\pi$ using $V^\pi$ to yield $\pi^\prime$.
+            We can then compute $V^{\pi^\prime}$ which can be improved to $\pi^{\prime\prime}$, and so on.
+            However, recall that policy evaluation is iterative already.
+            It wouldn't make sense to start with all zeroes for this, but rather start with the results of the \textbf{previous} iteration.
+            This improves the speed of policy evaluation.
+            \medskip
+
+            The Principal of Optimality states that a policy $\pi(a|s)$ achieves the optimal value from state $s$, $V^\pi(s) = V^*(s)$ iff;
+            \begin{itemize}
+                \itemsep0em
+                \item for any state $s^\prime$ that is reachable from $s$ ($\exists a\ p(s^\prime, s, a) > 0$)
+                \item $\pi$ achieves the optimal value starting from state $s^\prime$ ($V^\pi(s^\prime) = V^*(s^\prime)$)
+            \end{itemize}
+            Any optimal policy consists of two components, an optimal action $a^*$ followed by an optimal policy from the successor state $s^\prime$.
+            The policy iteration algorithm is as follows;
+            \begin{enumerate}
+                \itemsep0em
+                \item initialise $V(s) \in \mathfrak{R}$ and $\pi(s) \in \mathcal{A}(s)$ arbitrarily $\forall s \in \mathcal{S}$
+                \item policy evaluation - repeat the following until $\Delta < \theta$ (where $\theta$ is some small positive number)
+                \begin{enumerate}
+                    \itemsep0em
+                    \item $\Delta \leftarrow 0$
+                    \item for each $s \in \mathcal{S}$;
+                        \begin{enumerate}
+                            \itemsep0em
+                            \item $v \leftarrow V(s)$ \hfill store old value
+                            \item $V(s) \leftarrow \summation{a \in \mathcal{A}}{} \pi(a, s) \summation{s^\prime \in \mathcal{S}}{} \mathcal{P}_{ss^\prime}^a (\mathcal{R}_{ss^\prime}^a + \gamma V^\pi(s^\prime))$ \hfill sweep through successors, a full backup
+                            \item $\Delta \leftarrow \max(\Delta, | v - V(s) |)$
+                        \end{enumerate}
+                \end{enumerate}
+                \item policy improvement;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item $~policy-stable~ \leftarrow ~true~$
+                        \item for each $s \in \mathcal{S}$
+                            \begin{enumerate}
+                                \itemsep0em
+                                \item $b \leftarrow \pi(s)$
+                                \item $\pi(s) \leftarrow \argmax_{a} \sum_{s^\prime} \mathcal{P}_{ss^\prime}^a[\mathcal{R}_{ss^\prime}^a + \gamma V(s^\prime)]$ replace with greedy action that maximises $V$ function
+                                \item if $b \neq \pi(s)$, then the policy hasn't stabilised (so $~policy-stable~ \leftarrow ~false~$)
+                            \end{enumerate}
+                        \item if ~policy-stable~, then terminate, otherwise go to step 2 (evaluate again, note that $V$ isn't reinitialised)
+                    \end{enumerate}
+            \end{enumerate}
+            The two stages are policy \violet{evaluation} and \teal{improvement}, where evaluation estimates $V^\pi$ and improvement generates $\pi^\prime \geq \pi$.
+            This can be represented graphically as follows;
+            \begin{center}
+                \begin{tikzpicture}
+                    \node (p) at (0, 0) {$\pi$};
+                    \node (v) at (6, 0) {$V$};
+
+                    \draw
+                    (p) edge[->, bend left=30, above] node{\violet{$V \to V^\pi$}} (v)
+                    (v) edge[->, bend left=30, below] node{\teal{$\pi \to \mathrm{greedy}(V)$}} (p);
+
+                    \node at (8, 0) {$\cdots$};
+
+                    \node (ps) at (10, 0) {$\pi^*$};
+                    \node (vs) at (16, 0) {$V^*$};
+
+                    \draw (ps) edge[<->, below] node{no more improvement} (vs);
+                \end{tikzpicture}
+            \end{center}
+            One drawback to the algorithm we've stated is that each iteration needs policy evaluation (which in turn is also iteratively computed with multiple sweeps through the state set).
+            We can introduce another stopping condition (as currently it only occurs in the limit) for policy evaluation.
+            This can either be when we have $\epsilon$-convergence of the value function, such that $\forall s\ V_{i - 1}(s) - V_{i}(s) \leq \epsilon$ or after $k$ iterations of iterative policy evaluation.
+            A smaller $k$ value would mean more policy improvements, and fewer policy iterations until convergence.
+            Note that $k = 1$ is a special case, where policy evaluation is stopped after a single sweep (this is value iteration, rather than policy iteration).
+            It turns the BOE rather than the Bellman Equation to an update rule.
+            \medskip
+
+            Dynamic programming, as we previously knew it, is just deterministic policy MDPs with deterministic actions;
+            \begin{itemize}
+                \itemsep0em
+                \item if we know the solution to subproblems $V^*(s^\prime)$
+                \item the solution $V^*(s)$ can be found with a one-step look-ahead;
+                    $$V^*(s) \leftarrow \max{a \in \mathcal{A}} \summation{s^\prime}{} \mathcal{P}_{ss^\prime}^a [\mathcal{R}_{ss^\prime}^a + \gamma V^*(s^\prime)]$$
+            \end{itemize}
+            The intuition is to start with the final rewards and work backwards (for example, the maximal path sum).
+            \medskip
+
+            In the value iteration algorithm, there is no explicit policy $\pi$;
+            \begin{enumerate}
+                \itemsep0em
+                \item initialise $V$ arbitrarily, for example $\forall s \in \mathcal{S}^+\ V(s) = 0$
+                \item repeat the following until $\Delta < \theta$ (where $\theta$ is some small positive number)
+                \begin{enumerate}
+                    \itemsep0em
+                    \item $\Delta \leftarrow 0$
+                    \item for each $s \in \mathcal{S}$;
+                        \begin{enumerate}
+                            \itemsep0em
+                            \item $v \leftarrow V(s)$
+                            \item $V(s) \leftarrow \max_a \summation{s^\prime \in \mathcal{S}}{} \mathcal{P}_{ss^\prime}^a (\mathcal{R}_{ss^\prime}^a + \gamma V^\pi(s^\prime))$
+                            \item $\Delta \leftarrow \max(\Delta, | v - V(s) |)$
+                        \end{enumerate}
+                \end{enumerate}
+            \end{enumerate}
+            This outputs a deterministic policy, such that;
+            $$\pi(s) = \argmax_a \summation{s^\prime}{}  \mathcal{P}_{ss^\prime}^a (\mathcal{R}_{ss^\prime}^a + \gamma V^\pi(s^\prime))$$
+            The lecture then goes over a concrete example, which is the shortest path problem in a grid world (only 4 actions).
+            \medskip
+
+            Dynamic programming performs full backups, which is somewhat like a breadth-first search.
+            DP methods can either be synchronous (all states are backed up in parallel, requiring two copies of the value function) or asynchronous (target only states individually, in place, only one value function).
+            Values of all the states need to be updated / all states selected to guarantee convergence (can't ignore states).
+            We can try to order the updates to allow value updates to propagate from state to state in an efficient way (some states may not need updates as often).
+            This also allows mixing with real-time interaction (MDP running at the same time as agent is making decisions, for example focusing updates on states that are most relevant to the agent).
+            \medskip
+
+            DP is effective for medium-sized problems (with millions of states), for large problems, it can suffer the curse of dimensionality.
+            DP updates values based on other value estimates (bootstrapping) based on the optimal sub-problem structure.
+            \medskip
+
+            Sample backups (compared to full-width backups), instead of using the transition dynamics $\mathcal{P}$ and the reward function $\mathcal{R}$, consider a single sample of what might happen.
+            This consists of state, actions taken, rewards received, and successor state.
+            This may be generated by real experience, or a simulation.
+            The advantage of this is that it's model-free (no knowledge of the MDP is required in advanced, in particular the transition dynamics).
+            It helps to break the curse of dimensionality as we don't have full-backups, and the cost of backups are constant (independent of the state space $N = || \mathcal{S} ||$).
 \end{document}
