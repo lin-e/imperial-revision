@@ -1127,4 +1127,10 @@
                         DELETE r, a;
                     \end{lstlisting}
             \end{itemize}
+        \subsection*{October 21 - Live Lecture}
+            If there is any meaningful amount of data that doesn't fit into main memory, graph databases can be less efficient than traditional SQL databases.
+            The latter utilises the buffer pool to adapt to different types of workloads.
+            Generally, there isn't much of a point in using graph databases unless the structure of the data can take advantage of it.
+            Most of the cost is in memory accesses (rather than computation).
+            Graph databases also build indices to optimise queries, however this is done in the background (rather than explicitly specified).
 \end{document}
