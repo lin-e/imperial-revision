@@ -557,7 +557,7 @@
                 \end{lstlisting}
                 The memory will be allocated contiguously, each being 256 bytes (or 8 32 byte cache lines).
                 The 1KB direct-map cache should be able to hold all the integers (as it's only a total of 512B).
-                However; ~A[0]~ and ~B[0]~ would have identical address bits (for the cache index), meaning they will map to the same place, as well as all subsequent values.
+                However; ~A[0]~ and ~B[0]~ would have identical address bits (for the cache index) - since they are exactly 1024 bytes apart, meaning they will map to the same place, as well as all subsequent values.
                 This means they will continuously displace each other, and only use a subset of the cache.
                 \medskip
 
@@ -775,4 +775,102 @@
                 Assume multiply takes 4 cycles, loads take 8 cycles (misses the L1 cache, hits L2 cache), assume integer instructions and store instructions don't use the CDB.
                 See the slides for the actual pipeline; but it essentially allows for four iterations of the loop to be running (in-flight) in parallel with each other.
                 A more realistic scenario is that the second iteration has a hit on the L1 cache, which dynamically adapts the schedule based on cache hits / misses, something that is very valuable in dynamic scheduling.
+        \subsection*{October 19 - Live Lecture}
+            Consider a program for no temporal locality, or one without spatial locality.
+            An example of the former is one that never revisits data, such as something that deals with a stream of data (once it's dealt with, it's never seen again); a simple example is summing an array (assuming we've never seen the data before so it isn't already in cache).
+            A specific example of the latter is an array of structs where the entire struct fills the cache, but only a single field is used from each struct.
+            Another example would be a large (larger than the cache) hash table - despite the `constant' access times.
+            If the memory accesses are deliberately random (with little reuse), a tree structure may even be more beneficial.
+            \medskip
+
+            In a fully associative cache, the cache index bits are unused.
+            Instead we basically scan the tag bits for every cache location, for every access.
+            These are expensive as many comparators are required for \textbf{every} access.
+            The MUX on the critical path could potentially become a clock rate limiting problem.
+            The memory stage (and instruction fetch) could likely be the clock rate limiting stage due to slower memory accesses.
+            \medskip
+
+            Similar structures and issues found in caches will be found in branch prediction, prefetching, and so on.
+            \medskip
+
+            Consider the following code, which adds a scalar to a vector;
+            \begin{lstlisting}
+                for (i=1000; i >= 0; i=i-1)
+                  x[i] = x[i] + s;
+            \end{lstlisting}
+            Translated into MIPS, we have the following (assuming 8 is the lowest address).
+            Note that it takes 9 clock cycles per iteration;
+            \begin{lstlisting}
+                Loop: L.D    F0,0(R1) ; 1 stall
+                      ADD.D  F4,F0,F2 ; 2 stalls
+                      S.D    0(R1),F4
+                      DSUBUI R1,R1,8
+                      BNEZ   R1,Loop
+                      NOP             ; delayed branch slot / stall
+            \end{lstlisting}
+            This could be rescheduled to the following, to have 6 cycles (albeit 3 of these are used for the loop overhead);
+            \begin{lstlisting}
+                Loop: L.D    F0,0(R1) ; 1 stall
+                      ADD.D  F4,F0,F2
+                      DSUBUI R1,R1,8
+                      BNEZ   R1,Loop
+                      S.D    8(R1),F4 ; this is altered since it's after DSUBUI
+            \end{lstlisting}
+            The program can be modified by unrolling the loop (each iteration does 4 steps);
+            \begin{lstlisting}
+                Loop: L.D    F0,0(R1)
+                      ADD.D  F4,F0,F2
+                      S.D    0(R1),F4
+                      L.D    F0,-8(R1)
+                      ADD.D  F4,F0,F2
+                      S.D    -8(R1),F4
+                      L.D    F0,-16(R1)
+                      ADD.D  F4,F0,F2
+                      S.D    -16(R1),F4
+                      L.D    F0,-24(R1)
+                      ADD.D  F4,F0,F2
+                      S.D    -24(R1),F4
+                      DSUBUI R1,R1,#32
+                      BNEZ   R1,Loop
+                      NOP
+            \end{lstlisting}
+            Our opportunities for rescheduling is limited by register reuse.
+            This can be resolved by giving each copy of the loop a fresh set of registers (each copy of load, add, store uses a new set of registers).
+            This moves all loads to the start, where enough time would have elapsed by the time we want to perform the additions (note that the expected ~-24(R1)~ has changed as it's after the ~DSUBUI~, as ~8 - 32 = -24~) - this becomes 3.5 cycles per iteration;
+            \begin{lstlisting}
+                Loop: L.D    F0,0(R1)
+                      L.D    F6,-8(R1)
+                      L.D    F10,-16(R1)
+                      L.D    F14,-24(R1)
+                      ADD.D  F4,F0,F2
+                      ADD.D  F8,F6,F2
+                      ADD.D  F12,F10,F2
+                      ADD.D  F16,F14,F2
+                      S.D    0(R1),F4
+                      S.D    -8(R1),F8
+                      S.D    -16(R1),F12
+                      DSUBUI R1,R1,#32
+                      BNEZ   R1,Loop
+                      S.D    8(R1),F16
+            \end{lstlisting}
+            Suppose all reservation stations are occupied.
+            The issue is that we have nowhere to now put the instructions, leading to a stall at the issue stage.
+            As the issue stage is an in-order stage, this prevents overtaking (for example, if later instructions don't require the `full' reservation stations they won't be seen).
+            These reservation stations are a factor for performance.
+            \medskip
+
+            The difference between ~MM1~ and ~MM2~ is the order of the matrix multiply; the former uses ~i,j,k~ whereas ~MM2~ uses ~i,k,j~.
+            The latter is better as the compiler lays out the array row-by-row (in the former, the ~B[k][j]~ isn't walking down a row, even though ~C[i][j]~ is).
+            This is important as we're able to use spatial locality in ~MM2~ (we will use all the elements in the cache block before going to the next one).
+            On the other hand ~MM2~ and ~MM3~ splits the ~j~ and ~k~ loops, where ~jj~ and ~kk~ jump by ~blocksize~.
+            The inner part of ~MM3~ still remains ~i,k,j~ (albeit doing the multiplication in smaller blocks) - known as loop tiling.
+            By using tiles, we get around the issue of displacing tiles that we will use again in matrix multiplication.
+            \medskip
+
+            Registers are not places to store data, but rather indicate data flow (a special-purpose machine would have a wire connecting units).
+            The ALU is controlled by a signal derived from decoding the instruction (it is multipurpose).
+            However, in a specialised design, we'd likely have exactly the right number of required functional units.
+            In a specialised machine, you'd know what's in cache locations (you'd have cache data, but not the tags) - the existence of cache isn't Turing Tax, but specific choices are.
+            Architects avoid Turing Tax in a number of ways, including SIMD (which amortises the fetch-execute over a vector of operands), more complex instructions (macro-instructions), long cache lines, direct memory access, etc.
+            Compilers also help by vectorising instructions, and so on.
 \end{document}
