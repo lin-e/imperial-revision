@@ -855,4 +855,61 @@
                     & = \vec{x}^\top\mat{\Sigma}{\vec{a}}
                 \end{align*}
                 The intuition for the direction, for variance, is that we look at the variance in the scalar random variables along a given direction.
+        \subsection*{Lecture 4 - Cross-validation}
+            We can prevent overfitting by choosing a model (polynomial degree) which isn't too flexible.
+            Generalisation loss represents how well our model performs in future predictions.
+            The setting is that we train the model and deploy it for future predictions, making infinite predictions (limit of $N \to \infty$) in the future.
+            We also incur a penalty for errors (loss function $\ell$).
+            $$L_\text{test} = \limit{N}{\infty} \frac{1}{N} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta}^*), y_n)$$
+            We assume the pairs $(\vec{x_n}, y_n)$ come from the \textbf{same distribution} (both training and future data), hence $\vec{x_n}, y_n \sim p(\vec{x}, y)$.
+            By the law of large numbers (generalisation error) - note that this is a moment of $p(\vec{x}, y)$;
+            $$L_\text{test} = \mathbb{E}_{p(\vec{x}, y)}[\ell(f(\vec{x}; \vec{\theta}^*), y)]$$
+            Our goal is to estimate this loss without knowing the true joint distribution.
+            We can get samples from $p(\vec{x}, y)$, and construct an estimator for $L_\text{test}$ from these samples;
+            $$\hat{L}_\text{test} = \frac{1}{N_\text{test}} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta}^*), y_n)$$
+            We are writing this without knowing what the density function is, just saying that it exists.
+            As the number of testing points goes to infinity, the estimate approaches the true test loss.
+            \medskip
+
+            Good ML practice splits data into a training set and a test set, both of which are iid samples from this distribution.
+            Only on the training set do we \textbf{minimise} the loss.
+            And loss is \textbf{measured} on the test set.
+            As long as \textbf{no decisions} are based on the test set, $\hat{L}_\text{test}$ will be an unbiased estimate of the true average loss.
+            This loss tells us what the error would've been on particular model.
+            Unbiased means;
+            $$\mathbb{E}_{p(\vec{x_1}, \vec{x_2}, \dots, y_1, y_2, \dots)}[\hat{L}_\text{test}(\vec{x_1}, \vec{x_2}, \dots, y_1, y_2, \dots)] = L_\text{test}$$
+            We can analyse the variance of this estimator.
+            As the test set becomes larger, the variance decreases.
+            $$\mathbb{V}_{\Pi_n p(\vec{x_n}, y_n)} \left[\frac{1}{N} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta}^*), y_n)\right] = \frac{1}{N} \mathbb{V}_{p(\vec{x}, \vec{y})}[\ell(f(\vec{x_n}; \vec{\theta}^*), y)]$$
+            If we have a small variance, the error of the estimator is smaller.
+            Chebyshev's inequality states that the probability of a variable being far away (more than $k$ times the standard deviation) from the mean (the true value we want);
+            $$P(| X - \bar{X} | \geq k\sigma) \geq \frac{1}{k^2}$$
+            We want to evaluation a collection of models (different orders of polynomials) on the test set and then pick the model with the lowest test loss.
+            However, we may want to ask whether this is still an unbiased estimate of the test loss.
+            Note that $\vec{\theta}^*$ is now a function of the test set, therefore the estimator is no longer unbiased - therefore we cannot use the test set to select the model if we want an accurate estimate of the test loss;
+            $$\mathbb{E}_{\Pi_n p(\vec{x_n}, y_n)} \left[\frac{1}{N} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta}^*(\{\vec{x_i}, y_i\}_{i = 1}^N)), y_n)\right] \neq \mathbb{E}_{p(\vec{x}, \vec{y})}[\ell(f(\vec{x_n}; \vec{\theta}^*), y)]$$
+            All labelled data is split into training data and test data.
+            The training data is split further to a training set (to find the parameters of the model) and a validation set (to select the model).
+            Once we've select the model based on the validation set, we can use the true test set (kept completely separate) to find an unbiased estimator.
+            However, with a small validation set there would be large variance (possibly choosing wrong model), whereas a large validation set would lead to smaller training sets, hence wrong parameters could be chosen.
+            \medskip
+
+            Cross-validation splits the data into training and validation sets in multiple ways, and computes the validation performance for each split.
+            The average of these values is the cross-validation loss (no longer unbiased, however small).
+            \begin{enumerate}
+                \itemsep0em
+                \item split data in $K$ different ways
+                \item for each model;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item for each split
+                            \begin{enumerate}
+                                \itemsep0em
+                                \item find parameters of model
+                                \item compute loss on validation set
+                            \end{enumerate}
+                        \item calculate average validation loss for all splits
+                    \end{enumerate}
+                \item pick model with lowest cross-validation loss
+            \end{enumerate}
 \end{document}
