@@ -692,9 +692,9 @@
                 Consider the following series of instructions, at the issue stage (multiply ~F1~ and ~F2~ into ~F0~, store into address ~X~, and similar for the next two instructions);
                 \begin{lstlisting}
                     MUL F0,F1,F2
-                    FD F0,X
+                    SD F0,X
                     MUL F0,F2,F3
-                    FD F0,Y
+                    SD F0,Y
                 \end{lstlisting}
                 The issue stage consults the registers and allocates the instruction being issued to a reservation station.
                 The reservation station for each functional unit holds the opcode and the two operands; both of which need to be present before the instruction can progress to the functional unit.
@@ -719,7 +719,7 @@
                 On the other hand, if ~MUL2~ were to somehow finish before, it would update the value in the register (as well as the ~Store2~ reservation station), but not the ~Store1~ reservation station.
                 \medskip
 
-                We typically think of registers as a location where data is stored, but in the \textit{Tomosulo} design, the register becomes a tag that connects the production of the value to where it needs to be delivered to.
+                We typically think of registers as a location where data is stored, but in the \textit{Tomasulo} design, the register becomes a tag that connects the production of the value to where it needs to be delivered to.
                 At issue time, we are decoding the dependent structure of the program dynamically, and arranging for the forwarding wiring to deliver resulting operands to the functional units at the right time.
                 \medskip
 
@@ -775,6 +775,101 @@
                 Assume multiply takes 4 cycles, loads take 8 cycles (misses the L1 cache, hits L2 cache), assume integer instructions and store instructions don't use the CDB.
                 See the slides for the actual pipeline; but it essentially allows for four iterations of the loop to be running (in-flight) in parallel with each other.
                 A more realistic scenario is that the second iteration has a hit on the L1 cache, which dynamically adapts the schedule based on cache hits / misses, something that is very valuable in dynamic scheduling.
+            \subsubsection*{Speculation in Dynamically-scheduled Processors}
+                On a conditional jump, we don't have to wait, but rather take a guess which gives us much higher performance if correct and handle the case if not.
+                With a misprediction, we need to roll-back the state to the state before the prediction.
+                This is done by adding a stage to the Tomasulo execution pipeline to commit the state of the machine.
+                The speculative Tomasulo algorithm is as follows (a branch misprediction would flush this buffer);
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{issue}
+                        \smallskip
+
+                        If the reservation station (and the reorder buffer slot) is free, issue instruction, send operands and reorder buffer number for destination.
+                        One ROB entry is allocated for each instruction, and this holds the destination register with either its result value (or the tag from where it will come from).
+                    \item \textbf{execute} \hfill same as before
+                    \item \textbf{write result}
+                        \smallskip
+
+                        Write to all awaiting units and reorder buffer (also marks RS as free).
+                        A ROB entry with the matching tag is also updated.
+                    \item \textbf{commit}
+                        \smallskip
+
+                        This updates the register with the reorder result.
+                        When an instruction is at the head of the buffer and has a present result; the commit-side register (or stored to memory) is updated with result, and instruction is removed from the reorder buffer.
+                \end{enumerate}
+                The existing machine is extended with the buffer, the commit unit, and commit-side registers.
+                The issue stage pushes instructions onto the buffer, which listens to results on the CDB, and the commit unit commits the results in \textbf{program order}.
+                The only externally visible part of this machine is the commit-side registers (updated when the speculation is resolved); if we want to reset to a previous stage, we only look at what's on the committed side of the machine.
+                Previously, we only had the issue-side registers (which were updated speculatively).
+                \medskip
+
+                Consider an example as follows (assume that we predict the branch isn't taken);
+                \begin{lstlisting}
+                    MUL F0,F1,F2
+                    SD F0,X
+                    BEQ R10,Lab
+                    MUL F0,F2,F3
+                    SD F0,Y
+                \end{lstlisting}
+                Note that the ROB would be in the same order as the instructions, and we would also store the prediction in the ROB (for ~BEQ~).
+                By the time the first two are committed, and ~BEQ~ is at the head of the buffer, assume we also have the result for ~BEQ~.
+                This is compared to our prediction - consider a misprediction; all subsequent entries in the ROB are trashed, the issue-side registers are reset using values from the commit-side registers (as they are correct even before the misprediction), and finally the correct target instruction is fetched and issued.
+                As such, we reinstate the register state at the point the conditional branch was executed.
+                Due to this, we can see a penalty as we are discarding work that has been done and we also need to refill the pipeline.
+                Assume that the FUs are still working - once they complete and write back, nothing will be waiting (ROB is flushed, as well as issue-side registers).
+                \medskip
+
+                One subtlety that could be considered is the case where we know the branch is mispredicted before it's at the head of the buffer.
+                We could start to fetch the correct instruction, however we need to take care to ensure that we are in a consistent state.
+                Another case is when there are two predicted branches; the current approach will handle this fine as the entire ROB is flushed once the first prediction is at the head, and turns out to be a misprediction.
+                \medskip
+
+                Another subtlety lies in stores buffered in the ROB; it's important to buffer them before writing to the memory system.
+                However if something attempts to load from that memory location, the correct data may not be in memory yet.
+                A conservative strategy for this could be to stall loads until preceding stores have all been completed.
+                Another approach would be to check all preceding store instructions for the address in memory (even if it's one that is waiting to be computed) - if none of them match the load instruction's target, then the load can take place.
+                We would need to stall loads until all addresses are known for preceding instructions.
+                If it matches the address of an uncommitted store, the data can simply be forwarded to the load - care should be taken to ensure we take from the most recent store (in the case multiple instructions are writing to the same address).
+                \medskip
+
+                Stores and loads use computed addresses, which may not be known at issue time (unlike registers).
+                Consider the following;
+                \begin{lstlisting}
+                    SD F0,0(R3) ; store F0 at address R3
+                    LD R2,0(R1) ; load address from memory
+                    SD F1,0(R2) ; store F1 to that address
+                    LD F2,0(R3) ; load F1 from address R3
+                \end{lstlisting}
+                However, we don't know until instruction 2 has finished executing whether ~R1 = R3~.
+                We could predict that it doesn't match, and directly forward ~F0~ to ~F2~ from instruction 1 to 4 - if this is correct, we obtain a significant performance improvement (store-to-load forwarding).
+                \medskip
+
+                There are alternatives for out-of-order processor architectures, we will look at the register update unit (RUU) versus ROB.
+                The RUU essentially unifies the ROB and reservation stations.
+                When the instructions are ready to run (operands populated), the dispatcher selects the next ready entry and dispatches it to a functional unit.
+                The decision is deferred to the dispatch unit, rather than going directly to the reservation station for a functional unit.
+                Note that the tags correspond to the indices in the RUU, rather than to each functional unit as before.
+                As such, the ROB entry acts as renamed register for the instruction's result.
+                \medskip
+
+                \textit{Pentium III} attempted to reduce the amount of copying.
+                The register alias table tracks the latest alias for logical registers (pointing to ROB or RRF (retired register file) - would've been commit-side registers in our previous example).
+                Once retired, the pointer is switched to one in the RRF.
+                In \textit{Pentium 4 / NetBurst}, this is more explicit as there are two RATs (frontend and retirement) - the committed state of the machine is represented by the physical registers in the RF (register file, entirely dynamic) pointed to by the retirement RAT.
+                \medskip
+
+                Watch the end of the lecture for details on \textit{Pentium 4}.
+                \medskip
+
+                In conclusion, dynamic scheduling reduces the dependence on the compiler scheduling instructions (and the compiler's knowledge of the hardware - compiler can generate code without knowing which processor the code is running on).
+                It also handles dynamic stalls (for example cache misses, that the compiler would not know about in advance).
+                Register renaming maps the limited number of registers in the instruction set to a much larger set of physical registers in the machine.
+                However, this adds a considerable increase in the pipeline depth.
+                Branch misprediction has higher latency.
+                The complexity (and risk of error) is increased, as well as power consumption.
+                Performance can also be difficult to understand.
         \subsection*{October 19 - Live Lecture}
             Consider a program for no temporal locality, or one without spatial locality.
             An example of the former is one that never revisits data, such as something that deals with a stream of data (once it's dealt with, it's never seen again); a simple example is summing an array (assuming we've never seen the data before so it isn't already in cache).
