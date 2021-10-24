@@ -1134,4 +1134,65 @@
                 The profile based prediction is static in the sense that the prediction is encoded in the instructions, but is still derived from a real execution.
                 Note that the tournament predictor beats the profile-based predictor, which beats the 2-bit counter.
                 A good dynamic predictor can outperform a static prediction; by profiling we lose context information.
+            \subsubsection*{Branch Target Prediction}
+                The key idea is a branch target buffer.
+                This is essentially a table at the instruction fetch stage, which given the current PC should tell you what the next PC should be; while we are fetching an instruction, we also want to guess what the next instruction to fetch would be.
+                This is indexed by the low-order PC bits and tagged with the high-order bits.
+                If there is a miss (the entry doesn't exist), the branch isn't predicted and proceeds normally (increment PC by 4).
+                However, if we do have a hit, then the predicted PC is used as the next PC.
+                For a miss, if we discover the PC is a branch \textbf{and also} taken, then we update the BTB.
+                Similarly, it is also updated when it's an indirect branch such as a switch statement or indirect function call.
+                \medskip
+
+                This is accessed in parallel with the instruction cache in the fetch stage.
+                In the next stage, at decode, we also find out whether it was a misprediction or not.
+                If it was a misprediction, we squash the instruction, allowing it to progress through the pipeline but disabling the memory and write back stages, and then go back to fetch the correct instruction.
+                \medskip
+
+                This is combined with the direction predictor from earlier this chapter.
+                The direction predictor is checked simultaneously with the BTB.
+                If there is a hit in the BTB, it gives us the destination of a conditional branch at this PC if the branch is taken.
+                If the direction predictor predicts that the branch is taken, then we can use the destination from the BTB.
+                Note that a good predictor can be larger and slower.
+                One approach for this is to use a fast direction predictor with a BTB predictor, and also access a slower predictor in parallel.
+                This is more valuable in larger pipelines, or a dynamically scheduled processor, as we can re-steer by squashing the initial prediction and fetching with the improved prediction (losing 1 cycle, rather than full penalty).
+                \medskip
+
+                In a dynamically scheduled processor, we need to consider when to update the branch predictor.
+                The branch outcome may be known before the branch is committed - the branch predictor can be updated either when the outcome is known, or the branch is committed.
+                It's tempting to think that we should update the branch prediction early, as we may be executing in a loop which may have correlation with the branch outcome.
+                On the other hand, there may have been a misprediction, which should not have been updated to the predictor - leading to future mispredictions.
+                \medskip
+
+                Return addresses are simply indirect jumps, but should be more predictable.
+                As such, many modern processors have special units to handle return addresses.
+                Consider the following code - with the BTB, the second time ~F~ is invoked, it will get the return wrong as it would've learnt the return to the first call;
+                \begin{lstlisting}
+                    F:
+                      body of F
+                      ...
+                      RET
+
+                    JSR F
+                    next instruction
+                    ...
+                    JSR F
+                    next instruction
+                \end{lstlisting}
+                In x86, ~JSR~ pushes the return address to the stack and ~RET~ jumps to the address at the top of the stack.
+                On MIPS, ~JAL~ (jump and link) jumps and stashes the current PC to a special register ~\$ra~ (no memory accesses associated with performing a function call, unless it's a nested call which would require ~\$ra~ to be pushed on to the stack, or in another register).
+                Consider nested function calls, such that ~F~ calls ~G~ which calls ~H~; the return addresses form a stack (even if they are actually on registers), and should be easy to predict.
+                Another branch target predictor needs to be added, which maintains a hardware stack of return addresses.
+                The return address predictor (RAP) has the most recently pushed address at the top of the stack.
+                The value at the top of the RAP stack is used as the predicted next PC when the BTB predicts the current instruction to be a ~RET~.
+                \medskip
+
+                When an instruction is successfully decoded, we need to pop the value off the RAP stack when it's confirmed to be a ~RET~ or push the current PC to the stack if it's confirmed to be a ~JSR~.
+                This is done \textbf{after} the misprediction check, as we don't want to update the RAP when it's incorrect.
+                \medskip
+
+                If the call stack is deeper than the RAP stack size (which is fixed and typically quite small), then it will be empty on a return.
+                It's also possible for the RAP to be wrong in the case that the top of the stack has been overwritten (to a new address we should jump to).
+                Another case is that the stack pointer changes, which could happen when a context-switch takes place and switches to another thread.
+                If the return address stack (RAS) is updated before committing (from a speculative execution), it's possible that a ~JSR~ is mispredicted (leading to the RAS being updated even though no jump has taken place).
 \end{document}
