@@ -1319,4 +1319,86 @@
                     \end{lstlisting}
             \end{itemize}
             Typically XRel and XParent outperform Edge in complex queries, however Edge performs better with simple queries (fewer joins).
+        \subsection*{4.2 - Document DB}
+            The examples used in this lecture will revolve around \textit{MongoDB}.
+            SQL has issues with a rigid schema, difficulty scaling (built around transactions), and also requires joins which aren't intuitive (complex and difficult to write).
+            On the other hand, \textit{MongoDB} can interface easily with many common languages and keeps essential features from RDBMS, but also takes features from NoSQL key-value stores.
+            The data model is as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item document based, maximum size of 16MB (can be seen as similar to a SQL tuple)
+                \item BSON format documents (field-value pairs) - binary representation of JSON
+                    \smallskip
+
+                    JSON is JavaScript Object Notation - easy for humans to read / write (and also easy for computers to parse / generate).
+                    Objects can be nested, similar to XML, and is built on name / value pairs and ordered list of values.
+                    Binary JSON, a binary-encoded serialisation of JSON-like documents, also allows for referencing (reduces need for joins, similar to embedded structure).
+                    \medskip
+
+                    Note that there is a ~\_id~ field (inserted by \textit{MongoDB}).
+                    This acts as a primary key for the collection - it's unique, immutable, and can be any type (other than arrays).
+                    By default, the type is ~ObjectId~ - sorting on this is roughly equivalent to sorting by creation time.
+                \item document stored in collection
+                    \begin{itemize}
+                        \itemsep0em
+                        \item documents can have completely different structures in a collection
+                        \item have a common index set
+                        \item similar to tables in a relational database
+                    \end{itemize}
+            \end{itemize}
+            Using the shell, we have the following commands;
+            \begin{itemize}
+                \itemsep0em
+                \item ~db~ \hfill check which database is in use
+                \item ~show dbs~ \hfill show all databases
+                \item ~use <name>~ \hfill change database or make a new one
+                \item ~show collections~ \hfill display collections
+                \item ~db.<collection>.insert(\string{<field>:<value>\string})~ \hfill insert a document
+                \item ~db.<collection>.find()~ \hfill returns a cursor to display first 20
+                    \subitem ~.limit(<number>)~ \hfill to limit results
+                \item ~db.<collection>.findOne()~ \hfill get one document
+                \item ~db.<collection>.find(\string{<field1>:<value1>,<field2>:<value2>\string})~
+                    \subitem equivalent to ~WHERE <field1>=<value1> AND <field2>=<value2>~
+                \item ~db.<collection>.find(\string{\$or: [<field1>:<value1>,<field2>:<value2>]\string})~
+                    \subitem equivalent to ~WHERE <field1>=<value1> OR <field2>=<value2>~
+                \item ~db.<collection>.find(\string{<field1>: \string{\$in [<value1>,<value2>]\string}\string})~ \hfill match collection
+                \item ~db.<collection>.find(\string{<field1>:<value1>\string}, \string{<field2>:0\string})~
+                    \subitem equivalent to ~SELECT <field1> FROM <table> WHERE <field1>=<value1>~
+                \item ~db.<collection>.find(\string{<field>: \string{\$exists: true\string}\string}~) \hfill find with or without field
+                \item updating multiple documents (if ~upsert~ is true, it creates a new document when nothing matches the search criteria);
+                    \begin{lstlisting}
+                        db.<collection>.update(
+                            {<field1>:<value1>},
+                            {$\dollar$: {<field2>:<value2>}},
+                            {multi: true}
+                        )
+                    \end{lstlisting}
+                \item ~db.<collection>.update(\string{<field>:<value>\string}, \string{\$unset: \string{<field>:1\string}\string})~ \hfill remove a field
+                \item ~db.<collection>.remove(\string{<field>:<value>\string}, true)~
+                    \subitem remove first record (if ~true~ is omitted, remove all)
+                \item ~db.<collection>.ensureIndex(\string{<field>: 1\string})~ \hfill creation index
+            \end{itemize}
+            All writes are atomic on the level of a single document - all writes can be interleaved with other operations.
+            The flexibility of the schema gives many advantages such as easy modifications, however it moves the complexity of checking which fields we have into the application code.
+            \medskip
+
+            \textit{MongoDB} has two patterns to avoid the use of joining;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{embedding} (like pre-joining) - if we have a one-to-one relationship and the objects are likely to be queried together, it's easier to store it as one document rather than two
+                \item \textbf{linking} - if we have a one-to-many relationship embedding could lead to significant replication, as such we have linking which pushes the join into the application code
+            \end{itemize}
+            A significant amount of modern data is already structured in a JSON-like schema, and as such there's no point in translating it into a relational schema and then translating it back.
+            ~find()~ is also more semantically clear for programming.
+            Data denormalisation provides data locality, which in turn provides speed (however it can lead to more data being retrieved).
+            \medskip
+
+            If we wanted to find all users with a score below 30, for example, we would have to scan every document (given we have no index), which is inefficient as it processes a large volume of data.
+            Indexes are special structures that help to find data quicker (small portions of a collection's data set in an easy to traverse form, that points to the document).
+            The three types are single field (index points into collection for a specific field), compound field indexes (similar to a secondary index), and multi-key indexes (multiple keys for a specific field).
+            \medskip
+
+            Aggregations are operations that process data and return computed results.
+            By running aggregation on the ~monogod~ (primary daemon) instance simplifies application code.
+            This is implemented with pipelines with filters that operate like queries and document transformations which modify the output form.
 \end{document}
