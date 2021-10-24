@@ -1133,4 +1133,190 @@
             Generally, there isn't much of a point in using graph databases unless the structure of the data can take advantage of it.
             Most of the cost is in memory accesses (rather than computation).
             Graph databases also build indices to optimise queries, however this is done in the background (rather than explicitly specified).
+        \subsection*{4.1 - XML Shredding}
+            XML (extensible markup language) is designed to exchange data between systems with completely different data representations.
+            It contains both a (self-sufficient) description of the data as well as what the data actually is.
+            The rules for XML are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item first tag represents the root (single root for entire tree)
+                \item other matching tag pairs are nodes; if there are a pair of tags inside another pair, the \textbf{contained pair} is the child of the \textbf{containing pair},children have a defined order
+                \item text is a child of the node corresponding to the tag enclosing the text - always a leaf node (text cannot have children)
+                \item single tags are allowed and always become leaves with a box
+                \item tags are case sensitive and must be properly nested
+            \end{itemize}
+            XML documents have a DTD (document type definition) which tells us whether an XML document is well formed or not.
+            This is typically contained as a URL in the top of XML file.
+            DTD is often used to generate a parser for the XML document.
+            An example DTD is as follows (as well as an example XML file);
+            \begin{center}
+                \vspace{-1.5\baselineskip}
+                \begin{minipage}[t]{0.485\textwidth}
+                    \begin{lstlisting}
+                        <?XML version="1.0"?>
+                        <!DOCTYPE note[
+                        <!Element note(to,from,heading,notebody)>
+                        <!Element to(#PCDATA)>
+                        <!Element from(#PCDATA)>
+                        <!Element heading(#PCDATA)>
+                        <!Element notebody(#PCDATA)>
+                        ]>
+                    \end{lstlisting}
+                \end{minipage}
+                \begin{minipage}[t]{0.485\textwidth}
+                    \begin{lstlisting}
+                        <note>
+                            <to>alice</to>
+                            <from>bob</from>
+                            <heading>message</heading>
+                            <notebody>lorem ipsum</notebody>
+                        </note>
+                    \end{lstlisting}
+                \end{minipage}
+            \end{center}
+            Note that line 3 defines the ~note~ element to have four elements within.
+            Similarly, line 4 defines the ~to~ element to be of type ~\#PCDATA~ (parsed character data).
+            DTD can also declare the number of occurrences;
+            \begin{itemize}
+                \itemsep0em
+                \item ~<!Element note(message+)>~ \hfill one or more (at least 1) messages
+                \item ~<!Element note(message*)>~ \hfill zero or more messages
+                \item ~<!Element note(message?)>~ \hfill zero or one message
+            \end{itemize}
+            XML is an open standard, is human readable, and is easy to process.
+            However, it tends to inflate the data (increase size) as it includes a lot of information that could be easily compressed away.
+            \medskip
+
+            XML was primarily introduced as a means to exchange information, which would eventually be stored.
+            This could be stored in a number of ways, including specialised systems, object-oriented databases, in a regular file system (which may be inefficient to search), or in a relational database.
+            The primary ways to store XML in databases are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{Structure-Mapping approach} - derives the database schema from the DTD (which describes the structure of the document)
+                \item \textbf{Model-Mapping approach} - a fixed schema is used to store XML documents without any DTD information (some documents may not follow the DTD precisely), this looks at what the structure of the actual XML document is like
+                    \begin{itemize}
+                        \itemsep0em
+                        \item capable of storing any XML application (can be either static or dynamic, the latter being when the DTD varies over time)
+                        \item can support XML that doesn't follow DTD as long as it's well-formed
+                        \item doesn't require extending database models to support XML
+                    \end{itemize}
+                    Some of the key terms that will be used throughout;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item \textbf{Ordinal} \hfill the order of the element among its siblings (share same parent)
+                        \item \textbf{LabelPath} \hfill dot separated sequence of edge labels (e.g. ~DBGroup.Member.Name~)
+                        \item \textbf{DataPath} \hfill dot separated sequence of element nodes (e.g. ~\&1.\&2.\&7~)
+                    \end{itemize}
+                    There are the following approaches to perform model mapping (the last one is a node oriented approach, with the others being edge oriented).
+                    Each of these have advantages and disadvantages based on the queries we'd want to perform
+                    \begin{itemize}
+                        \itemsep0em
+                        \item \textbf{Edge} \hfill edges stored in a single table
+                            \smallskip
+
+                            This can be represented as ~Edge(Source, Ordinal, Target, Label, Flag, Value)~
+                            \begin{itemize}
+                                \itemsep0em
+                                \item ~Source~ \hfill represents source node in data graph
+                                \item ~Order~ \hfill ordinal of the edge among siblings
+                                \item ~Target~ \hfill target node which the source is pointing to
+                                \item ~Label~ \hfill name in XML document
+                                \item ~Flag~ \hfill data type being represented (reference or value)
+                                \item ~Value~ \hfill represents data in the XML document
+                            \end{itemize}
+                        \item \textbf{Monet} \hfill partitions the edge table according to all possible label paths
+                            \smallskip
+
+                            Stores XML in multiple tables, as queries are specific to label-paths.
+                            The number of tables is equal to the number of distinct label paths.
+                            Tables are classified as the follows (contrasted to the Edge approach, this gets rid of the flag attribute);
+                            \begin{itemize}
+                                \itemsep0em
+                                \item ~ElementNode(Source, Target, Ordinal)~ \hfill represents a unique edge
+                                \item ~TextNode(ID, Value)~ \hfill value type is implicit in the table name
+                            \end{itemize}
+                        \item \textbf{XParent} \hfill structures on LabelPath, DataPath, Element, and Data
+                            \smallskip
+
+                            Similar to XRel, this has four tables;
+                            \begin{itemize}
+                                \itemsep0em
+                                \item ~LabelPath(ID, Len, Path)~ \hfill also stores length of path
+                                \item ~DataPath(Pid, Cid)~ \hfill stores pairs of parent ID and child ID
+                                \item ~Element(pathID, Ordinal, Did)~ \hfill has path ID from ~LabelPath~ and data ID
+                                \item ~Data(PathID, Did, Ordinal, Value)~
+                            \end{itemize}
+                        \item \textbf{XRel} \hfill stores based on Path, Element, Text, and Attribute
+                            \smallskip
+
+                            This stores data in four tables;
+                            \begin{itemize}
+                                \itemsep0em
+                                \item ~Path(PathID, PathExp)~ \hfill maintains a path expression identifier and path expression
+                                \item ~Element(PathID, Start, End, Ordinal)~
+                                    \subitem contains the start and end positions of regions for a given ~PathID~; region denotes the start and end positions of the node in the XML document
+                                \item ~Text(PathID, Start, End, Value)~
+                                \item ~Attribute(PathID, Start, End, Value)~
+                            \end{itemize}
+                    \end{itemize}
+                    All of these approaches allow us to reconstruct the document but looks at the data from different perspectives depending on the most frequently asked queries.
+            \end{itemize}
+            To select the names of all members who are older than 20;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{Edge} \hfill 6 selections, 3 equi-joins
+                    \begin{lstlisting}
+                        SELECT name.Value
+                        FROM Edge dbgroup, Edge member, Edge age, Edge name
+                        WHERE
+                          dbgroup.Label = 'DBGroup' AND member.Label = 'Member' AND
+                          age.Label = 'Age' AND name.Label = 'Name' AND
+                          dbgroup.Source = 0 AND dbgroup.Target = member.Source AND
+                          member.Target = age.Source AND member.Target = name.Source AND
+                          CAST(age.Value AS INT) > 20
+                    \end{lstlisting}
+                \item \textbf{Monet} \hfill 1 selection, 4 equi-joins
+                    \begin{lstlisting}
+                        SELECT cn.Value
+                        FROM
+                          DBGroup.Member.Name n,
+                          DBGroup.Member.Age a,
+                          DBGroup.Member m,
+                          DBGroup.Member.Name.CDATA cn,
+                          DBGroup.Member.Age.CDATA ca
+                        WHERE
+                          m.Target = n.Source AND m.Target = a.Source AND
+                          a.Target = ca.Id AND n.Target = cn.Id AND
+                          CAST(age.Value AS INT) > 20
+                    \end{lstlisting}
+                \item \textbf{XParent} \hfill 3 selections and 5 equi-joins
+                    \begin{lstlisting}
+                        SELECT d2.Value
+                        FROM
+                          Data d1, Data d2, Element e1,
+                          LabelPath lp1, LabelPath lp2, DataPath p1, DataPath p2
+                        WHERE
+                          lp1.Path = './DBGroup./Member./Age' AND
+                          lp2.Path = './DBGroup./Member./Name' AND
+                          CAST(d1.Value AS INT) > 20 AND
+                          d1.PathID = lp1.Id AND d2.PathID = lp2.Id AND
+                          d1.Did = p1.Cid AND d2.Did = p2.Cid AND p1.Pid = p2.Pid
+                    \end{lstlisting}
+                \item \textbf{XRel} \hfill 4 selections and 7 joins (not equi-joins)
+                    \begin{lstlisting}
+                        SELECT v2.Value
+                        FROM Element e1, Path p1, Path p2, Path p3, Text v1, Text v2
+                        WHERE
+                          p1.PathExp = '#DBGroup#/Member#' AND
+                          p2.PathExp = '#DBGroup#/Member#/Age' AND
+                          p3.PathExp = '#DBGroup#/Member#/Name' AND
+                          e1.PathID = p1.PathID AND
+                          v1.PathID = p2.PathID AND
+                          v2.PathID = p3.PathID AND
+                          e1.Start < v1.Start AND e1.End > v1.End AND
+                          e1.Start < v2.Start AND e1.End > v2.End AND
+                          CAST(v1.Value AS INT) > 20
+                    \end{lstlisting}
+            \end{itemize}
+            Typically XRel and XParent outperform Edge in complex queries, however Edge performs better with simple queries (fewer joins).
 \end{document}
