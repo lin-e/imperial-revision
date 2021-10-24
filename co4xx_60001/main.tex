@@ -968,4 +968,170 @@
             In a specialised machine, you'd know what's in cache locations (you'd have cache data, but not the tags) - the existence of cache isn't Turing Tax, but specific choices are.
             Architects avoid Turing Tax in a number of ways, including SIMD (which amortises the fetch-execute over a vector of operands), more complex instructions (macro-instructions), long cache lines, direct memory access, etc.
             Compilers also help by vectorising instructions, and so on.
+        \subsection*{Chapter 3}
+            Control hazards are present in any pipelined processor; we will likely need to know what instruction to fetch even before the current instruction has been evaluated, or even decoded.
+            Branches are typically quite frequent, but can vary depending on the type of program.
+            Amdahl's law suggests that whatever can't be accelerated becomes dominant, when everything else has been accelerated.
+            Speculative dynamic instruction scheduling, along with register renaming, allows us to speculate many instructions, even through several branches.
+            Not only is it important for branches, but other parts of the processor architecture can also benefit from hardware support for dynamic prediction.
+            Virtual function calls (in a polymorphic language) can also depend on the context and may vary from invocation to invocation - they are also indirect jumps.
+            \medskip
+
+            Alternatives for branch prediction include;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{multithreading}
+                    \smallskip
+
+                    Suppose we have a simple 5 stage pipeline and 4 threads per core.
+                    As such there are 4 PCs and 4 sets of registers.
+                    By the time thread 0 is executing again in the fetch stage, we would've already determined the outcome of the first instruction - it should've completed the ALU stage.
+                    With enough threads, the entire control problem disappears - however we care about the performance of individual threads.
+                \item \textbf{predication}
+                    \smallskip
+
+                    Predication extends the instruction set by loading condition values into predicate registers (single bit).
+                    For example, the simple code ~if (x == 10) c = c + 1;~ could become the following;
+                    \begin{lstlisting}
+                        :
+                             LDR r5, X
+                             p1 <- r5 eq 10
+                        <p1> LDR r1 <- C
+                        <p1> ADD r1, r1, 1
+                        <p1> STR r1 -> C
+                        :
+                    \end{lstlisting}
+                    The conditional body consists of instructions guarded by these conditional predicate registers.
+                    The control hazard is converted into a data hazard.
+                    By doing this, we avoid conditional branches, however this may be unattractive for large bodies of code - it would be better to jump over the entire body rather than fetching and decoding, and then realising the predicate is false.
+                    It also eliminates the risk of a misprediction.
+                \item \textbf{branch delays}
+                    \smallskip
+
+                    The branch instruction is redefined to take place after a following instruction.
+                    \begin{center}
+                        \vspace{-1.5\baselineskip}
+                        \begin{minipage}[t]{0.31\textwidth}
+                            \begin{lstlisting}
+                                # source code
+                                if (R1 == 0)
+                                  X = 100
+                                else
+                                  X = 200
+                                R5 = X
+                            \end{lstlisting}
+                        \end{minipage}
+                        \begin{minipage}[t]{0.31\textwidth}
+                            \begin{lstlisting}
+                                # assembly code
+                                  LW R3,#100
+                                  LW R4,#200
+                                  BEQZ R1,L1
+                                  SW R3,X
+                                  SW R4,X
+                                L1:
+                                  LW R5,X
+                            \end{lstlisting}
+                        \end{minipage}
+                        \begin{minipage}[t]{0.31\textwidth}
+                            \begin{lstlisting}
+                                # what it does
+                                if (R1 == 0)
+                                  X = 100
+                                else
+                                  X = 100
+                                  X = 200
+                                R5 = X
+                            \end{lstlisting}
+                        \end{minipage}
+                    \end{center}
+                    The instruction after the branch ~SW R3,X~ is executed regardless; it's already been fetched.
+                    If we are branching, then we go to ~L1~ after it's executed, otherwise we proceed to ~SW R4,X~.
+                    For MIPS, it's sufficient to have a single delay slot.
+                    \medskip
+
+                    Ideally, we take an instruction from before the branch instruction.
+                    Alternatively, we can take an instruction from either the target address, or from the fall through (although this is only valuable when it's correct) - we also want to ensure that it's the correct thing to do (hence we shouldn't store to memory, as we may store something that shouldn't be stored).
+                    The performance of this can be improved with `cancelling' branches, with variants for whether the branch is likely taken or not.
+                    With these instructions, the write-back is disabled if it wasn't supposed to be executed.
+            \end{itemize}
+            Ideally, with a branch predictor, we want to fetch the correct next instruction without stalling.
+            Therefore, we need a prediction before the preceding instruction has even been decoded.
+            There are two types of branches (conditional branches) which is direction prediction (whether it's taken or not), and indirect branches which is target prediction (definitely taken, an example of which is a branch to an address stored in a register, commonly present as virtual function calls or return addresses which is taken from the stack).
+            \subsubsection*{Branch Direction Prediction (Takenness)}
+                The simplest idea is to keep a table for each branch containing a bit representing whether it was taken or not last time (branch history table - BHT).
+                If we take the $k$ lowest bits from the program counter to index a table of $2^k$ size.
+                Once an instruction is completed, we update the corresponding entry with a 1 or 0 depending on whether it was supposed to be taken or not.
+                One limitation of this is that the table is of limited size, hence multiple branch instructions may map to the same entry - same issue as associativity conflicts.
+                A simple example where this may have issues is a nested loop; the first iteration of the inner loop will likely miss, as well as the last iteration of the inner loop (would've had taken in the BHT for the previous iterations, but this will fall through and update to not taken).
+                The next iteration of the outer loop will also cause a miss in the inner loop (since the branch is taken, but the BHT suggests it won't be taken, as it fell through last time).
+                \medskip
+
+                A solution to the previous idea is to add hysteresis by having a second bit.
+                This scheme only changes the prediction of there are two mispredictions (\violet{violet} represents predict taken and \teal{teal} represents predict not taken);
+                \begin{center}
+                    \begin{tikzpicture}
+                        \node[state, fill=violet] (t) at (0, 0) {};
+                        \node[state, fill=violet!50] (th) at (3, 0) {};
+                        \node[state, fill=teal!50] (nth) at (0, -3) {};
+                        \node[state, fill=teal] (nt) at (3, -3) {};
+
+                        \draw
+                        (t) edge[->, loop, left, out=135, in=225, distance=1cm] node{\violet{T}} (t)
+                        (t) edge[->, bend left=10, above] node{\teal{NT}} (th)
+                        (th) edge[->, bend left=10, below] node{\violet{T}} (t)
+                        (th) edge[->, bend right=10, left] node{\teal{NT}} (nth)
+                        (nth) edge[->, bend right=10, right] node{\violet{T}} (th)
+                        (nth) edge[->, bend left=10, above] node{\teal{NT}} (nt)
+                        (nt) edge[->, bend left=10, below] node{\violet{T}} (nth)
+                        (nt) edge[->, loop, right, out=-45, in=45, distance=1cm] node{\teal{NT}} (nt);
+                    \end{tikzpicture}
+                \end{center}
+                This idea also generalises to higher bit BHTs.
+                Generally, the 2-bit predictor is often very good but can sometimes be quite awful.
+                1-bit is usually worse, and 3-bit isn't usefully better.
+                This is based on a saturating counter.
+                Most branches are biased; they are either almost always taken or almost always not; this doesn't work for branches which aren't biased.
+                The predictor is often called the bimodal predictor (two clusters).
+                \medskip
+
+                The bimodal predictor uses local history; the prediction is determined only by a memory address.
+                Consider the following code, with three conditions;
+                \begin{lstlisting}
+                    if (C1) then
+                      S1;
+                    endif
+                    if (C2) then
+                      S2;
+                    endif
+                    if (C3) then
+                      S3;
+                    endif
+                \end{lstlisting}
+                It's likely that the conditions are correlated; for example, we may not know ~C1~, but once we do, we may know ~C2~ and ~C3~.
+                We define the \textbf{global history} as the taken / not-taken history for all previous branches.
+                The idea is to keep an $m$-bit branch history register (BHR), which is a shift register (push a zero or one) recording the taken / not-taken direction of the most recent $m$ branches.
+                \medskip
+
+                Consider an $(m, n)$ ``gselect'' predictor.
+                There are $m$ global bits (BHR) recording the behaviour of the last $m$ branches which is used to select which of the $2^m$ $n$-bit BHTs to use.
+                A popular choice is $m = n = 2$, hence there are 4 tables of $2 \times 2^k$ bits.
+                The update is also done based on the same BHR, so a different history would lead us to read a different table.
+                \medskip
+
+                Variations of this include the global scheme, which is an extreme case where only the global history is used to index the BHT, ignoring the PC.
+                XORing the lower PC bits with the BHR is called ``gshare''.
+                The use of per-address pattern history is quite popular and effective.
+                \medskip
+
+                The lecture goes over a few examples of benchmarks, and importantly how it can skew decisions.
+                It's important to evaluate the appropriateness of the benchmarks used and the conclusions drawn, especially where there are outliers.
+                \medskip
+
+                The idea of a tournament predictor involves having two predictors; one based on global information and one based on local information.
+                A selector is put in place, which decides which predictor to use (the selector is also driven by another predictor, which ideally selects the right predictor for the right branch).
+                We still want to update both predictors, even if one gave us a value we didn't use, and also update the predictor for the selector (to tell it whether the chosen predictor gave the correct result).
+                The profile based prediction is static in the sense that the prediction is encoded in the instructions, but is still derived from a real execution.
+                Note that the tournament predictor beats the profile-based predictor, which beats the 2-bit counter.
+                A good dynamic predictor can outperform a static prediction; by profiling we lose context information.
 \end{document}
