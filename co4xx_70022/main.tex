@@ -1401,4 +1401,27 @@
             Aggregations are operations that process data and return computed results.
             By running aggregation on the ~monogod~ (primary daemon) instance simplifies application code.
             This is implemented with pipelines with filters that operate like queries and document transformations which modify the output form.
+        \subsection*{October 25 - Live Lecture}
+            Ordinals are required as XML documents have an order of elements.
+            When we query, we want to be able to raise queries like the first node of a specific kind, etc.
+            \medskip
+
+            There is no concept of updating XML in graph databases.
+            XML is human-readable, but is primarily used as an exchange medium between machines (commonly in service-oriented architectures).
+            \medskip
+
+            The purpose of a region in XRel can help find the entire subtree of a node.
+            The start and end values are the first and last characters. % unsure
+            \medskip
+
+            Denormalisation (embedding) removes the need for joining, but may make it less efficient.
+            Additionally, updating an embedded field in a one-to-many relationship would require touching every document that contains the field.
+            \medskip
+
+            Under the hood, it's the same as a relational database, just a different data representation.
+            However, queries are slightly different; with a relational database we ideally have fixed length fields, whereas with a document database we can make fewer assumptions about the data.
+            \medskip
+
+            The structure mapping approach is used when you have the DTD, and you know it's static.
+            The model mapping approaches captures everything, including changes to the format and structure of the XML (dynamic).
 \end{document}
