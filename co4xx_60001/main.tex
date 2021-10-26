@@ -1195,4 +1195,102 @@
                 It's also possible for the RAP to be wrong in the case that the top of the stack has been overwritten (to a new address we should jump to).
                 Another case is that the stack pointer changes, which could happen when a context-switch takes place and switches to another thread.
                 If the return address stack (RAS) is updated before committing (from a speculative execution), it's possible that a ~JSR~ is mispredicted (leading to the RAS being updated even though no jump has taken place).
+        \subsection*{October 26 - Live Lecture}
+            Blocking can be thought of as a transformation on loop nests.
+            The first transformation is referred to as strip mining; the order of execution hasn’t changed at all (an outer loop incrementing by $S$).
+            Strip mining a single loop is as follows;
+            \begin{lstlisting}
+                for (k = 0; k < N; k++) {
+                  ...
+                }
+                // becomes
+                for (kk = 0; kk < N; kk += S) {
+                  for (k = kk; k < min(kk + S, N); kk++) {
+                    ...
+                  }
+                }
+            \end{lstlisting}
+            Interchanges are applied to move the mined loops to be the outermost loops (safe to interchange loops).
+            The inner ~i,k,j~ performs a multiplication on a pair of partial matrices, $S$ is chosen such that an $S \times S$ submatrix of $B$ and a row of length $S$ of $C$ can fit into the cache (the reused data, a submatrix, fits into the cache).
+            Note that in ~MM3~, $S$ was chosen to specifically not be a power of 2.
+            In ~MM4~, each row of the submatrix is mapped to the same cache line.
+            \medskip
+
+            The benefit of predicted execution is to avoid control hazards.
+            By performing predictions, we are able to fill the machine with work, rather than idling waiting for the result of an execution.
+            \medskip
+
+            Consider different machines, which all perform the same task.
+            Note that code essentially encodes a graph;
+            \begin{center}
+                \begin{tikzpicture}[x=1.5cm, y=0.8cm]
+                    \node[draw] (a) at (0, 0) {~A~};
+                    \node[draw] (c) at (1, 0) {~C~};
+                    \node[draw] (o) at (2, 0) {~1~};
+                    \node[draw] (p) at (1.5, -1) {~+~};
+                    \node[draw] (m) at (0, -2) {~*~};
+                    \node[draw] (d) at (2, -2) {~D~};
+                    \node[draw] (s) at (1, -3) {~store~};
+
+                    \draw
+                    (a) edge[->] (m)
+                    (c) edge[->] (p)
+                    (o) edge[->] (p)
+                    (p) edge[->] (m)
+                    (m) edge[->] (s)
+                    (d) edge[->] (s);
+                \end{tikzpicture}
+            \end{center}
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{register machine}
+                    \begin{lstlisting}
+                        load  r1 A
+                        load  r2 C
+                        add   r3 r2 #1 // r3 = C + 1
+                        mul   r4 r1 r3 // r4 = r3 * A
+                        store r4 D     // D = r4
+                    \end{lstlisting}
+                \item \textbf{stack machine}
+                    \begin{lstlisting}
+                        push  A        // load from A, push to stack
+                        push  C
+                        add   #1       // add 1 to the value on the top of stack
+                        mul            // multiply the top two values on stack
+                        store D        // store value on top of stack to memory
+                    \end{lstlisting}
+                    This can be difficult to trace.
+                    It also has difficulty with copied operands (if an operand needs to be used twice).
+                \item \textbf{dataflow machine}
+                    \begin{lstlisting}
+                        load  +3 A     // load from A, send to [mul]
+                        load  +1 C     // load from C, send to [add] (next)
+                        add   +1 #1    // add 1 to value received, send to [mul] (next)
+                        mul   +1       // multiply values recieved, send to next
+                        store D        // store value received
+                    \end{lstlisting}
+                    Recent dataflow instruction sets, such as \textit{EDGE}, \textit{TRIPS}, and \textit{Wavescalar}, bundle instructions into statically scheduled dataflow fragments.
+                    Dynamically scheduling then occurs on the fragment level.
+                \item \textbf{belt machine}
+                    \begin{lstlisting}
+                        load  A        // load A onto belt
+                        load  C        // load C onto belt
+                        add   -1 #1    // add 1 to the result of the previous instruction
+                        mul   -1 -3    // multiply the results from positions -1 and -3 on the belt
+                        store -1 D     // store the previous result to memory
+                    \end{lstlisting}
+                    The idea is that every instruction will write to a fresh register, with a finite (rolling) window of registers.
+                    Operands are collected by an offset backwards to the instruction producing the operand.
+                    There is very little energy consumption at the rename logic stage of the pipeline (almost none), compared to classical processors.
+                    \medskip
+
+                    The compiler needs to know the size of the belt.
+                    For example, if we know an instruction will need something that will fall off the belt, it can be moved to the front of the belt.
+                    Another approach is to spill it.
+                    \medskip
+
+                    Branches can have issues with this (and the dataflow machine).
+                    If two branches both generate a value, the compiler will need to think about what values will be used downstream and have an additional copy instruction that moves it to a known location (forces the value to be completed).
+            \end{itemize}
+            The lecture then discusses examples of indirect jumps with a ~switch~.
 \end{document}
