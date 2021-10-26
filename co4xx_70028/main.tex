@@ -934,4 +934,58 @@
                     We don't want to overlearn something that may not be relevant.
                     $$V(s_t) \leftarrow V(s_t) + \alpha (R_t - V(s_t))$$
             \end{enumerate}
+        \subsection*{Temporal Difference Learning}
+            Dynamic programming and Monte-Carlo techniques have desirable properties that conflict with each other.
+            The former bootstraps (updates value estimates with other estimates) and the latter samples from the environment.
+            In DP, visiting all rewards and successor state pairs in our backup diagram.
+            TD performs bootstrapping from 1-step samples, therefore it sits between the DP methods and the MC methods by combining sampling as well as bootstrapping.
+            Temporal Difference methods have the following properties;
+            \begin{itemize}
+                \itemsep0em
+                \item learn directly from episodes of experience (can also work for non-episodic)
+                \item model-free; no knowledge of transitions or rewards required
+                \item uses bootstrapping to learn from incomplete episodes
+                \item updates a guess towards a guess
+            \end{itemize}
+            Recall that the MC update rule was $V(s_t) \leftarrow V(s_t) + \alpha(R_t - V(s_t))$ (using only actual measurements to update the return, no other estimates).
+            However, TD methods update it towards the estimated return (rather than the measured return) - a combination of measurements $r_{t + 1}$ with the current estimate of the value of the successor state $V(s_{t + 1})$;
+            $$V(s_t) \leftarrow V(s_t) + \alpha(\underbrace{r_{t + 1} + \gamma V(s_{t + 1})}_\text{estimated return} - V(s_t))$$
+            Note that the estimated return is also known as the temporal difference target and $r_{t + 1} + \gamma V(s_{t + 1}) - V(s_t)$ is known as the temporal difference error.
+            The algorithm for performing TD value estimation is as follows;
+            \begin{enumerate}
+                \itemsep0em
+                \item initialise $\hat{V}(s)$ to be an arbitrary value for all $s \in \mathcal{S}$
+                \item repeat the following for each episode;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item initialise $s$
+                        \item repeat the following for each step of the episode, until $s$ is absorbing;
+                            \begin{enumerate}
+                                \itemsep0em
+                                \item action $a$ chosen from $\pi$ at $s$
+                                \item take action $a$, observe the reward $r$ and next state $s^\prime$
+                                \item $\delta \leftarrow r + \gamma \hat{V}(s^\prime) - \hat{V}(s)$
+                                \item $\hat{V}(s) \leftarrow \hat{V}(s) + \alpha\delta$
+                                \item $s \leftarrow s^\prime$
+                            \end{enumerate}
+                    \end{enumerate}
+            \end{enumerate}
+            TD is able to learn online after every step (learn before knowing the final outcome), whereas MC must wait until the episode is complete before the return is known.
+            It can also therefore learn without the final outcome.
+            MC can only learn from complete sequences whereas TD works in non-terminating environments (even when there is no episodic structure).
+            \medskip
+
+            The sample return $R = r_{t + 1} + \gamma r_{t + 2} + \cdots + \gamma^{T - 1}r_T$ is an unbiased estimate of $V^\pi(s_t)$.
+            The true TD target $r_{t + 1} + \gamma V^\pi(s_{t + 1})$ is also an unbiased estimate,
+            However, the estimated TD target $r_{t + 1} + \gamma V(s_{t + 1})$ (bootstrapped value) is a biased estimate as the $V(s_{t + 1})$ was set arbitrarily and has no bearing on the true value - this bias decays over time as real values are used in the update process.
+            The TD target has much lower variance than the return (the sample return is based on many random actions, transitions and rewards, whereas the TD target is based on only one action, transition, and reward).
+            As such, TD has low accuracy and high precision, whereas MC has high accuracy but low precision.
+            \medskip
+
+            In conclusion, MC has high variance and no bias, has good convergence properties even with function approximation, and is not very sensitive to the initial value.
+            On the other hand, TD exploits the Markov property (therefore is more efficient in these environments), and has low variance with some bias, however has no convergence guarantee with function approximation and is more sensitive to the initial value.
+            \medskip
+
+            MC and TD both sample, whereas DP does not.
+            DP and TD both bootstrap, whereas MC does not.
 \end{document}
