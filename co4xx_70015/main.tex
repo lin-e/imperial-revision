@@ -912,4 +912,198 @@
                     \end{enumerate}
                 \item pick model with lowest cross-validation loss
             \end{enumerate}
+        \subsection*{Lecture 5 - Gradient Descent}
+            An optimisation is can be formulated as an objective function $L : \mbbr^D \to \mbbr$ (parameter space to scalar) which roughly tells us how well the model performs on the training data, with an unconstrained minimisation (search parameter in the full space);
+            $$\vec{\theta}^* = \argmin_{\vec{\theta}} L(\vec{\theta})$$
+            Gradient-based optimisation is a class of methods which perform the following steps;
+            \begin{itemize}
+                \itemsep0em
+                \item pick starting point $\vec{\theta_0}$
+                \item iterative update the parameters to give a sequence $\vec{\theta_1}, \dots, \vec{\theta_T}$
+                \item choose the update by computing the gradient $\nabla_{\vec\theta}L(\vec{\theta_t})$
+                \item repeat until we reach a stopping criterion (such as computation budget or gradient size)
+            \end{itemize}
+            The gradient descent algorithm is as follows, with a starting point $\vec{\theta_0}$ and a sequence of step sizes $\gamma_t$;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item set $\vec{\theta_{t + 1}} = \vec{\theta_t} - \gamma_t \nabla_{\vec{\theta}}L(\vec{\theta_t})$
+                \item repeat the first step until the stopping criterion is met
+            \end{enumerate}
+            Consider the following model (note the use of matrices), our goal is to find $\mat{\theta} \in \mbbr^{D \times 1}$, such that $\mat{y} \approx \mat{X}\mat{\theta}$;
+            \begin{align*}
+                \mathcal{D} & = \{ \mat{X}, \mat{y} \} & \text{dataset} \\
+                \mat{X} & = \begin{bmatrix}
+                    \vec{x_1} & \cdots & \vec{x_N}
+                \end{bmatrix}^\top & \in \mbbr^{N \times D} \\
+                \mat{y} & = \begin{bmatrix}
+                    y_1 & \cdots & y_N
+                \end{bmatrix}^\top & \in \mbbr^{N \times 1} \\
+                \mat{X}^\top & = \begin{bmatrix}
+                    \uparrow & \uparrow & & \uparrow \\
+                    \vec{x_1} & \vec{x_2} & \cdots & \vec{x_N} \\
+                    \downarrow & \downarrow & & \downarrow \\
+                    1 & 1 & & 1
+                \end{bmatrix}
+            \end{align*}
+            The model and loss are as follows (assume a mean of zero and some variance) and the loss is the $\ell_2$ norm.
+            We are taking the gradient as the transpose of the derivative of $L$ with respect to $\vec{\theta}$ (a column vector);
+            \begin{align*}
+                f(\vec{x}, \vec{\theta}) & = \vec{x}^\top\vec{\theta} \\
+                y & = f(\vec{x}, \vec{\theta}) + \epsilon & \epsilon \sim \mathcal{N}(0, \sigma^2) \\
+                L(\vec{\theta}) & = \frac{1}{2 \sigma^2} \summation{n}{} (f(\vec{x_n}, \vec{\theta}) - y_n)^2 \\
+                & = \frac{1}{2 \sigma^2} || \mat{y} - \mat{X}\mat{\theta} ||_2^2 \\
+                \nabla_{\vec{\theta}} L(\vec{\theta}) & = \dif{L}{\vec{\theta}}^\top \\
+                & = \frac{1}{\sigma^2} \mat{X}^\top(\mat{X}\mat{\theta} - \mat{y}) & \text{setting $= 0$, to get pseudo-inverse $\Rightarrow$} \\
+                \frac{1}{\sigma^2} \mat{X}^\top\mat{X}\mat{\theta}^* & = \frac{1}{\sigma^2} \mat{X}^\top\mat{y} & \Rightarrow \\
+                \mat{\theta}^* & = (\mat{X}^\top\mat{X})^{-1}\mat{X}^\top\mat{y}
+            \end{align*}
+            The gradient descent for linear regression can be written as follows, assuming constant step-sizes ($\gamma_t = \gamma$);
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item define the starting point $\mat{\theta_0}$
+                \item update $\mat{\theta_{t + 1}}$
+                    \begin{align*}
+                        \mat{\theta_{t + 1}} & = \mat{\theta_t} - \gamma_t \nabla_{\mat{\theta}}L(\vec{\theta_t} \\
+                        & = \mat{\theta_t} - \gamma\frac{1}{\sigma^2} \mat{X}^\top(\mat{X}\mat{\theta_t} - \mat{y}) \\
+                        & = (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})\mat{\theta_t} + \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{y}
+                    \end{align*}
+                \item repeat until stopping criterion
+            \end{enumerate}
+            We will study the gradient descent update equation (final line).
+            This forms a geometric series ($x_{t + 1} = a x_t + b$), which can be written as $\alpha^t x_0 + \beta$ (which applies to vectors as well as scalars).
+            \begin{align*}
+                \mat{\theta_{t + 1}} + \mat{\beta} & = \mat{A}(\mat{\theta_t} + \mat{\beta}) & \Rightarrow \\
+                \mat{\theta_{t + 1}} & = \mat{A}\mat{\theta_t} + (\mat{A} - \mat{I})\mat{\beta} & \Rightarrow \\
+                \mat{A} & = (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X}) \\
+                (\mat{A} - \mat{I})\mat{\beta} & = \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{y} & \Rightarrow \\
+                -\frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X}\mat{\beta} & = \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{y} & \Rightarrow \\
+                \mat{\beta} & = -(\mat{X}^\top\mat{X})^{-1}\mat{X}^\top\mat{y} \\
+                & = -\mat{\theta}^*
+            \end{align*}
+            This iterative update gives the following result;
+            $$\mat{\theta_t} = (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta}^*) + \mat{\theta}^*$$
+            Note that this tells us the gradient descent converges (as $t$ gets larger) $\mat{\theta_t} \to \mat{\theta}^*$ if;
+            $$(\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta}^*) \to \mat{0}$$
+            In an $\mbbr^D$ space, the space can be constructed by a span of basis vectors.
+            For example, $\mbbr^2 = \mathrm{span}(\{\vec{e_1}, \vec{e_2}\})$ and $\vec{e_i} \perp \vec{e_j}, || \vec{e_i} || = 1$.
+            Any vector in this space can be written as a linear combination of the basis vectors.
+            For the standard basis, assume 2-dimensions, $\vec{x} = (x_1, x_2)^\top$, then $\vec{x}^\top\vec{e_i} = x_i$.
+            \medskip
+
+            A left multiply of $\mat{Q}^{-1}$ on $\vec{x}$ is known as a change of basis from $\{\vec{e_1}, \vec{e_2}\}$ to $\{\vec{q_1}, \vec{q_2}\}$;
+            \begin{align*}
+                \mat{Q} & = \begin{bmatrix}
+                    q_{1,1} & q_{1,2} \\
+                    q_{2,1} & q_{2,2}
+                \end{bmatrix} \\
+                & = \begin{bmatrix}
+                    \vec{q_1} & \vec{q_2}
+                \end{bmatrix} \\
+                \mat{Q}^{-1} & = \begin{bmatrix}
+                    q_{1,1} & q_{2,1} \\
+                    q_{1,2} & q_{2,2}
+                \end{bmatrix} \\
+                & = \begin{bmatrix}
+                    \vec{q_1}^\top \\ \vec{q_2}^\top
+                \end{bmatrix} \\
+                \vec{z} & = \mat{Q}^{-1}\vec{x} \\
+                z_1 & = \vec{q_1}^\top\vec{x} \\
+                z_2 & = \vec{q_2}^\top\vec{x}
+            \end{align*}
+            If we were to stretch this vector in the $\mat{Q}$ basis;
+            \begin{align*}
+                \vec{z^\prime} & = \mat{\Lambda}\mat{Q}^{-1}\vec{x} \\
+                z_1^\prime & = \lambda_1\vec{q_1}^\top\vec{x} \\
+                z_2^\prime & = \lambda_2\vec{q_2}^\top\vec{x} \\
+                \mat{\Lambda} & = \begin{bmatrix}
+                    \lambda_1 & 0 \\
+                    0 & \lambda_2
+                \end{bmatrix}
+            \end{align*}
+            To return to the canonical basis, after stretching by $\mat{\Lambda}$ in the $\mat{Q}$ basis, we have $\vec{x^\prime} = \mat{Q} \mat{\Lambda} \mat{Q}^{-1} \vec{x}$.
+            Consider the case where we have $\vec{x^\prime} = \mat{A}\vec{x}$, for some $\mat{A} \in \mbbr^{D \times D}$.
+            We want to find $\mat{A} = \mat{Q} \mat{\Lambda} \mat{Q}^{-1}$.
+            The goal is to find scalar $\lambda$ (eigenvalue) and vector (eigenvector) $\vec{q}$ such that $\mat{A}\vec{q} = \lambda\vec{q}$, if solutions exist for this, we have $\mat{A} = \mat{Q} \mat{\Lambda} \mat{Q}^{-1}$ where $\mat{\Lambda} = \mathrm{diag}(\lambda_1, \dots, \lambda_D)$.
+            If $\mat{A}$ is symmetric, there will be $D$ pairs of solutions of eigenvectors and eigenvalues, such that the column vectors ($\mat{Q} = (\vec{q_1}, \dots, \vec{q_D})$) form an orthonormal basis (such that $\mat{Q}^{-1} = \mat{Q}^\top$) and $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_D$.
+            Additionally, if $\mat{A}$ is positive semi-definite, then $\lambda_D \geq 0$.
+            To find this, we first assume $\vec{q} \neq \vec{0}$.
+            By $\mat{A}\vec{q} = \lambda\vec{q}$, we can get $(\mat{A} - \lambda\mat{I})\vec{q} = \vec{0}$.
+            With the assumption, we find $\lambda$ such that $\det(\mat{A} - \lambda\mat{I}) = 0$ - once we have this, it can be plugged in and solved to obtain $\vec{q}$.
+            \medskip
+
+            The determinant tells us how the volume is scaled by linear transformation.
+            If the determinant is zero ($\det(\mat{A} - \lambda\mat{I}) = 0$), then some subspace in $\mbbr^D$ is collapsed into a line $\{ \vec{0} \}$, implying that there is some $\vec{q} \neq 0$ such that $(\mat{A} - \lambda\mat{I}) \vec{q} = \vec{0}$.
+            If $\lambda$ is an eigenvalue of $\mat{A}$, then $\lambda^t$ is an eigenvalue of $\mat{A}^t$.
+            Additionally, $\lambda + \alpha$ is an eigenvalue of $\mat{A} + \alpha\mat{I}$;
+            $$\mat{A} + \alpha\mat{I} = \mat{Q}\mat{\Lambda}\mat{Q}^{-1} + \mat{Q}\alpha\mat{I}\mat{Q}^{-1} = \mat{Q}(\mat{\Lambda} + \alpha\mat{I})\mat{Q}^{-1} \Rightarrow \mat{\Lambda} + \alpha\mat{I} = \mathrm{diag}(\lambda_1 + \alpha, \dots, \lambda_D + \alpha)$$
+            By combining these, if $\lambda$ is an eigenvalue of $\mat{A}$, then it follows that $(\lambda + \alpha)^t$ is an eigenvalue of $(\mat{A} + \alpha\mat{I})^t$.
+            Note that the corresponding eigenvector in the pair doesn't change.
+            \medskip
+
+            The Rayleigh quotient is bounded by the eigenvalues of $\mat{A}$ (assuming symmetric);
+            $$\lambda_\text{min}(\mat{A}) \leq \underbrace{R(\mat{A}, \vec{x}) = \frac{\vec{x}^\top\mat{A}\vec{x}}{|| \vec{x} ||_2^2} = \frac{\vec{x}^\top\mat{A}\vec{x}}{\vec{x}^\top\vec{x}}}_\text{Rayleigh quotient} \leq \lambda_\text{max}(\mat{A}) \Rightarrow \lambda_\text{min}(\mat{A})|| \vec{x} ||_2^2 \leq \vec{x}^\top\mat{A}\vec{x} \leq \lambda_\text{max}(\mat{A})|| \vec{x} ||_2^2$$
+            This result comes from the following;
+            \begin{align*}
+                \vec{x}^\top\mat{A}\vec{x} & = \vec{x}^\top\mat{Q}\mat{\Lambda}\underbrace{\mat{Q}^\top\vec{x}}_{\vec{z}} \\
+                & = \vec{z}^\top\mat{\Lambda}\vec{z} \\
+                \vec{x}^\top\vec{x} & = \vec{x}^\top\underbrace{\mat{Q}\mat{Q}^\top}_{\mat{I}}\vec{x} \\
+                & = \vec{z}^\top\vec{z} \\
+                & = || \vec{z} ||_2^2 \\
+                & = \summation{d = 1}{D} z_D^2 \\
+                \vec{z}^\top\mat{\Lambda}\vec{z} & = \summation{d = 1}{D} \lambda_d z_d^2 \\
+                R(\mat{A}, \vec{x}) & = \frac{\vec{z}^\top\mat{\Lambda}\vec{z}}{|| \vec{z} ||_2^2} \\
+                \vec{z} & = \begin{bmatrix}
+                    z_1 \\ \vdots \\ z_D
+                \end{bmatrix} \\
+                & = \summation{d = 1}{D} \frac{z_d^2}{|| \vec{z} ||_2^2} \lambda_d & \text{weighted sum}
+            \end{align*}
+            Recall the gradient descent with constant step size.
+            The $\ell_2$ distance between $\vec{\theta_t}$ and $\vec{\theta}^*$;
+            \begin{align*}
+                \mat{\theta_t} & = (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta}^*) + \mat{\theta}^* \\
+                || \mat{\theta_t} - \mat{\theta}^* ||_2^2 & = || (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta}^*) ||_2^2 \\
+                & = | (\mat{\theta_0} - \mat{\theta}^*)^\top \underbrace{(\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^{2t}}_{\mat{A}} \underbrace{(\mat{\theta_0} - \mat{\theta}^*)}_{\vec{x}} |
+            \end{align*}
+            Note that this is in the form of the Rayleigh quotient, hence we can bound the distance;
+            $$\lambda_\text{min}((\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^2)^t || \mat{\theta_0} - \mat{\theta}^* ||_2^2 \leq || \mat{\theta_t} - \mat{\theta}^* ||_2^2 \leq \lambda_\text{max}((\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^2)^t || \mat{\theta_0} - \mat{\theta}^* ||_2^2$$
+            If $\lambda_\text{max}^t \to 0$ as $t \to \infty$, then we have convergence (as it's an upper bound) as it's a distance between the current solution and the optimal solution.
+            For the rules, we will use the following definitions;
+            \begin{align*}
+                \lambda_\text{min} & = \lambda_\text{min}((\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^2) & \geq 0 \\
+                \lambda_\text{max} & = \lambda_\text{max}((\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^2)
+            \end{align*}
+            Therefore we have the following rules;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item $\lambda_\text{max} < 1$ \hfill always converge
+                \item $\lambda_\text{min} \geq 1$ \hfill always diverge
+                \item $\lambda_\text{min} < 1$ but $\lambda_\text{max} \geq 1$ \hfill convergence depends on $\vec{\theta_0}$
+            \end{enumerate}
+            To derive the eigenvalues;
+            \begin{itemize}
+                \itemsep0em
+                \item if $\lambda$ is an eigenvalue of $\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X}$ then $\lambda^2$ is an eigenvalue of $(\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^2$
+                \item if $\lambda$ is an eigenvalue of $\mat{X}^\top\mat{X}$ then $1 - \frac{\gamma\lambda}{\sigma^2}$ is an eigenvalue of $\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X}$
+            \end{itemize}
+            This gives us the following result (when combined) - note that $\mat{X}^\top\mat{X}$ is positive semi-definite, hence $\lambda \geq 0$;
+            $$\mat{X}^\top\mat{X}\vec{q} = \lambda \vec{q} \Leftrightarrow (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^2 = (1 - \frac{\gamma\lambda}{\sigma^2})^2\vec{q}$$
+            To ensure convergence, we want $\lambda_\text{max} < 1$, hence we have the constraint on the step size;
+            $$\gamma < \frac{2 \sigma^2}{\lambda_\text{max}(\mat{X}^\top\mat{X})}$$
+            Generally, larger step-sizes shouldn't be used as we are unlikely to be lucky (and end up in a divergent case).
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item choose a step-size $\gamma$ that's larger than the constraint
+                \item \textbf{randomly} initialise the parameter
+                    $$\vec{\theta_0} = \vec{\theta}^* + \summation{d = 1}{D} \alpha_d \vec{q_d}$$
+                \item iterative update
+                    $$\vec{\theta_t} - \vec{\theta}^* = \summation{d = 1}{D} \alpha_d {\underbrace{(1 - \frac{\gamma \lambda_d}{\sigma^2})}_k}^t\vec{q_d}$$
+                    If $\gamma < \frac{2\sigma^2}{\lambda_d}$ for a direction $\vec{q_d}$, then $k\vec{q_d} \to \vec{0}$.
+                    Otherwise, $k\vec{q_d}$ diverges.
+                    Gradient descent will diverge unless $\alpha_d = 0$ for all the diverging directions.
+            \end{enumerate}
+            Whether the choice of $\gamma$ is robust to the initialisation of $\vec{\theta_0}$ depends on the condition number of $\mat{X}^\top\mat{X}$.
+            \medskip
+
+            In general, the loss function isn't quadratic nor is it convex.
+            However, when we approach the optimum, we can take a local quadratic approximation (Taylor expansion of order 2).
 \end{document}
