@@ -1266,4 +1266,45 @@
             The solution to this is to turn $Q(S, A)$ into a continuous function that approximates the true underlying table.
             If this is parameterised to $Q_\theta(S, A)$, for example as a neural network, then the memory is constant.
             The knowledge is also generalised, which solves the second limitation; the need to visit every state-action pair, neighbouring points are also updated.
+        \subsection*{Deep Learning 101}
+            \begin{center}
+                This entire lecture is based on ~Week 4 - Deep Learning 101.ipynb~
+            \end{center}
+            Deep learning is a class of ML algorithms that use multiple layers to extract higher-level features from raw input.
+            The lecture starts with some brief history.
+            \medskip
+
+            Let $\vec{x}$ denote a vector of inputs, $\vec{w}$ be a vector of weights, $b$ be the scalar bias / offset, and $\sigma$ be the activation function (in this case, the Heaviside step function);
+            \begin{align*}
+                f(\vec{x}) & = \sigma(\vec{w}^\top\vec{x} + b) & \text{basic perceptron} \\
+                \sigma(v) & = \begin{cases}
+                    0 & v < 0 \\
+                    1 & v \geq 0
+                \end{cases}
+            \end{align*}
+            The lecture then continues with some examples of how a perceptron can be used to represent binary logical functions.
+            We want to automate the fitting of a perceptron, as guessing weights and biases is tedious.
+            Let $\hat{y}$ be the output of the model and $y$ be the true value (target).
+            We can define the zero-one loss function as follows.
+            Note that the zero-one loss is a piecewise constant function of the parameters; the derivatives are both zero meaning that changing either by a small amount doesn't change the loss;
+            \begin{align*}
+                \hat{y} & = \sigma(\vec{w}^\top\vec{x} + b) \\
+                \ell_{0 - 1}(\hat{y}, y) & = \begin{cases}
+                    0 & \hat{y} \neq y \\
+                    1 & \hat{y} = y
+                \end{cases} \\
+                \pdif{\ell_{0 - 1}}{w_j} & = 0 \\
+                \pdif{\ell_{0 - 1}}{b} & = 0
+            \end{align*}
+            Instead, we can define the surrogate loss function (use a loss function that is easier to optimise in place of the loss function we care about) as the squared error;
+            \begin{align*}
+                \ell_\text{SE}(\hat{y}, y) & = \frac{1}{2}(\hat{y} - y)^2 \\
+                \pdif{\ell_\text{SE}}{\vec{w}} & = (\hat{y} - y) \vec{x} \\
+                \pdif{\ell_\text{SE}}{b} & = \hat{y} - y
+            \end{align*}
+            After this, the lecture goes over implementing this (fitting) in Python.
+            \medskip
+
+            Note that ~XOR~ cannot be done with a single layer.
+            However, ~XOR~ can be represented by a combination of layers (two dense layers separated by activation functions).
 \end{document}
