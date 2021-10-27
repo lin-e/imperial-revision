@@ -1251,4 +1251,19 @@
                 \end{center}
                 MC methods learn value functions and optimal policies (from experience) using sample episodes - giving advantages over DP methods.
                 GPI averages many returns from a state, rather than using a model; since a state's value is the expected return, the average is a good approximation.
+        \subsection*{Function Approximation}
+            The prediction methods that have been covered can be described as updates to an estimated value function.
+            The state-action pairs that we've encountered so far have been small enough to be represented as arrays or tables (tabular solutions).
+            Approximate methods on the other hand can only find approximate solutions (whereas the former could find the optimal solutions), but can be applied to much larger problems.
+            \medskip
+
+            In the real world, we have continuous spaces, hence one $Q(S, A)$ may be the same for multiple states (when we have a grid world).
+            This prevents us from accurately representing the real world.
+            Another limitation of tabular $Q$-learning is that all state-action pairs must be visited once to learn about its reward (and therefore $Q$-value); related states still need to be updated independently.
+            This makes exploration inefficient for large state-action spaces.
+            \medskip
+
+            The solution to this is to turn $Q(S, A)$ into a continuous function that approximates the true underlying table.
+            If this is parameterised to $Q_\theta(S, A)$, for example as a neural network, then the memory is constant.
+            The knowledge is also generalised, which solves the second limitation; the need to visit every state-action pair, neighbouring points are also updated.
 \end{document}
