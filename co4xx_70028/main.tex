@@ -898,7 +898,7 @@
                             \begin{enumerate}
                                 \itemsep0em
                                 \item $R \leftarrow \text{return from first appearance of $s$ in $\tau$}$
-                                \item append $R$ to $~returns(s)~$
+                                \item append $R$ to $~returns~(s)$
                                 \item $\hat{V}(s) \leftarrow ~average~(~returns~(s))$
                             \end{enumerate}
                     \end{enumerate}
@@ -988,4 +988,267 @@
 
             MC and TD both sample, whereas DP does not.
             DP and TD both bootstrap, whereas MC does not.
+        \subsection*{Model-Free Control}
+            The basics of Model-Free Learning involved estimating the value function for an unknown MDP.
+            Model-Free Control involves optimising the value function.
+            This is used in two main scenarios; when the model is known but too big to use (other than with samples), or when the model is unknown but can be sampled (experience).
+            \medskip
+
+            Generalised policy iteration (GPI) repeatedly alters the value function to approach the value function for the current policy, which is repeatedly improved based on the value function.
+            A greedy policy (using the current value function) is used in policy improvement.
+            We are limited to an action-value function (hence no model is required to construct the policy).
+            \medskip
+
+            Our use of $V$ or $Q$ implies our knowledge of the model;
+            \begin{itemize}
+                \itemsep0em
+                \item $\pi^\prime = \argmax_{a \in \mathcal{A}} \mathcal{R}_{ss^\prime}^a + \mathcal{P}_{ss^\prime}^a V(s^\prime)$ \hfill requires model-knowledge of MDP
+                \item $\pi^\prime = \argmax_{a \in \mathcal{A}} Q(s, a)$ \hfill model-free
+            \end{itemize}
+            Instead of learning the values of states and transitions between states, we now consider the values of state-action pairs and the transitions between them.
+            \medskip
+
+            For now, assume we observe infinitely many episodes and start in many different initial states (performing exploring starts / random states) - this may not be feasible from experience, only from simulations.
+            \medskip
+
+            The policy improvement theorem encountered in DP applies here too, however we have an average empirical return rather than a mean return.
+            Two assumptions must be made for the proof to hold; evaluation can be done with an infinite number of episodes, which have exploring starts to ensure we fully experience the world.
+            As such, MC methods can be used to find optimal policies with no knowledge of the environment other than sample episodes.
+            However, both assumptions should be removed for practical algorithms.
+            The proof for MC policy improvement is as follows ($\pi_k$ and $\pi_{k + 1}$), as the following applies for all $s \in \mathcal{S}$;
+            \begin{align*}
+                Q^{\pi_k}(s, \pi_{k + 1}(s)) & = Q^{\pi_k}(s, \argmax_a Q^{\pi_k}(s, a)) \\
+                & = \max_a Q^{\pi_k}(s, a) \\
+                & \geq Q^{\pi_k}(s, \pi_k(s)) \\
+                & = V^{\pi_k}(s)
+            \end{align*}
+            Recall that exploring starts is unlikely in experience - the general way to ensure all actions are selected infinitely often is for the agent to continuously select them in one of two methods;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{on-policy} \hfill attempt to evaluate / improve the policy used
+                    \subitem learning on the job; learn about $\pi$ from experience sampled from $\pi$
+                    \smallskip
+
+                    For soft policies, $\forall s \in \mathcal{S}\ \forall a \in \mathcal{A}\ \pi(a, s) > 0$ - we have a finite probability to explore all actions.
+                    $\epsilon$-greedy policies are a form of soft policy, where all actions other than the greedy action have an equal share of $\epsilon$ ($\epsilon$ divided by the number of actions), and the greedy policy has a high probability;
+                    \begin{align*}
+                        \epsilon & \in [0, 1] \\
+                        a^* & = \argmax_a Q(s, a) \\
+                        \pi(s, a) & = \begin{cases}
+                            1 - \epsilon + \frac{\epsilon}{| A(s) |} & \text{if } a = a^* \\
+                            \frac{\epsilon}{| A(s) |} & \text{if } a \neq a^*
+                        \end{cases}
+                    \end{align*}
+                    The $\epsilon$-greedy first-visit MC control algorithm is as follows;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item initialise for all $s \in \mathcal{S}, a \in \mathcal{A}$
+                            \begin{itemize}
+                                \itemsep0em
+                                \item $Q(s, a)$ arbitrarily
+                                \item $~returns~(s, a)$ to an empty list
+                                \item $\pi(a|s)$ arbitrary $\epsilon$-soft policy
+                            \end{itemize}
+                        \item infinitely repeat the following;
+                            \begin{enumerate}
+                                \itemsep0em
+                                \item generate an episode using $\pi$
+                                \item for each pair $s, a$ in the episode;
+                                    \begin{enumerate}
+                                        \itemsep0em
+                                        \item $G$ is the return following the first occurrence of $s, a$
+                                        \item append $G$ to $~returns~(s, a)$
+                                        \item $Q(s, a) \leftarrow ~average~(~returns~(s, a))$
+                                    \end{enumerate}
+                                \item for each $s$ in the episode;
+                                    \begin{enumerate}
+                                        \itemsep0em
+                                        \item $a^* = \argmax_a Q(s, a)$
+                                        \item for all $a \in \mathcal{A}(s)$
+                                            \begin{align*}
+                                                \pi(a|s) & \leftarrow \begin{cases}
+                                                    1 - \epsilon + \frac{\epsilon}{| A(s) |} & \text{if } a = a^* \\
+                                                    \frac{\epsilon}{| A(s) |} & \text{if } a \neq a^*
+                                                \end{cases}
+                                            \end{align*}
+                                    \end{enumerate}
+                            \end{enumerate}
+                    \end{enumerate}
+                    GLIE tells us when a schedule for adapting the exploration parameter is sufficient to ensure convergence.
+                    For example, the $\epsilon$-greedy operation is GLIE if $\epsilon$ reduces to zero with $\epsilon_k = \frac{1}{k}$.
+                    The definition of GLIE (greedy in the limit with infinite exploration) has the two properties;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item all state-action pairs are explored infinitely many times \hfill $\limit{k}{\infty} N_k(s, a) = \infty$
+                        \item the policy converges on a greedy policy \hfill $\limit{k}{\infty} \pi_k(s, a) = (a == \argmax_{a^\prime \in \mathcal{A}} Q_k(s, a^\prime))$
+                            \subitem note the $==$ is 1 when equal and 0 when not equal
+                    \end{itemize}
+                \item \textbf{off-policy} \hfill evaluate / improve a policy different from the one used to generate data
+                    \subitem looking over someone's shoulder; learn about $\pi$ from experience sampled from $\pi^\prime$ (another policy)
+            \end{itemize}
+            Monte-Carlo methods can also be batched (estimates based on a large collection of transitions);
+            \begin{enumerate}
+                \itemsep0em
+                \item initialise $\hat{Q}(s, a)$ to an arbitrary value for all $s \in \mathcal{S}, a \in \mathcal{A}$
+                \item initialise $\pi$ to $\epsilon-~greedy~(\hat{Q})$
+                \item repeat for each batch;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item initialise $~returns~(s, a)$ to an empty list for all $s \in \mathcal{S}$
+                        \item iterate $i \in [1, n]$;
+                            \begin{enumerate}
+                                \itemsep0em
+                                \item get trace $\tau$ using $\pi$
+                                \item for all $(s, a)$ in $\tau$;
+                                    \begin{enumerate}
+                                        \itemsep0em
+                                        \item set $R$ as the return from the first appearance of $(s, a)$ in $\tau$
+                                        \item append $R$ to $~returns~(s, a)$
+                                    \end{enumerate}
+                            \end{enumerate}
+                        \item for all $s \in \mathcal{S}, a \in \mathcal{A}$;
+                            \begin{enumerate}
+                                \itemsep0em
+                                \item $\hat{Q}(s, a) \leftarrow ~average~(~returns~(s, a))$
+                            \end{enumerate}
+                        \item $\pi \leftarrow \epsilon-~greedy~(\hat{Q})$
+                    \end{enumerate}
+            \end{enumerate}
+            Similarly, it can also be iterative; the memory is changed after each transition;
+            \begin{enumerate}
+                \itemsep0em
+                \item initialise $\hat{Q}(s, a)$ to an arbitrary value for all $s \in \mathcal{S}, a \in \mathcal{A}$
+                \item initialise $\pi$ to $\epsilon-~greedy~(\hat{Q})$
+                \item iterate $i \in [1, n]$;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item get trace $\tau$ using $\pi$
+                        \item for all $(s, a)$ in $\tau$;
+                            \begin{enumerate}
+                                \itemsep0em
+                                \item set $R$ as the return from the first appearance of $(s, a)$ in $\tau$
+                                \item $\hat{Q}(s, a) \leftarrow \hat{Q}(s_t, a_t) + \alpha(R - \hat{Q}(s_t, a_t))$
+                            \end{enumerate}
+                        \item $\pi \leftarrow \epsilon-~greedy~(\hat{Q})$
+                    \end{enumerate}
+            \end{enumerate}
+            To summarise MC control methods; we followed a generalised policy iteration scheme; a simple average of many returns that start in a state is used rather than a model computing the value of each state.
+            Since the state's value is the expected return, the average approximates this value.
+            Maintaining exploration is an issue in MC control methods, as we need to obtain returns for alternative actions (not just selecting the current best, according to the estimate) - they may be learned to be actually better.
+            One approach is to assume episodes begin with randomly selected state-action pairs that cover all possibilities; this could be arranged in simulated episodes, but is unlikely from real experience.
+            In both on-policy and off-policy methods the agent explores, but the latter learns a deterministic optimal policy that might be unrelated to the policy followed and the former tries to find the best policy that still explores.
+            \medskip
+
+            As we've seen, there are a number of advantages for temporal-difference over Monte-Carlo, including a lower variance, online learning, as well as the ability to handle incomplete sequences.
+            Intuitively, we could use TD over MC in the control loop, by applying TD to $Q(s, a)$, using $\epsilon$-greedy policy improvement with updates every time-step.
+            For on-policy TD control, the same pattern for generalised policy iteration is followed, albeit with TD methods in the evaluation / prediction parts.
+            To learn an action-value function, rather than a state-value function, we must estimate $Q^\pi(s, a)$ for a policy $\pi$ and for all states $s$ and actions $a$.
+            The theorems that ensure convergence for state values also apply to state-action pairs.
+            $$Q(s, a) \leftarrow Q(s, a) + \alpha(r + \gamma Q(s^\prime, a^\prime) - Q(s, a))$$
+            The main function for updating the $Q$-value depends on the following (\textbf{SARSA});
+            \begin{itemize}
+                \itemsep0em
+                \item $s_1$ \hfill the current state of the agent
+                \item $a_1$ \hfill the action the agent chooses
+                \item $r_2$ \hfill the reward the agent gets for choosing the action
+                \item $s_2$ \hfill the state the agent will be in after taking the action
+                \item $a_2$ \hfill the next action the agent will choose in the new state
+            \end{itemize}
+            As such, the on-policy learning TD control is as follows;
+            \begin{enumerate}
+                \itemsep0em
+                \item initialise $Q(s, a)$ arbitrarily $\forall s \in \mathcal{S}, \forall a \in \mathcal{A}$ and $Q(~terminal~, \cdot) = 0$
+                \item repeat for each episode;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item initialise $S$
+                        \item choose $A$ from $S$ using policy derived from $Q$ (such as with $\epsilon$-greedy)
+                        \item repeat for each step of the episode, until $S$ is terminal;
+                            \begin{enumerate}
+                                \itemsep0em
+                                \item take action $A$, observe $R$ and $S^\prime$
+                                \item choose $A^\prime$ from $S^\prime$ using policy derived from $Q$ (same as before)
+                                \item $Q(S, A) \leftarrow Q(S, A) + \alpha(R + \gamma Q(S^\prime, A^\prime) - Q(S, A))$
+                                \item $S \leftarrow S^\prime$ and $A \leftarrow A^\prime$
+                            \end{enumerate}
+                    \end{enumerate}
+            \end{enumerate}
+            SARSA converges ($Q(S, A) \to Q^\infty(S, A)$) to the optimal action-value function when the following conditions are met - hence we need to control both the exploration $\epsilon$ and the learning rate $\alpha$ over time;
+            \begin{itemize}
+                \itemsep0em
+                \item GLIE sequence of policies $\pi^k(a, s)$
+                \item Robbins-Munro sequence of step-sizes $\alpha_t$
+                    \begin{align*}
+                        \summation{t = 1}{\infty} \alpha_t & = \infty \\
+                        \summation{t = 1}{\infty} \alpha_t^2 & < \infty
+                    \end{align*}
+            \end{itemize}
+            To deal with sparse rewards, SARSA-Lambda is an approach that uses eligibility traces to propagate sparse rewards through a trace.
+            Another approach, Hindsight Experience Replay converts unsuccessful episodes into artificial rewarded episodes (failed to do $X$ but achieved $Y$).
+            \subsubsection*{Off-Policy Methods}
+                Suppose we want to estimate $Q^\pi$ or $V^\pi$, but only have episodes generated from another policy $\pi^\prime$.
+                Let $\pi$ be the target policy and $\pi^\prime$ be the behaviour policy.
+                For a behaviour policy to work, allowing us to use $\pi^\prime$ episodes to estimate $\pi$, we require every action taken under $\pi$ to be occasionally taken under $\pi^\prime$ - the assumption of coverage; (we require $\pi(a, s) > 0 \Rightarrow \pi^\prime(a, s) > 0$).
+                Coverage requires $\pi^\prime$ to be stochastic when it is not identical to $\pi$.
+                \medskip
+
+                $Q$-learning is an off-policy TD control algorithm.
+                The next action is chosen with the behaviour policy $a_{t + 1} \sim \pi^\prime(\cdot | s_t)$.
+                We consider the alternative successor action $a^\prime \sim \pi(\cdot | s_t)$.
+                We update $Q(s_t, a_t)$ in the direction of the alternative / better action;
+                $$\max_a Q(s_{t + 1}, a)$$
+                Both the behaviour and target policies improve;
+                \begin{itemize}
+                    \itemsep0em
+                    \item target policy $\pi$ is greedy with respect to $Q(s, a)$ \hfill $\pi(s_{t + 1}) = \argmax Q(s_{t + 1}, a^\prime)$
+                    \item behaviour policy is (for example) $\epsilon$-greedy with respect to $Q(s, a)$
+                \end{itemize}
+                The $Q$-learning target is simplified as;
+                \begin{align*}
+                    r_{t + 1} + \gamma Q(s_{t + 1}, a^\prime) & = r_{t + 1} + \gamma Q(s_{t + 1}, \argmax Q(s_{t + 1}, a^\prime)) \\
+                    & = r_{t + 1} + \max_{a^\prime} \gamma Q(s_{t + 1}, a^\prime))
+                \end{align*}
+                The $Q$-learning algorithm is similar to the on-policy learning;
+                \begin{enumerate}
+                    \itemsep0em
+                    \item initialise $Q(s, a)$ arbitrarily $\forall s \in \mathcal{S}, \forall a \in \mathcal{A}(s)$ and $Q(~terminal~, \cdot) = 0$
+                    \item repeat for each episode;
+                        \begin{enumerate}
+                            \itemsep0em
+                            \item initialise $S$
+                            \item choose $A$ from $S$ using policy derived from $Q$ (such as with $\epsilon$-greedy)
+                            \item repeat for each step of the episode, until $S$ is terminal;
+                                \begin{enumerate}
+                                    \itemsep0em
+                                    \item take action $A$, observe $R$ and $S^\prime$
+                                    \item choose $A^\prime$ from $S^\prime$ using policy derived from $Q$ (same as before)
+                                    \item $Q(S, A) \leftarrow Q(S, A) + \alpha(R + \gamma Q(S^\prime, a^\prime) - Q(S, A))$
+                                    \item $S \leftarrow S^\prime$
+                                \end{enumerate}
+                        \end{enumerate}
+                \end{enumerate}
+                Note that the target policy is implicit in the greedy term $\max_a Q(s^\prime, a)$ and the behaviour policy is the $\epsilon$-greedy version of the target policy.
+                Both policies are updated on each step.
+                \medskip
+
+                Instead of experience replay, we can train multiple agents in parallel allowing for weights to be updated asynchronously, which results in better exploration.
+                Experience replay is essentially off-policy training.
+            \subsubsection*{Summary}
+                Note that $x \leftarrow^\alpha y$ is defined as $x \leftarrow x + \alpha(y - x)$.
+                \begin{center}
+                    \begin{tabular}{l|l|l}
+                        Bellman & full backup (DP) & sample backup (TD) \\
+                        \hline
+                        BEE for $v_\pi(s)$ & \shortstack{iterative policy evaluation} & TD learning \\
+                        & $V(s) \leftarrow \mathbb{E}[R + \gamma V(S^\prime)\ |\ s]$ ) & $V(S) \leftarrow^\alpha R + \gamma V(S^\prime)$ \\
+                        \hline
+                        BEE for $q_\pi(s, a)$ & $Q$-policy iteration &  SARSA \\
+                        & $Q(s, a) \leftarrow \mathbb{E}[R + \gamma Q(S^\prime, A^\prime)\ |\ s, a]$ & $Q(S, A) \leftarrow^\alpha R + \gamma Q(S^\prime, A^\prime)$ \\
+                        \hline
+                        BOE for $q_*(s, a)$ & $Q$-value iteration & $Q$-learning \\
+                        & $Q(s, a) \leftarrow \mathbb{E}[R + \gamma \max_{a^\prime \in \mathcal{A}} Q(S^\prime, a^\prime)\ |\ s, a]$ & $Q(S, A) \leftarrow^\alpha R + \gamma \max_{a^\prime \in \mathcal{A}} Q(S^\prime, a^\prime)$ \\
+                    \end{tabular}
+                \end{center}
+                MC methods learn value functions and optimal policies (from experience) using sample episodes - giving advantages over DP methods.
+                GPI averages many returns from a state, rather than using a model; since a state's value is the expected return, the average is a good approximation.
 \end{document}
