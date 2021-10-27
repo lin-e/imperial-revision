@@ -1424,4 +1424,193 @@
 
             The structure mapping approach is used when you have the DTD, and you know it's static.
             The model mapping approaches captures everything, including changes to the format and structure of the XML (dynamic).
+        \subsection*{5 - Multicores}
+            Power, clock speed, and performance per clock starts to stall despite the number of transistors still following Moore's Law (note that this graph was from 2010).
+            The trends of processors started from pipelining and multithreading.
+            Once that hit a limit, multicores (CMP) starting being introduced as there was a limit on the amount of power in a single core.
+            Recently, multiple sockets each with multiple cores have been used.
+            The overall goal is scalability.
+            Each core has its own L1 data and instruction caches and L2 caches, but share an L3 cache and also access main memory together.
+            \medskip
+
+            In the horizontal dimension, the goal is to exploit abundant parallelism.
+            Note that accessing data from different socket will be slower;
+            \begin{center}
+                \begin{tikzpicture}[x=0.4cm, y=0.5cm]
+                    \draw
+                    (16, -13.5) -- (19, -13.5)
+                    (1, -9.5) -- (-1, -9.5) -- (-1, -13.5) -- (1, -13.5)
+                    (34, -9.5) -- (36, -9.5) -- (36, -13.5) -- (34, -13.5);
+                    \foreach \i in {0, 18} {
+                        \begin{scope}[shift={(\i, 0)}]
+                            \draw
+                            (0, 0) -- (17, 0) -- (17, -15) -- (0, -15) -- cycle
+                            (8.5, -10) -- (8.5, -11);
+                            \foreach \x in {1, 5, 9, 13} {
+                                \begin{scope}[shift={(\x, -1)}]
+                                    \node at (1.5, -1) {~core~};
+                                    \node at (1.5, -3.5) {~L1~};
+                                    \node at (1.5, -6) {~L2~};
+                                    \draw
+                                    (1.5, -2) -- (1.5, -3)
+                                    (1.5, -4) -- (1.5, -5)
+                                    (1.5, -7) -- (1.5, -8)
+                                    (0, 0) -- (3, 0) -- (3, -2) -- (0, -2) -- cycle
+                                    (0, -3) -- (3, -3) -- (3, -4) -- (0, -4) -- cycle
+                                    (0, -5) -- (3, -5) -- (3, -7) -- (0, -7) -- cycle;
+                                \end{scope}
+                            };
+                            \node at (8.5, -9.5) {~L3~};
+                            \node at (8.5, -11.5) {~memory controller~};
+                            \node at (8.5, -13.5) {~inter-socket links~};
+                            \foreach \y in {-9, -11, -13} {
+                                \begin{scope}[shift={(1, \y)}]
+                                    \draw (0, 0) -- (15, 0) -- (15, -1) -- (0, -1) -- cycle;
+                                \end{scope}
+                            }
+                        \end{scope}
+                    }
+                \end{tikzpicture}
+            \end{center}
+            With OLAP, as the number of threads increases, the throughput increases until a certain point where it begins to plateau.
+            However, with OLTP, it initially goes up but then goes back down and plateaus at a lower level.
+            This is due to the access latency and locking of shared data structures.
+            On the other hand, the bottleneck with OLAP is due to the memory bandwidth.
+            \medskip
+
+            In practice, accessing the core to L1 only costs around 4 cycles and can be considered to be local.
+            However, any of the lower layers can lead to stalls, which costs power and resources.
+            Even in cloud workloads, over 50\% of the time (in most cases) goes to stalls, leading to approximately one instruction per cycle.
+            In database workloads, for the \textit{Shore-MT} example, the stall cycles are dominated by L1I and L3D.
+            For data intensive applications, between 50\% to 80\% of the cycles are stalls; due to instruction fetch and long-latency data misses (unavoidable; if we load unseen data, we are going to have a cache miss).
+            To optimise this, we need to look at instruction cache locality as well as cache line utilisation for data.
+            \medskip
+
+            Some approaches for minimising memory stalls are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{prefetching}
+                    \smallskip
+
+                    Simple prefetching approaches include next line, where if we miss $A$, we fetch $A + 1$, or stream, where if we miss $A, A + 1$, then we fetch $A + 2, A + 3$.
+                    This favours sequential access as well as spatial locality, however doesn't help with branches / function calls (where we need branch prediction), or pointer chasing (which can be done with the stride approach, where if we miss $A, A + 20$, we fetch $A + 40, A + 60$, in the case where we have a predictable structure).
+                    The former is a case for instructions whereas the latter is a case for data.
+                    These strategies are preferred on hardware as they are simple.
+                    The penalty for a miss is a few cycles; if we exceed this to prefetch, we lose the benefit.
+                    \medskip
+
+                    Temporal streaming is based on the fact that programs tend to follow the same overall flow (in the way data and instructions are accessed) repeatedly.
+                    The idea is to exploit recurring control flow; this is more accurate, however requires a higher space cost.
+                    \medskip
+
+                    An example of software-guided prefetching is when we visit a node, we may want to prefetch the children nodes.
+                \item \textbf{being cache conscious}
+                    \smallskip
+
+                    An example of code optimisation is to simplify the code; in-memory databases have a smaller instruction footprint.
+                    If the code is written to minimise jumps, it can better exploit the next line prefetcher.
+                    The code can also be profiled for static optimisations, or just-in-time for dynamic.
+                    Queries can also be compiled directly into machine code (rather than being interpreted on-the-fly).
+                    \medskip
+
+                    Data layouts can also be cache conscious.
+                    Assume we have two 16-byte columns and a cache line of 64 bytes.
+                    If our queries are ~SELECT *~, then a row store (good for OLTP) is beneficial, otherwise if our queries are in the form of ~SELECT <col>~, then a column store (good for OLAP) is beneficial.
+                    The goal is to maximise the utilisation of the cache line as well as exploit the next line prefetcher.
+                    \medskip
+
+                    In the example of an index tree, if we are likely to perform a lookup-heavy workload, it should be stored in the visitation order of DFS, whereas if we have a scan-heavy workload (where we look at each level in order), it should be stored in memory in the BFS order.
+                    The goal remains the same.
+                    \medskip
+
+                    The volcano iterator model passes a single tuple between operators.
+                    A trivial improvement is to perform vectorised instructions which passes multiple tuples at a time between operators.
+                    This provides good data and instruction cache locality, as well as allows for exploiting SIMD.
+                \item \textbf{exploiting common instructions}
+                    \smallskip
+
+                    On executing the \textit{TPC-C} benchmark on \textit{Shore-MT}, the amount of data that is hot (reused often) is quite low.
+                    However, the instruction reuse for certain workloads is quite high.
+                    Consider a thread ~T1~ that has the instructions ~A,B,C,D~ and another thread ~T2~ that has the instructions ~A,B,C~, and 4 total cores.
+                    In the first cycle, ~T1~ executes on core 1, leaving ~A~ in the cache.
+                    In the next cycle ~T2~ executes on core 1, which already has ~A~ cached, and ~T1~ executes on core 2, leaving ~B~ in the cache.
+                    Then ~T2~ executes on core 2, and ~T1~ executes on core 3, and so on.
+                    The thread is executed on the core where the instruction is cached (if possible).
+                    This approach is called SLICC.
+            \end{itemize}
+            In general, the problem with the L1I misses is due to capacity and can be solved by minimising the footprint as well as maximising reuse to create the illusion of a larger cache.
+            LLC (L3) data misses can't be avoided, but we can maximise cache line utilisation with better algorithms and data layout.
+            \medskip
+
+            If multiple cores are accessing (modifying) the same data, locks need to be used to ensure safety.
+            The data access pattern across threads is highly unpredictable.
+            For each transaction, latching and locking accounts for a high number of critical sections.
+            There are different types of critical sections (goal is to go from unbounded to fixed or cooperative);
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{unbounded} \hfill all threads have access to centralised synchronisation point
+                    \subitem many threads could want access at the same time; can be a major scalability bottleneck
+                \item \textbf{fixed} \hfill fixed number of threads entering no matter how many threads in the system
+                    \subitem not a bottleneck
+                \item \textbf{cooperative} \hfill threads can combine requests as they're entering
+            \end{itemize}
+            To scale up OLTP, we need to consider the following;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{unscalable components}
+                    \smallskip
+
+                    Hot shared locks cause contention.
+                    Consider multiple threads which all acquire different cold locks, but the same hot locks.
+                    This leads to the same locks being released and requested repeatedly.
+                    A solution is to perform speculative lock inheritance.
+                    In this process, the first thread commits \textbf{without releasing} hot locks and instead passes them to the next thread which can either release them or use them, and so on.
+                    This reduces lock contention.
+                    \medskip
+
+                    We want to move from centralised locking to thread-local locking, allowing each thread to use the locks as it pleases.
+                    Predictable data access can be achieved by having a thread-to-data pattern; where each thread accesses the same subset of data.
+                    This is beneficial as locks don't need to be passed between threads, since the data is on the same thread.
+                    The same concept is used in in-memory databases.
+                    \medskip
+
+                    To reduce latching, we can use physiological partitioning (PLP).
+                    An example of this is a multi-rooted B-tree.
+                    Consider two workers, each working on half of the tree.
+                    If we have something that access the first partition, the work is passed to the first worker, and similarly for the second partition.
+                    \medskip
+
+                    In a serial log performing WAL (write-ahead logging), locks are used to ensure that the threads write serially.
+                    A number of methods can be used;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item \textbf{early lock release}
+                        \item \textbf{flush pipelining} \hfill log writer on each thread and flush to the writer
+                        \item \textbf{consolidation array} \hfill minimises log contention
+                    \end{itemize}
+                \item \textbf{synchronisation}
+                \item \textbf{non-uniform communication}
+                    \smallskip
+
+                    Recall the diagram for the multiple sockets.
+                    Accessing the L1 cache costs less than 10 cycles, accessing the L3 cache takes around 50 cycles, and accessing between sockets costs around 500 cycles.
+                    As this is expensive, each socket should be considered an `island'.
+                    OLTP on islands are as follows (similar ideas are in cluster computing);
+                    \begin{itemize}
+                        \itemsep0em
+                        \item \textbf{shared-everything} \hfill everything is shared between sockets and cores
+                            \subitem sub-optimal due to the cost of accessing between sockets.
+                        \item \textbf{island shared-nothing} \hfill cores on the same socket share
+                            \subitem good middle ground, avoids expensive inter-socket communication
+                        \item \textbf{shared-nothing} \hfill nothing is shared, even between cores
+                            \subitem fast, however it's sensitive to the workload
+                    \end{itemize}
+                    The challenge lies in configuring the workload for the hardware, as repartitioning is expensive.
+                    Adaptive Transaction Processing use the system state to determine how we want to run tasks.
+                    It makes shared-everything system scalable on islands and adaptive to any changes to the hardware / workload.
+                    PLP is used between islands, and uses different threads to access data on different subsets of the data, located on different islands.
+            \end{itemize}
+            Scaling up OLTP involves identifying bottlenecks in existing systems (and eliminating them).
+            We also cannot assume uniformity in communication (different orders of magnitude of time to access different data).
+            The correct synchronisation mechanisms should also be chosen.
 \end{document}
