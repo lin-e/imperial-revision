@@ -1564,7 +1564,7 @@
                     Consider multiple threads which all acquire different cold locks, but the same hot locks.
                     This leads to the same locks being released and requested repeatedly.
                     A solution is to perform speculative lock inheritance.
-                    In this process, the first thread commits \textbf{without releasing} hot locks and instead passes them to the next thread which can either release them or use them, and so on.
+                    In this process, the first transaction commits \textbf{without releasing} hot locks and instead passes them to the next transaction which can either release them or use them, and so on.
                     This reduces lock contention.
                     \medskip
 
@@ -1613,4 +1613,23 @@
             Scaling up OLTP involves identifying bottlenecks in existing systems (and eliminating them).
             We also cannot assume uniformity in communication (different orders of magnitude of time to access different data).
             The correct synchronisation mechanisms should also be chosen.
+        \subsection*{October 28 - Live Lecture}
+            Predictions cannot take longer than a stall, so very simplistic models need to be used.
+            \medskip
+
+            We need to ensure we isolated updates (either on the level of a table or row).
+            Some care might need to be taken for reads as well (to ensure data isn't being read during an update).
+            \medskip
+
+            In speculative lock inheritance, we pass hot locks between transactions, after committing.
+            \medskip
+
+            Shared-everything, in distributed computing, works well when there is low latency between islands.
+            However in the case of sockets, there is (relatively) high overhead.
+            Shared-nothing requires the work to be partitioned where everything is local.
+            \medskip
+
+            In serial logging, the transaction that will be executed is written into the serial log (persistent).
+            However, not every transaction can write at the same time, hence access to it needs to be serialised.
+            The idea for flush pipelining is to start writing, but start working on other tasks when waiting; not improving latency but improving throughput.
 \end{document}
