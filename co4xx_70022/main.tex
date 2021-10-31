@@ -1632,4 +1632,101 @@
             In serial logging, the transaction that will be executed is written into the serial log (persistent).
             However, not every transaction can write at the same time, hence access to it needs to be serialised.
             The idea for flush pipelining is to start writing, but start working on other tasks when waiting; not improving latency but improving throughput.
+        \subsection*{6.1 - Cold Storage}
+            Data can be classified by how frequently it's accessed (as well as size).
+            The amount of data is growing rapidly, however the majority of it is infrequently accessed (cold) - compared to frequently accessed data (hot).
+            The goal is to find a good tradeoff between price and performance; it doesn't make sense to store all cold data in SSD.
+            Archival data is typically written once and quite likely to never be read, and is stored on tape (we don't care about latency).
+            Cold storage devices (CSD) fit between the hot / warm tiers and the archive tier.
+            The cold tier has low hardware costs and a lower latency than tape.
+            \medskip
+
+            A key idea is adequate provisioning.
+            We want to provide just enough cold storage resources just for the cold data workload.
+            Disks could be archival and SMR, rather than standard commodity drives.
+            We also want to limit power, cooling, and bandwidth - there's no need to provision for peak power and have all the disks spinning all the time; just enough disks spun up to saturate bandwidth.
+            The advantage of removing unnecessary resources include low hardware costs and operating costs, as well as a high density of storage.
+            \medskip
+
+            An example for this is \textit{Microsoft Pelican}, where only $\frac{1}{K}$ of the disks are active ($\approx 8\%$) - one disk group spun up.
+            Spinning up a new group of disks (disk switch latency) is between 10 and 30 seconds.
+            The workload that CSDs fall under is known as WORO; write once read occasionally.
+            \medskip
+
+            The \textit{Pelican} rack has a very high storage density (52U with 1152 archival 3.5" SATA disks, approximately 5 PB of storage); achieved by removing unnecessary infrastructure / hardware - for example fixed cooling channels.
+            It's designed to store blobs which are partitioned into multiple chunks.
+            Management is made simpler by grouping the disks into domains (limits on the following);
+            \begin{itemize}
+                \itemsep0em
+                \item cooling \hfill only 2 disks can be active at a time in a group
+                \item power \hfill only 1 disk active at a time in a group
+                \item bandwidth
+            \end{itemize}
+            Disks use resources from a set of resource domains (which are provisioned to supply resources to a subset of disks).
+            Disks are either domain-conflicting (same resource domain) or domain-disjoint (share no common resource domains).
+            The slides contain a representation of this.
+            \medskip
+
+            This is generally more of an object store than a file system.
+            Each blob is stored over a set of disks (split into a sequence of 128kB fragments - for each $k$ fragment, additional $r$ fragments are generated for error correction, the $k+r$ fragments form a stripe; if $k = 15$ then $r = 3$).
+            \textit{Pelican} statically partitions disks into groups (disks can be concurrently active); conflicts are concentrated over a few sets of disks.
+            The lecture then goes over the placement of data.
+            Two groups can be fully colliding / conflicting, but if none of the disks in the same group is colliding then it can all be accessed at the same time.
+            \medskip
+
+            Traditional schedulers reorder IOs to minimise seek latency, whereas \textit{Pelican} reorders the requests in the queue (read / write) to minimise the impact of spin up latency.
+            \textit{Pelican} also has a reordering operation (similar to disk defragmentation); the scheduler is more likely to write to an active (spinning) disk than to spin up a different disk.
+            \medskip
+
+            The implementation needs to ensure that disks are powered up in standby, to ensure it doesn't spin up without \textit{Pelican} managing the constraints.
+            Group abstraction is exploited to parallelise the boot process - the most important aspect of the groups is to simplify scheduling (if we don't have groups, we need to consider which other disks it conflicts with; there are 3 domains and 1152 disks to consider).
+            \medskip
+
+            The next section discusses \textit{Pelican} compared against a system that has full provisioning for power and cooling; same organisation (physical internal disk topology), but the disks are never spun down (obviously better for latency).
+            As expected, the throughput for FP goes up as the number of requests go up (until it hits the bandwidth limit), whereas \textit{Pelican} does something similar however hits a limit earlier due to the group switching (and one group not entirely saturating the bandwidth).
+            The time it takes to read the first byte for \textit{Pelican} starts around the 14.2 second point (the average time it takes to activate a group), but as requests goes up it becomes the same value as the FP.
+            However, for power consumption with all disks spun down (just powering system), the draw is at 1.8kW, whereas for the \textit{Pelican} peak, it's at 3.7kW, and for all disks active, it's at 10.8kW.
+            \medskip
+
+            The benefits of this are reduced cost and power consumption (right-provisioned), has accuracy from error codes, and abstraction simplifies IO scheduling.
+            On the other hand, it's not flexible to changes and is sensitive to hardware changes.
+            \subsubsection*{Data Processing}
+                In the traditional setting, we typically had a database accessing a disk, with uniform access, a controlled layout, and static (pull-based) execution, all done via blocks.
+                On the other hand, we're likely to have multiple databases reading objects over the network for the cold storage tier.
+                There is no longer uniform access or controlled layout, and pull-based execution will lead to group switches.
+                \medskip
+
+                We cannot just simply replace HDD with CSD in the background, as it will have an impact on the software.
+                Therefore we require hardware-software co-design; access needs to be hardware-driven to minimise group switches.
+                Execution engine has to process the data from storage in an out-of-order / unpredictable manner.
+                Data round-trips should also be reduced with smart caching.
+                \medskip
+
+                Common batch processes on CSD include;
+                \begin{itemize}
+                    \itemsep0em
+                    \item massive-scale group-by / join
+                    \item duplicate detection
+                    \item data localisation
+                    \item in-place map-reduce
+                \end{itemize}
+                We typically don't do operations on cold data, but when we do it should still be done efficiently.
+                Data needs to be partitioned into $K$ groups to be distributed between $K$ disk groups.
+                Data from each disk group is read into memory (buffer), partitioned, and then flushed to the different disk groups - allowing the a CSD group to have partitions $1$ to $m$ and then the next group having partitions $m + 1$ to $n$, and so on.
+                \medskip
+
+                However, when the buffer is full, we need to flush it.
+                The naive approach is to flush a partition once it's full, and then fill up just that partition.
+                However, this leads to many switches.
+                The Buff-Pack approach tries to avoid switching by flushing to the current disk group if possible, otherwise it switches to the disk group with the largest buffer.
+                The intuition for the Off-Pack approach is that we flush the entire buffer (into the current disk group) even if it's in the wrong group.
+                After the flush, all of the offload buffer is moved.
+                \medskip
+
+                The estimated total time is as follows, note that the switching time dominates this;
+                $$T_\text{total} = T_\text{switch} + T_\text{seek} + T_\text{read} + T_\text{write}$$
+                In general, Off-Pack performs better as it has fewer switches and more read / writes.
+                It's better for a smaller buffer, high number of disk groups, and high throughput.
+                For a low number of disk groups and smaller switch latency, Buff-Pack can outperform Off-Pack.
+                Off-Pack works well with smaller buffer sizes, however as the size gets larger, Buff-Pack performs better.
 \end{document}
