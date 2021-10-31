@@ -1729,4 +1729,97 @@
                 It's better for a smaller buffer, high number of disk groups, and high throughput.
                 For a low number of disk groups and smaller switch latency, Buff-Pack can outperform Off-Pack.
                 Off-Pack works well with smaller buffer sizes, however as the size gets larger, Buff-Pack performs better.
+        \subsection*{6.2 - DNA Storage}
+            An issue with tape storage is that 60\% of archival data is stored for longer than 20 years, however tape has a lifetime of 10-20 years.
+            This means that the data needs to be migrated every couple of years.
+            A similar issue is present with microfilm, called vinegar syndrome, causing the film to disintegrate.
+            \medskip
+
+            DNA has been synthesised for medical purposes.
+            It offers a higher volumetric information density (gigabits per cubic millimetre) than other mediums, with a potential $10^7$ improvement over existing storage media.
+            Additionally, it's also very durable.
+            The demand for silicon is also starting to exceed the global supply.
+            Finally, biological operations on DNA are highly parallel (millions, if not billions of operations in parallel).
+            \medskip
+
+            DNA is a double, long chain of molecules called nucleotides (A, T, C, and G).
+            The complementary nucleotides (A / T, and C / G) provide stability.
+            \medskip
+
+            To store information, the binary information is encoded into nucleotides, synthesised into DNA, sequenced back into the nucleotides, and then finally decoded back into binary.
+            The goal is to minimise the number of nucleotides per bit, as it's still quite expensive.
+            A simple encoding would be $~00~ \to ~A~, ~01~ \to ~T~, ~10~ \to ~C~, ~11~ \to ~G~$, which would theoretically have have half a nucleotide per bit.
+            However, there are biological constraints; for example we can't have too many of the same nucleotide in a row as it leads to breakages.
+            Additionally, synthesis and sequencing are error-prone.
+            In reality, we have the following, with an \violet{identifier / offset}, \teal{error correction codes} to account for errors in the aforementioned steps, and the actual \blue{value};
+            \begin{center}
+                \violet{~AGG~}\teal{~CTCAGAT~}\blue{~AGATCTAATT~}
+            \end{center}
+            This leads to around 1 nucleotide per bit.
+            There are also biological constraints on the length of the sequence, due to the technology to synthesise but also the likeliness of breakage in longer sequences.
+            As such, data may need to be broken down into an array of sequences, and can be addressed by the identifier.
+            \medskip
+
+            If we have two structures which are perfectly complementary, they are highly likely to bind together.
+            This has been historically used to solve combinatorial problems, and can also be used for database joins.
+            The idea is to exploit chemical processes;
+            \begin{itemize}
+                \itemsep0em
+                \item annealing of complementary nucleotides
+                \item polymerase chain reaction (PCR) to replicate / amplify DNA sequences
+                    \smallskip
+
+                    Content retrieval through amplification.
+                    We need to know the beginning of the sequence and the end of the sequence.
+                    If we have a mix of sequences, we can apply PCR with the knowledge to create millions of copies, leading to it dominating the mix.
+                \item loop-mediated isothermal amplification
+                    \subitem content detection
+            \end{itemize}
+            A simple approach is to encode a binary dump of the database.
+            This wastes space on the identifier ($\log_4(|\text{segments}|)$), doesn't support point queries, and near-molecule data processing can't be performed.
+            Reassembling this would require clustering and reassembly, which is a necessary but time-consuming step before decoding.
+            \medskip
+
+            A structured data layout approach is to use NSM on DNA, with one row per oligo (short single strands of synthetic DNA).
+            The unique primary key is used to avoid extra indexing.
+            DSM on DNA is a columnset partitioning for large rows, which keeps the primary key and a \textbf{single} field.
+            With structure-preserving encoding, the DNA read restoration can be mapped to a data cleaning operation.
+            \medskip
+
+            To perform point queries, we can use PCR with the table and column ID as the start sequence, and the value as the end sequence.
+            $$\underbrace{~AGG~}_\text{start}\underbrace{~CTCAGAT~}_\text{PK}\underbrace{~AGATCTA~}_\text{ECC}\underbrace{~ATT~}_\text{end}$$
+            \subsubsection*{Join}
+                The goal is to use the complementarity (matching base pairs) to anneal complementary single stranded oligos.
+                Matching records / attributes have complementary encodings of the values.
+                \medskip
+
+                Each attribute is encoded as before, but with an additional reversed oligo with the value complemented (~TAAAGATCTACTCAGATAGG~).
+                If this reversed oligo matches a non-reversed oligo, the values will be perfectly complementary (exactly anneal).
+                See the example below - note the three nucleotides in parentheses on either line are the table and column IDs, and the square brackets are the complementary values.
+                \begin{lstlisting}
+                    (AGG)CTCAGATAGATCTA[ATT]
+                                       [TAA]ATCGAGGGATTACA(TTT)
+                \end{lstlisting}
+                However, this could lead to wrongly annealed pairs.
+                PCR is then used to obtain only the chains which have annealed and are the IDs we are looking for.
+                If they anneal, they are twice the weight of a single sequence.
+            \subsubsection*{OligoArchive}
+                The idea is to implement all the layers of the storage stack alongside automation on all layers;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{application layer} \hfill encoding structured (database) and unstructured (imaging) data
+                    \item \textbf{OS layer} \hfill file system abstraction
+                    \item \textbf{controller layer} \hfill data processing capabilities
+                    \item \textbf{media layer} \hfill synthesis and sequencing
+                \end{itemize}
+                Nanopore sequencing pulls DNA through a membrane which unzips the helix into two strands.
+                Each base blocks the flow to a different degree, altering the current which can then be used to identify them electronically.
+                \medskip
+
+                The current roadblock is the synthesis cost.
+                For medical purposes, the synthesis has to be precise, but for storage purposes there is some tolerance for errors.
+                Other approaches include longer sequences, longer alphabets (more nucleotides), and synthetic molecules.
+                \medskip
+
+                Current research is looking at encoding, synthesis costs, synthetic molecules, automation, and packaging / storage (wrapping long sequences around synthetic histones).
 \end{document}
