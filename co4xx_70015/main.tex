@@ -963,7 +963,7 @@
                 \item define the starting point $\mat{\theta_0}$
                 \item update $\mat{\theta_{t + 1}}$
                     \begin{align*}
-                        \mat{\theta_{t + 1}} & = \mat{\theta_t} - \gamma_t \nabla_{\mat{\theta}}L(\vec{\theta_t} \\
+                        \mat{\theta_{t + 1}} & = \mat{\theta_t} - \gamma_t \nabla_{\mat{\theta}}L(\vec{\theta_t}) \\
                         & = \mat{\theta_t} - \gamma\frac{1}{\sigma^2} \mat{X}^\top(\mat{X}\mat{\theta_t} - \mat{y}) \\
                         & = (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})\mat{\theta_t} + \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{y}
                     \end{align*}
@@ -1106,4 +1106,129 @@
 
             In general, the loss function isn't quadratic nor is it convex.
             However, when we approach the optimum, we can take a local quadratic approximation (Taylor expansion of order 2).
+        \subsection*{Lecture 6 - More on Gradient Descent}
+            We need to check whether the $\ell_2$-norm $|| \mat{\theta_t} - \mat{\theta}^* ||_2^2 \to 0$ when we have $t \to \infty$.
+            $\mat{\theta_t} - \mat{\theta}^* = \mat{A}^t(\mat{\theta_t} - \mat{\theta}^*)$ where $\mat{A} = (\mat{I} - \frac{\gamma}{\sigma^2} \mat{X}^\top\mat{X})$.
+            The convergence of gradient descent depends on $\lambda_\text{max}(\mat{A}^2)$.
+            \medskip
+
+            The robustness of the choice of step size depends on the condition number $\kappa(\mat{X}^\top\mat{X})$, with $\kappa \approx 1$ being well conditioned and $\kappa >> 1$ being ill conditioned (loss function is stretched across some direction).
+            Possible ways of addressing this are as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{gradient descent with pre-conditioning}
+                    \smallskip
+
+                    The condition number (mentioned before) is based on the data, and we can't generally control that.
+                    The idea of gradient descent with pre-conditioning is as follows, where we apply a linear transformation on the gradient vector;
+                    \begin{enumerate}[1.]
+                        \itemsep0em
+                        \item define $\Delta \mat{\theta_t} = \mat{0}$
+                        \item select a pre-conditioner $\mat{P_t}$
+                        \item set $\mat{\theta_{t + 1}} = \mat{\theta_t} - \gamma_t \mat{P_t}^{-1} \nabla_{\mat{\theta}}L(\vec{\theta_t})$
+                        \item set $t \leftarrow t + 1$
+                        \item repeat 2 - 4 until stopping criterion
+                    \end{enumerate}
+                    Consider the following example, for linear regression (assuming constant step sizes $\gamma$ and fixed pre-conditioner $\mat{P}$);
+                    \begin{enumerate}[1.]
+                        \itemsep0em
+                        \item set $\mat{\theta_{t + 1}} = \mat{\theta_t} - \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top(\mat{X}\mat{\theta_t} - \mat{y})$
+                        \item set $t \leftarrow t + 1$
+                        \item repeat until stopping criterion
+                    \end{enumerate}
+                    Deriving the geometric sequence form, we see we need to look at the eigenvalues (with the same rules as before) of $(\mat{I} - \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top\mat{X})^2$;
+                    \begin{align*}
+                        \mat{\theta_{t + 1}} & = \mat{\theta_t} - \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top(\mat{X}\mat{\theta_t} - \mat{y}) \\
+                        & = (\mat{I} - \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top\mat{X})\mat{\theta_t} + \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top\mat{y} & \Rightarrow \\
+                        \mat{\theta_t} & = (\mat{I} - \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top\mat{X})^t (\mat{\theta_0} - \mat{\theta}^*) + \mat{\theta}^*
+                    \end{align*}
+                    As such, to ensure convergence at any initialisation, $\gamma$ can be chosen as;
+                    $$\gamma < \frac{2 \sigma^2}{\lambda_\text{max}(\mat{P}^{-1}\mat{X}^\top\mat{X})}$$
+                    Similarly, our robustness depends on the condition number; $\kappa(\mat{P}^{-1}\mat{X}^\top\mat{X})$.
+                    As we want a well-conditioned optimisation, we can choose the pre-conditioner to be proportional; $\mat{P} \propto \mat{X}^\top\mat{X}$ - in practice we want $\kappa \approx 1$ with $\mat{P}^{-1}$ being easy to compute (expensive to invert).
+                    To construct $\mat{P_t}$;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item use low-rank / diagonal matrices
+                        \item have prior knowledge on $\nabla^2L(\mat{\theta_t})$ (useful), for example in linear regression $\nabla^2L(\mat{\theta_t}) \propto \mat{X}^\top\mat{X}$
+                        \item $\nabla^2L(\mat{\theta_t})$ may not be constant (or even available) - approximate with statistics of gradients along the update trajectory; used by many adaptive learning rate methods
+                    \end{itemize}
+                \item \textbf{gradient descent with momentum}
+                    \smallskip
+
+                    The intuition is to use some historical update information to update the current run.
+                    The momentum term is the difference between the current and next parameters.
+                    Note that $\alpha$ can depend on $t$, but it is typically fixed.
+                    \begin{enumerate}[1.]
+                        \itemsep0em
+                        \item define $\Delta \mat{\theta_t} = \mat{0}$ and momentum step-size $\alpha$
+                        \item set $\mat{\theta_{t + 1}} = \mat{\theta_t} - \gamma_t \nabla_{\mat{\theta}}L(\vec{\theta_t}) + \alpha\Delta\mat{\theta_t}$
+                        \item set $\Delta \mat{\theta_{t + 1}} = \mat{\theta_{t + 1}} - \mat{\theta_t} = \alpha\Delta\mat{\theta_t} - \gamma_t \nabla_{\mat{\theta}}L(\vec{\theta_t})$
+                        \item set $t \leftarrow t + 1$
+                        \item repeat 2 - 4 until stopping criterion
+                    \end{enumerate}
+                    The key idea is to make the current iteration's updates closer to the previous iteration.
+                    This helps to speed up the iterations in flatter regions (where $\nabla_{\mat{\theta}}L(\vec{\theta_t})$ has a small magnitude).
+                    It also helps to alleviate oscillations (where $\nabla_{\mat{\theta}}L(\vec{\theta_t})$ points in a different direction).
+                    For the latter, consider the 1-D case; in step $t$ we move to the right, but in $t + 1$, we move to the left (based on our gradient at that point) - the updates cancel slightly to give us an update of a smaller magnitude.
+                    Finally, it also helps to smooth out gradients if it's inexact.
+                \item \textbf{line search}
+                    \smallskip
+
+                    The linear search algorithm automatically adapts $\gamma_t$ to ensure improvement;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item define a starting point $\mat{\theta_0}$ and set $t \leftarrow 0$
+                        \item compute the gradient $\nabla_{\mat{\theta}}L(\mat{\theta_t})$
+                        \item search $\gamma_t \in (\gamma_\text{min}, \gamma_\text{max})$ to minimise $L(\mat{\theta_t} - \gamma\nabla_{\mat{\theta}}L(\mat{\theta_t}))$ with respect to $\gamma$
+                            \begin{itemize}
+                                \itemsep0em
+                                \item \textbf{backtracking line search} - shrinking step sizes, let $\tau$ be the maximum budget;
+                                    \begin{enumerate}
+                                        \itemsep0em
+                                        \item set a decreasing schedule, $\gamma_\text{max} = \gamma^{(1)} > \gamma^{(2)} > \cdots > \gamma^{(\tau)} = \gamma_\text{min}$
+                                        \item try sizes until it satisfies an acceptance criterion, for example $L(\mat{\theta_t}) - L(\mat{\theta_t} - \gamma^{(k)}\nabla_{\mat{\theta}}L(\mat{\theta_t}))$ is big enough
+                                        \item set $\gamma_t \leftarrow \gamma^{(k)}$
+                                    \end{enumerate}
+                                \item \textbf{other methods} - for example, checking the Wolfe conditions
+                            \end{itemize}
+                            The decreasing schedule is generally better as we want to do the large movements quickly (imagine a flat region).
+                        \item set $\mat{\theta_{t + 1}} = \mat{\theta_t} - \gamma_t \nabla_{\mat{\theta}}L(\vec{\theta_t})$ and $t \leftarrow t + 1$
+                        \item repeat 2 - 4 until stopping criterion
+                    \end{enumerate}
+                    Note that the search space for $\gamma$ is constrained to ensure we don't go over budget.
+                    This is used by nonlinear Conjugate Gradient or BFGS.
+                    It converges quickly if $\dim(\mat{\theta})$ is small.
+            \end{itemize}
+            \subsubsection*{Stochastic Gradient Descent}
+                All the methods we've discussed require knowing the exact gradient (knowing the loss function and differentiating it).
+                The objective function (LSE) can be written as follows (for regression);
+                $$\mat{g_t} = \nabla_{\mat{\theta_t}}L(\mat{\theta_t}) = \nabla_{\mat{\theta_t}} \summation{n = 1}{N} (f(\vec{x_n}; \mat{\theta_t}) - y_n)^2$$
+                Generally, we can write the loss function as a loss on each individual point;
+                $$\mat{g_t} = \nabla_{\mat{\theta_t}}L(\mat{\theta_t}) = \summation{n = 1}{N} \nabla_{\mat{\theta_t}} L_n(\mat{\theta_t})$$
+                However, in big data applications, $N$ could be extremely large.
+                As such, running a full batch gradient descent can be very expensive, as we need to compute $L_n$ for each point as well as storing intermediate results of every $\nabla_{\mat{\theta_t}}L(\mat{\theta_t})$ - just for a single update step.
+                \medskip
+
+                In SGD, we compute a stochastic estimator for the sum with a random subset $M < N$ terms - the gradient estimator is now random;
+                $$\hat{\mat{g_t}} = \frac{N}{M} \summation{m \in \mathcal{S}}{} \nabla_{\mat{\theta_t}} L_m(\mat{\theta_t})$$
+                If we continuously select ``wrong'' points, the gradient can end up pointing in the wrong direction.
+                However, by randomising, we don't continue to keep picking the same point.
+                \medskip
+
+                In practice, this is done by uniform (each point has the same probability of being chosen) sampling with replacement (same point can be chosen again, not taken out of distribution).
+                $$P(\mathcal{S} = \{m_1, m_2, \dots, m_M\}) = \frac{1}{N} \cdot \frac{1}{N} \cdot \cdots = N^{-M}$$
+                This estimator is unbiased (first condition for convergence);
+                $$\mathbb{E}_\mathcal{S}[\hat{\mat{g_t}}] = \mat{g_t} \Leftrightarrow \mathbb{E}_\mathcal{S}\left[\frac{N}{M} \summation{m \in \mathcal{S}}{} \nabla_{\mat{\theta_t}} L_m(\mat{\theta_t})\right] = \summation{n = 1}{N} \nabla_{\mat{\theta_t}} L_n(\mat{\theta_t})$$
+                We also need to choose the step sizes carefully (Robbins-Monro condition), then SGD will converge;
+                \begin{align*}
+                    \summation{t = 1}{\infty} \gamma_t & = \infty \\
+                    \summation{t = 1}{\infty} \gamma_t^2 & < \infty
+                \end{align*}
+                This is a decreasing step size, but not decreasing too quickly - if it's constant, then the solution will swing.
+                \medskip
+
+                We need to ensure that $M$ is chosen such that it's small enough to be computed quickly, but not too small.
+                The amount of error we will get depends on the error of the stochastic gradient (inversely scaled);
+                $$\mathbb{V}[\hat{\mat{g_t}}] = \mathbb{V}_\mathcal{S}\left[\frac{N}{M} \summation{m \in \mathcal{S}}{} \nabla_{\mat{\theta_t}} L_m(\mat{\theta_t})\right] = \frac{N^2}{M} \mathbb{V}_{m \sim \text{Uniform}(1, \dots N)}[\nabla_{\mat{\theta_t}} L_m(\mat{\theta_t})]$$
 \end{document}
