@@ -1293,4 +1293,109 @@
                     If two branches both generate a value, the compiler will need to think about what values will be used downstream and have an additional copy instruction that moves it to a known location (forces the value to be completed).
             \end{itemize}
             The lecture then discusses examples of indirect jumps with a ~switch~.
+        \subsection*{Chapter 4}
+            The objective is to reduce the average memory access time, which is equal to $\text{HitTime} + \text{MissRate} \times \text{MissPenalty}$.
+            This can be improved in three ways;
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item reduce miss rate (hardware or software)
+                \item reduce miss penalty
+                \item reduce the time to hit in the cache
+            \end{enumerate}
+            \subsubsection*{Cache Miss Rate Reduction in Hardware}
+                Misses can be classified into one of four classes (the last one isn't always included);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{compulsory} - experienced the first time the data has been seen in the machine (thought of as misses in an infinite cache)
+                    \item \textbf{capacity} - cache cannot contain all the blocks needed (thought of as misses in any cache of that given capacity, misses in a fully associative cache)
+                    \item \textbf{conflict} - caused by a compromise to the associativity of the cache
+                    \item \textbf{coherence} - other processor / device has invalidated the data
+                \end{itemize}
+                When the cache size is small, the proportion of miss rates is dominated by capacity misses, however as it gets larger, compulsory misses and conflicts take up a larger proportion.
+                Note that CPU benchmarks can often have low compulsory misses as they load some data and perform calculations on it.
+                \medskip
+
+                The lecture goes into the CPU benchmark suite by SPEC.
+                Note that the main difference between integer and floating point benchmarks is not the type of arithmetic they perform.
+                The former tends to intensively use pointers and hard-to-predict branches - they are difficult to parallelise either manually or by an automatic compiler.
+                On the other hand, the latter tends to be more structured (control flow), operate on regular array data (rather than complex data structures), and benefit more from automatic parallelisation.
+                There are also two types of benchmarks, speed (where we look at the execution time for one run), and rate (where we look at the maximum throughput, for example with a multicore machine).
+                The SPEC benchmarks use the geometric mean of speedups (ratios) relative to the baseline.
+                \medskip
+
+                Comparing two different processors in the benchmarks show that architectural techniques benefits some workloads more than others - we should consider what the code is doing in the context of the architectural techniques in use.
+                \medskip
+
+                Consider the first 3 miss classes, assuming the total cache size isn't changed, and what happens if each of the following is changed;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item \textbf{block size}
+                        \smallskip
+
+                        Recall that the cache block / line is a unit of allocation, the tag is a memory address of a cached block, a set is a set of cache blocks indexed by a cache index, and a way is a set of alternative locations for a stored block in a given set.
+                        There are also comparators and selectors, with the former verifying the tag matches an address, and the selector picking the data from the way that has the matching tag.
+                        We use the index to select a set and then use the comparator to check each way for a hit.
+                        \medskip
+
+                        For a random benchmark, consider a (fixed) cache capacity of 16KB.
+                        On the graph, there's a minimum miss rate at a block size of 64B; after which point as the block size increases, the miss rate increases.
+                        Consider the extreme case, of a 1KB capacity and 256B block size.
+                        In this scenario, we only have 4 distinct regions, and if the program accesses more than that, we will end up with misses.
+                        The problem with very large cache lines is that we may speculatively fetch data into the large line and never use it (poor utilisation).
+                        \medskip
+
+                        Note that the graph in the slides also doesn't include the time; a larger block will take longer to load (assuming the bus width isn't changed) - this leads to a higher miss penalty.
+                    \item \textbf{associativity}
+                        \smallskip
+
+                        A set-associative cache has more complex circuitry than a direct mapped cache (there's a MUX in the former).
+                        While we may run into associativity conflicts, it may still have a faster speed due to the simple circuitry.
+                        We assume that the cycle time gets worse as associativity increases; the miss rate is improved by increasing associativity, but the cache hit time is also increased slightly.
+                        This could be improved with way-prediction (similar to squashing the hit in a direct-mapped cache).
+                        \medskip
+
+                        We ideally want the access time for a direct mapped cache and the miss rate of an associative cache.
+                        An approach to doing this is to have two caches; one that's large and direct-mapped and another that's very small but fully associative.
+                        Both caches are accessed in parallel.
+                        When we index the direct mapped cache, we check if we have a hit - if it misses, we check the victim cache.
+                        When we allocate into direct mapped cache, we displace the entry (if any) into the victim cache (recall the displacement causes the associativity conflicts).
+                        On a victim cache hit, the data is allocated back into the direct-mapped cache.
+                        \medskip
+
+                        This is a competitive algorithm.
+                        Given two strategies, each good for some but poor for others (direct-mapped and fully-associative).
+                        We want to combine the two to create a composite strategy which cover each other, so we never suffer the worst case behaviour.
+                        Consider the ski rental problem.
+                        \medskip
+
+                        In a skewed-associative cache, we use different indices in each cache way (for example a simple hash function, such as ~XOR~ some index bits with the tag bits and reorder index bits).
+                        This is in contrast to the set-associative cache where the same index is used.
+                        Consider a 2-way cache with three addresses, for the first function there's a chance that they may still conflict, but it's unlikely that the second hash function will cause another conflict (hence $f_0(~A~) = f_0(~B~) = f_0(~C~)$ but $f_1(~A~) \neq f_1(~B~) \neq f_1(~C~)$).
+                        \medskip
+
+                        The same idea is present for arrays; if we are really unlikely and get $f_0(~A[i]~) = f_0(~B[i]~) = f_0(~C[i]~)$ and $f_1(~A[i]~) = f_1(~B[i]~) = f_1(~C[i]~)$, it's very unlikely we end up with $f_0(~A[i + 1]~) = f_0(~B[i + 1]~) = f_0(~C[i + 1]~)$ and $f_1(~A[i + 1]~) = f_1(~B[i + 1]~) = f_1(~C[i + 1]~)$ (since the hash functions are pseudo-random).
+                        In accessing arrays, if the addresses are exactly far enough apart, it could be in the case where all accesses conflict (worst case scenario) - the skewed-associative cache gets around this.
+                        \medskip
+
+                        The paper on the statistical model of this concludes that we get the miss rate of a more associative cache with fewer ways.
+                        This also gives us more predictable average performance.
+                        However, it requires a decoder per way, some latency is added for the hash function, and LRU is harder to implement.
+                    \item \textbf{compiler}
+                \end{enumerate}
+                Misses can also be reduced in hardware by performing prefetching.
+                After a cache miss, the stream buffer initiates a fetch for th next block (not allocated in the cache).
+                On an access, the stream buffer is checked in parallel with the cache.
+                The stream buffer is a FIFO queue.
+                Similar idea to a victim cache.
+                Modern processors do a similar technique, but allocate into the cache - with more associativity, cache `pollution' is less of a concern.
+                \medskip
+
+                This idea could be extended to track multiple access streams (one stream is good for instruction misses, multiple streams can be important for data, such as multiple arrays).
+                \medskip
+
+                Decoupled access-execute uses the idea that most programs have almost no dependence between floating point calculations and the sequence of addresses issued into the memory system.
+                The address calculation issue instructions can be separated from the floating point arithmetic instructions that operate on the fetched data.
+                As such, there are two processors, one for access and another for execute.
+                The address-generation side can run ahead of the execution, allowing for values to be streamed into the execute processor (exploiting memory parallelism / pipelines).
+                Loss of decoupling events can occur when the control flow depends on the execution results.
 \end{document}
