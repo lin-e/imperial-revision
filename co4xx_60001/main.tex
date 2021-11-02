@@ -1509,4 +1509,78 @@
                         \end{lstlisting}
                         This can be made fusable by shifting; the middle part of the loop is fusable, but there's some edges to manually perform.
                 \end{itemize}
+            \subsubsection*{Miss Penalty Reduction}
+                A write-through policy involves writing to underlying layers; cached data can therefore always be discarded and the control bit only includes a valid bit.
+                On the other hand, a write-back policy only updates the cache; cached data may have to be written back if discarded and control bits include both the valid bit as well as a dirty bit.
+                The former has the advantage that the memory has the latest data (note that processors may have their own cache) and is simpler.
+                On the other hand, the latter has lower requirements on the write bandwidth as the data is often overwritten multiple times - it also has better tolerance for slower memory.
+                \medskip
+
+                There are also policies in place for the case where it's a write-miss.
+                Write allocate allocates a new cache line on a miss, whereas write non-allocate / write-around simply writes the data to the underlying layers (no new cache line is allocated).
+                The former might make more sense for spatial locality, as something that's written could be read again soon.
+                \medskip
+
+                Consider a write buffer, sitting between the cache and lower memory.
+                The purpose of the buffer is that we don't need to wait for the slower memory to write the data - however, this introduces yet another potential copy of this data.
+                This applies regardless of write-back or write-through.
+                Consider a program that's writing to a vector; ideally it's merged into a single entry in the buffer and written to the next level of the memory hierarchy only once.
+                \medskip
+
+                Typically on a miss, the entire cache block isn't loaded in parallel but rather word-by-word.
+                Consider the case where the requested word is the first word in the block; ideally the processor can continue as soon as the requested word arrives (early restart).
+                A more general / powerful idea is to have the critical word first; request the required word from the next level of the memory hierarchy first and then continue to populate the rest of the block.
+                This is only really worthwhile in large blocks.
+                \medskip
+
+                This can also cause issues; especially in the case where the processor restarts and the next instruction also loads into another word in the \textbf{same} cache line.
+                Each sector (or word) needs a validity bit; the cache block is the unit of allocation and deliver / transfer data in sectors.
+                This validity bit tells us whether the sector has been updated already.
+                \medskip
+
+                Another strategy is to have a non-blocking / lockup-free cache.
+                This allows the cache to continue to supply hits during a miss - it requires full / empty bits on registers or out-of-order execution and multi-bank memories.
+                The idea of hit under miss reduces the miss penalty but allowing work to continue during while a miss is being handled.
+                Hit under multiple miss or miss under miss lowers the effective miss penalty further my overlapping multiple misses.
+                \medskip
+
+                For an in-order pipeline, there are two options on a cache miss.
+                The first is to freeze the pipeline in the memory access stage, stalling any other subsequent instructions.
+                The miss status / handler registers (MSHR) keeps track of outstanding memory accesses and the registers waiting for these results, and only stalls the pipeline when an instruction references something that's needed.
+                This provides some limited out-of-order execution (for loads).
+                \medskip
+
+                Hit under miss creates the opportunity for load instructions to execute out-of-order.
+                From the thread running on the CPU, care will be taken to ensure the results from the load are the most recent data for that location written by this thread.
+                However, in a multicore system, or a system with a DMA / memory mapped IO device, care should be taken knowing that load instructions can be reordered by this mechanism.
+                Special instructions to be used to enforce the relative ordering of memory accesses, if we care.
+                \medskip
+
+                Another approach would be to add a second level cache.
+                Let AMAT be the average memory access time, HT be the hit time, MR be the miss rate, and MP be the miss penalty;
+                \begin{align*}
+                    \text{MP}_\text{L1} & = \text{HT}_\text{L2} + \text{MR}_\text{L2} \times \text{MP}_\text{L2} \\
+                    \text{AMAT} & = \text{HT}_\text{L1} + \text{MR}_\text{L1} \times \text{MP}_\text{L1} \\
+                    & = \text{HT}_\text{L1} + \text{MR}_\text{L1} \times (\text{HT}_\text{L2} + \text{MR}_\text{L2} \times \text{MP}_\text{L2})
+                \end{align*}
+                The local miss rate is the misses in the cache divided by the total memory access to a given cache.
+                On the other hand, the global miss rate is the misses in this cache divided by the total memory accesses from the CPU (this is what matters).
+                \medskip
+
+                The lecture continues for a bit discussing \textit{Haswell}'s cache hierarchy.
+                \medskip
+
+                Multi-level inclusion states that the $\text{L}_{n + 1}$ cache contains everything in $\text{L}_n$.
+                We may sometimes allocate into L1 but not L2, or the other way around.
+                We may also allocate into both L1 and L2, but not LLC.
+                LLC (or L3) is sometimes used as a victim cache, once data is displaced from L2.
+                If we don't assume multi-level inclusion, it's perfectly valid for L2 to displace something that's frequently being accessed in L1, as it sees no hits for that particular line.
+                However, if we do rely on inclusion, then we need to track which lines cannot be displaced.
+                \medskip
+
+                Cache coherency is another argument for MLI; consider two cores each with its own L1 and L2 cache.
+                Suppose the first core writes to an address that may be held in one of the caches of the second core.
+                The second core needs to monitor all the bus traffic (loads, stores, accesses) of the other processor - if it sees an invalidation of a particular address, the second core's cache controller needs to check whether it has a cache copy of that address; if it does, then it needs to be invalidated.
+                However, the L1 cache is typically very busy with processor traffic and shouldn't be touched.
+                By relying on MLI, the L2 cache can be used to filter those invalidations.
 \end{document}
