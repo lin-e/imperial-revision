@@ -1398,4 +1398,115 @@
                 As such, there are two processors, one for access and another for execute.
                 The address-generation side can run ahead of the execution, allowing for values to be streamed into the execute processor (exploiting memory parallelism / pipelines).
                 Loss of decoupling events can occur when the control flow depends on the execution results.
+            \subsubsection*{Cache Miss Rate Reduction in Software}
+                The prefetching mentioned in the previous lecture could be left entirely to the programmer and the compiler; many processors have software prefetch instructions.
+                However, since hardware prefetching is generally quite good, there is significant overhead that may outweigh the benefit (slowing down the overall process) - it may be useful for simpler processors.
+                The MIPS ~memcpy~ library code also prefetches the destination as every store implicitly has a cache load (hence both the source and destination need to be prefetched).
+                \medskip
+
+                If the prefetch would've generated a fault (accessing something illegal), we don't want the prefetch to fail but we also don't want the prefetch to fail either (it should be silently squashed).
+                \medskip
+
+                Instruction caches are also quite important, but are left out by benchmark suites as they tend to be quite small.
+                \textit{McFarling} reduced instruction cache misses by choosing an instruction memory layout based on the call graph.
+                Procedures are reordered in memory to reduce conflict misses.
+                \medskip
+
+                Data optimisations can also take place;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{storage layout transformations} \hfill spatial locality
+                        \smallskip
+
+                        Don't change the code, just how the variables are declared and the addresses in which they are stored.
+                        \medskip
+
+                        An example of this is array merging; an array of structs versus a struct of arrays.
+                        \begin{lstlisting}
+                            // before (2 sequential arrays)
+                            int val[SIZE];
+                            int key[SIZE];
+
+                            // after (1 array of structs)
+                            struct merge {
+                              int val;
+                              int key;
+                            };
+                            struct merge merged_array[SIZE];
+                        \end{lstlisting}
+                        The spatial locality can be improved, depending on the use case.
+                        A counter-example is if we were to traverse the ~key~ array and get the ~value~ out, then the former should be stored contiguously.
+                        However, if this is being used as a hash table for example, it would beneficial for the key and the value to reside in the same cache line (more likely with the array of structs).
+                        \medskip
+
+                        Row-major mapping maps indices horizontally, and similar for column-major (but vertically).
+                        The Morton / quadtree layout gives spatial locality in two dimensions, giving a compromise between the two previous layouts.
+                        A variant of this is used for texture caching by some GPUs.
+                    \item \textbf{iteration space transformations} \hfill can also improve temporal locality
+                        \smallskip
+
+                        Change the order in which loops are executed.
+                        \medskip
+
+                        An example of this is loop fusion;
+                        \begin{lstlisting}
+                            // before
+                            for (i = 0; i < N; i = i+1) {
+                              for (j = 0; j < N; j = j+1) {
+                                a[i][j] = 1 / b[i][j] * c[i][j]
+                              }
+                            }
+                            for (i = 0; i < N; i = i+1) {
+                              for (j = 0; j < N; j = j+1) {
+                                d[i][j] = a[i][j] + c[i][j]
+                              }
+                            }
+
+                            // after fusion
+                            for (i = 0; i < N; i = i+1) {
+                              for (j = 0; j < N; j = j+1) {
+                                a[i][j] = 1 / b[i][j] * c[i][j]
+                                d[i][j] = a[i][j] + c[i][j]
+                              }
+                            }
+
+                            // after array contraction
+                            for (i = 0; i < N; i = i+1) {
+                              for (j = 0; j < N; j = j+1) {
+                                cv = c[i][j]
+                                a = 1 / b[i][j] * cv
+                                d[i][j] = a + cv
+                              }
+                            }
+                        \end{lstlisting}
+                        After fusion, it should be faster due to less loop overhead, but also we avoid loading ~a~ from memory, as well as reloading ~c~.
+                        The second transformation is safe if we don't need the array ~a~ after the loops have been executed; values can be transferred in scalar values rather than an array (contraction).
+                        However, this (fusion) isn't always simple - for example a one-dimensional convolution / stencil (dependencies don't align nicely);
+                        \begin{lstlisting}
+                            // before
+                            for (i = 1; i < N; i++) {
+                              V[i] = (U[i - 1] + U[i + 1]) / 2
+                            }
+                            for (i = 1; i < N; i++) {
+                              W[i] = (V[i - 1] + V[i + 1]) / 2
+                            }
+
+                            // after
+                            V[1] = (U[0] + U[2]) / 2
+                            for (i = 2; i < N; i++) {
+                              V[i] = (U[i - 1] + U[i + 1]) / 2
+                              W[i - 1] = (V[i - 2] + V[i]) / 2
+                            }
+                            W[N - 1] = (V[N - 2] + V[N]) / 2
+
+                            // contraction is harder, need last two Vs (3 locations, use 4)
+                            V[1] = (U[0] + U[2]) / 2
+                            for (i = 2; i < N; i++) {
+                              V[i % 4] = (U[i - 1] + U[i + 1]) / 2
+                              W[i - 1] = (V[(i - 2) % 4] + V[i % 4]) / 2
+                            }
+                            W[N - 1] = (V[(N - 2) % 4] + V[N % 4]) / 2
+                        \end{lstlisting}
+                        This can be made fusable by shifting; the middle part of the loop is fusable, but there's some edges to manually perform.
+                \end{itemize}
 \end{document}
