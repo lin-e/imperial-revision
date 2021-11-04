@@ -1824,4 +1824,142 @@
                 Current research is looking at encoding, synthesis costs, synthetic molecules, automation, and packaging / storage (wrapping long sequences around synthetic histones).
         \subsection*{November 1 - Live Lecture}
             Synthesis cost can be reduced by pre-fabricating sequences and then replicating with PCR.
+        \subsection*{November 4 - Lecture 1}
+            As \textit{Google} search grew, the number of search queries exploded.
+            Back in 1999, it took a month to retrieve 50 million pages (limited by internet speeds and web server speeds), but in 2012, it took less than a minute.
+            These advances were enabled with using lots of machines to scale services; a single typical query may access thousands of machines in just a few hundred milliseconds.
+            \medskip
+
+            Performance correlates with user experience; we expect them to be interactive / instantaneous.
+            Any latency has direct business impact, with services losing money if the latency of the service increases - for example, \textit{Amazon} saw direct drops in sales when the service is slow.
+            \medskip
+
+            Another consideration is scalability; as services grow the infrastructure needs to scale effectively.
+            We ideally want linear scalability, the workload is directly proportional to the resources (such as number of machines).
+            However, this isn't easily achievable, due to overheads from synchronisation between machines, imbalanced loads across the infrastructure, and similar.
+            Techniques that are applied to make services scalable.
+            \medskip
+
+            A major barrier for entry to using a supercomputer / mainframe / HPC was the cost - being too high for a startup.
+            This also has issues with scaling; once the box is filled with the maximum number of CPUs, another machine would have to be purchased, which may then be too much performance for the work - the companies ideally wanted incremental scaling, without large upfront costs.
+            A significant amount of the cost from these machines comes from the reliability and the redundancy built in.
+            If some of the mechanisms for reliability can be pushed into the software, less reliable hardware can be used.
+            \medskip
+
+            Most scalable services moved towards distributed computing, with a client / server model.
+            The computing infrastructure instead uses commodity hardware, which could be easily purchased cheaply in bulk, giving a good price versus performance tradeoff.
+            However, considerations had to be made regarding the reliability (previously, supercomputers would hide the failures from software).
+            Additionally, servers in a data centre have limited bandwidth and higher latency (compared to tightly interconnected CPUs in a supercomputer); leading to expensive communication.
+            \medskip
+
+            Distributed systems have the following properties;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{scalability}
+                    \smallskip
+
+                    Resources should be aggregated, including compute resources, storage, memory, and bandwidth (e.g. with CDNs).
+                \item \textbf{location transparency}
+                    \smallskip
+
+                    The client doesn't know what data centre the request is being handled by, let alone the individual server.
+                    This gives significant flexibility by hiding the implementation of the infrastructure from clients.
+                \item \textbf{high availability}
+                    \smallskip
+
+                    We want systems that are always up and available.
+                    There's significant redundancy in the hardware design (companies don't want the entire data centre to fail as a whole), despite individual servers failing.
+                    Hardware and software failures should be masked.
+                \item \textbf{composable services}
+                    \smallskip
+
+                    Composable services allow companies to easily deploy and launch new services and applications from basic building blocks.
+            \end{itemize}
+            In a search request, the request is routed to a server, possibly based on DNS.
+            The web server then communicates with other servers, including multiple index servers and document servers, as well as other services, such as advertising and spell checking.
+            The computation required for a search query is distributed to other servers (working in parallel), by partitioning the work with subqueries.
+            The web index is partitioned into shards in index servers, and pages (documents) are also partitioned in a similar way.
+            The latency to handle any particular query is low as the computation required to look up anything in the search index is low (since it's all done in parallel).
+            A similar technique is used by most web services.
+            \begin{enumerate}[1.]
+                \itemsep0em
+                \item load-balancer routes request to lightly loaded GWS (\textit{Google Web Server}) - the goal is to have all servers with roughly the same load (a single overloaded server would cause all requests to that server to have higher latency).
+                \item GWS routes search to one index server for each shard - a search keyword is looked up in all indices
+                \item IDs of the matching pages being returned from the index servers; these results are aggregated (sorted by relevance)
+                \item GWS sends IDs to document servers to obtain metadata
+                \item results are aggregated, with advertisements etc., producing a search result page
+            \end{enumerate}
+            A similar structure is followed for generating \textit{Amazon}'s front page, as it's customised to the customer.
+            \medskip
+
+            Data centres contain the computers used to run these services, and are typically commodity hardware (with non-commodity networking).
+            The assumption is that we scale out (install more commodity servers) rather than scaling up.
+            Software needs to be designed to tolerate failure.
+            Due to the scale of a data centre, everything follows economies of scale, for electricity, hardware, network, and operations.
+            The larger the data centre, more is invested in automation (thus reducing the amount of manual administration).
+            \medskip
+
+            With the scale out model, load spikes can be handled on demand.
+            This is especially important for services where popularity can suddenly spike (such as viral videos).
+            An initially unpopular server would have a smaller allocation of servers, but as load and popularity grows, a larger allocation would be provided.
+            This creates an illusion of infinite resources.
+            Large scale data centres are typically located close to cheap electricity, such as near hydroelectric dams.
+            \medskip
+
+            There's some separation for the requirements on the scale of a distributed system;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{online systems} (latency matters, below 100ms), e.g. OLTP, interactive, web content
+                \item \textbf{batch processing system} (above 1 hour) - don't care about getting a result back instantly, includes offline data processing, data analytics and warehousing, focuses on processing data effectively
+                \item \textbf{nearline systems} (latency can be higher than online systems, below seconds or minutes), dynamic content to users where freshness matters, such as recommendations, advertisements, and dashboards (monitoring, debugging, etc)
+            \end{itemize}
+            A single page may use multiple of these; for example a feed may need to be online, but advertisements on the page don't be.
+            \medskip
+
+            Challenges include scalability and fault tolerance, but also require consistency.
+            When a system has data replicated in different locations, independent updates may cause different copies to become inconsistent.
+            Some of these challenges are solved with abstraction; applications are run on top of the highest layer.
+            Each layer is scalable, network-aware, and fault-tolerant, for example, \textit{BigTable} sits on top of the distributed file system, which handles replicating files across servers.
+            A \textit{MapReduce} computation can then sit on top of \textit{BigTable}.
+            As long as each layer is scalable, the entire stack is also scalable, as well as any applications on top of this stack; the same is true for fault-tolerance.
+            \medskip
+
+            The design principles for scalable systems include (not exhaustive);
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{stateless services}
+                    \smallskip
+
+                    Dealing with state or data is challenging.
+                    If data isn't replicated, we need to ensure it's not lost, and if it is replicated, then we need to worry about consistency.
+                    HTTP is a stateless protocol; the request is entirely self-contained (has all the information the web server needs to get a response); any subsequent request doesn't need to remember information about a previous request.
+                    This helps the web scale well, as each server can easily handle concurrent accesses.
+                    Any state in modern websites is pushed into the database tier (not in the protocol, or the presentation tier).
+                    Between these two tiers, there's the logic / application tier.
+                    As this is all stateless, we can easily add more web servers to help load balancing.
+                \item \textbf{caching}
+                    \smallskip
+
+                    Latency is important in many of the systems we are building.
+                    Caching data closer to client such that it can be retrieved quickly helps with latency.
+                \item \textbf{partition / aggregation pattern}
+                    \smallskip
+
+                    Parts of a query can be completed on partitions in parallel and then aggregated to get the final result.
+                \item \textbf{weaker consistency}
+                    \smallskip
+
+                    Consider data that is copied to two different data centres.
+                    Assume there are two clients who are accessing / modifying the data concurrently, which could lead to inconsistency.
+                    An idea is to weaken the consistency guarantees, which can help with the scalability of the services by reducing the communication between servers.
+                    \medskip
+
+                    Many applications may use a mix of strongly consistent operations (often adds additional latency) and inconsistent operations.
+                \item \textbf{efficient failure recovery}
+                    \smallskip
+
+                    Making everything redundant is too expensive.
+                    The two main techniques are replication (another copy exists if one is lost or recomputation (redo a computation if the result is lost).
+                    The cost of failure recovery needs to be low, as failure is the norm.
+            \end{itemize}
 \end{document}
