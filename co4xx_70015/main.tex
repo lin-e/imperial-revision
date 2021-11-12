@@ -459,7 +459,7 @@
             We still want to get the second derivative, in order to verify that we have a minima and not a maxima.
             The chain rule we have in place only works with derivatives of scalars, or column vectors (when differentiating with respect to vectors).
             We've currently defined the vertical axis to be outputs and the horizontal axis for variables we're differentiating by.
-            This convention no longer holds when we are taking second derivatives, we we need to take the second derivative along a row vector;
+            This convention no longer holds when we are taking second derivatives, as we need to take the second derivative along a row vector;
             $$\nabla_{\vec{v}}\underbrace{\left[\dif{f}{\vec{\theta}}\vec{v}\right]}_\text{scalar} = \underbrace{\dif{}{\vec{\theta}}\left[\dif{f}{\vec{\theta}}\vec{v}\right]}_\text{row vector}\vec{v}$$
             Solving this in a way that only involves taking derivatives with respect to scalars;
             \setcounter{equation}{0}
@@ -737,8 +737,8 @@
                 Typical practice is to split data into a training and a test set.
                 The training set is actually used to find the parameters of a model and the test data shows how well the data predicts on unseen data.
                 We can estimate some loss on the training set, using argmin (which finds the argument that minimises a function);
-                $$\vec{\theta}^* = \argmin_{\vec{\theta}}L(\vec{\theta})$$
-                $$L_\text{test} = \frac{1}{N_\text{test}}(f(x_n; \vec{\theta}^*) - y_n)^2$$
+                $$\vec{\theta^*} = \argmin_{\vec{\theta}}L(\vec{\theta})$$
+                $$L_\text{test} = \frac{1}{N_\text{test}}(f(x_n; \vec{\theta^*}) - y_n)^2$$
                 The training error should decrease with higher polynomial degrees, whereas the test error should also decrease until a certain point, when it starts to increase (overfitting).
             \subsubsection*{Probability Theory}
                 We need to formalise this as follows;
@@ -860,13 +860,13 @@
             Generalisation loss represents how well our model performs in future predictions.
             The setting is that we train the model and deploy it for future predictions, making infinite predictions (limit of $N \to \infty$) in the future.
             We also incur a penalty for errors (loss function $\ell$).
-            $$L_\text{test} = \limit{N}{\infty} \frac{1}{N} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta}^*), y_n)$$
+            $$L_\text{test} = \limit{N}{\infty} \frac{1}{N} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta^*}), y_n)$$
             We assume the pairs $(\vec{x_n}, y_n)$ come from the \textbf{same distribution} (both training and future data), hence $\vec{x_n}, y_n \sim p(\vec{x}, y)$.
             By the law of large numbers (generalisation error) - note that this is a moment of $p(\vec{x}, y)$;
-            $$L_\text{test} = \mathbb{E}_{p(\vec{x}, y)}[\ell(f(\vec{x}; \vec{\theta}^*), y)]$$
+            $$L_\text{test} = \mathbb{E}_{p(\vec{x}, y)}[\ell(f(\vec{x}; \vec{\theta^*}), y)]$$
             Our goal is to estimate this loss without knowing the true joint distribution.
             We can get samples from $p(\vec{x}, y)$, and construct an estimator for $L_\text{test}$ from these samples;
-            $$\hat{L}_\text{test} = \frac{1}{N_\text{test}} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta}^*), y_n)$$
+            $$\hat{L}_\text{test} = \frac{1}{N_\text{test}} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta^*}), y_n)$$
             We are writing this without knowing what the density function is, just saying that it exists.
             As the number of testing points goes to infinity, the estimate approaches the true test loss.
             \medskip
@@ -880,14 +880,14 @@
             $$\mathbb{E}_{p(\vec{x_1}, \vec{x_2}, \dots, y_1, y_2, \dots)}[\hat{L}_\text{test}(\vec{x_1}, \vec{x_2}, \dots, y_1, y_2, \dots)] = L_\text{test}$$
             We can analyse the variance of this estimator.
             As the test set becomes larger, the variance decreases.
-            $$\mathbb{V}_{\Pi_n p(\vec{x_n}, y_n)} \left[\frac{1}{N} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta}^*), y_n)\right] = \frac{1}{N} \mathbb{V}_{p(\vec{x}, \vec{y})}[\ell(f(\vec{x_n}; \vec{\theta}^*), y)]$$
+            $$\mathbb{V}_{\Pi_n p(\vec{x_n}, y_n)} \left[\frac{1}{N} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta^*}), y_n)\right] = \frac{1}{N} \mathbb{V}_{p(\vec{x}, \vec{y})}[\ell(f(\vec{x_n}; \vec{\theta^*}), y)]$$
             If we have a small variance, the error of the estimator is smaller.
             Chebyshev's inequality states that the probability of a variable being far away (more than $k$ times the standard deviation) from the mean (the true value we want);
             $$P(| X - \bar{X} | \geq k\sigma) \geq \frac{1}{k^2}$$
             We want to evaluation a collection of models (different orders of polynomials) on the test set and then pick the model with the lowest test loss.
             However, we may want to ask whether this is still an unbiased estimate of the test loss.
-            Note that $\vec{\theta}^*$ is now a function of the test set, therefore the estimator is no longer unbiased - therefore we cannot use the test set to select the model if we want an accurate estimate of the test loss;
-            $$\mathbb{E}_{\Pi_n p(\vec{x_n}, y_n)} \left[\frac{1}{N} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta}^*(\{\vec{x_i}, y_i\}_{i = 1}^N)), y_n)\right] \neq \mathbb{E}_{p(\vec{x}, \vec{y})}[\ell(f(\vec{x_n}; \vec{\theta}^*), y)]$$
+            Note that $\vec{\theta^*}$ is now a function of the test set, therefore the estimator is no longer unbiased - therefore we cannot use the test set to select the model if we want an accurate estimate of the test loss;
+            $$\mathbb{E}_{\Pi_n p(\vec{x_n}, y_n)} \left[\frac{1}{N} \summation{n = 1}{N} \ell(f(\vec{x_n}; \vec{\theta^*}(\{\vec{x_i}, y_i\}_{i = 1}^N)), y_n)\right] \neq \mathbb{E}_{p(\vec{x}, \vec{y})}[\ell(f(\vec{x_n}; \vec{\theta^*}), y)]$$
             All labelled data is split into training data and test data.
             The training data is split further to a training set (to find the parameters of the model) and a validation set (to select the model).
             Once we've select the model based on the validation set, we can use the true test set (kept completely separate) to find an unbiased estimator.
@@ -914,7 +914,7 @@
             \end{enumerate}
         \subsection*{Lecture 5 - Gradient Descent}
             An optimisation is can be formulated as an objective function $L : \mbbr^D \to \mbbr$ (parameter space to scalar) which roughly tells us how well the model performs on the training data, with an unconstrained minimisation (search parameter in the full space);
-            $$\vec{\theta}^* = \argmin_{\vec{\theta}} L(\vec{\theta})$$
+            $$\vec{\theta^*} = \argmin_{\vec{\theta}} L(\vec{\theta})$$
             Gradient-based optimisation is a class of methods which perform the following steps;
             \begin{itemize}
                 \itemsep0em
@@ -954,8 +954,8 @@
                 & = \frac{1}{2 \sigma^2} || \mat{y} - \mat{X}\mat{\theta} ||_2^2 \\
                 \nabla_{\vec{\theta}} L(\vec{\theta}) & = \dif{L}{\vec{\theta}}^\top \\
                 & = \frac{1}{\sigma^2} \mat{X}^\top(\mat{X}\mat{\theta} - \mat{y}) & \text{setting $= 0$, to get pseudo-inverse $\Rightarrow$} \\
-                \frac{1}{\sigma^2} \mat{X}^\top\mat{X}\mat{\theta}^* & = \frac{1}{\sigma^2} \mat{X}^\top\mat{y} & \Rightarrow \\
-                \mat{\theta}^* & = (\mat{X}^\top\mat{X})^{-1}\mat{X}^\top\mat{y}
+                \frac{1}{\sigma^2} \mat{X}^\top\mat{X}\mat{\theta^*} & = \frac{1}{\sigma^2} \mat{X}^\top\mat{y} & \Rightarrow \\
+                \mat{\theta^*} & = (\mat{X}^\top\mat{X})^{-1}\mat{X}^\top\mat{y}
             \end{align*}
             The gradient descent for linear regression can be written as follows, assuming constant step-sizes ($\gamma_t = \gamma$);
             \begin{enumerate}[1.]
@@ -978,12 +978,12 @@
                 (\mat{A} - \mat{I})\mat{\beta} & = \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{y} & \Rightarrow \\
                 -\frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X}\mat{\beta} & = \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{y} & \Rightarrow \\
                 \mat{\beta} & = -(\mat{X}^\top\mat{X})^{-1}\mat{X}^\top\mat{y} \\
-                & = -\mat{\theta}^*
+                & = -\mat{\theta^*}
             \end{align*}
             This iterative update gives the following result;
-            $$\mat{\theta_t} = (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta}^*) + \mat{\theta}^*$$
-            Note that this tells us the gradient descent converges (as $t$ gets larger) $\mat{\theta_t} \to \mat{\theta}^*$ if;
-            $$(\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta}^*) \to \mat{0}$$
+            $$\mat{\theta_t} = (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta^*}) + \mat{\theta^*}$$
+            Note that this tells us the gradient descent converges (as $t$ gets larger) $\mat{\theta_t} \to \mat{\theta^*}$ if;
+            $$(\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta^*}) \to \mat{0}$$
             In an $\mbbr^D$ space, the space can be constructed by a span of basis vectors.
             For example, $\mbbr^2 = \mathrm{span}(\{\vec{e_1}, \vec{e_2}\})$ and $\vec{e_i} \perp \vec{e_j}, || \vec{e_i} || = 1$.
             Any vector in this space can be written as a linear combination of the basis vectors.
@@ -1058,14 +1058,14 @@
                 & = \summation{d = 1}{D} \frac{z_d^2}{|| \vec{z} ||_2^2} \lambda_d & \text{weighted sum}
             \end{align*}
             Recall the gradient descent with constant step size.
-            The $\ell_2$ distance between $\vec{\theta_t}$ and $\vec{\theta}^*$;
+            The $\ell_2$ distance between $\vec{\theta_t}$ and $\vec{\theta^*}$;
             \begin{align*}
-                \mat{\theta_t} & = (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta}^*) + \mat{\theta}^* \\
-                || \mat{\theta_t} - \mat{\theta}^* ||_2^2 & = || (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta}^*) ||_2^2 \\
-                & = | (\mat{\theta_0} - \mat{\theta}^*)^\top \underbrace{(\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^{2t}}_{\mat{A}} \underbrace{(\mat{\theta_0} - \mat{\theta}^*)}_{\vec{x}} |
+                \mat{\theta_t} & = (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta^*}) + \mat{\theta^*} \\
+                || \mat{\theta_t} - \mat{\theta^*} ||_2^2 & = || (\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^t(\mat{\theta_0} - \mat{\theta^*}) ||_2^2 \\
+                & = | (\mat{\theta_0} - \mat{\theta^*})^\top \underbrace{(\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^{2t}}_{\mat{A}} \underbrace{(\mat{\theta_0} - \mat{\theta^*})}_{\vec{x}} |
             \end{align*}
             Note that this is in the form of the Rayleigh quotient, hence we can bound the distance;
-            $$\lambda_\text{min}((\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^2)^t || \mat{\theta_0} - \mat{\theta}^* ||_2^2 \leq || \mat{\theta_t} - \mat{\theta}^* ||_2^2 \leq \lambda_\text{max}((\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^2)^t || \mat{\theta_0} - \mat{\theta}^* ||_2^2$$
+            $$\lambda_\text{min}((\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^2)^t || \mat{\theta_0} - \mat{\theta^*} ||_2^2 \leq || \mat{\theta_t} - \mat{\theta^*} ||_2^2 \leq \lambda_\text{max}((\mat{I} - \frac{\gamma}{\sigma^2}\mat{X}^\top\mat{X})^2)^t || \mat{\theta_0} - \mat{\theta^*} ||_2^2$$
             If $\lambda_\text{max}^t \to 0$ as $t \to \infty$, then we have convergence (as it's an upper bound) as it's a distance between the current solution and the optimal solution.
             For the rules, we will use the following definitions;
             \begin{align*}
@@ -1094,9 +1094,9 @@
                 \itemsep0em
                 \item choose a step-size $\gamma$ that's larger than the constraint
                 \item \textbf{randomly} initialise the parameter
-                    $$\vec{\theta_0} = \vec{\theta}^* + \summation{d = 1}{D} \alpha_d \vec{q_d}$$
+                    $$\vec{\theta_0} = \vec{\theta^*} + \summation{d = 1}{D} \alpha_d \vec{q_d}$$
                 \item iterative update
-                    $$\vec{\theta_t} - \vec{\theta}^* = \summation{d = 1}{D} \alpha_d {\underbrace{(1 - \frac{\gamma \lambda_d}{\sigma^2})}_k}^t\vec{q_d}$$
+                    $$\vec{\theta_t} - \vec{\theta^*} = \summation{d = 1}{D} \alpha_d {\underbrace{(1 - \frac{\gamma \lambda_d}{\sigma^2})}_k}^t\vec{q_d}$$
                     If $\gamma < \frac{2\sigma^2}{\lambda_d}$ for a direction $\vec{q_d}$, then $k\vec{q_d} \to \vec{0}$.
                     Otherwise, $k\vec{q_d}$ diverges.
                     Gradient descent will diverge unless $\alpha_d = 0$ for all the diverging directions.
@@ -1107,8 +1107,8 @@
             In general, the loss function isn't quadratic nor is it convex.
             However, when we approach the optimum, we can take a local quadratic approximation (Taylor expansion of order 2).
         \subsection*{Lecture 6 - More on Gradient Descent}
-            We need to check whether the $\ell_2$-norm $|| \mat{\theta_t} - \mat{\theta}^* ||_2^2 \to 0$ when we have $t \to \infty$.
-            $\mat{\theta_t} - \mat{\theta}^* = \mat{A}^t(\mat{\theta_t} - \mat{\theta}^*)$ where $\mat{A} = (\mat{I} - \frac{\gamma}{\sigma^2} \mat{X}^\top\mat{X})$.
+            We need to check whether the $\ell_2$-norm $|| \mat{\theta_t} - \mat{\theta^*} ||_2^2 \to 0$ when we have $t \to \infty$.
+            $\mat{\theta_t} - \mat{\theta^*} = \mat{A}^t(\mat{\theta_t} - \mat{\theta^*})$ where $\mat{A} = (\mat{I} - \frac{\gamma}{\sigma^2} \mat{X}^\top\mat{X})$.
             The convergence of gradient descent depends on $\lambda_\text{max}(\mat{A}^2)$.
             \medskip
 
@@ -1140,7 +1140,7 @@
                     \begin{align*}
                         \mat{\theta_{t + 1}} & = \mat{\theta_t} - \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top(\mat{X}\mat{\theta_t} - \mat{y}) \\
                         & = (\mat{I} - \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top\mat{X})\mat{\theta_t} + \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top\mat{y} & \Rightarrow \\
-                        \mat{\theta_t} & = (\mat{I} - \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top\mat{X})^t (\mat{\theta_0} - \mat{\theta}^*) + \mat{\theta}^*
+                        \mat{\theta_t} & = (\mat{I} - \gamma\frac{1}{\sigma^2} \mat{P}^{-1} \mat{X}^\top\mat{X})^t (\mat{\theta_0} - \mat{\theta^*}) + \mat{\theta^*}
                     \end{align*}
                     As such, to ensure convergence at any initialisation, $\gamma$ can be chosen as;
                     $$\gamma < \frac{2 \sigma^2}{\lambda_\text{max}(\mat{P}^{-1}\mat{X}^\top\mat{X})}$$
@@ -1231,4 +1231,136 @@
                 We need to ensure that $M$ is chosen such that it's small enough to be computed quickly, but not too small.
                 The amount of error we will get depends on the error of the stochastic gradient (inversely scaled);
                 $$\mathbb{V}[\hat{\mat{g_t}}] = \mathbb{V}_\mathcal{S}\left[\frac{N}{M} \summation{m \in \mathcal{S}}{} \nabla_{\mat{\theta_t}} L_m(\mat{\theta_t})\right] = \frac{N^2}{M} \mathbb{V}_{m \sim \text{Uniform}(1, \dots N)}[\nabla_{\mat{\theta_t}} L_m(\mat{\theta_t})]$$
+        \subsection*{Lecture 7 - Ridge Regression and PCA}
+            \subsubsection*{Ridge Regression}
+                Overfitting can be avoided by choosing a model with the right complexity, with the validation data (same distribution with the test data, allowing for generalisation).
+                Another technique to avoid overfitting is regularisation.
+                Our model is as follows, with the goal of finding $\mat{\theta} \in \mbbr^{D \times 1}$, we assume the noise $\epsilon \sim \mathcal{N}(0, \sigma^2)$ has a known $\sigma^2$;
+                \begin{align*}
+                    \mathcal{D} & = \{ \mat{X}, \mat{y} \} \\
+                    \mat{X} & = \begin{bmatrix}
+                        \vec{x_1} & \cdots & \vec{x_N}
+                    \end{bmatrix}^\top & \in \mbbr^{N \times D} \\
+                    \mat{y} & = \begin{bmatrix}
+                        y_1 & \cdots & y_N
+                    \end{bmatrix}^\top & \in \mbbr^{N \times 1} \\
+                    \mat{y} & \approx \mat{X}\mat{\theta} \\
+                    f(\mat{x}, \mat{\theta}) & = \mat{x}^\top\mat{\theta} \\
+                    y & = f(\mat{x}; \mat{\theta}) + \epsilon \\
+                    L(\mat{\theta}) & = \frac{1}{2\sigma^2} \summation{n}{} (f(\mat{x_n}; \mat{\theta}) - y_n)^2 \\
+                    & = \frac{1}{2 \sigma^2} || \mat{y} - \mat{X}\mat{\theta} ||_2^2 & \text{matrix form}
+                \end{align*}
+                Ridge regression adds an additional \violet{regularisation term} to the loss function, controlled by the hyperparameter $\lambda$;
+                $$L(\mat{\theta}) = \frac{1}{2 \sigma^2} || \mat{y} - \mat{X}\mat{\theta} ||_2^2 + \violet{\frac{\lambda}{2} || \mat{\theta} ||_2^2}$$
+                The optimal solution for $\mat{\theta}$ is $\mat{\theta_R^*}$, and can be obtained by setting $\nabla_{\mat{\theta}}L(\mat{\theta}) = 0$;
+                \begin{align*}
+                    \mat{\theta_R^*} & = \argmin_{\mat{\theta} \in \mat{\Theta}} \frac{1}{2\sigma^2} || \mat{y} - \mat{X}\mat{\theta} ||_2^2 + \frac{\lambda}{2} || \mat{\theta} ||_2^2 \\
+                    \nabla_{\mat{\theta}}L(\mat{\theta}) & = 0 & \Rightarrow \\
+                    \frac{1}{\sigma^2} \mat{X}^\top(\mat{X}\mat{\theta} - \mat{y}) + \lambda\mat{\theta} & = 0 & \Rightarrow \\
+                    \left(\lambda\mat{I} + \frac{1}{\sigma^2} \mat{X}^\top\mat{X}\right) \mat{\theta^*} & = \frac{1}{\sigma^2} \mat{X}^\top\mat{y} & \Rightarrow \\
+                    \mat{\theta_R^*} & = (\sigma^2\lambda \mat{I} + \mat{X}^\top\mat{X})^{-1}\mat{X}^\top\mat{y}
+                \end{align*}
+                The optimal solution remains similar to the linear regression case; however the matrix that needs to be inverted is no longer simply $\mat{X}^\top\mat{X}$.
+                As such, note that if $\lambda = 0$ then $\mat{\theta}_R^* = \mat{\theta^*}$.
+                Similarly, gradient descent can be used to solve this, assuming constant step sizes $\gamma_t = \gamma$;
+                \begin{enumerate}
+                    \itemsep0em
+                    \item define starting point $\mat{\theta_0}$, set $t = 0$
+                    \item update $t \leftarrow t + 1$, and update $\mat{\theta_{t + 1}}$
+                        \begin{align*}
+                            \mat{\theta_{t + 1}} & = \mat{\theta_t} - \gamma_t \nabla_{\mat{\theta}}L(\mat{\theta_t}) \\
+                            & = \mat{\theta_t} - \gamma \left(\frac{1}{\sigma^2} \mat{X}^\top(\mat{X}\mat{\theta_t} - \mat{y}) + \lambda\mat{\theta_t}\right) \\
+                            & = \left((1 - \gamma\lambda) \mat{I} - \frac{\gamma}{\sigma^2} \mat{X}^\top\mat{X}\right)\mat{\theta_t} + \frac{\gamma}{\sigma^2} \mat{X}^\top\mat{y}
+                        \end{align*}
+                    \item repeat until stopping criterion
+                \end{enumerate}
+                Non-linear regression uses a non-linear feature mapping $\phi(\cdot) : \mbbr^D \to \mbbr^p$ (typically $p > D$).
+                With the non-linear ridge regression model, fitting ridge regression becomes the following;
+                \begin{align*}
+                    f(\vec{x}, \mat{\theta}) & = \phi(\vec{x})^\top\mat{\theta} \\
+                    y & = f(\vec{x}, \mat{\theta}) + \epsilon \\
+                    \mat{\Phi} & = \begin{bmatrix}
+                        \phi(\vec{x_1}) & \cdots & \phi(\vec{x_N})
+                    \end{bmatrix}^\top & \in \mbbr^{N \times p} \\
+                    \mat{\theta_R^*} & = \argmin_{\mat{\theta} \in \mat{\Theta}} \frac{1}{2\sigma^2} || \mat{y} - \violet{\mat{\Phi}}\mat{\theta} ||_2^2 + \frac{\lambda}{2} || \mat{\theta} ||_2^2 \\
+                    & = (\sigma^2\lambda \mat{I} + \violet{\mat{\Phi}}^\top\violet{\mat{\Phi}})^{-1}\violet{\mat{\Phi}}^\top\mat{y}
+                \end{align*}
+                Consider regression with polynomial functions - the parameters we want to fit are the coefficients for each of the polynomial features;
+                $$f(x, \mat{\theta}) = \summation{i = 1}{p} \theta_i x^{i - 1}$$
+                We can obtain a number of models with different $p$ values that all have a \textbf{training loss} close to 0 - however, they may have different \textbf{test loss}.
+                Previously, we selected a model based on a validation dataset.
+                \medskip
+
+                The $\ell_2$ regulariser pushes the elements of $\mat{\theta}$ towards zero.
+                Ridge regression helps balance between data fit and model simplicity; if for a given $i$, $\theta_i = 0$, then the feature $x^{i - 1}$ isn't in use.
+                $$R(\mat{\theta}) = || \mat{\theta} ||_2^2 = \summation{i = 1}{p} \theta_i^2$$
+                Ridge regression gives an estimator of $\mat{\theta}$ with a smaller variance; giving a smaller expected test error than with just linear regression.
+                \medskip
+
+                We assume there is no model mismatch, hence $\mathcal{D} = \{(\vec{x_n}, y_n)\}_{n = 1}^N$ is generated by $y_n = f(\vec{x_n}; \mat{\theta_0}) + \epsilon_n$.
+                This can also be written as $\mathcal{D} \sim p_\text{data}^N$.
+                Note that $\mat{\theta_0}$ denotes the (unknown) ground truth parameters for the generation of the dataset.
+                We also assume that the test data is also generated from the same process.
+                \medskip
+
+                Similar to before, our goal is to estimate $\mat{\theta}$ using data $\mathcal{D}$, such that $\mat{\theta^*} \approx \mat{\theta_0}$ - the solution is written as $\mat{\theta^*}(\mathcal{D})$, when the dataset is given.
+                \medskip
+
+                The expected $\ell_2$ error for estimate is as follows (ideally we want an unbiased estimator with a low variance);
+                \begin{align*}
+                    \mathrm{error}(\mat{\theta^*}) & = \mathbb{E}_{\mathcal{D} \sim p_\text{data}^N}[|| \mat{\theta^*}(\mathcal{D}) - \mat{\theta_0} ||_2^2] \\
+                    & = || \mat{\theta^*}(\mathcal{D}) - \mathbb{E}[\mat{\theta^*}(\mathcal{D})] + \mathbb{E}[\mat{\theta^*}(\mathcal{D})] - \mat{\theta_0} ||_2^2 \\
+                    & = \underbrace{|| \mat{\theta^*}(\mathcal{D}) - \mathbb{E}[\mat{\theta^*}(\mathcal{D})] ||_2^2}_\text{variance} + \underbrace{|| \mathbb{E}[\mat{\theta^*}(\mathcal{D})] - \mat{\theta_0} ||_2^2}_{\text{bias}^2} + \underbrace{\text{cross-term}}_{= 0} \\
+                    & = \underbrace{\mathrm{tr}[\mathbb{V}_{\mathcal{D} \sim p_\text{data}^N}[\mat{\theta^*}(\mathcal{D})]]}_\text{variance} + \underbrace{|| \mathbb{E}[\mat{\theta^*}(\mathcal{D})] - \mat{\theta_0} ||_2^2}_{\text{bias}^2}
+                \end{align*}
+                We are not only looking at the estimation error for one particular regression problem (one experiment).
+                To compute the expectation, the experiment is computed multiple times, with each experiment sampling a new set of data from the previously mentioned generation process.
+                The expected error can be written in matrix form;
+                \begin{align*}
+                    \mathrm{Error}(\mat{\theta^*}) & = \mathbb{E}_{\mathcal{D} \sim p_\text{data}^N}[(\mat{\theta^*}(\mathcal{D}) - \mat{\theta_0})(\mat{\theta^*}(\mathcal{D}) - \mat{\theta_0})^\top] \\
+                    & = \mat{b}(\mat{\theta^*})\mat{b}(\mat{\theta^*})^\top \mat{V}(\mat{\theta^*}) \\
+                    \mat{b}(\mat{\theta^*}) & = \mathbb{E}_{\mathcal{D} \sim p_\text{data}^N}[\mat{\theta^*}(\mathcal{D})] - \mat{\theta_0} & \text{bias} \\
+                    \mat{V}(\mat{\theta^*}) & = \mathbb{V}_{\mathcal{D} \sim p_\text{data}^N}[\mat{\theta^*}(\mathcal{D})] & \text{variance}
+                \end{align*}
+                The expected prediction error is as follows;
+                \begin{align*}
+                    y_\text{test} & = \phi(\vec{x_\text{test}})^\top\mat{\theta_0} + \mat{\epsilon} \\
+                    f(\vec{x_\text{test}}, \mat{\theta^*}(\mathcal{D})) & = \phi(\vec{x_\text{test}})^\top\mat{\theta^*}(\mathcal{D})) \\
+                    || y_\text{test} - f(\vec{x_\text{test}}, \mat{\theta^*}(\mathcal{D})) ||_2^2 & = || \phi(\vec{x_\text{test}})^\top\mat{\theta_0} - \phi(\vec{x_\text{test}})^\top\mat{\theta^*}(\mathcal{D})) + \mat{\epsilon} ||_2^2 \\
+                    & = || \phi(\vec{x_\text{test}})^\top (\mat{\theta_0} - \mat{\theta^*}(\mathcal{D})) ||_2^2 + || \mat{\epsilon} ||_2^2 + \text{cross-term} \\
+                    \mathbb{E}[|| \mat{\epsilon} ||_2^2] & = \sigma^2 \\
+                    \mathbb{E}[\text{cross-term}] & = 0 \\
+                    || \phi(\vec{x_\text{test}})^\top (\mat{\theta_0} - \mat{\theta^*}(\mathcal{D})) ||_2^2 & = \phi(\vec{x_\text{test}})^\top (\mat{\theta_0} - \mat{\theta^*}(\mathcal{D})) (\mat{\theta_0} - \mat{\theta^*}(\mathcal{D}))^\top \phi(\vec{x_\text{test}}) \\
+                    \mathbb{E}[(\mat{\theta_0} - \mat{\theta^*}(\mathcal{D})) (\mat{\theta_0} - \mat{\theta^*}(\mathcal{D}))^\top] & = \text{Error}(\mat{\theta^*}) \\
+                    \mathrm{error}_\text{pred}(\mat{\theta^*}) & = \mathbb{E}_{\mathcal{D} \sim p_\text{data}^N}[\mathbb{E}_{(\vec{x_\text{test}}, y_\text{test}) \sim p_\text{data}^N}[|| y_\text{test} - f(\vec{x_\text{test}}, \mat{\theta^*}(\mathcal{D})) ||_2^2]] \\
+                    & = \mathbb{E}_{\vec{x_\text{test}}} [\phi(\vec{x_\text{test}})^\top\mathrm{Error}(\mat{\theta^*})\phi(\vec{x_\text{test}})] + \sigma^2
+                \end{align*}
+                If we have two estimators $\mat{\theta_1}$ and $\mat{\theta_2}$ (for example, the former is the linear regressor and the latter is the ridge regressor) - if we can show the matrix form of the parameter estimator error of the first estimator is dominated by the matrix form of the latter, then we can show the expected prediction error of the former is smaller;
+                $$\mathrm{Error}(\mat{\theta_1}) \preceq \mathrm{Error}(\mat{\theta_2}) \Rightarrow \mathrm{error}_\text{pred}(\mat{\theta_1}) \leq \mathrm{error}_\text{pred}(\mat{\theta_2})$$
+                Note that $\mathrm{Error}(\mat{\theta_1}) \preceq \mathrm{Error}(\mat{\theta_2})$ means $\mathrm{Error}(\mat{\theta_2}) - \mathrm{Error}(\mat{\theta_1})$ is positive semi-definite, hence;
+                $$\forall \vec{\phi}\ [\vec{\phi}^\top (\mathrm{Error}(\mat{\theta_1}) - \mathrm{Error}(\mat{\theta_2})) \vec{\phi} \leq 0]$$
+                If we have a smaller estimation error, then we have a smaller prediction error.
+                \medskip
+
+                Linear regression gives an unbiased estimator (the expectation of $\epsilon$ is zero, then the rest cancels out);
+                $$\mathbb{E}_{\mathcal{D} \sim p_\text{data}^N}[\mat{\theta_L^*}(\mathcal{D})] = \mathbb{E}_{\mathcal{D} \sim p_\text{data}^N}[(\mat{\Phi}^\top\mat{\Phi})^{-1}\mat{\Phi}^\top(\mat{\Phi}\mat{\theta_0} + \mat{\epsilon})] = \mat{\theta_0}$$
+                However, ridge regression gives a biased estimator (as long as $\lambda \neq 0$);
+                $$\mathbb{E}_{\mathcal{D} \sim p_\text{data}^N}[\mat{\theta_R^*}(\mathcal{D})] = (\sigma^2\lambda\mat{I} + \mat{\Phi}^\top\mat{\Phi})^{-1}\mat{\Phi}^\top\mat{\Phi}\mat{\theta_0} \neq \mat{\theta_0}$$
+                If we know $\mat{\epsilon} \sim \mathcal{N}(0, \mat{\Sigma})$ and $\mat{\epsilon^\prime} = \mat{A}\mat{\epsilon}$, then $\mat{\epsilon^\prime} \sim \mathcal{N}(0, \mat{A}\mat{\Sigma}\mat{A}^\top)$
+                The variance (for ridge regression) is as follows;
+                \begin{align*}
+                    \mathbb{V}_{\mathcal{D} \sim p_\text{data}^N}[\mat{\theta_R^*}(\mathcal{D})] & = \mathbb{V}_{\mathcal{D} \sim p_\text{data}^N}[(\sigma^2\lambda\mat{I} + \mat{\Phi}^\top\mat{\Phi})^{-1}\mat{\Phi}^\top(\mat{\Phi}\mat{\theta_0} + \mat{\epsilon})] \\
+                    & = \mathbb{V}_{\mathcal{D} \sim p_\text{data}^N}[(\sigma^2\lambda\mat{I} + \mat{\Phi}^\top\mat{\Phi})^{-1}\mat{\Phi}^\top\mat{\epsilon}] \\
+                    & = \sigma^2(\sigma^2\lambda\mat{I} + \mat{\Phi}^\top\mat{\Phi})^{-1}\mat{\Phi}^\top\mat{\Phi}(\sigma^2\lambda\mat{I} + \mat{\Phi}^\top\mat{\Phi}) \\
+                    & = \mat{V}(\lambda)
+                \end{align*}
+                The variance for the linear regression estimator can be obtained from the above, by setting $\lambda = 0$;
+                $$\mat{V}(0) = \sigma^2(\mat{\Phi}^\top\mat{\Phi})^{-1}$$
+                The bias of the ridge regression estimator can be written as the follows (and similarly, set $\lambda = 0$ for the bias of the linear regression estimator);
+                $$\mat{b}(\lambda) = -\sigma^2\lambda(\sigma^2\lambda\mat{I} + \mat{\Phi}^\top\mat{\Phi})^{-1}\mat{\theta_0}$$
+                We can choose some $\lambda$ in the range $0 \leq \lambda \leq \frac{2}{|| \mat{\theta_0} ||_2^2}$ such that;
+                $$\mat{b}(\lambda)\mat{b}(\lambda)^\top + \mat{V}(\lambda) \preceq \mat{V}(0) \Rightarrow \mathrm{error}_\text{pred}(\mat{\theta_R^*}) \leq \mathrm{error}_\text{pred}(\mat{\theta_L^*})$$
+                This shows that ridge regression can achieve a better bias-variance trade-off in the parameter space.
+                For any positive $\lambda$, ridge regression gives an estimator that has a smaller variance.
+                However $\lambda$ needs to be chosen carefully to ensure the bias isn't too large.
 \end{document}
