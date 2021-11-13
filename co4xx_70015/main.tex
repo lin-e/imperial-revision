@@ -1588,4 +1588,153 @@
                 \end{align*}
                 This is equivalent to the eigendecomposition of $\mat{S} = \mat{Q}\mat{\Lambda}\mat{Q}^\top$.
                 PCA requires the $\mat{U}$ basis vectors, with the largest singular values.
+        \subsection*{Lecture 9 - Maximum Likelihood}
+            Recall the function is an inner product between a feature vector and some parameters;
+            $$f(x) = \vec{\phi}(x)^\top \vec{\theta} = \summation{m = 1}{M} \phi_m(x) \theta_m$$
+            Our previous principle was to find the function by minimising a loss function on training points; however we are likely to see overfitting.
+            The data points we observe are points that follow the trend with some noise (unpredictability), and our model doesn't account for the latter.
+            We want to have a model that accounts for this unpredictability.
+            \medskip
+
+            Probabilistic models treat the data as the outcome of some random variable; therefore the model of the data is a probability distribution.
+            For linear regression, we have $y_n = f(x_n; \vec{\theta}) + \epsilon_n$ (follows the trend with some noise), where $\epsilon_n \sim \mathcal{N}(0, \sigma^2)$ (iid to some Gaussian distribution).
+            This implies there is some probability distribution on $y_n$.
+            We want to consider the probability density;
+            $$p(y_n\ |\ f(x_n; \vec{\theta}))$$
+            Given some value for the trend function, $f(x_n; \vec{\theta})$, it follows that $y_n$ is a deterministic function of a random variable - a change of variables problem.
+            \medskip
+
+            The problem we are looking at (for discrete RVs), if we are given some probability mass function $P_x(x)$, we want to find the probability mass function of $Y$ where $Y = t(X)$, assuming that $t$ is invertible.
+            We know that $P_X(x) = P_Y(t(x))$ as the outcomes will always occur together.
+            Therefore, we can say $P_Y(y) = P_X(t^{-1}(y))$, by simply looking up the value.
+            If we have the probability for each possible outcome, we can find the probability of any event; $P(Y \in \{ y_1, y_2 \}) = P(y_1) + P(y_2)$
+            \medskip
+
+            Continuous RVs are slightly more complex.
+            We now have a continuous random variable $X$, with the same setting (with the added constraint that $t$ is increasing).
+            Recall the probability of a single exact outcome is zero in the continuous case, instead we care about ranges, such as $P(a \leq Y \leq b)$.
+            We know that equivalent events should have the same probability;
+            \begin{align*}
+                P(-\infty \leq X \leq x) & = P(-\infty \leq Y \leq t(x)) \\
+                & = \defint{-\infty}{x}{p_X(\bar{x})}{\bar{x}} \\
+                & = \defint{-\infty}{t(x)}{p_Y(\bar{y})}{\bar{y}} \\
+                & = \defint{-\infty}{t^{-1}(x)}{p_X(\bar{x})}{\bar{x}} \\
+                & = \defint{-\infty}{y}{p_Y(\bar{y})}{\bar{y}} \\
+                \dif{}{y} \defint{-\infty}{y}{p_Y(\bar{y})}{\bar{y}} & = p_Y(y) \\
+                & = \dif{}{y} \defint{-\infty}{t^{-1}(x)}{p_X(\bar{x})}{\bar{x}} \\
+                & = \dif{}{x} \left(\defint{-\infty}{t^{-1}(x)}{p_X(\bar{x})}{\bar{x}}\right) \dif{x}{y} \\
+                & = p_X(x) \dif{}{y} t^{-1}(y)
+            \end{align*}
+            If $t$ is decreasing, then $P(-\infty \leq X \leq x) = P(t(x) \leq y \leq \infty)$ - in general $p_Y(y) = p_X(x) |\dif{}{y} t^{-1}(y)|$
+            \medskip
+
+            To work out the probability density $p(y_n\ |\ f(x_n; \vec{\theta}))$;
+            \begin{align*}
+                y_n & = t(\epsilon_n) \\
+                t(\epsilon_n) & = \epsilon_n + f(x_n; \vec{\theta}) \\
+                p_{Y_n}(y) & = p_{\epsilon_n}(y - f(x_n; \vec{\theta})) \\
+                & = \mathcal{N}(y - f(x_n; \vec{\theta}); 0, \sigma^2) \\
+                \mathcal{N}(y; \mu, \sigma^2) & = \frac{1}{\sqrt{2 \pi \sigma^2}}e^{-\frac{(y - \mu)^2}{2\sigma^2}}
+            \end{align*}
+            Therefore, $p(y_n\ |\ f(x_n; \vec{\theta})) = \mathcal{N}(y_n; f(x_n; \vec{\theta}), \sigma^2)$.
+            Note that $p(y_n\ |\ f(x_n; \vec{\theta}))$ may also be written as $p(y_n\ |\ \vec{\theta}, x_n)$ or $p(y_n\ |\ \vec{\theta})$, since all $x_n$ are given and fixed (rather than unknown).
+            \medskip
+
+            Our model has free parameters $\vec{\theta}$ and $\sigma^2$; the former we have found through loss minimisation.
+            We want to find a single principal to find both.
+            A good model gives high probability to the data; the maximum likelihood estimator.
+            \medskip
+
+            Assume the height of a random person is Gaussian with unknown mean $\mu$ and variance $\sigma^2$.
+            To find the MLE for $N$ observed heights.
+            \begin{align*}
+                p(h_n\ |\ \mu, \sigma^2) & = \mathcal{N}(h_n; \mu, \sigma^2) \\
+                p(\vec{h}\ |\ \mu, \sigma^2) & = \product{n = 1}{N} p(h_n\ |\ \mu, \sigma^2) \\
+                \mu^*, \sigma^{2*} & = \argmax_{\mu, \sigma^2} p(\vec{h}\ |\ \mu, \sigma^2) \\
+                & = \argmax_{\mu, \sigma^2} \log p(\vec{h}\ |\ \mu, \sigma^2) \\
+                & = \argmax_{\mu, \sigma^2} \summation{n}{} \log p(h_n\ |\ \mu, \sigma^2) \\
+                & = \argmax_{\mu, \sigma^2} \summation{n}{} \left(-\frac{1}{2} \log (2\pi) - \frac{1}{2} \log \sigma^2 - \frac{1}{2\sigma^2} (h_n - \mu)^2\right)
+            \end{align*}
+            Take derivatives;
+            \begin{align*}
+                \dif{}{\mu} \left(\summation{n}{} \left(-\frac{1}{2} \log (2\pi) - \frac{1}{2} \log \sigma^2 - \frac{1}{2\sigma^2} (h_n - \mu)^2\right)\right) & = 0 & \Rightarrow \\
+                \summation{n}{} -\frac{1}{2\sigma^2} \cdot 2(h_n - \mu) \cdot -1 & = \summation{n}{} \frac{1}{\sigma^2}(h_n - \mu) \\
+                & = 0 & \Rightarrow \\
+                \summation{n}{} h_n - N\mu & = 0 & \Rightarrow \\
+                \hat{\mu} & = \frac{1}{N} \summation{n}{} h_n \\
+                \dif{}{\sigma^2} \left(\summation{n}{} \left(-\frac{1}{2} \log (2\pi) - \frac{1}{2} \log \sigma^2 - \frac{1}{2\sigma^2} (h_n - \mu)^2\right)\right) & = 0 & \Rightarrow \\
+                \summation{n}{} \left(-\frac{1}{2\sigma^2} - \frac{1}{2}(h_n - \hat{\mu})^2 \dif{}{\sigma^2} (\sigma^2)^{-1}\right) & = 0 & \Rightarrow \\
+                -\frac{N}{2\sigma^2} - \frac{1}{2}\summation{n}{} (h_n - \hat{\mu})^2 (\sigma^2)^{-2} \cdot -1 & = 0 & \Rightarrow \\
+                \frac{1}{N} \summation{n}{} (h_n - \hat{\mu})^2 & = \sigma^2
+            \end{align*}
+            To show the mean estimator is unbiased;
+            \begin{align}
+                \hat{\mu} & = \frac{1}{N} \summation{n}{} h_n \\
+                \mathbb{E}_{\vec{h}}[\hat{\mu}] &\ \violet{= \mu} & \text{\violet{goal to show unbiased}}\\
+                & = \mathbb{E}_{\vec{h}}\left[\frac{1}{N} \summation{n}{} h_n\right] \\
+                & = \frac{1}{N} \summation{n}{} \mathbb{E}_{h_n}[h_n] \\
+                & = \frac{1}{N} \summation{n}{} \mu \\
+                & = \mu & \text{therefore unbiased}
+            \end{align}
+            However, the variance estimator isn't - we can do this by having a single example where the expectation $\mathbb{E}[\sigma^2]$ is different from the actual variance of the distribution it came from.
+            For the extreme case, with one data point - the mean is the value of a single data point.
+            As such, the variance estimator would be zero, hence it is biased.
+            \medskip
+
+            The same idea can be used to train a model;
+            $$\vec{\theta^*} = \argmax_{\vec{\theta}} p(\vec{y}\ |\ \vec{\theta}, X) = \argmax_{\vec{\theta}} \product{n = 1}{N} p(y_n\ |\ \vec{\theta}, \vec{x_n})$$
+            Once again, logs can be taken (doesn't change the optima, but easier to compute and more stable than multiplying in floating point);
+            \begin{align*}
+                \vec{\theta^*}  & = \argmax_{\vec{\theta}} \log p(\vec{y}\ |\ \vec{\theta}, X) \\
+                & = \argmax_{\vec{\theta}} \summation{n = 1}{N} \log p(y_n\ |\ \vec{\theta}, \vec{x_n}) \\
+                & = \argmax_{\vec{\theta}} \summation{n}{} \left(-\frac{1}{2} \log (2\pi\sigma^2) - \frac{1}{2\sigma^2} (y_n - f(\vec{x_n}; \vec{\theta}))^2\right) \\
+                & = \argmin_{\vec{\theta}} \summation{n}{} (y_n - f(\vec{x_n}; \vec{\theta}))^2
+            \end{align*}
+            The last line can be done as only the squared term is dependent on $\vec{\theta}$ - notice that this is the same as minimising loss.
+            The additional capability of our model is that we can also estimate the unpredictability of the model.
+            One assumption we are making is that the uncertainty is the same throughout the entire input range of the model.
+            The variance can be shown to be the average squared deviation from the predicted function value (whereas before, in the height example, it was the deviation from $\hat{\mu}$).
+            \medskip
+
+            When we overfit, the predicted variance of our model approaches zero.
+            This is bad - when we make a new prediction, the uncertainty helps us avoid making an overconfident prediction.
+            In cross-validation, we train our model on the same training data and then use the validation set to pick the model with the lowest validation error; this may make the error on the training data worse, but better on the validation data.
+            This will give us a larger variance.
+            \subsubsection*{Bayesian Inference}
+                Consider the example of a coin tossing game; where if you guess correctly you are given a certain amount, and if you guess incorrectly, you pay a certain amount.
+                Knowledge of the coin's probability is important.
+                Now assume you've seen the game played, and the coin has been flipped to be head three times in a row.
+                We assume the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item the coin has a property that determines whether it lands on heads or tails, the probability of which won't change
+                    \item no inherent `skill' in tossing the coin - it depends solely on the coin
+                \end{itemize}
+                We are interested in quantities we don't know about (similar to linear regression, when we didn't know the parameters of the function).
+                Previously, the methods we looked at only attempted to come up with a single best estimate, whereas Bayesian Inference quantifies the uncertainty with a probability distribution.
+                Bayes rule can be used to find the uncertainty after observing data.
+                In the coin example;
+                \begin{align*}
+                    s_i & \in \{0, 1\} & \text{coin toss outcome, $1$ for heads} \\
+                    \vec{s} & \in \{0, 1\}^N & \text{sequence of outcomes, a binary vector} \\
+                    h & \in \mbbr & \text{probability of heads}
+                \end{align*}
+                If we were using MLE, all we would have to do is maximise $p(\vec{s}\ |\ h)$, where $\vec{s}$ is data we have and $h$ is the unknown;
+                \begin{align*}
+                    N_H & = \text{number of heads in $\vec{s}$} \\
+                    N_T & = \text{number of tails in $\vec{s}$} \\
+                    N & = N_H + N_T & \text{total number of throws} \\
+                    p(\vec{s}\ |\ h) & = h^{N_H} \cdot (1 - h)^{N_T}
+                \end{align*}
+                The belief of what $h$ is before anything has been observed is the prior distribution.
+                $$p(h\ |\ \vec{s}) = \frac{p(\vec{s}, h)}{p(\vec{s})} = \frac{p(\vec{s}\ |\ h)p(h)}{p(\vec{s})}$$
+                Note that $p(h)$ is a probability density on a probability.
+                The posterior distribution is a uniform distribution multiplied by a likelihood function (a linear function).
+                Consider a case where we have 2 heads and then 1 tails, hence $\vec{s} = [1, 1, 0]$.
+                The probability distribution is a polynomial, where either extremes are now zero, with a peak at $\frac{2}{3}$.
+                However, when we get more data, the distribution should become sharper at $0.5$ (with a fair coin), however, if we kept observing tails for example, we'd likely have a sharper peak at zero.
+                \medskip
+
+                In short, we keep track of uncertainty about all possible values, and use a probability distribution to quantify this uncertainty.
+                This helps to avoid the overconfidence issues from MLE.
 \end{document}
