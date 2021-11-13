@@ -1307,4 +1307,109 @@
 
             Note that ~XOR~ cannot be done with a single layer.
             However, ~XOR~ can be represented by a combination of layers (two dense layers separated by activation functions).
+        \subsection*{Linear Function Approximation}
+            Previously, we had tables representing the value function $V(s)$ and action-value function $Q(s, a)$.
+            However, large MDPs have many states (curse of dimensionality; the number of samples required to estimate an arbitrary function grows exponentially with respect to the number of input variables (dimensionality) of the function).
+            There are too many states to store in memory, leading to the agent taking a long time to learn the value of each state individually.
+            In reinforcement learning, even sparse matrices tend to become dense as values are eventually filled in.
+            \medskip
+
+            A solution is to estimate the value function with function approximation.
+            It generalises from seen states to unseen states.
+            The parameter $\vec{w}$ is updated with MC or TD learning;
+            \begin{align*}
+                V^\pi(s) & \approx \hat{V}(s, \vec{w}) \\
+                Q^\pi(s, a) & \approx \hat{Q}(s, a, \vec{w})
+            \end{align*}
+            For function approximators, we limit ourselves to differentiable functions, thus simplifying learning.
+            The training method needs to be suitable for non-stationary and non-iid data.
+            \medskip
+
+            The goal is to find the parameter vector which minimise the MSE between the approximate value function and the true value function;
+            $$J(\vec{w}) = \mathbb{E}[(V^\pi(s) - \hat{V}(s, \vec{w}))^2]$$
+            The gradient is as follows (note the $\frac{1}{2}$ is used to cancel out the derivative);
+            \begin{align*}
+                \Delta \vec{w} & = -\frac{1}{2} \alpha \nabla_{\vec{w}} J(\vec{w}) \\
+                & = \alpha \mathbb{E}[(V^\pi(s) - \hat{V}(s, \vec{w}))\nabla_{\vec{w}}  \hat{V}(s, \vec{w})]
+            \end{align*}
+            SGD samples the gradient and the average update is equivalent to the full gradient update.
+            \medskip
+
+            State can be represented as a feature vector $\vec{x}(s) = [x_1(s), \dots, x_n(s)]^\top$.
+            This may differ from the precise state definition, as the real world may not have a strong definition of state.
+            Our previous derivations can be considered a special case of function approximation, where the feature vector is the state vector.
+            \medskip
+
+            If some state is inside a circle, then the corresponding feature has the value 1, otherwise the feature is 0 (binary feature).
+            Given a state, the present binary features indicate where the state lines (within the circles), and coarsely code its location.
+            Coarse coding is the process of representing a state with features that overlap (don't necessarily need to be binary or circles).
+            Corresponding to each circle is a component of $\vec{w}$ that is affected by learning - if we train at one point / state $x$, all circles that intersect it will be affected.
+            As such, the approximate value function will be affected at all points within the union of the circles.
+            If the circles are small, the generalisation will be over a small distance.
+            See the slides for a visual example of a square wave function.
+            With narrow features, only the close neighbours of each trained point were changed (leading to a `bumpy' function).
+            Features are crafted, not learnt.
+            \medskip
+
+            Tile coding is a form of coarse coding, well suited for computers and efficient on-line learning.
+            The receptive fields of the features are grouped into partitions of the input space, with each partition being called a tiling, and each element of the partition being called a tile.
+            The number of features is strictly controlled and independent of the input state.
+            \medskip
+
+            Tile coding uses exclusively binary valued features, the weighted sum which makes up the approximated value function is simple to compute.
+            The computation of the indices (from a point in the space $x, y$) is easy to perform.
+            When multiple tilings are used, each is offset by a different amount.
+            The width of the tiles should be chosen to match the width of generalisation that is expected to be appropriate.
+            The number of tilings determines the resolution of the approximation.
+            Hashing can also be used to collapse a large tiling into a smaller set of tiles.
+            \medskip
+
+            Radial basis functions are the natural generalisation of coarse coding to continuous-valued features (values lie in the interval $[0, 1]$).
+            This can reflect the various degrees in which the feature is present.
+            An RBF network is a linear function approximation that uses RBFs for its features.
+            Each $\phi_s(i)$ is the $i^\text{th}$ basis function that maps a continuous state space variable $s$, where $\sigma_i$ is the width and $c_i$ is the centre;
+            $$\phi_s(i) = e^{-\frac{| s - c_i |^2}{2 \sigma_i^2}}$$
+            The main advantage of RBFs over binary features is that they produce approximate functions that vary smoothly and are differentiable.
+            Some learning methods change the centres and widths of each RBF.
+            \medskip
+
+            Hybrid images combines the low spatial frequencies of one picture with the high spatial frequencies of another, producing an image that has an interpretation which changes with viewing distance.
+            \medskip
+
+            Inductive / learning bias of a learning algorithm is the set of assumptions that the learner uses to predict outputs of given unencountered inputs.
+            An appropriately chosen algorithm can reduce the inductive bias of the person designing the algorithm.
+            Some function approximations can identify complex patterns that can't be seen by a human, or identify weak patterns that are undetectable by humans.
+            \medskip
+
+            The value function is represented with a linear combination of features;
+            $$\hat{v}(s, \vec{w}) = \vec{x}(s)^\top\vec{w} = \summation{j = 1}{n} x_j(s)w_j$$
+            The objective function is quadratic in the parameters $\vec{w}$ and stochastic gradient converges on the global optimum, with an appropriate step size.
+            In linear function approximation;
+            \begin{align*}
+                \nabla_{\vec{w}} \hat{V}(s, \vec{w}) & = \vec{x}(s) \\
+                \Delta \vec{w} & = \alpha(V^\pi(s) - \hat{V}(s, \vec{w})) \vec{x}(s)
+            \end{align*}
+            In MC, the return $R_t$ is an unbiased but noisy sample of the true value $V^\pi(s_t)$.
+            With linear Monte-Carlo policy evaluation (converges to the global optimum);
+            $$\Delta \vec{w} = \alpha(R_t - \hat{V}(s, \vec{w}))\nabla_{\vec{w}} \hat{V}(s, \vec{w}) = \alpha(R_t - \hat{V}(s, \vec{w}))\vec{x}(s_t)$$
+            Similarly, this can be done with TD.
+            However, the TD-target $R_{t + 1} + \gamma \hat{V}(s_{t + 1}, \vec{w})$ is a biased (by the initial values) single sample of the true value.
+            \begin{align*}
+                \Delta \vec{w} & = \alpha(r + \gamma \hat{V}(s^\prime, \vec{w}) - \hat{V}(s, \vec{w}))\nabla_{\vec{w}} \hat{V}(s_t, \vec{w}) \\
+                & = \alpha(r + \gamma \hat{V}(s^\prime, \vec{w}) - \hat{V}(s, \vec{w})) \vec{x}(s_t)
+            \end{align*}
+            It converges close to the global optimum.
+            A simple algorithm is as follows;
+            \begin{enumerate}
+                \itemsep0em
+                \item initialise $\vec{w} = \vec{0}$, $k = 1$
+                \item loop
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item sample tuple $(s_k, a_k, r_k, s_{k + 1})$ given $\pi$
+                        \item update the weights $\vec{w} \leftarrow \vec{w} + \alpha(r + \gamma \vec{x}(s^\prime)^\top \vec{w} - \vec{x}(s)^\top \vec{w})\vec{x}(s)$
+                        \item $s_k \leftarrow s_k + 1$
+                        \item $k \leftarrow k + 1$
+                    \end{enumerate}
+            \end{enumerate}
 \end{document}
