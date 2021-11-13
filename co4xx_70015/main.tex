@@ -1363,4 +1363,116 @@
                 This shows that ridge regression can achieve a better bias-variance trade-off in the parameter space.
                 For any positive $\lambda$, ridge regression gives an estimator that has a smaller variance.
                 However $\lambda$ needs to be chosen carefully to ensure the bias isn't too large.
+            \subsubsection*{Principal Component Analysis}
+                Regression is a supervised learning problem.
+                In unsupervised learning, there is no output data $y$, and we want to figure out the underlying structure from data $X$.
+                \medskip
+
+                The motivation for dimensionality reduction is that the data we observe daily tend to be high dimensional.
+                For example; natural images (actual images) are a very small subset of all possible RGB images - in the majority of cases, it's just noise.
+                Therefore, instead of a high dimensional vector of pixel data, the actual data lies in a lower dimensional space.
+                \medskip
+
+                A user's data is typically quite sparse in a recommender system; for example a matrix of users' ratings on items - there may be millions of products, but very few will actually have ratings per user.
+                Although the data may seem to be high dimensional, they only lie in a lower dimension subspace.
+                \medskip
+
+                The problem can be set up as follows (no $y$, as it's unsupervised);
+                \setcounter{equation}{0}
+                \begin{align}
+                    \mathcal{D} & = \{ \mat{x_1}, \dots, \mat{x_N} \} \\
+                    \mathrm{mean}(\mat{x_n}) & = \mat{0} \\
+                    \mat{x_n} & \approx \tilde{\mat{x}}_{\mat{n}} \\
+                    & = \summation{j = 1}{M} z_{nj} \mat{b_j} \\
+                    z_{nj} & = \mat{b_j}^\top \mat{x_n} \\
+                    \mat{B} & = [\mat{b_1}, \dots, \mat{b_M}]
+                \end{align}
+                Note the following;
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \item $\mat{x_n} \in \mbbr^{D \times 1}$
+                    \item assume that we've already shifted the data
+                    \item an approximate projection in a lower-dimensional space, $M < D$
+                    \setcounter{enumi}{4}
+                    \item note that the coordinates $\{z_{nj}\}$ are projections of the $\mat{x_n}$ vector onto a given basis.
+                    \item an orthonormal basis (which we want to figure out), $\mat{b_m} \in \mbbr^{D \times 1}$
+                \end{enumerate}
+                The goal is to minimise the $\ell_2$ reconstruction error (consider the full orthonormal basis $\mat{B}_\text{full}$);
+                \begin{align*}
+                    \mat{B}_\text{full} & = \begin{bmatrix}
+                        \blue{\vec{b_1}} & \blue{\cdots} & \blue{\vec{b_M}} & \red{\vec{b_{M + 1}}} & \red{\cdots} & \red{\vec{b_{D}}}
+                    \end{bmatrix} & \text{\blue{used in new basis}, \red{dropped}} \\
+                    \vec{x_n} & = \blue{\underbrace{\summation{j = 1}{M} z_{nj}\mat{b_j}}_{\tilde{\mat{x}}_{\mat{n}}}} + \red{\summation{j = M + 1}{D} z_{nj}\mat{b_j}} \\
+                    \mat{x_n} - \tilde{\mat{x}}_{\mat{n}} & = \red{\summation{j = M + 1}{D} z_{nj}\mat{b_j}} \\
+                    L & = \frac{1}{N} \summation{n = 1}{N} || \mat{x_n} - \tilde{\mat{x}}_{\mat{n}} ||_2^2 \\
+                    & = \frac{1}{N} \summation{n = 1}{N} || \summation{j = M + 1}{D} z_{nj}\mat{b_j} ||_2^2 \\
+                    & = \frac{1}{N} \summation{n = 1}{N} \summation{j = M + 1}{D} || z_{nj}\mat{b_j} ||_2^2 \\
+                    & = \frac{1}{N} \summation{n = 1}{N} \summation{j = M + 1}{D} z_{nj}^2
+                \end{align*}
+                Note that the $\ell_2$ norm can be put inside the (penultimate step) as the cross terms cancel out, since it is an orthonormal basis.
+                The final step can be done as $z_{nj}$ is a scalar, and the basis vectors are unit vectors.
+                Plugging in the definition of $z_{nj}$, we get the following (notice the \violet{variance of $\{ \vec{x_n} \}$});
+                $$L = \summation{j = M + 1}{D} \mat{b_j}^\top \left( \violet{\frac{1}{N} \summation{n = 1}{N} \mat{x_n}\mat{x_n}^\top} \right) \mat{b_j}$$
+                Therefore, our goal is to find the orthonormal basis $\mat{B}_\text{full}$ to minimise $L$.
+                Note that $\mat{S} \in \mbbr^{D \times D}$ is a symmetric matrix and positive semidefinite - for any $\mat{x} \in \mbbr^{D \times 1}$;
+                $\mat{x}^\top\mat{S}\mat{x} = \frac{1}{N} \summation{n = 1}{N} (\mat{x}^\top\mat{x_n})^2 \geq 0$.
+                \begin{align*}
+                    \text{define } \mat{S} & = \frac{1}{N} \summation{n = 1}{N} \mat{x_n}\mat{x_n}^\top \\
+                    L & = \summation{j = M + 1}{D} \mat{b_j}^\top \mat{S} \mat{b_j}
+                \end{align*}
+                Assume the eigen decomposition of $\mat{S} = \mat{Q}\mat{\Lambda}\mat{Q}^\top$ ($\mat{Q}$ constructs an orthonormal basis of the $\mbbr^D$ space);
+                \begin{align*}
+                    \mat{\Lambda} & = \diag(\lambda_1, \dots, \lambda_D) & \lambda_1 \geq \cdots \geq \lambda_D \geq 0 \\
+                    \mat{b_j}^\top\mat{S}\mat{b_j} & = \mat{b_j}^\top\mat{Q}\mat{\Lambda}\mat{Q}^\top\mat{b_j} \\
+                    & = \mat{\beta_j}^\top\mat{\Lambda}\mat{\beta_j} & \text{defined} \\
+                    & = \summation{d = 1}{D} \lambda_d \beta_{jd}^2 \\
+                    \mat{\beta_j} & = \mat{Q}^\top\mat{b_j} \\
+                    & = [\beta_{j1}, \dots, \beta_{jD}] \\
+                    & = [\mat{q_1}^\top\mat{b_j}, \dots, \mat{q_D}^\top\mat{b_j}]
+                \end{align*}
+                This gives us a constrained optimisation problem, where we have an orthonormal basis ($|| \mat{b_j} ||_2^2 = 1$ and vectors are perpendicular);
+                $$\min_{\mat{B}_\text{full}} L = \summation{j = M+1}{D} \summation{d = 1}{D} \lambda_d \beta_{jd}^2$$
+                An iterative approach is as follows; first solve for $\mat{b_D}$, then solve $\mat{b_j}$ for $j = D - 1, \dots, M + 1$ - the constraint still applies that $\mat{b_D}$ is a unit vector;
+                $$\min_{\mat{b_D}} \summation{d = 1}{D} \lambda_d \beta_{Dd}^2$$
+                Notice the following, hence it is a weighted sum of the eigenvalues;
+                \begin{align*}
+                    \beta_{Dd} & = \mat{b_D}^\top\mat{q_D} \\
+                    \summation{d = 1}{D} \beta_{Dd}^2 & = 1
+                \end{align*}
+                Therefore, $\mat{b_D} = \mat{q_D}$, by ordering of the eigenvalues - it's just the eigenvector with the smallest eigenvalue.
+                The iterative solution relies on proof by induction;
+                \begin{enumerate}
+                    \itemsep0em
+                    \item $\mat{b_D} = \mat{q_D}$
+                    \item for $j = D - 1, \dots, M + 1$, assume $\mat{b_i} = \mat{q_i}$, where $i > j$ (already solved the previous optimisation problems)
+                        \begin{enumerate}
+                            \itemsep0em
+                            \item $\mat{b_j} \bot \mat{b_i},\ i > j \Rightarrow \mat{b_j} = \summation{d = 1}{j} \beta_{jd}\mat{q_d}$
+                                \smallskip
+
+                                By the perpendicular constraint, if we consider $\mat{b_j}$ as a linear combination of the $\mat{q}$ vectors, it cannot contain the $\mat{q_i}$ vectors.
+                                If there is a contribution, the inner product wouldn't be equal to zero.
+                            \item $|| \mat{b_j} ||_2^2 = 1 \Rightarrow \summation{d = 1}{j} \beta_{jd}^2 = 1$
+                            \item the minimisation problems is as follows, with respect to $\beta_{jd}$;
+                                $$\min_{\mat{\beta_j}} \summation{d = 1}{j} \lambda_d \beta_{jd}^2$$
+                                Therefore, $\mat{b_j} = \mat{q_j}$ (hence $\beta_{jj} = 1$, $\beta_{jd} = 0$ for $d \neq j$)
+                        \end{enumerate}
+                    \item proof by induction tells us that $\mat{b_j} = \mat{q_j}$ for $j = M + 1, \dots, D$
+                \end{enumerate}
+                As such, we are projecting $\mat{x_n}$ to an orthogonal complement space;
+                \begin{align*}
+                    \mathrm{span}(\{ \mat{q_j} \}_{j = M + 1}^D)^\bot & = \{ \vec{x} \in \mbbr^{D \times 1} : \mat{x}^\top\mat{q_j} = 0, j = M + 1, \dots, D \} \\
+                    \vec{x_n} & = \blue{\underbrace{\summation{j = 1}{M} z_{nj}\mat{b_j}}_{\tilde{\mat{x}}_{\mat{n}}}} + \red{\summation{j = M + 1}{D} z_{nj}\mat{q_j}} & \mat{b_i} \bot \mat{q_j} \\
+                    \tilde{\mat{x}}_{\mat{n}} & \in \mathrm{span}(\{ \mat{q_j} \}_{j = M + 1}^D)^\bot
+                \end{align*}
+                In practice, PCA is done by doing the following;
+                \begin{enumerate}[1.]
+                    \itemsep0em
+                    \item start with the original dataset
+                    \item centre the dataset by subtracting the mean from each data point
+                    \item divide by the standard deviation to make the data unit free, the data will have variance 1 along each of the axes
+                    \item compute eigenvalues and eigenvectors of the data covariance matrix
+                    \item project data onto the principal subspace
+                    \item undo the standardisation and move the projected data back into original space
+                \end{enumerate}
 \end{document}
