@@ -1475,4 +1475,117 @@
                     \item project data onto the principal subspace
                     \item undo the standardisation and move the projected data back into original space
                 \end{enumerate}
+        \subsection*{Lecture 8 - More on PCA}
+            The perspective for PCA covered in the previous lecture was to minimise the reconstruction loss (by minimising the distance between the approximate projection and the original value).
+            Another perspective is to take the maximum variance.
+            Consider data in 2 dimensions, if the data doesn't vary much in the first dimension, then it can be omitted, and only store the other direction.
+            We essentially want to store the dimensions that vary the most, rather than waste storage storing repeated similar values in the other dimensions.
+            \medskip
+
+            Using a similar set up to before, with an orthonormal basis $\mat{B} = [\mat{b_1}, \dots, \mat{b_M}]$;
+            $$\mat{z_n} := \mat{B}^\top\mat{x_n} \Leftrightarrow z_{nj} := \mat{b_j}^\top \mat{x_n}$$
+            Solve for $\mat{b_1}$ such that $\mathbb{V}[\mat{b_1}^\top\mat{x_n}]$ is maximised, with the constraint that $|| \mat{b_1} ||_2 = 1$.
+            Recall that $\mat{x_n}$ has mean zero;
+            \begin{align*}
+                \mathbb{V}[\mat{b_1}^\top\mat{x_n}] & = \frac{1}{N} \summation{n = 1}{N} (\mat{b_1}^\top\mat{x_n})^2 \\
+                & = \mat{b_1}^\top \underbrace{\left( \violet{\frac{1}{N} \summation{n = 1}{N} \mat{x_n}\mat{x_n}^\top} \right)}_{\violet{= \mat{S} = \mat{Q}\mat{\Lambda}\mat{Q}^\top}} \mat{b_1} \\
+                & = \mat{b_1}^\top \mat{Q}\mat{\Lambda}\mat{Q}^\top \mat{b_1} \\
+                & = \summation{d = 1}{D} \lambda_d \beta_{1d}^2
+            \end{align*}
+            Therefore $\mat{b_1} = \mat{q_1}$, the eigenvector with the greatest eigenvalue.
+            To show the norm of the $\mat{\beta_1} = 1$, we can do the following;
+            \begin{align*}
+                \mat{\beta_1} & = \mat{Q}^\top\mat{b_1} \\
+                || \mat{\beta_1} ||_2^2 & = || \mat{Q}^\top\mat{b_1} ||_2^2 \\
+                & = \left|\left| \summation{d = 1}{D} \violet{(\mat{q_d}^\top \mat{b_1})}\mat{q_d} \right|\right|_2^2 & \text{$\mat{Q}$ contains the basis (column) vectors} \\
+                & = \left|\left| \summation{d = 1}{D} \violet{\beta_{1d}}\mat{q_d} \right|\right|_2^2 \\
+                & = \summation{d}{} \summation{d^\prime}{} \beta_{1d}\beta_{1d^\prime} \mat{q_d}^\top \mat{q_{d^\prime}} \\
+                & = \summation{d}{} \beta_{1d}^2 || \mat{q_d} ||_2^2 & \text{different $\mat{q}$ vectors are orthonormal} \\
+                & = \summation{d}{} \beta_{1d}^2 & \text{$\mat{q}$ vectors are unit vectors}
+            \end{align*}
+            The remaining directions, $\mat{b_2}, \dots, \mat{b_M}$ can be solved iteratively (by `pinning' the directions we've already solved) - for $m = 2, \dots, M$;
+            \begin{enumerate}
+                \itemsep0em
+                \item compute the remainder of the problem;
+                    $$\hat{\mat{x}}_{\mat{n}} = \mat{x_n} - \summation{j = 1}{m - 1} z_{nj} \mat{b_j} = \mat{x_n} - \summation{j = 1}{m - 1} (\mat{b_j}^\top \mat{x_n}) \mat{b_j}$$
+                \item maximise $\mathbb{V}[\mat{b_m}^\top \hat{\mat{x}}_{\mat{n}}]$, with the constraints that $|| \mat{b_m} ||_2 = 1$ and $\mat{b_m} \bot \mat{b_j}$ for $j = 1, \dots, m - 1$ (perpendicular to the previous solutions), the mean is still $\mat{0}$, the variance after the projection is as follows;
+                    \begin{align*}
+                        \mathbb{V}[\mat{b_m}^\top \hat{\mat{x}}_{\mat{n}}] & = \frac{1}{N} \summation{n = 1}{N} \left(\mat{b_m}^\top\mat{x_n} - \summation{j = 1}{m - 1} (\mat{b_j}^\top\mat{x_n}) \mat{b_j}^\top\mat{b_m} \right)^2 \\
+                        & = \mat{b_m}^\top \underbrace{\left( \violet{\frac{1}{N} \summation{n = 1}{N} \mat{x_n}\mat{x_n}^\top} \right)}_{\violet{= \mat{S} = \mat{Q}\mat{\Lambda}\mat{Q}^\top}} \mat{b_m} & \mat{b_j}^\top\mat{b_m} = 0 \\
+                    \end{align*}
+            \end{enumerate}
+            The iterative solution once again relies on proof by induction;
+            \begin{enumerate}
+                \itemsep0em
+                \item $\mat{b_1} = \mat{q_1}$
+                \item for $m = 2, \dots, M$, assume $\mat{b_j} = \mat{q_j}$, where $j = 1, \dots, m - 1$ (already solved the previous optimisation problems)
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item $\mat{b_m} \bot \mat{b_j},\ j = 1, \dots, m - 1 \Rightarrow \mat{b_m} = \summation{j = m}{D} \beta_{mj}\mat{q_j}$
+                            \smallskip
+
+                            Set $\beta_{mj} = 0$ for $j = 1, \dots, m - 1$
+                        \item $|| \mat{b_m} ||_2^2 = 1 \Rightarrow \summation{j = m}{D} \beta_{mj}^2 = 1$
+                        \item solve for the maximum of $\mathbb{V}[\mat{b_m}^\top\mat{x_n}]$ with respect to $\beta_{mj}$;
+                            $$\mathbb{V}[\mat{b_m}^\top\mat{x_n}] = \left(\summation{j = m}{D} \beta_{mj}\mat{q_j}\right)^\top\mat{S}\left(\summation{j = m}{D} \beta_{mj}\mat{q_j}\right) = \summation{d = m}{D} \lambda_d \beta_{md}^2$$
+                            Therefore, $\mat{b_m} = \mat{q_m}$ (hence $\beta_{mm} = 1$, $\beta_{mj} = 0$ for $j > m$)
+                    \end{enumerate}
+                \item proof by induction tells us that $\mat{b_m} = \mat{q_m}$ for $m = 1, \dots, M$
+            \end{enumerate}
+            As such, we are projecting $\mat{x_n}$ to a subspace;
+            \begin{align*}
+                \mathrm{span}(\{ \mat{q_m} \}_{m = 1}^M) & = \mathrm{span}(\{\mat{q_j}\}_{j = M + 1}^D)^\bot \\
+                \vec{x_n} & = \blue{\underbrace{\summation{j = 1}{M} z_{nj}\mat{q_j}}_{\tilde{\mat{x}}_{\mat{n}}}} + \red{\summation{j = M + 1}{D} z_{nj}\mat{b_j}} & \mat{b_i} \bot \mat{q_j} \\
+                \tilde{\mat{x}}_{\mat{n}} & \in \mathrm{span}(\{ \mat{q_m} \}_{m = 1}^M)
+            \end{align*}
+            In both views of PCA, $\mat{b_i} \bot \mat{b_j}$ and $\mat{b_i} \bot \mat{q_j}$ - neither view solves for the full basis.
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{minimum reconstruction error}
+                    $$\mat{B_\text{full}^*} = \{ \mat{b_1}, \dots, \mat{b_M}, \mat{q_{M + 1}}, \dots, \mat{q_D} \}$$
+                    solve for basis vectors of the remainder information; drop last $D - M$ eigenvectors
+                \item \textbf{maximum variance}
+                    $$\mat{B_\text{full}^*} = \{ \mat{q_1}, \dots, \mat{q_M}, \mat{b_{M + 1}}, \dots, \mat{b_D} \}$$
+                    maintain the information in the span of the first $M$ eigenvectors
+            \end{itemize}
+            In practice, we tend to use $\mat{B_\text{full}^*} = \mat{Q}$.
+            \subsubsection*{Singular Value Decomposition}
+                PCA frequently takes the eigen decomposition of the variance;
+                \begin{align*}
+                    \mat{S} & = \frac{1}{N} \summation{n = 1}{N} \mat{x_n}\mat{x_n}^\top \\
+                    & = \frac{1}{N} \mat{X}\mat{X}^\top \\
+                    \mat{X} & = [\mat{x_1}, \dots, \mat{x_N}] \in \mbbr^{D \times N}
+                \end{align*}
+                The eigendecomposition is $\mat{X} = \mat{U} \mat{\Sigma} \mat{V}^\top$;
+                \begin{align*}
+                    \mat{U} & = [\mat{u_1}, \dots, \mat{u_D}] \in \mbbr^{D \times D} & \text{orthonormal basis of $\mbbr^D$} \\
+                    \mat{V} & = [\mat{v_1}, \dots, \mat{v_N}] \in \mbbr^{N \times N} & \text{orthonormal basis of $\mbbr^N$} \\
+                    \mat{\Sigma} & = \diag(\sigma_1, \dots, \sigma_r) & \text{contains diagonal block with singular values of $\mat{X}$, $\sigma_i > 0$} \\
+                    r & = \mathrm{rank}(\mat{X}) \\
+                    & \leq \min(D, N)
+                \end{align*}
+                Assume a linear mapping $f(\vec{x}) = \mat{A}\vec{x}$, where $\mat{A} \in \mbbr^{N \times D}$.
+                For example, a mapping from $D = 2$ to $N = 3$.
+                There exists an orthonormal basis of $\mbbr^D$, $\{ \mat{v_d} \}_{d = 1}^D$, which forms an orthogonal basis $\la \mat{A}\mat{v_i}, \mat{A}\vec{v_j} \ra = 0$, for $i \neq j$.
+                \medskip
+
+                By rescaling $\{ \mat{A}\vec{v_i} \}$ vectors, and adding more orthogonal vectors, another orthonormal basis of $\mbbr^N$ can be constructed; $\{ \vec{u_i} \}_{n = 1}^N$.
+                Therefore $\mat{A}\mat{v_i} = \sigma_i\mat{u_i}$.
+                Note that $\mat{A}\mat{x}$ can be constructed as linear combination of $\{ \mat{A}\vec{v_i} \}$ vectors.
+                Computing $\mat{A}\mat{x}$ with $\mat{x} \in \mbbr^D$ represented in the standard basis;
+                \begin{itemize}
+                    \itemsep0em
+                    \item $\mat{V}^\top\mat{x}$ computes the coordinates of $\mat{x}$ in the $\{ \mat{v_d} \}_{d = 1}^D$ basis
+                    \item $\mat{\Sigma}\mat{V}^\top\mat{x}$ stretches / shrinks the vector
+                    \item $\mat{U}\mat{\Sigma}\mat{V}^\top\mat{x}$ maps to the output space $\mbbr^N$ whose basis is in $\{ \vec{u_n} \}_{n = 1}^N$ and computes the coordinates back in the standard ($\{ \vec{e_n} \}_{n = 1}^N$) basis
+                \end{itemize}
+                A decomposition of $\mat{S}$ is as follows;
+                \begin{align*}
+                    \mat{X} & = \mat{U} \mat{\Sigma} \mat{V}^\top \\
+                    \mat{S} & = \frac{1}{N} \mat{X}\mat{X}^\top \\
+                    & = \frac{1}{N} \mat{U} \mat{\Sigma} \underbrace{\mat{V}^\top \mat{V}}_{= \mat{I}_{N \times N}} \mat{\Sigma}^\top \mat{U}^\top \\
+                    & = \mat{U} \diag(\frac{\sigma_1^2}{N}, \dots, \frac{\sigma_r^2}{N}, \underbrace{0, \dots, 0}_{D - r}) \mat{U}^\top
+                \end{align*}
+                This is equivalent to the eigendecomposition of $\mat{S} = \mat{Q}\mat{\Lambda}\mat{Q}^\top$.
+                PCA requires the $\mat{U}$ basis vectors, with the largest singular values.
 \end{document}
