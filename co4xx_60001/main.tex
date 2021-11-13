@@ -2022,4 +2022,23 @@
                 \medskip
 
                 Different browser windows / tabs should obviously not be in the same address space, since bounds checking is insufficient.
+        \subsection*{November 9 - Live Lecture}
+            VIPT does translation in parallel with the L1 data cache access (indexed with untranslated address bits).
+            The physical address from the cache is compared with the translation.
+            Not all of the 12 bits of the page offset are used to index the L1 cache (the low order bits are omitted).
+            \medskip
+
+            Page colouring for synonym consistency isn't typically done.
+            In page colouring for conflicting conflict avoidance, a simple policy the OS could attempt is to ensure contiguous virtual pages are mapped to contiguous physical pages.
+            \medskip
+
+            With \textit{Rowhammer}, we may not know the actual mappings.
+            However, since there's no security in obscurity, it's to show that it's possible, either by figuring out how the mappings work or by trying different combinations.
+            \medskip
+
+            Two threads sharing the same core, such as with hyperthreading or SMT, can allow one thread to influence the branch predictor of another thread.
+            The branch predictor can also be probed to reveal secrets, such as when the branches are influenced by the bits of a cryptographic key.
+            \medskip
+
+            One possible mitigation of Spectre is to mark cache lines loaded by speculative execution as invalid if the branch isn't taken.
 \end{document}
