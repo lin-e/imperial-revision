@@ -1858,7 +1858,68 @@
 
                 TLBs may need to support mappings for different size pages, for example the \textit{Haswell} TLB needs to support 128 mappings for 4KB pages and 8 2MB page mappings in the ITLB, as well as 64 mappings for 4KB pages, 8 2MB page mappings, and 4 mappings for 1GB pages in the DTLB.
             \subsubsection*{DRAM and Memory Parallelism}
-                %TODO https://imperial.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=ecdf5930-dec9-4e45-8695-add50011195a
+                The DRAM device is a large array of cells holding data.
+                DRAM emphasis capacity, leading us to have a single transistor design where data is stored on a capacitor.
+                It's a two dimensional array, where horizontally we have wordlines and vertically we have bitlines.
+                Data is stored as a charge on the capacitor - when we activate a wordline, an entire row of cells is activated, and charge flows along all of the bitlines.
+                The row address goes into a DEMUX, which selects the row, and the charges flow into a sense amplifier (comparator), which goes into a latch for all the bits in an entire row.
+                The column address bits go into a data selector (a MUX), which routes the data from the latch into the output.
+                However, note that once the row is read, the data is lost from the capacitors.
+                Once the data is latched, the switch is enabled on RAS and data is \textbf{written back} into the memory cell - the transistor is reactivated and the charge is allowed to flow in the opposite direction to recharge the capacitors.
+                Data is written to RAM in the same way.
+                \medskip
+
+                However, the charge may leak out in a number of ways.
+                As such, the DRAM needs to be refreshed (otherwise the charges may become indistinguishable).
+                The data needs to be written back even when not accessing the rows with some refresh mechanism.
+                As a consequence, DRAM is unavailable during refreshes, which happens every 64 milliseconds, or more frequently if the device is hot (self managed).
+                This is typically managed by a microcontroller on the chip, and is typically done a few wordlines at a time in a cyclic fashion.
+                This spreads out the interruption to general service over time.
+                \medskip
+
+                Once a row is selected, the entire row is latched, allowing elements in the row (different columns) to be accessed with lower latency.
+                For example, with a 60ns ($t_\text{RAC}$) DRAM;
+                \begin{itemize}
+                    \itemsep0em
+                    \item can only perform a row access every 110ns ($t_\text{RC}$)
+                    \item perform column access in 15ns ($t_\text{CAC}$) but time between column access is at least 35ns ($t_\text{PC}$) - in practice, additional delays make it between 40ns and 50ns
+                \end{itemize}
+                The row access cycle time is longer than the row access time, as data needs to be written back after reading.
+                \medskip
+
+                The architecture of a SDRAM chip may have multiple banks of DRAM arrays, each with its own sense amplifier array and individual row access latch and decoders.
+                This allows different rows from different banks to be accessed in parallel with one another.
+                Each bank has its own read latch and column decoder, to select data and read it out.
+                \medskip
+
+                We want to run right up to the limit of reliability, to make the device as small as possible.
+                As such, there's a risk that errors creep in, possibly even from interference from neighbouring cells, or radiation (high-energy cosmic rays, single-event upsets - an individual bit being flipped).
+                The basic idea is to add redundancy through parity (for example, an even or odd number of 1s) / ECC bits.
+                Parity doesn't allow for recovery.
+                An example for a Hamming code is as follows; 64 data bits and 8 parity bits.
+                Consider the data bits as forming a 64 element vector, each with one bit per element.
+                Each individual potential 64 bit value occupies a point in 64-dimensional space.
+                More dimensions are added into this space to separate the valid points.
+                A SEU moves that vector from where it should be into an adjacent location in that space; we want to ensure that the adjacent locations don't correspond to a valid data value.
+                A single error pushes us slightly away from a valid position, and can therefore be pushed back.
+                Ideally, we want to be able to handle failures of entire chips; the idea of RAID with hard drives works here too.
+                \medskip
+
+                We can test DRAM by trying to cause memory upsets.
+                Imagine an array, with one row that we care about, and two adjacent rows.
+                A program could repeatedly write into the adjacent rows, trying to flip bits in the row we care about.
+                As the row gets closer to the refresh deadline, it becomes more vulnerable to an upset.
+                The \textit{Rowhammer} attack does this.
+                This can be mitigated with ECC, or adaptive refresh which counts accesses and refreshes potential victim rows earlier.
+                \medskip
+
+                The lecture then goes into further topics in DRAM, including energy optimisations, on-memory processing, stacking, bulk copying and zeroing, and non-volatile memory.
+                \medskip
+
+                The simple organisation of main memory has the CPU, cache, bus, and memory all at the same widths.
+                A wider organisation of main memory could have parallel data transfer, with the same address in all banks (with a wider bus).
+                Another approach, an interleaved organisation, could allow multiple banks of memory to be addressed individually; parallel addressing as well as parallel data transfer.
+                Consideration should be taken to spread accesses across the banks.
         \subsection*{November 2 - Live Lecture}
             The intuition for the skewed two-way set-associative cache is that there is no restriction on what the functions are, as long as they are different.
             However, it also needs more than just the low-order $k$ bits, to get more `randomness'.
