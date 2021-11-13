@@ -15,3 +15,7 @@ materials/*
 co000/*
 ignored/*
 */ignore.*
+
+# ignore screenshots (just in case), keep co112 screenshots
+*/*.png
+!co112/*.png
