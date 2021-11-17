@@ -1737,4 +1737,172 @@
 
                 In short, we keep track of uncertainty about all possible values, and use a probability distribution to quantify this uncertainty.
                 This helps to avoid the overconfidence issues from MLE.
+        \subsection*{Lecture 10 - Bayes with Gaussians}
+            Consider the joint probability of any two characters appearing one after the other, with the first character being the random variable $x$ and the second being the random variable $y$.
+            To get the probability of a single letter appearing (using $\alpha$ to avoid confusion);
+            $$p(X = \alpha) = \summation{y}{} p(X = \alpha, Y = y)$$
+            On the other hand, $p(Y\ |\ X = \beta)$ is the probability distribution conditioned on the \textbf{first} character being $\beta$.
+            \medskip
+
+            If we know what $p(Y\ |\ X)$ is, we can use Bayes' rule to find $p(X\ |\ Y)$;
+            $$p(X = \alpha\ |\ Y = \beta) = \frac{p(y = \beta\ |\ X = \alpha)p(X = \alpha)}{p(Y = \beta)}$$
+            \subsubsection*{Example of Bayesian Inference with Gaussians}
+                Consider a fruit machine (`one armed bandit') that gives a random amount of money $x$, with a fixed mean (return $r$) set in the bandit, and some standard deviation $\sigma^2$.
+                We are essentially modelling the probability distribution of the profit - $r$ is the amount we have after putting in some money.
+                $$p(x\ |\ r) = \mathcal{N}(x; r, \sigma^2)$$
+                We also believe that the manufacturer also has a distribution for the returns of each bandit;
+                $$p(r) = \mathcal{N}(r; \mu, \tau)$$
+                Now we try a bandit and get a reward of $10$.
+                The maximum likelihood estimate of $r$ is $10$ - an overconfident result.
+                % Our distribution of the belief in $r$ is as follows
+                \medskip
+
+                We have two related events, with one being hidden.
+                To find the distribution of the belief in $r$ (evaluated at $x = 10$);
+                \begin{align*}
+                    p(x\ |\ r) & = \mathcal{N}(x; r, \sigma^2) \\
+                    p(r) & = \mathcal{N}(r; \mu, \tau) \\
+                    p(r\ |\ x) & = \frac{p(x\ |\ r)p(r)}{p(x)} \\
+                    p(x = 10\ |\ r) & = \mathcal{N}(10; r, \sigma^2) \\
+                    & = c_1 \cdot e^{-\frac{(10 - r)^2}{2 \sigma^2}} \\
+                    p(r\ |\ x = 10) & = c_1 \cdot e^{-\frac{(10 - r)^2}{2 \sigma^2}} \cdot c_2 \cdot e^{-\frac{(r - \mu)^2}{2\tau}} \cdot \frac{1}{c_3} & c_3 = p(x)
+                \end{align*}
+                Note that we can find $c_3 = p(x)$ by taking an integral over the unnormalised function;
+                \begin{align*}
+                    p(r\ |\ x) & = \frac{c_3}{c_1 \cdot c_2} f_r(r) \\
+                    \frac{c_1 \cdot c_2}{c_3} & = \defint{-\infty}{\infty}{f_r(r)}{r}
+                \end{align*}
+                Another way is to use the sum rule of probability (but with an integral);
+                $$p(x) = \defint{-\infty}{\infty}{p(x\ |\ r)p(r)}{r}$$
+            \subsubsection*{Manipulating Multivariate Gaussians}
+                We can use the following properties of Gaussians;
+                \begin{itemize}
+                    \itemsep0em
+                    \item Gaussians are specified by only their mean and covariance
+                    \item if we have multiple Gaussians random variables and we sum them or multiply them by constants, the result will also be Gaussian
+                    \item conditioning in a distribution that is jointly Gaussian, we end up with a Gaussian
+                \end{itemize}
+                Consider the joint distribution between two quantities which aren't related (therefore independent);
+                \begin{itemize}
+                    \itemsep0em
+                    \item heights of people in a country \hfill $p(h) = \mathcal{N}(h; \mu, \sigma^2)$
+                    \item strength of tea \hfill $p(s) = \mathcal{N}(s; m, v)$ % what
+                \end{itemize}
+                \begin{align*}
+                    p(h, s) & = p(h)p(s) \\
+                    & = \frac{1}{\sqrt{2 \pi \sigma^2}} \cdot \frac{1}{\sqrt{2 \pi \sigma^2}} \cdot e^{-\frac{1}{2 \sigma^2}(h - \mu)^2} \cdot e^{-\frac{1}{2 v}(s - m)^2} \\
+                    & = \frac{1}{\sqrt{| 2 \pi \mat{\Sigma} |}} \cdot e^{-\frac{1}{2}\left(\begin{bmatrix}
+                        h \\ s
+                    \end{bmatrix} - \begin{bmatrix}
+                        \mu \\ m
+                    \end{bmatrix}\right)^\top \mat{\Sigma}^{-1} \left(\begin{bmatrix}
+                        h \\ s
+                    \end{bmatrix} - \begin{bmatrix}
+                        \mu \\ m
+                    \end{bmatrix}\right)} \\
+                    \mat{\Sigma} & = \begin{bmatrix}
+                        \sigma^2 & 0 \\
+                        0 & v
+                    \end{bmatrix} & \text{independent, therefore diagonal}
+                \end{align*}
+                A general multivariate Gaussian can be done with a change of variables (note we multiply by the absolute value of the derivative of the transformation);
+                \begin{align*}
+                    \vec{z} & \sim \mathcal{N}(\vec{\mu}, \mat{I}) & \vec{z} \in \mbbr^M \\
+                    p_Z(\vec{z}) & = | 2 \pi \mat{I_M} |^{-\frac{1}{2}} e^{-\frac{1}{2}(\vec{z} - \vec{\mu})^\top\mat{I}(\vec{z} - \vec{\mu})} \\ % the notes miss out the 1/2 for e^{...} but I'm pretty sure this is right
+                    \vec{x} & = \mat{A}\vec{z} & \mat{A} \in \mbbr^{D \times M} \\
+                    p_X(\vec{x}) & = p_z(\mat{A}^{-1}\vec{x}) \cdot | \mat{A}^{-1} | \\
+                    & = | 2 \pi \mat{I_M} |^{-\frac{1}{2}} e^{-\frac{1}{2}(\mat{A}^{-1}\vec{x} - \vec{\mu})^\top(\mat{A}^{-1}\vec{x} - \vec{\mu})} \cdot | \mat{A}^{-1} | \\
+                    & = | 2 \pi \mat{I_M} |^{-\frac{1}{2}} (| \mat{A} | \cdot | \mat{A}^\top |)^{-\frac{1}{2}} e^{-\frac{1}{2}(\vec{x} - \mat{A}\vec{\mu})^\top \mat{A}^{-\top}\mat{A}^{-1} (\vec{x} - \mat{A}\vec{\mu})} \\
+                    & = | 2 \pi \mat{A}\mat{A}^\top |^{-\frac{1}{2}} e^{-\frac{1}{2}(\vec{x} - \mat{A}\vec{\mu})^\top \mat{A}^{-\top}\mat{A}^{-1} (\vec{x} - \mat{A}\vec{\mu})} \\
+                    \mathbb{E}_{p(x)}[\vec{x}] & = \mat{A}\vec{\mu} \\
+                    & = \vec{m} \\
+                    \mathbb{V}_{p(x)}[\vec{x}] & = \mat{A}^{-1}\mat{A}^{-\top} \\
+                    & = \mat{\Sigma}
+                \end{align*}
+                To find a conditional distribution of a Gaussian distribution (note that $\vec{x} \in \mbbr^D, \vec{y} \in \mbbr^E, \mat{\Sigma_{xx}} \in \mbbr^{D \times D}, \mat{\Sigma_{yy}} \in \mbbr^{E \times E}, \mat{\Sigma_{xy}} \in \mbbr^{D \times E}, \mat{\Sigma_{yx}} \in \mbbr^{E \times D}$);
+                \begin{align*}
+                    & \mathcal{N}\left(\begin{bmatrix}
+                        \vec{x} \\ \vec{y}
+                    \end{bmatrix}; \begin{bmatrix}
+                        \vec{a} \\ \vec{b}
+                    \end{bmatrix}, \begin{bmatrix}
+                        \mat{\Sigma_{xx}} & \mat{\Sigma_{xy}} \\
+                        \mat{\Sigma_{yx}} & \mat{\Sigma_{yy}}
+                    \end{bmatrix}\right) \\
+                    p(\vec{x}\ |\ \vec{y}) & = \mathcal{N}(\vec{x}; \vec{a} + \mat{\Sigma_{xy}}\mat{\Sigma_{yy}}^{-1}(\vec{y} - \vec{b}), \mat{\Sigma_{xx}} - \mat{\Sigma_{xy}}\mat{\Sigma_{yy}}^{-1}\mat{\Sigma_{yx}})
+                \end{align*}
+                Going back to the motivating example, given that we want $p(r\ |\ x)$;
+                \setcounter{equation}{0}
+                \begin{align}
+                    p(r) & = \mathcal{N}(r; \mu, \tau) \\
+                    p(x\ |\ r) & = \mathcal{N}(x; r, \sigma^2) \\
+                    r & \sim \mathcal{N}(\mu, \tau) \\
+                    x & = r + \epsilon & \epsilon \sim \mathcal{N}(0, \sigma^2) \\
+                    \begin{bmatrix}
+                        r \\ x
+                    \end{bmatrix} & = \begin{bmatrix}
+                        1 & 0 \\
+                        1 & 1
+                    \end{bmatrix} \begin{bmatrix}
+                        r \\ \epsilon
+                    \end{bmatrix} \\
+                    p\left(\begin{bmatrix}
+                        r \\ x
+                    \end{bmatrix}\right) & = \mathcal{N}\left(\begin{bmatrix}
+                        r \\ \epsilon
+                    \end{bmatrix}; \begin{bmatrix}
+                        \mu \\ 0
+                    \end{bmatrix}, \begin{bmatrix}
+                        \tau & 0 \\
+                        0 & \sigma^2
+                    \end{bmatrix}\right) \\
+                    \mathbb{E}\left[\begin{bmatrix}
+                        r \\ x
+                    \end{bmatrix}\right] & = \begin{bmatrix}
+                        1 & 0 \\
+                        1 & 1
+                    \end{bmatrix} \begin{bmatrix}
+                        \mu \\ 0
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        \mu \\ \mu
+                    \end{bmatrix} \\
+                    \mathbb{V}\left[\begin{bmatrix}
+                        r \\ x
+                    \end{bmatrix}\right] & = \begin{bmatrix}
+                        1 & 0 \\
+                        1 & 1
+                    \end{bmatrix} \begin{bmatrix}
+                        \tau & 0 \\
+                        0 & \sigma^2
+                    \end{bmatrix} \begin{bmatrix}
+                        1 & 1 \\
+                        0 & 1
+                    \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        \tau & \tau \\
+                        \tau & \tau + \sigma^2
+                    \end{bmatrix} \\
+                    p(x, r) & = \mathcal{N}\left(\begin{bmatrix}
+                        r \\ x
+                    \end{bmatrix}; \begin{bmatrix}
+                        \mu \\ \mu
+                    \end{bmatrix}, \begin{bmatrix}
+                        \tau & \tau \\
+                        \tau & \tau + \sigma^2
+                    \end{bmatrix}\right) \\
+                    p(r\ |\ x) & = \mathcal{N}(r; \mu + \tau \cdot (\tau + \sigma^2)^{-1} \cdot (x - \mu), \tau + \sigma^2 - \tau \cdot (\tau + \sigma^2)^{-1} \cdot \tau) \\
+                    & = \mathcal{N}\left(\mu + \frac{\tau}{\tau + \sigma^2}(x - \mu), \tau + \sigma^2 - \frac{\tau^2}{\tau + \sigma^2}\right)
+                \end{align}
+                \begin{enumerate}[(1)]
+                    \itemsep0em
+                    \setcounter{enumi}{4}
+                    \item Define it as a linear combination of $r$ and $\epsilon$
+                    \item $r$ and $\epsilon$ are independent
+                    \item Linear transformation of the expectation $\mathbb{E}[\mat{A}\vec{x}] = \mat{A}\mathbb{E}[\vec{x}]$
+                    \setcounter{enumi}{8}
+                    \item Transformation of the variance $\mathbb{V}[\mat{A}\vec{x}] = \mat{A}\mathbb{V}[\vec{x}]\mat{A}^\top$
+                    \setcounter{enumi}{10}
+                    \item Linear transformation of Gaussians is still Gaussian
+                \end{enumerate}
 \end{document}
