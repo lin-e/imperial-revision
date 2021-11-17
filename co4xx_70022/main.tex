@@ -1962,4 +1962,189 @@
                     The two main techniques are replication (another copy exists if one is lost or recomputation (redo a computation if the result is lost).
                     The cost of failure recovery needs to be low, as failure is the norm.
             \end{itemize}
+        \subsection*{November 8 - Lecture 2}
+            The cloud is really just the data centre hardware and associated software stack.
+            Virtualisation hides the details of these resources from applications and exposes them in a certain way.
+            The cloud is a pool of easily usable virtualised compute resources, development platforms, services and applications.
+            Cloud computing is the delivery of computing as a service, with multi-tenancy (provide resources to multiple tenants but isolate them from each other).
+            The cost of this is based on the resources consumed.
+            \medskip
+
+            The main advantages of cloud computing to the user is that they don't need to have physical hardware and can get resources on demand (for example, incremental scaling with horizontally scaling services).
+            The cloud provider also looks after the hardware and parts of the software stack, as well as the security.
+            \medskip
+
+            Issues include the dependency on a network connection, which can be an issue for availability.
+            There are also security and privacy issues, with trusting the provider with data and computation, as well as complicating legal issues.
+            Another concern is vendor lock-in (and cost of migration), as a provider wants a user to stay (possibly making it expensive to move if infrastructure is built on certain services).
+            This is less of a concern with standardised microservices.
+            \medskip
+
+            The typical distinction is as follows;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{public cloud}
+                    \smallskip
+
+                    The typical providers we are familiar with, simply requiring payment to use.
+                \item \textbf{private cloud}
+                    \smallskip
+
+                    Cloud environment used by a single organisation.
+                    The use of virtualisation and abstraction is similar to that of a public cloud, but is run by a single organisation for the use of tenants within the organisation.
+                \item \textbf{hybrid cloud}
+                    \smallskip
+
+                    Combination of both public and private clouds.
+                    For example; an organisation with a private cloud but some workloads are run on the public cloud (for non-sensitive data).
+            \end{itemize}
+            The different cloud services models (abstractions provided) are as follows (in order of most control to the user to least);
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{Infrastructure-as-a-Service (IaaS)}
+                    \smallskip
+
+                    Exposing hardware in a virtualised way.
+                    For example, exposing a VM allowing the user to install their own OS and software.
+                    \medskip
+
+                    Raw resources are provided; for example storage, processing, memory, and network bandwidth.
+                    The virtualisation layer is a privileged software layer that exposes the hardware resources in a safe way across servers.
+                    VMs are isolated from each other and have their own regular software stack.
+                \item \textbf{Platform-as-a-Service (PaaS)}
+                    \smallskip
+
+                    Slightly higher level abstraction, for example containers (microservice based applications).
+                    Abstracts away from the raw hardware.
+                    No overhead of having to manage an OS as a user would do in a VM.
+                    \medskip
+
+                    More of the stack is managed by the cloud provider, including the O/S, middleware, and runtime, reducing the tenant's management overhead.
+                    The user manages the data and the application itself.
+                \item \textbf{Function-as-a-Service (FaaS)}
+                    \smallskip
+
+                    This considers applications as individual functions that need to be invoked.
+                    The provider provides an API to accept a function and invoke the function.
+                    Elasticity is easier to achieve (from the user's perspective), as the cloud provider now manages the number of instances.
+                    \medskip
+
+                    This is also referred to as serverless computing (the concept of the server is hidden from the tenant, hiding away decisions such as the number of CPU cores or amount of memory).
+                    The application the user wants to run is split at a finer granularity.
+                    However, the functions must be short.
+                \item \textbf{Software-as-a-Service (SaaS)}
+                    \smallskip
+
+                    Particular cloud hosted applications, accessed over the Internet.
+                    For example, \textit{Office 365}, or \textit{Dropbox}.
+                    The underlying software is handled by the cloud provider.
+                    \medskip
+
+                    The cloud tenant has much less control over the customisation, as they are only consuming a service.
+            \end{itemize}
+            \subsubsection*{Data Centres}
+                Efficient management of a data centre allows the cloud provider to pass cost savings to the customer.
+                IaaS is generally interchangeable between providers, hence users typically go to the cheapest provider.
+                \textit{Microsoft} attempted submerging a data centre under the sea, for the purpose of cooling (a large cost for providers).
+                \medskip
+
+                Data centres need to optimise for a number of things;
+                \begin{itemize}
+                    \itemsep0em
+                    \item reliability \hfill mirrored data centres
+                    \item geographic diversity, locations of data centres
+                    \item time to recover in the case of an outage
+                    \item future expansion
+                    \item power requirements \hfill ideally cheap electricity
+                    \item connectivity \hfill multiple independent connections to the Internet
+                    \item physical security
+                \end{itemize}
+                The standards for infrastructure as follows;
+                \begin{center}
+                    \begin{tabular}{llllll}
+                        \textbf{tier} & \textbf{generators} & \textbf{UPSs} & \textbf{power feeds} & \textbf{HVAC} & \textbf{availability} \\
+                        \hline
+                        $1$ & none & $N$ & single & $N$ & $99.671\%$ \\
+                        $2$ & $N$ & $N + 1$ & single & $N + 1$ & $99.741\%$ \\
+                        $3$ & $N + 1$ & $N + 1$ & dual, switchable & $N + 1$ & $99.982\%$ \\
+                        $4$ & $2N$ & $2N$ & dual, simultaneous & $2N$ & $99.995\%$
+                    \end{tabular}
+                \end{center}
+                All critical systems need redundancy (for example, a power outage in a region can be overcome with a diesel generator).
+                The power distribution may fail and a data centre might have redundant power feeds.
+                Redundancy is required in cooling as well.
+                \medskip
+
+                See the slides for the components of a data centre.
+                Data centres have a battery system for redundancy to bridge the gap between an outage and the diesel generators starting up.
+                \medskip
+
+                A rack holds between 40 to 80 servers.
+                Each rack typically has a network switch associated with it, which are then interconnected to allow for full connectivity between all the servers in the data centre.
+                \medskip
+
+                Another model for data centres is having them in shipping containers.
+                These containers can be kept on hand for replacement and there is already an existing network that can transport shipping containers efficiently.
+                Servers can also be left to fail within the containers (masked by software), and once this failure rate exceeds a certain threshold, the entire container can be ordered and replaced.
+                \medskip
+
+                Edge computing avoids having a single large compute data centre, but rather smaller data centres located closer to users.
+                This can possibly cause issues with economies of scale, similar to the shipping containers.
+            \subsubsection*{Cost and Utilisation}
+                The TCO (total cost of ownership) of running a data centre is the sum of CapEx (capital expense; upfront investments) and OpEx (operation expenses; monthly costs including electricity and maintenance).
+                Cloud computing removes the CapEx part, but the cost of hardware shifts towards OpEx.
+                \medskip
+
+                A third of the monthly operating cost of a DC comes from power; both to operate the servers and to cool them.
+                The PUE (power usage effectiveness) is the ratio of the total energy used by a DC to the actual useful work (energy delivered to the computing equipment).
+                Cooling is one area where operators can reduce costs.
+                For example, running a DC at a higher temperature can lead to higher failure rates of components, but can save cooling costs.
+                Another option is going to a cooler climate or locations with cheaper energy.
+                \medskip
+
+                A typical layout of a DC has hot and cold aisles; the former used to transport hot air out of the data centre, and the latter to blow cool air into the servers.
+                Small improvements in efficiency in cooling can achieve savings in lower energy costs and lower failure rates.
+                \medskip
+
+                Ideally, servers in a DC are energy proportional, where the power usage is directly proportional to the utilisation (amount of work).
+                For example, if the server is doing no work, there should be no energy usage.
+                Modern servers are better at being energy proportional, partially due to the technologies in mobile devices.
+                \medskip
+
+                Very few servers in a DC are fully utilised, with a peak around 30\% usage.
+                When there is redundancy, a standby server will be idle, which reduces average utilisation.
+                When the utilisation of a system is high, there are more queuing delays, leading to higher response times (and poor tail latency) - therefore when optimising for lower tail latencies, we want to be in an area of lower utilisation (less queuing).
+                Tail latency refers to the $99^\text{th}$ percentile (or higher) of latency.
+                \medskip
+
+                Virtualisation allows for consolidation of workloads, therefore increasing the utilisation certain machines (concentrating the usage on certain servers).
+                A software defined data centre has the goal of doing more in software than hardware.
+                When management functions are implemented in software, there is more control over the policy and how it works.
+                Hardware load balancers are difficult to configure as the load balancing was implemented in hardware, requiring changes to the firmware to modify behaviour, whereas software based balancers allow for more complex policies.
+                \medskip
+
+                VM (live) migration is one of the advantages of using VMs.
+                This is entirely transparent to the application.
+                A VM can be migrated by starting to copy memory into another server, and once it has copied most of its memory and is synchronised with the other server, it can stop and copy over the remainder of the memory.
+                \medskip
+
+                Cloud providers avoid oversubscribing memory as the effect of thrashing is very noticeable.
+                On the other hand, CPU degradation is less noticeable.
+                \medskip
+
+                Networking is another challenging area of data centres.
+                In the past, a few companies had a monopoly on networking equipment, including \textit{Cisco} and \textit{Juniper}.
+                Software defined networking has switches as usual, but all of the routing decisions are controlled by the data centre operators.
+                It doesn't make sense to run regular Internet routing protocols when running a DC.
+            \subsubsection*{Rack Scale Computing}
+                Instead of considering a basic compute unit as a single server, rack scale computing thinks of the basic unit of computing as the entire rack.
+                A rack-scale computer has standard compute units as well as accelerators (such as GPUs), as well as storage units (for different `temperatures' of storage).
+                This helps to achieve higher densities.
+                \medskip
+
+                The current view of servers is that they include the resources; the server interconnects the CPU, memory, storage, etc.
+                In a rack scale design, the server still has the same role, but at a rack scale.
+                However, in a resource-centric design, the data centre network has the resources directly connected to it (disaggregated resources).
+                This allows for exactly the required resources to be added.
+                This is possible nowadays due to the ability to have lower latencies between resources due to newer technologies.
 \end{document}
