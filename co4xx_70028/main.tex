@@ -1412,4 +1412,125 @@
                         \item $k \leftarrow k + 1$
                     \end{enumerate}
             \end{enumerate}
+        \subsection*{Introduction to Deep Learning and DQN}
+            An example is the Atari DQN by \textit{DeepMind}.
+            The function $Q(s, a)$ is approximated by a neural network, and the raw pixels are processed by convolutional layers for feature extraction.
+            There are a total of 18 actions; 8 directions, pushing the button with 8 directions, doing nothing, and pushing the button without touching the joystick.
+            \medskip
+
+            We have an environment that can be sensed with sensors.
+            The sensor data can be put into a feature extractor, that ML is applied to.
+            This gives us knowledge about the environment, which we can perform some form of reasoning with.
+            Planing can be done, which can lead to the generation of actions for some effector, which directly affects the environment.
+            \medskip
+
+            Classically, deep learning is really about taking the sensor data, performing feature extraction, and doing machine learning.
+            This is a form of representation.
+            Reinforcement learning does the stages that involve reasoning, planning, and generation of actions, whereas recognition is the part that involves ML and recognition.
+            Deep reinforcement learning combines all of this.
+            \medskip
+
+            Given the TD $Q$-learning update (see below), we want to learn $Q$ as a function parameterised (neural network) by $\vec{w}$
+            $$Q(s_t, a) \leftarrow Q(s_t, a) + \alpha [r_{t + 1} + \gamma \max_{a_{t + 1}} Q(s_{t + 1}, a^\prime) - Q(s_t, a)]$$
+            The TD error is defined as our learning target, that we want to reduce to zero;
+            $$r_{t + 1} + \gamma \max_{a_{t + 1}} Q(s_{t + 1}, a^\prime; \vec{w}) - Q(s_t, a; \vec{w})$$
+            Taking this gradient, with respect to $\vec{w}$, we obtain the following;
+            $$\Delta \vec{w} = \alpha[r + \gamma \max_{a_{t + 1}} Q(s_{t + 1}, a_{t + 1}; \vec{w}) - Q(s_t, a; \vec{w})]\nabla_{\vec{w}} Q(s_t, a; \vec{w})$$
+            However, the problem (Atari) required more engineering to solve properly;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{experience replay}
+                    \smallskip
+
+                    A function approximator, especially a CNN, has a lot of parameters, which can easily lead to overfitting.
+                    If we only learn by looking at the last few episodes, we become very limited in how the system is generalising and learning.
+                    Therefore, the first complication is the inefficient use of our interactive experience.
+                    Training a deep NN requires may updates, each of which is a timestep in the game; if we use the standard $Q$ updates, each state transition is only used once and then discarded.
+                    As such, we'd constantly need to revisit the same state transition in order to train, which is inefficient and slow.
+                    \medskip
+
+                    The distribution of experiences is also poor if we only look at the current episode.
+                    If we have an interactive learning procedure, the generated training samples are highly correlated as the agent is running the current policy.
+                    This makes a certain set of state action pairs highly likely.
+                    As our policy changes, it leads to a shift in the probability distribution of the input data.
+                    The network will forget past transitions (overwriting past memory, known as extinction).
+                    Changes in one part of the network can have side-effects on other parts in backpropagation.
+                    \medskip
+
+                    Experience replay stores traces (experiences) and replays these in mini-batches to train the network on more than just the last episode.
+                    This helps to overcome the issue of correlation, as the network doesn't care about the sequentiality of the actions.
+                    Mini-batches are only feasible when multiple passes being run with the same data is stable with respect to the samples (transitions should have low variance for next immediate outcomes (reward and next state) for a given state action pair).
+                    Replaying past data is also a more efficient use of previous experience.
+                    \medskip
+
+                    The learning phase is separated from gaining experience; it's based on taking random samples from the mini-batch table.
+                    DQN interleaves acting and learning; once the policy is improved, different behaviour will be experienced (explore actions that are closer to optimal ones and shift the replay buffer).
+                    \medskip
+
+                    In summary;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item reduce correlation between experiences (mini-batches make samples more iid)
+                        \item increased learning speed
+                        \item avoid forgetting past transitions and rewards
+                    \end{itemize}
+                    The algorithm is as follows;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item initialise replay memory $\mathcal{D}$ to capacity $N$
+                        \item initialise action-value function $Q$ with random weights (neural network)
+                        \item for episode $\in [1, M]$, repeat;
+                            \begin{enumerate}
+                                \itemsep0em
+                                \item initialise state $s_t$
+                                \item for $t \in [1, T]$ repeat;
+                                    \begin{enumerate}
+                                        \itemsep0em
+                                        \item with probability $\epsilon$ choose a random action $a_t$ or select $a_t = \max_a Q^*(s_t, a; \theta)$
+                                        \item execute action $a_t$ then observe reward $r_t$ and state $s_{t + 1}$
+                                        \item store transition $(s_t, a_t, r_t, s_{t + 1})$ in $\mathcal{D}$
+                                        \item set $s_{t + 1} = s_t$
+                                        \item sample random mini-batch of transitions $(s_t, a_t, r_t, s_{t + 1})$
+                                        \item set $y_j$ as follows;
+                                            $$y_j = \begin{cases}
+                                                r_j & \text{for terminal $s_{t + 1}$} \\
+                                                r_j + \gamma \max_{a^\prime} Q^*(s_t, a^\prime; \theta) & \text{for non-terminal $s_{t + 1}$}
+                                            \end{cases}$$
+                                        \item perform gradient descent on $(y_j - Q(s_t, a_j, \theta))^2$
+                                            $$\nabla_{\theta_i}L_i(\theta_i) = \mathbb{E}_{s, a \sim \rho(\cdot); s^\prime \sim \varepsilon}\left[\left(r + \gamma \max_{a^\prime} Q(s^\prime, a^\prime; \theta_{i - 1}) - Q(s, a; \theta_i) \nabla_{\theta_i} Q(s, a; \theta)\right)\right]$$
+                                    \end{enumerate}
+                            \end{enumerate}
+                    \end{enumerate}
+                \item \textbf{target network}
+                    \smallskip
+
+                    The neural network can interpolate and affect nearby states.
+                    Updating one state may update nearby states, which could lead to unstable training.
+                    For example, changes to $Q(s, a)$ change $Q(s^\prime, a)$, which changes $Q(s, a)$, and so on.
+                    \medskip
+
+                    This can be resolved by setting up a second network that helps us compute the TD error calculation.
+                    The general idea is to slow things down with a separate target network $Q^\prime$, both of which approximate our $Q$-network, but one is updated at a much lower frequency (for example, every 1000 steps) with a copy of the latest learned weight parameters from the other network.
+                    The main $Q$-network is simply $Q$ and the target network is $Q^\prime$.
+                    When the TD-error is being calculated, $Q^\prime$ (slow) is used, and infrequently $Q^\prime$ is updated to be $Q^\prime = Q$.
+                    While $Q$ fluctuates a lot, the last $N$ states aren't visible in the updates.
+                \item \textbf{clipping of rewards}
+                    \smallskip
+
+                    In Atari, each game has different score scales (for example the score scale for \textit{Pong} is different from that of \textit{Space Invaders}).
+                    The different scales lead to unstable training.
+                    Clipping rewards clips the rewards, with all positive rewards being set to 1 and negative rewards to $-1$ (no differentiation in the scale of the rewards).
+                \item \textbf{skipping of frames}
+                    \smallskip
+
+                    Games can be simulated much faster than a human can react; implying that the design and required actions can be slower.
+                    Many transitions were irrelevant, as nothing was really happening at that rate.
+                    Instead of updating the representation (state input) every frame, only every $4^\text{th}$ frame was used.
+                    The past 4 frames were used as inputs (allowing differences between the frames to be analysed).
+            \end{itemize}
+            In regular deep $Q$-learning, the target network is used for both identifying the action with the highest $Q$ value and determining the $Q$ value of this action.
+            However, the maximum $Q$ value may be overestimated; an unusually high value from the main $Q$ network doesn't mean there's an unusually high value from the target $Q^\prime$ network.
+            The two tasks are separated in double $Q$-learning (each one handling something different; one handling determining the highest value and the other determining the value).
+            The slowly updating network determines which action has the highest value, whereas the fast updating network determines the value of the action, with more updated information.
+            The two values are independent from each other, hence we are less susceptible to variance.
 \end{document}
