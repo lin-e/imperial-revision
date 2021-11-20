@@ -19,3 +19,6 @@ ignored/*
 # ignore screenshots (just in case), keep co112 screenshots
 */*.png
 !co112/*.png
+
+# ignore scratch (written during live lecture, before previous lectures have been finished)
+*/scratch.tex
