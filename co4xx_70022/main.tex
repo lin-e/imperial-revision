@@ -2147,4 +2147,125 @@
                 However, in a resource-centric design, the data centre network has the resources directly connected to it (disaggregated resources).
                 This allows for exactly the required resources to be added.
                 This is possible nowadays due to the ability to have lower latencies between resources due to newer technologies.
+        \subsection*{BigTable}
+            The idea of BigTable was to design a scalable distributed system that's reliable but also easy to reason about.
+            Existing DB systems couldn't be used by Google not only due to the scale of the data, but also the requirement to provide low latency services for a variety of workloads.
+            The amount of data that can be handled by the database system also needs to be able to scale incrementally.
+            Another motivation for creating their own solution is licensing costs; parallel databases already existed but would be expensive.
+            \medskip
+
+            Some key novel ideas are;
+            \begin{itemize}
+                \itemsep0em
+                \item
+                    Users are allowed to select locality criteria (based on application needs, data will be accessed from similar locations in GFS).
+                    When distributing data, it's important to consider what bits of data should be kept together.
+                    Locality is important for a system like BigTable; if the data is distributed, data would have to be retrieved from many different machines (latency penalty).
+                    See families in the next point.
+                \item
+                    BigTable introduced a semi-structured data model (between a fully structured relational model and a key-value store).
+                    The design choice came from their use-case of web search.
+                    It starts with a simple key-value model, but the key is made richer with column keys, and families (which influence locality, and can help a programmer categorise the data).
+                    The key can be thought of as a compound key, consisting of a row key, a column key, and a timestamp.
+                    This is still different from a relational database model (despite the compound keys having columns) as the format isn't enforced.
+                    Another difference is that relational models tend to be unordered and don't have row keys (the key comes from a column).
+                \item
+                    Another aspect of the model is versioning (timestamps).
+                    At the time, this was a new feature.
+                    This feature made sense for the use cases as the links between web pages are quite dynamic (but the company may want to keep old versions).
+                    This also helps to improve the speed as an update just involves adding a new version, without removing / replacing the old one.
+                \item
+                    Immutability (mostly), rows are copied on write, preventing race conditions.
+                    An SSTable provides a persistent, ordered immutable map from keys to values (both are arbitrary byte strings) - once data is written, it can never be changed.
+                    Deletion is done by adding a new record that marks something previously stored as deleted.
+                    The table is ordered on the row keys (generally an expensive operation) - this gives the benefit of being able to do binary search on the data (avoid the cost of a full linear scan).
+                    Immutability also helps to remove the need to synchronise access to SSTables; consistency is very easy when nothing can be updated.
+                    \medskip
+
+                    Consider SSTables as simply files on a distributed file system (GFS).
+                    Replication is done at the level of the file system (therefore BigTable doesn't have to deal with it).
+                    However, GFS doesn't know about locality, therefore it's important for data that we want to store together (locality) to be in the same SSTable (same machine).
+                \item
+                    Compactions essentially group together updates, in a cleanup operation.
+                    This removes old data (either marked as deleted, or data that has been updated).
+                    Without a compaction mechanism, data is never deleted (this is similar to a garbage collection process).
+                \item {}
+                    The memtable stores recently committed updates.
+                    When a write / update occurs, the memtable is updated, and when it gets large, compaction occurs.
+                    On a read, the updates from the memtable are used with the results in the table (the union of the memtable and the SSTable is taken).
+                    The memtable can be thought of as an SSTable that's in memory, and is also sorted (can be done quite cheaply on an insert).
+                    Write queries are therefore very cheap, but reads are a bit more expensive.
+                    \medskip
+
+                    A tradeoff is made here to give writes lower latency, as they are more important and bring data into the system.
+            \end{itemize}
+            BigTable is motivated by Google's scale (to support other applications than search), with no commercial system big enough.
+            This uses the following building blocks (existing services within Google);
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{Google File System}
+                    \smallskip
+
+                    This is a large-scale distributed file system that stores the actual data.
+                    There is a master server responsible for metadata, such as where the files are stored, as well as chunk servers which store the actual data.
+                \item Chubby Lock Service
+            \end{itemize}
+            There support for a query language, but an API is provided for lookup, insertion, and deletion.
+            Indices don't exist in BigTable (no need, as it's already ordered).
+            Transactions don't exist in BigTable either, but each read / write of data under a single row key is atomic (multiple updates can't be done atomically).
+            Proper transactions (multi-row updates, for example) don't exist as they don't care about consistency and would add too much complexity.
+            The main differences to traditional relational databases are;
+            \begin{itemize}
+                \itemsep0em
+                \item no table-wide integrity constraints
+                \item no multi-row transactions
+                \item no aggregation over data; values are uninterpreted
+                \item data is immutable (similar to versioning databases)
+                \item functions, no SQL
+                \item clients indicate what to cache in memory
+                \item no index, data is stored lexicographically (locality is controlled by naming of rows and columns)
+            \end{itemize}
+            The SSTable is subdivided into 64KB blocks, which is the granularity at which I/O works on.
+            An index is also present, which denotes which block a particular key resides in.
+            A tablet is a collection of SSTables; and stores a consecutive range of rows keys from the overall data.
+            The highest form of organisation is the table, which are then subdivided (sharded) into tablets (which contain SSTables).
+            Tablets are the the unit of data that are actually being assigned to servers in a data centre; each tablet is assigned to a tablet server.
+            The mapping of tablets to tablet servers is unique (each tablet is served by exactly one tablet server).
+            \medskip
+
+            We can't control what range of keys go to a specific SSTable.
+            Every SSTable starts as a memtable (in memory), and once it gets large, it is then written out to disk.
+            Therefore a a tablet may split an SSTable (an SSTable can be shared between two tablets) - this is fine as the tables are stored in GFS, as any tablet can access any SSTable, and a unique mapping is still maintained.
+            Reads are expensive, as we know the set of SSTables that may contain the data, but we have to look at all the SSTables associated with the tablet as they may contain the latest version of the key.
+            While tablets don't overlap, SSTables can overlap (compactions get rid of the overlap) as we just create tables based on writes (the range of keys in an SSTable can overlap, but the range of keys in tablets don't).
+            \medskip
+
+            There are three types of compactions (the cost of writing to disk is delayed to the compactions);
+            \begin{itemize}
+                \itemsep0em
+                \item minor
+                    \subitem converts a full memtable into an SSTable
+                \item merging
+                    \subitem take a bunch of SSTables under a tablet and combine them to reduce the number of SSTables, can remove data marked as deleted
+                \item major
+                    \subitem ensures there are no overlapping key ranges
+            \end{itemize}
+            A write operation first goes onto a log, which is an append-only log file on GFS (not sorted, can be efficiently appended with sequential I/O).
+            This prevents data from being lost if there's a failure in a tablet server, as the memtable only lives on memory.
+            The memtable can be reconstructed by replaying the log.
+            The log can be truncated when the memtable is written to disk; the only data that needs to be on the log is data that is on the memtable.
+            \medskip
+
+            The performance will depend on how well the queries are balanced across the servers.
+            The master needs to be fault tolerant; it knows the assignment of tablets to tablet servers.
+            The metadata table is also stored in BigTable (bootstrapping); the root tablet contains information about where all the other metadata tablets are, which contains information about where all the user data tablets are stored.
+            However, this can't be stored in the master.
+            Instead, this is stored in Chubby, which could be thought of as an external database that doesn't go down (heavily replicated), and stores important information about BigTable.
+            If the master crashes, it can be restarted on another server, which will ask the Chubby server about which tablet server stores the root tablet.
+            Bloom filters (statistical data structure that allows for efficient set membership tests) maintain another index that remembers where particular keys are - an optimisation to prevent accessing an SSTable if it doesn't contain a particular key; they can never give a false negative, but can give false positives.
+            \medskip
+
+            The query API is implemented by the tablet servers.
+            A client connects to the tablet server and creates calls to the API.
+            The client library knows how to find the tablet servers, and also does caching for the tablet servers.
 \end{document}
