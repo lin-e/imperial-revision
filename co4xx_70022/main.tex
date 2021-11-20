@@ -2425,10 +2425,171 @@
                 When a request comes in to the load balancer, it is randomly forwarded to a node on the ring.
                 That node doesn't execute the request (as it may not be on the key's preference list, therefore has no data).
                 The load balancers therefore don't need to participate in the Dynamo protocol.
+                \medskip
+
+                The coordinator replicates keys at $N - 1$ clockwise successor nodes in the ring.
             \subsubsection*{Read / Write Quorum}
                 If we have multiple replicas, executing reads and writes, we want to ensure the read always shows the latest writes.
                 The number of replicas we've read from ($R$) and the total number of replicas we've written to ($W$) must be greater than the number of replicas ($N$); $R + W > N$.
                 Therefore, there needs to an overlap - there is always one replica that we're both reading and writing from.
                 The coordinator node constructs this quorum (picks a number of nodes to satisfy a read, and a number of nodes to satisfy a write).
                 A sloppy quorum allows for reading from fewer than $R$ replicas - the consistency can be tuned by adjusting the amount of overlap.
+            \subsubsection*{Virtual Nodes}
+                Each physical node in the Dynamo deployment can host multiple virtual load, giving more flexibility in balancing load.
+                With virtual nodes, the assignment of the ring can be changed at runtime; the assignment of keys on one virtual node can be transferred to another physical node.
+            \subsubsection*{Data Versioning}
+                \begin{center}
+                    \begin{tikzpicture}[x=2cm, y=1.5cm]
+                        \node (o) at (0, 0) {};
+                        \node (d1) at (0, -1) {$D_1([S_x, 1])$};
+                        \node (d2) at (0, -2) {$D_2([S_x, 2])$};
+                        \node (d3) at (-2, -3) {$D_3([S_x, 2], [S_y, 1])$};
+                        \node (d4) at (2, -3) {$D_4([S_x, 2], [S_z, 1])$};
+                        \node (d5) at (0, -4) {$D_5([S_x, 3], [S_y, 1] [S_z, 1])$};
+                        \draw
+                        (o) edge[->, right] node{write by $S_x$} (d1)
+                        (d1) edge[->, right] node{write by $S_x$} (d2)
+                        (d2) edge[->, left] node{write by $S_y$} (d3)
+                        (d2) edge[->, right] node{write by $S_z$} (d4)
+                        (d3) edge[->] (d5)
+                        (d4) edge[->, right] node{reconciled and written by $S_x$} (d5);
+                    \end{tikzpicture}
+                \end{center}
+                Note that not all updates may arrive at all replicas.
+                Vector timestamps are used for versioning and reasoning about conflicting updates.
+                Each update is associated with a timestamp that records the node (replica) that handled the update.
+                The timestamp is incremented in each node.
+                The vector clock consists of a set of node and counter pairs.
+                A conflicting update occurs when an update is handled by two different nodes concurrently, unaware that they are updating the same key (see the fork in the figure).
+                Both components contain the history (the update at $S_x$), and also adds their history.
+                \medskip
+
+                There is no ordering between vector timestamps, unless all of the components are ordered.
+                For example, $D_2$ is strictly more recent than $D_1$ due to the timestamp, but there is no ordering between $D_3$ and $D_4$ (hence a conflict).
+                A reconciliation is done by updating the vector timestamp.
+                As such, there is now an ordering again; $D_5$ is strictly more recent than both $D_3$ and $D_4$.
+                \medskip
+
+                This only works when we always carry the history of the timestamps (hence the ~context~ parameter in the API).
+            \subsubsection*{Nodes}
+                As all Dynamo nodes are the same, each needs to deal with;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{request coordination}
+                        \smallskip
+
+                        Accept a read / write query and perform hashing to find the coordinator responsible, and forward to the coordinator.
+                    \item \textbf{membership and failure detection}
+                        \smallskip
+
+                        Gossip protocol to determine membership.
+                    \item \textbf{local persistent storage}
+                        \smallskip
+
+                        BigTable had a GFS layer to handle storage.
+                        Each node has a storage backend, which can be different embedded databases depending on the need.
+                \end{itemize}
+            \subsubsection*{Failures}
+                It distinguishes between temporary and permanent failures.
+                For a permanent failure, it needs to introduce a new replica (one node in the ring has failed, data is lost).
+                A new node is added to the preference list, and data is replicated to the new node.
+                For a temporary failure, hinted handover can be thought of as temporarily adding a different node to the preference list.
+                The assumption is that when the node comes back online, it will take the newly written data (to the temporary node).
+            \subsubsection*{Merkle Trees}
+                When data is replicated across nodes, a common operation is to discover divergence in the data, and only copy over data where the nodes diverge.
+                When a node temporarily disconnects, it will miss a number of updates, but some data still remains.
+                As such, we would want to avoid copying over all of the data.
+                \medskip
+
+                A Merkle tree can be thought of as a tree of hashes; the parents contain the hashes of their children, and leaves contain hashes of individual keys.
+                Parts can be checked without comparing the entire tree - for example if two root hashes are equal, then the trees are equal.
+                However, if the root hashes are different, then we can look at the next level down and continue traversing the tree.
+                The key-value pairs can be thought of as data blocks, which are hashed.
+            \subsubsection*{Evaluation}
+                One of the big challenges with the Dynamo design is load balancing (assigning the keys around the wrong).
+                Load balancing is done in BigTable by assigning SSTables to tablets.
+                If one tablet server is overloaded, tablets can be moved to a server with a lower load.
+                This is done by the master, which can see the global state.
+                In Dynamo, shifts can only be done around the ring, which can affect the entire ring.
+                \medskip
+
+                Both Dynamo and BigTable emphasise writes over reads.
+        \subsection*{Spanner}
+            Spanner was a response to BigTable and Megastore; and came out of limitations of those systems.
+            BigTable was difficult to use, and Megastore was a layer on top of BigTable - the main limitations were the inability to have a complex and evolving schema.
+            Dynamo's eventual consistency model gives great scalability and performance, but isn't great from the perspective of the developers (applications need to handle conflicts or may not see the most recent copy of the data) - there was a general pushback in industry against weaker consistency.
+            Spanner introduces features that were omitted from distributed systems like BigTable and Dynamo, that developers were used to from traditional databases (such as ACID properties).
+            Spanner tries to get the best of both worlds.
+            \medskip
+
+            Adopting a scale-out model with sharding, each region can end up with thousands of servers.
+            Clients then update the replica in the region geographically closest to them; this leads to the state being inconsistent to the data in a different geographic region.
+            A snapshot could be considered a consistent view of the data (on a single machine, block all writes on a read).
+            However, this becomes more difficult across multiple machines, as snapshots need to be consistent with each other (globally consistent view of the data).
+            With sharding and replication, different operations need a different consistent view over different parts of the data.
+            \medskip
+
+            Spanner achieves external consistency; the intuitive way how we'd expect transactions to execute if running on a single machine.
+            If transaction $T_1$ commits before another transaction $T_2$ starts, then $T_1$'s commit timestamp is smaller than $T_2$'s (equivalent to linearisability).
+            This means that any read that sees $T_2$ must also see $T_1$, there is a total ordering on transactions; a very strong guarantee to achieve on a globally distributed system.
+            This creates a total order across all transactions.
+            \medskip
+
+            External consistency is achieved by using TrueTime, which acknowledges clock uncertainty (but guarantees a bound) with interval-based global time.
+            This is difficult to achieve as there is no global time in a distributed system.
+            Logical time enforces a total order (separate from physical time), however these timestamps need to be propagated (all nodes in a system need to agree that logical time has advanced, however, this requires communication).
+            On the other hand, wall clock time should be agreed without communication; as long as each node has a source of time, they can individually assign timestamps and keep an ordering on transactions.
+            \medskip
+
+            However, as soon as we have local clocks, they will not be perfectly synchronised.
+            As soon as two timestamps from different clocks are within the error margin of the clocks, an ordering cannot be defined.
+            There is an uncertainty bound with each time, with the difference between the earliest and the latest (in that interval) being $2 \varepsilon$ - timestamps are not points with perfect accuracy, but rather intervals.
+            If the uncertainty interval of two timestamps don't overlap, then they are ordered (as good as global time).
+            \medskip
+
+            However, Spanner needs to ensure that it never commits two transactions which have overlapping timestamp intervals; this means that the two transactions are not ordered.
+            The idea of commit wait is that it needs to wait for whatever the uncertainty bound is.
+            \begin{center}
+                \begin{tikzpicture}
+                    \draw (0, 0) edge[-|>] (10, 0);
+
+                    \node (a) at (1, 1) {acquire lock};
+                    \node (r) at (9, 1) {release lock};
+                    \node (p) at (1.5, -1) {pick ~s = TT.now().latest~};
+                    \node (w) at (8.5, -1) {wait until ~TT.now().earliest > s~};
+                    \draw
+                    (a) edge[->] (1, 0)
+                    (r) edge[->] (9, 0)
+                    (p) edge[->] (1.5, 0)
+                    (w) edge[->] (8.5, 0)
+                    (1.5, -2) edge[<->, above] node{commit wait} (8.5, -2);
+                \end{tikzpicture}
+            \end{center}
+            If it waits for the duration of the uncertainty interval and no other node can acquire a lock (so no other node can pick a conflicting timestamp), every node can agree that the two timestamps are ordered.
+            This comes with the cost that writes cannot be immediate.
+            This works well if the uncertainty is small, as such the performance of the system depends on the accuracy of the times.
+            \medskip
+
+            The uncertainty bound needs to be the worst case bound in the system (the most inaccurate clock in the deployment).
+            Communication doesn't disappear, but rather is pushed into TrueTime.
+            TrueTime is a clock synchronisation protocol that also propagates uncertainty bounds (so that they are globally agreed).
+            This is consistent with Lamport's idea that there is no idealised concept of global time.
+            \medskip
+
+            Synchronisation is done across a hierarchy (time masters, which are more accurate, with an atomic clock can be used as a source).
+            If TrueTime's value of $\varepsilon$ is incorrect, then the ordering is lost, hence inconsistencies can occur and corrupt the data.
+            \medskip
+
+            TrueTime can be susceptible to attacks, for example if latency spikes are introduced between data centres, the value of $\varepsilon$ will increase, lowering the throughput.
+            Significant engineering went into making the system robust; if TrueTime is disrupted, the performance drops.
+            If a network partition occurs in spanner, the uncertainty will begin to increase, leading to the throughput dropping.
+            \medskip
+
+            TrueTime gives a very simple API, which gives the following;
+            \begin{itemize}
+                \itemsep0em
+                \item ~now()~ \hfill returns current system time, but also $\varepsilon$ which tells maximum uncertainty
+                \item ~after(t)~ \hfill ~true~ if ~t~ is definitely passed
+                \item ~before(t)~ \hfill ~true~ if ~d~ definitely not arrived
+            \end{itemize}
 \end{document}
