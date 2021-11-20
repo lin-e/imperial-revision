@@ -19,6 +19,7 @@
 \usepackage{pgfplots}
 \usepackage{adjustbox}
 \usepackage{dsfont}
+\usepackage[nocomma]{optidef}
 
 % tikz libraries
 \usetikzlibrary{
@@ -44,8 +45,8 @@
 
 % shorthand for verbatim
 % this clashes with logicproof, so maybe fix this at some point?
-\catcode`~=\active
-\def~#1~{\texttt{#1}}
+% \catcode`~=\active
+% \def~#1~{\texttt{#1}}
 
 % code listing
 \lstdefinestyle{main}{
@@ -215,7 +216,7 @@
 
 % actual document
 \begin{document}
-    {\sc Computing $4^\text{th}$ Year Notes} \hfill ~https://github.com/lin-e/imperial-revision~
+    {\sc Computing $4^\text{th}$ Year Notes} \hfill \texttt{https://github.com/lin-e/imperial-revision}
     \rule{\textwidth}{0.1pt}
     \section*{Mathematics for Machine Learning \hfill (70015)}
         \subsection*{Lecture 1.1 - Linear Regression Intro}
@@ -2114,4 +2115,141 @@
             $$\left(\frac{1}{\sigma^2}\mat{\Phi}(\mat{X})^\top\mat{\Phi}(\mat{X}) - \mat{I}\right)^{-1} \frac{1}{\sigma^2}\vec{y}^\top\mat{\Phi}(\mat{X})$$
             Note that $\vec{y}$ and $y^*$ are marginally not independent; they are conditionally independent if we knew the parameters.
             A intuitive way is to think of them as outcomes of $x$ and $x^*$ based on parameters $\vec{\theta}$; if $\vec{\theta}$ were to shift, both would shift together.
+        \subsection*{Lecture 12 - Constrained Optimisation}
+            In an unconstrained optimisation problem, we can search for any $x$.
+            For example $f(x) = x^2 - x - 2$, the minimum can be easily found by taking derivatives.
+            However, if the problem is constrained within a specific region, the global optimum may not satisfy the constraint.
+            \medskip
+
+            The constrained optimisation problem is set up as follows (inequality constraints and equality constraints) - for example, $-1 \leq x \leq 1.7$ can be written as $x - 1.7 \leq 0$ and $-x - 1 \leq 0$;
+            \begin{mini*}|l|
+                {\vec{x}}{L(\vec{x})}
+                {}{}
+                \addConstraint{g_i(\vec{x})}{\leq 0 \text{, for $i = 1, \dots, N$}}
+                \addConstraint{h_j(\vec{x})}{= 0 \text{, for $j = 1, \dots, M$}}
+            \end{mini*}
+            This can be solved by reparameterising $\vec{x}$ to satisfy the constraints directly.
+            For example (in terms of equality constraints), assume we can construct a reparameterisation $x^\prime$ such that $f(x^\prime) = x$ and $\forall x^\prime\ h_j(f(x^\prime)) = 0$.
+            If it's possible to have a function $f$, a constrained optimisation problem in $x$ space becomes an unconstrained optimisation problem in $x^\prime$ space.
+            \medskip
+
+            Another method, the Lagrange multiplier method, can solve the problem in the original space.
+            PCA with the maximum variance perspective will be used as the running example, to solve the optimisation directly rather than sequentially.
+            The problem setup remains the same.
+            We have an orthonormal basis $\mat{B} = [\mat{b_1}, \dots, \mat{b_M}]$;
+            $$\mat{z_n} := \mat{B}^\top\mat{x_n} \Leftrightarrow z_{nj} := \mat{b_j}^\top \mat{x_n}$$
+            This can be formalised as the following constrained optimisation problem;
+            \begin{maxi*}|l|
+                {\{\vec{b_1}, \dots, \vec{b_M} \}}{\summation{m = 1}{M} \mathbb{V}[\vec{b_m}^\top\vec{x_n}]}
+                {}{}
+                \addConstraint{|| \vec{b_m} ||_2^2}{= 1 \text{, $m = 1, \dots, M$}}
+                \addConstraint{\vec{b_i}\ }{\bot\ \vec{b_j} \text{, $\forall i \neq j$}}
+            \end{maxi*}
+            Recall that each variance term reduces to a quadratic term (see notes on PCA);
+            \begin{align*}
+                \mat{S} & = \frac{1}{N} \mat{X}\mat{X}^\top \\
+                \mathbb{V}[\vec{b_m}^\top\vec{x_n}] & = \vec{b_m}^\top\mat{S}\vec{b_m}
+            \end{align*}
+            The objective should then be changed to a minimisation objective, by negating it;
+            \begin{mini*}|l|
+                {\{ \vec{b_1}, \dots, \vec{b_M} \}}{\summation{m = 1}{M} \vec{b_m}^\top\mat{S}\vec{b_m}}
+                {}{-}
+                \addConstraint{\red{|| \vec{b_m} ||_2^2}\ }{\red{= 1 \text{, $m = 1, \dots, M$}}}
+                \addConstraint{\blue{\vec{b_i}\ }\ }{\blue{\bot\ \vec{b_j} \text{, $\forall i \neq j$}}}
+            \end{mini*}
+            The space is augmented into a bigger space that contains both the original parameters ($\{ \vec{b_1}, \dots, \vec{b_M} \}$) as well as the Lagrange multipliers $\red{\{ \lambda_m \}}$ for the unit vector constraint and $\blue{\{ \gamma_{ij} \}}$ for the perpendicular constraint.
+            The Lagrangian of the optimisation is defined as follows;
+            $$L(\{ \vec{b_m} \}, \{ \lambda_m \}, \{ \gamma_{ij} \}) = -\summation{m = 1}{M} \vec{b_m}^\top\mat{S}\vec{b_m} + \red{\summation{m = 1}{M} \lambda_m (|| \vec{b_m} ||_2^2 - 1)} + \blue{\summation{i < j}{} \gamma_{ij} \vec{b_i}^\top\vec{b_j}}$$
+            Recall that we wanted to write constraints in the form $g(\vec{b_m}) = 0$; the unit vector constraint can be written as $|| \vec{b_m} ||_2^2 - 1 = 0$ and the perpendicular constraint can be written as $\vec{b_i}^\top\vec{b_j} = 0$.
+            The constraints are then multiplied by the Lagrange multipliers and added to the original objective.
+            \medskip
+
+            The solutions of the vectors and the Lagrange multipliers must satisfy the following;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{stationarity} - when we solve for an optimisation problem, we are looking for stationary points
+                    $$\nabla_{\vec{b_m}} L(\{ \vec{b_m} \}, \{ \lambda_m \}, \{ \gamma_{ij} \}) = \vec{0}, m = 1, \dots, M$$
+                \item \textbf{primal feasibility} - must be a solution for the original problem (also tells us that $\nabla_{\lambda_m}L = 0$ and $\nabla_{\gamma_{ij}}L = 0$)
+                    $$|| \vec{b_m} ||_2^2 = 1, \vec{b_i}\ \bot\ \vec{b_j}$$
+            \end{itemize}
+            From the second point, we can find the stationary points with respect to the original variables as well as the Lagrange multipliers.
+            There are no more constraints; we find the stationary points for the augmented problem.
+            For the stationarity condition;
+            \begin{align*}
+                \nabla_{\vec{b_m}} L(\{ \vec{b_m} \}, \{ \lambda_m \}, \{ \gamma_{ij} \}) & = -\mat{S}\vec{b_m} + \lambda_m\vec{b_m} + \summation{i < m}{} \gamma_{im} \vec{b_i} + \summation{j > m}{} \gamma_{mj} \vec{b_j} \\
+                & = \vec{0}
+            \end{align*}
+            However, naively attempting to solve the above (isolating all the $\vec{b_m}$ terms) would lead to an equation that depends on the results of the other basis vectors.
+            \medskip
+
+            However, we can take advantage of the primal feasibility condition, which tells us that $\vec{b_m}^\top\vec{b_j} = 0$, if $j \neq m$.
+            As such, if we left-multiply the gradient;
+            \begin{align*}
+                \vec{b_m}^\top \nabla_{\vec{b_m}} L(\{ \vec{b_m} \}, \{ \lambda_m \}, \{ \gamma_{ij} \}) & = -\vec{b_m}^\top\mat{S}\vec{b_m} + \lambda_m\vec{b_m}^\top\vec{b_m} + \summation{i < m}{} \gamma_{im} \vec{b_m}^\top\vec{b_i} + \summation{j > m}{} \gamma_{mj} \vec{b_m}^\top\vec{b_j} \\
+                & = -\vec{b_m}^\top\mat{S}\vec{b_m} + \lambda_m\vec{b_m}^\top\vec{b_m} \\
+                & = -\vec{b_m}^\top(\mat{S}\vec{b_m} - \lambda_m^\top\vec{b_m})
+            \end{align*}
+            However, we can now set the above $= 0$, in order to satisfy the stationarity constraints.
+            The primal feasibility constraint $|| \vec{b_m} ||_2^2 = 1$ implies that we make $\mat{S}\vec{b_m} - \lambda_m\vec{b_m} = \vec{0}$.
+            This means that $\vec{b_m}$ is an eigenvector of $\mat{S}$.
+            \medskip
+
+            Let $\mat{S} = \mat{Q}\mat{\Lambda}\mat{Q}^\top$, where $\mat{Q} = [\vec{q_1}, \dots, \vec{q_D}]$.
+            Notice that both conditions are satisfied, when we do the following (pick $M$ eigenvector / eigenvalue pairs and set $\gamma_{ij} = 0$);
+            $$\{ (\vec{b_1}, \lambda_1), \dots, (\vec{b_M}, \lambda_M) \} \subset \{ (\vec{q_1}, \Lambda_{11}), \dots, (\vec{q_D}, \Lambda_{DD}) \}, \gamma_{ij} = 0$$
+            This tells us that solving for the stationary points of the Lagrangian can give us multiple solutions (local optima).
+            \medskip
+
+            The global minimum can be obtained by choosing the best from all local optima ($\{ \vec{b_1}, \dots, \vec{b_M} \}$ are the leading $M$ eigenvectors of $\mat{S}$).
+            This optimisation problem has a fixed set of candidates, as we have $\{ \vec{b_1}, \dots, \vec{b_M} \} \subset \{ \vec{q_1}, \dots, \vec{q_D} \}$ - reducing it back to a combinatorial problem;
+            $$\min \summation{m = 1}{M} \vec{b_m}^\top\mat{S}\vec{b_m}$$
+            \subsubsection*{Generic Form (Equality Constraints Only)}
+                The generic form is as follows;
+                \begin{mini*}|l|
+                    {\vec{x}}{L(\vec{x})}
+                    {}{}
+                    \addConstraint{h_j(\vec{x})}{= 0 \text{, for $j = 1, \dots, M$}}
+                \end{mini*}
+                The method is as follows;
+                \begin{enumerate}
+                    \itemsep0em
+                    \item construct Lagrangian function
+                        $$L(\vec{x}, \{ \lambda_j \}) = L(\vec{x}) + \summation{j = 1}{M} \lambda_j h_j(\vec{x})$$
+                    \item find stationary points (note that $j = 1, \dots, M$)
+                        \begin{align*}
+                            \nabla_{\vec{x}} L(\vec{x}, \{ \lambda_j \}) & = \vec{0} & \text{stationarity} \\
+                            \nabla_{\lambda_j} L(\vec{x}, \{ \lambda_j \}) & = 0 & \text{primal feasibility}
+                        \end{align*}
+                \end{enumerate}
+            \subsubsection*{Intuition}
+                Consider a simplified setup, where $M = 1$, hence we only have one $\lambda$ and $h$, with a $\vec{x} \in \mbbr^D$.
+                $$L(\vec{x}, \lambda) = L(\vec{x}) + \lambda h(\vec{x})$$
+                The intuition for solving $\nabla_{\vec{x}, \lambda} L = \vec{0}$ is as follows.
+                To figure out a low-dimensional manifold in a high-dimensional space, the manifolds (a surface) are typically represented as an equality constraint, for example $f(\vec{x}) = c$.
+                A line is a low-dimension manifold in a 2D space.
+                A contour plot involves plotting different manifolds $f(\vec{x}) = c_i$, with different $c_i$.
+                \medskip
+
+                A low dimension manifold can also be drawn for $h(\vec{x}) = 0$.
+                Solving $\nabla_{\vec{x}, \lambda} L = \vec{0}$ implies;
+                \begin{align*}
+                    -\nabla_{\vec{x^*}}L(\vec{x^*}) & = \lambda^*\nabla_{\vec{x^*}}h(\vec{x^*}) \\
+                    h(\vec{x^*}) & = 0
+                \end{align*}
+                For some $c^*$, $-L(\vec{x}) = c^*$ and $h(\vec{x}) = 0$ are tangent (touching) at some point $\vec{x^*}$.
+                \medskip
+
+                With the constraint $h(\vec{x}) = 0$, we can only find solutions on that surface.
+                Assume we have a candidate solution $\vec{x}$.
+                If there is a positive inner product between the perturbation $\delta \vec{x}$ and the negative gradient $-\nabla_{\vec{x}}L(\vec{x})$ (such that $\la -\nabla_{\vec{x}}L(\vec{x}), \delta\vec{x} \ra > 0$), we can improve the loss function further $\Rightarrow L(\vec{x}) > L(\vec{x} + \delta\vec{x})$;
+                \begin{align*}
+                    || \delta \vec{x} ||_2^2 & \leq \varepsilon & \text{small perturbation} \\
+                    L(\vec{x} + \delta\vec{x}) & = L(\vec{x}) + \underbrace{\nabla_{\vec{x}}L(\vec{x})^\top \delta\vec{x}}_{< 0} & \text{first order Taylor expansion}
+                \end{align*}
+                As such, if we want to find the optimal solution on the $h(\vec{x}) = 0$ surface, we need to ensure that we cannot find any perturbations to $\vec{x^*}$ that will improve the loss function further.
+                Formally, for $\vec{x^*}$ to be a local minimum, we need to ensure that $\forall \delta\vec{x}\ h(\vec{x} + \delta\vec{x}) = 0$, $\la -\nabla_{\vec{x}}L(\vec{x}), \delta\vec{x} \ra \leq 0$ - $\vec{x^*}$ is a point of contact.
+                \medskip
+
+                To find a point of contact between the surfaces $-L(\vec{x}) = c^*$ and $h(\vec{x}) = 0$ is the same as finding $\vec{x^*}$ such that $-\nabla_{\vec{x^*}}L(\vec{x^*})$ and $\nabla_{\vec{x^*}}h(\vec{x^*})$ align on the same line.
+                A tangent plane is defined by its normal vector, which is essentially the gradient.
 \end{document}
