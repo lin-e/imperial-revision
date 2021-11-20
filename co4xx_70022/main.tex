@@ -2268,4 +2268,167 @@
             The query API is implemented by the tablet servers.
             A client connects to the tablet server and creates calls to the API.
             The client library knows how to find the tablet servers, and also does caching for the tablet servers.
+            \medskip
+
+            Atomic row operations in BigTable could limit scalability.
+            Load balancing between tablet servers, to avoid hotspots, is required to have linear scaling.
+            If we kept increasing the number of tablet servers, a scalability bottleneck could exist in the single master.
+        \subsection*{DynamoDB}
+            Dynamo is able to compromise consistency with eventual consistency - we don't care if the data is consistent all the time, just that it will be in the future (no guarantee on how long the process will take).
+            This gives the benefits of quicker writes and writes never failing.
+            A common reason for write failures are writes that cause failures (pessimistic concurrency controls abort a transaction if a conflict occurs).
+            With eventual consistency, all writes will succeed and eventually resolve inconsistencies.
+            Another benefit arising from the eventual consistency model is flexibility with managing inconsistencies; for example, with a shopping cart it can easily be reconciled by taking the union (if multiple devices add different items to different sessions, a union is expected).
+            \medskip
+
+            Eventual consistency helps with network partitioning (when parts of networks cannot connect to other parts of the network).
+            In a system that is strongly consistent, if there is a network partition, the system can no longer progress (we can't update a replica if we can't connect to it).
+            Consider a case where some replicas are no longer available; if a replica is disconnected it simply won't be updated until it's back online.
+            This also helps with availability, even under network partitions.
+            \medskip
+
+            A significant amount of the system implementation is done to support a low tail latency SLA.
+            Other key ideas in the Dynamo design include;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{peer-to-peer network}
+                    \smallskip
+
+                    In DynamoDB, everything is a node - this gives a decentralised peer-to-peer design.
+                    Compared to a centralised system, with a master, it removes a single point of failure, helping with availability.
+                    A system can still be fault tolerant if the centralised single point of failure is fault tolerant.
+                    Faster and simpler recovery can be achieved from the decentralised design (without relying on something external, such as Chubby in BigTable).
+                    Provisioning and scaling is also easier, as all nodes are the same (homogeneous).
+                    \medskip
+
+                    Decentralised architectures aren't commonly used today (other than blockchains).
+                    A purely decentralised design comes at the cost of complexity (for example, a consensus has to be reached between nodes, whereas a master could coordinate this).
+                    A centralised design is easier to manage and monitor.
+                \item \textbf{versioning / vector timestamps}
+                    \smallskip
+
+                    Special timestamps are used for versioning and resolving inconsistencies.
+                \item \textbf{data organisation}
+                    \smallskip
+
+                    A problem in a distributed database system is finding which particular node in a system should be responsible for a given key-value pair.
+                    A ring data structure is used.
+                    The keys (ordered) are assumed to form a 1-D space, which wraps around to a ring.
+                    The Dynamo nodes are assigned around this ring, which are responsible for certain key ranges in the ring.
+                    This idea comes from distributed hash tables (think of buckets in a traditional hash table as nodes).
+                    \medskip
+
+                    Consistent hashing exploits the ring structure formed.
+                    Keys are replicated with the use of $N$ successor nodes ($N$ is specified for a particular instance of Dynamo), where the key is copied to those nodes.
+                    Immediate successor nodes on the right are sent copies of the data (preference list).
+            \end{itemize}
+            As long as all the nodes agree on the ring structure (the order of nodes), and the hash functions, they all know the order from keys to nodes and who is supposed to replicate those keys.
+            The membership of the ring changes over time, as nodes can fail (and not participate in the protocol).
+            When the ring is changed, the addition of a node only changes (takes way bits of the key range) the neighbourhood in which the new node is added.
+            This prevents a full repartition, which would be expensive; the consistent hashing doesn't ensure perfect balancing, but ensures updates are local.
+            \medskip
+
+            Gossip-based protocols involve nodes contacting other nodes at random and exchange pieces of information.
+            These protocols are robust, even though they can take a long time.
+            For example, if a new node joins, the structure can be propagated (slowly) throughout the ring.
+            A problem with pure gossiping is that it's slow as it depends on how frequently the nodes gossip; a solution is to seed the initial information (better to start with some mostly correct information).
+            \medskip
+
+            Sloppy quorum is used for handling failures.
+            If one of the $N$ successor nodes is unavailable due to some sort of failure, some other node is informed of the updates.
+            Once the original node comes back online, hinted handoff is used to pass the update back to the original node.
+            Traditional distributed algorithms have a view where the node is either alive or dead, and once it dies it doesn't come back.
+            Transient failures account for temporary unavailability (for example, rebooting a switch in a data centre), and Dynamo is designed for this.
+            If we know a failure is transient, a significant amount of work can be saved by not invoking a heavyweight recovery mechanism (that would've been required for a permanent failure).
+            For example; hinted handoff is significantly cheaper than doing a full replication to another node.
+            \medskip
+
+            Anti-entropy (keep diverging replicas as synchronised as possible) using Merkle trees (used to determine how far away two nodes are).
+            Merkle trees are essentially a way of comparing hashes over the data (to determine what data to copy over to ensure data is consistent).
+            \medskip
+
+            The design assumptions that are made by Dynamo include the following;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{query model}
+                    \subitem not relational, read / write queries over key-value pairs (values can be arbitrary binary blobs), and no atomic operations over multiple keys
+                \item \textbf{ACID properties}
+                    \subitem weaker eventual consistency model
+                \item \textbf{efficiency}
+                    \subitem optimise for $99.9^\text{th}$ percentile latency
+            \end{itemize}
+            To optimise for low tail latency, we need to control the operations on the critical path, as well as the minimise the variance of operations we have to execute.
+            Something that could cause load spikes in the BigTable design is the compaction operations from the memtable.
+            Dynamo tries to avoid this.
+            \medskip
+
+            Dynamo's API consists of only two operations;
+            \begin{itemize}
+                \itemsep0em
+                \item ~put(key, context, object)~
+                    \begin{itemize}
+                        \itemsep0em
+                        \item ~key~ \hfill primary key
+                        \item ~context~ \hfill vector clocks and history
+                            \smallskip
+
+                            The reconciliation of inconsistent states is pushed to the client.
+                            The client doesn't need to know what the context means, but just has to pass it in (the client is used to keep the state, rather than Dynamo).
+                        \item ~object~ \hfill value / data to store
+                    \end{itemize}
+                \item ~get(key)~
+            \end{itemize}
+            Dynamo's design is related to the CAP theorem, where only 2 of consistency, availability, and partition-tolerance can be achieved.
+            Availability cannot be sacrificed as it can lead to a loss of customer trust and partitions must be tolerated as failures happen all the time in data centres.
+            On the other hand, BigTable sacrifices availability; all systems must pick partition-tolerance as network partitions aren't something that can be controlled.
+            \medskip
+
+            In Dynamo, conflict resolution is executed during a read, rather than on a write.
+            Similar to BigTable, the emphasis is placed on the write, and in this case it's always possible.
+            \medskip
+
+            Other design considerations specific to Dynamo include;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{incremental scalability} - easy to scale due to decentralised design (just add more nodes, which spread out over a ring)
+                \item \textbf{symmetry} - every node has the same set of responsibilities
+                \item \textbf{decentralisation} - no central coordinator / master node
+                \item \textbf{heterogeneity} - different types (compute power, more CPU cores / RAM, etc.) of servers should be supported; more work should be assigned to more powerful servers (workload partitioning proportional to server capabilities)
+            \end{itemize}
+            Distribution with consistent hashing are done with virtual nodes, allowing for more powerful servers to host more virtual nodes.
+            A more powerful server is responsible for a larger range of the ring (serving more keys).
+            The virtual nodes are an additional level of indirection to allow for more flexible load balancing without having to change the actual hashing of keys to locations on the ring.
+            \subsubsection*{Consistency and Availability}
+                We assume that we can eventually successfully replicate the data.
+                Conflicts are resolved in the meantime during reads, which does more work by either automatically doing the resolution if the database can, or to expose it to the client for more application specific conflicts.
+                This allows for writes to always be possible.
+                \medskip
+
+                If the database system needs to resolve the conflicts, then there has to be a rule that can always apply, such as the most recent write `winning'.
+                This is a bad policy for some applications.
+            \subsubsection*{Data Partitioning and Replication}
+                In regular hashing, a change in the number of slots requires all keys to be remapped.
+                On the other hand, only $\frac{K}{n}$ keys need to be remapped, where $K$ is the number of keys and $n$ is the number of slots in consistent hashing.
+                \medskip
+
+                Distributed hash tables don't have a global view of the ring (only the predecessor and successor); this has an advantage that membership doesn't need to be maintained by all nodes (no gossip).
+                However, a query would require the query being propagated around the ring (which is slow).
+                Shortcuts exist in the ring to improve this (exponentially distributed it, similar to binary search; starts with one big jump followed by incrementally smaller jumps).
+                \medskip
+
+                Dynamo avoids the shortcut tables (which complicates the structure).
+                Instead, it assumes all nodes have a global view, also known as a one-hop distributed hash table.
+                The first node in a preference list becomes the coordinator for a read / write.
+                The replicas (other nodes in the preference list) are the nodes we are constructing a quorum over, the coordinator is responsible for this entire process.
+                \medskip
+
+                When a request comes in to the load balancer, it is randomly forwarded to a node on the ring.
+                That node doesn't execute the request (as it may not be on the key's preference list, therefore has no data).
+                The load balancers therefore don't need to participate in the Dynamo protocol.
+            \subsubsection*{Read / Write Quorum}
+                If we have multiple replicas, executing reads and writes, we want to ensure the read always shows the latest writes.
+                The number of replicas we've read from ($R$) and the total number of replicas we've written to ($W$) must be greater than the number of replicas ($N$); $R + W > N$.
+                Therefore, there needs to an overlap - there is always one replica that we're both reading and writing from.
+                The coordinator node constructs this quorum (picks a number of nodes to satisfy a read, and a number of nodes to satisfy a write).
+                A sloppy quorum allows for reading from fewer than $R$ replicas - the consistency can be tuned by adjusting the amount of overlap.
 \end{document}
