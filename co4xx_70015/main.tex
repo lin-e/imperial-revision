@@ -1905,4 +1905,213 @@
                     \setcounter{enumi}{10}
                     \item Linear transformation of Gaussians is still Gaussian
                 \end{enumerate}
+        \subsection*{Lecture 11 - Bayesian Linear Regression}
+            In a probabilistic model, the data is modelled as a probability distribution (we can also estimate the unpredictability of the problem);
+            \begin{align*}
+                y_n & = f(\vec{x_n}; \vec{\theta}) + \epsilon_n & \epsilon_n \sim \mathcal{N}(0, \sigma^2) \\
+                (\vec{\theta^*}, \sigma^{2*}) & = \argmax_{\vec{\theta}, \sigma^2} \log p(\vec{y}\ |\ \vec{\theta}, \sigma^2, \mat{X})
+            \end{align*}
+            Note that uncertainty (aleatoric uncertainty) remains even if we know the underlying function.
+            \medskip
+
+            Another form of uncertainty exists; not in the data but rather the parameters in the model (what the function is doing).
+            If we have data in some regions, but try to make a prediction in a region without data, we may want to express it with some probability distribution.
+            This is known as epistemic uncertainty.
+            \medskip
+
+            Bayesian inference tells us to use the rules of probability to estimate the parameters we want to estimate;
+            $$\underbrace{p(\vec{\theta}\ |\ \vec{y})}_\text{posterior} = \frac{\overbrace{p(\vec{\theta}\ |\ \vec{y})}^\text{likelihood}\overbrace{p(\vec{\theta})}^\text{prior}}{\underbrace{p(\vec{y})}_\text{evidence}}$$
+            We start by taking a particular distribution where we assume our parameters has come from ($p(\vec{\theta})$).
+            We assume that $\vec{\theta}$ and $\vec{y}$ are generated in a related way and use conditional probability to reason about this.
+            In practice, Bayesian inference makes a leap of faith (selects a prior and hopes that it's a reasonable distribution).
+            \medskip
+
+            The final uncertainty has contributions both from aleatoric uncertainty (unpredictability), due to noise, as well as epistemic uncertainty (parameter uncertainty).
+            \medskip
+
+            Note that $p(\vec{\theta})$ was only high for functions which were close to the data.
+            When this is multiplied with $p(\vec{y}\ |\ \vec{\theta})$ (likelihood), we cut away all the parameter configurations that correspond to functions that are inconsistent with the data.
+            Note that the likelihood was only high for functions that were near to our data.
+            As such, the posterior is high in only a few values (while it does span the space of parameters).
+            When sampling from the posterior, the functions will be close to the data.
+            \medskip
+
+            To derive these, we will use the following Gaussian identities;
+            \begin{align*}
+                p(\vec{x}, \vec{y}) & = \mathcal{N}\left(\begin{bmatrix}
+                    \vec{\mu_x} \\ \vec{\mu_y}
+                \end{bmatrix}, \begin{bmatrix}
+                    \mat{\Sigma_{xx}} & \mat{\Sigma_{xy}} \\
+                    \mat{\Sigma_{yx}} & \mat{\Sigma_{yy}}
+                \end{bmatrix}\right) & \text{joint Gaussian distribution} \\
+                p(\vec{x}) & = \indefint{p(\vec{x}, \vec{y})}{\vec{y}} & \text{marginal} \\
+                & = \mathcal{N}(\vec{\mu_x}, \mat{\Sigma_{xx}}) \\
+                p(\vec{x}\ |\ \vec{y}) & = \mathcal{N}(\vec{\mu}_{\vec{x}|\vec{y}}, \mat{\Sigma}_{\vec{x}|\vec{y}}) & \text{conditional} \\
+                \vec{\mu}_{\vec{x}|\vec{y}} & = \vec{\mu_x} + \mat{\Sigma_{xy}}\mat{\Sigma_{yy}}^{-1}(\vec{y} - \vec{\mu_y}) \\
+                \mat{\Sigma}_{\vec{x}|\vec{y}} & = \mat{\Sigma_{xx}} - \mat{\Sigma_{xy}}\mat{\Sigma_{yy}}^{-1}\mat{\Sigma_{yx}}
+            \end{align*}
+            We are interested in the posterior $p(\vec{\theta}\ |\ \vec{y})$ and the predictive distribution $p(\vec{y^*}\ |\ \vec{y})$.
+            The setup is still the same, assuming that the variance ($\sigma^2$) is fixed and known.
+            The first method is as follows, grouping all the data in vectors;
+            \begin{align*}
+                \vec{y} & = \vec{f}(\mat{x}) + \vec{\epsilon} & \mat{x} \in \mbbr^{N \times D}, f(\mat{X}) \in \mbbr^N \\
+                & = \mat{\Phi}(\mat{X}) \vec{\theta} + \vec{\epsilon} & \mat{\Phi}(\mat{X}) \in \mbbr^{N \times M} \\
+                \vec{e} & \sim \mathcal{N}(\vec{0}, \sigma^2\mat{I_N}) & \vec{\epsilon} \in \mbbr^N
+            \end{align*}
+            Also take the prior $p(\vec{\theta}) \sim \mathcal{N}(\vec{\theta}; \vec{0}, \mat{I})$.
+            The steps are as follows;
+            \begin{enumerate}
+                \itemsep0em
+                \item find joint
+                    \begin{align*}
+                        \begin{bmatrix}
+                            \vec{\theta} \\ \vec{y}
+                        \end{bmatrix} & = \underbrace{\begin{bmatrix}
+                            \mat{I} & \mat{0} \\
+                            \mat{\Phi}(\mat{X}) & \sigma^2\mat{I}
+                        \end{bmatrix}}_{\mat{A}} \begin{bmatrix}
+                            \vec{\theta} \\ \vec{\epsilon}
+                        \end{bmatrix} \\
+                        \vec{\mu} & = \mat{A}\vec{m} \\
+                        \mat{\Sigma} & = \mat{A}\mat{S}\mat{A}^\top \\
+                        \mat{S} & = \begin{bmatrix}
+                            \mat{I} & \mat{0} \\
+                            \mat{0} & \sigma^2\mat{I}
+                        \end{bmatrix} \\
+                        p(\vec{\theta}, \vec{\epsilon}) & = \mathcal{N}\left(\begin{bmatrix}
+                            \vec{\theta} \\ \vec{\epsilon}
+                        \end{bmatrix}; \vec{m}, \mat{S}\right) \\
+                        p\left(\begin{bmatrix}
+                            \vec{\theta} \\ \vec{y}
+                        \end{bmatrix}\right) & = \mathcal{N}\left(\begin{bmatrix}
+                            \vec{\theta} \\ \vec{y}
+                        \end{bmatrix}; \begin{bmatrix}
+                            \vec{0} \\ \vec{\theta} % or \vec{0}????
+                        \end{bmatrix}, \begin{bmatrix}
+                            \mat{I} & \mat{\Phi}(\mat{X})^\top \\
+                            \mat{\Phi}(\mat{X}) & \mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2\mat{I}
+                        \end{bmatrix}\right) \\
+                        \mathbb{V}_{\vec{\theta}}[\mat{\Phi}(\mat{X})\vec{\theta} + \vec{\epsilon}] & = \mathbb{V}_{\vec{\theta}}[\mat{\Phi}(\mat{X})\vec{\theta}] + \mathbb{V}_{\vec{\theta}}[\vec{\epsilon}] & \text{(a)} \\
+                        \mathbb{C}[\vec{y}, \vec{\theta}] & = \mathbb{E}[\vec{y}\vec{\theta}^\top] & \text{(b)} \\
+                        & = \mathbb{E}[(\mat{\Phi}(\mat{X})\vec{\theta} + \vec{\epsilon})\vec{\theta}^\top] \\
+                        & = \mathbb{E}[\mat{\Phi}(\mat{X})\vec{\theta}\vec{\theta}^\top + \vec{\epsilon}\vec{\theta}^\top] \\
+                        & = \mat{\Phi}(\mat{X})\mathbb{E}[\vec{\theta}\vec{\theta}^\top] + \mat{0} & \text{(c)} \\
+                        & = \mat{\Phi}(\mat{X})\mathbb{V}[\vec{\theta}] & \text{(d)} \\
+                        \mathbb{V}[\vec{y}] & = \mathbb{E}[\vec{y}\vec{y}^\top] \\
+                        & = \mathbb{E}[\mat{\Phi}(\mat{X})\vec{\theta} + \vec{\epsilon})\mat{\Phi}(\mat{X})\vec{\theta} + \vec{\epsilon})^\top] \\
+                        & = \mat{\Phi}(\mat{X})\mathbb{E}[\vec{\theta}\vec{\theta}^\top]\mat{\Phi}(\mat{X})^\top + \sigma^2\mat{I}\\
+                    \end{align*}
+                    Note the following;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item independent, so variance is sum of individual variances
+                        \item zero mean
+                        \item independent
+                        \item note that $\mathbb{E}[\vec{\theta}\vec{\theta}^\top] = \mathbb{V}[\vec{\theta}]$ if $\mathbb{E}[\vec{\theta}] = \vec{0}$, as we know $\mathbb{V}[\vec{\theta}] = \mathbb{E}[\vec{\theta}\vec{\theta}^\top] - \mathbb{E}[\vec{\theta}]\mathbb{E}[\vec{\theta}]^\top$
+                    \end{enumerate}
+                \item apply Gaussian conditioning rule
+                    \begin{align*}
+                        p(\vec{\theta}\ |\ \vec{y}) & = \mathcal{N}(\vec{\theta}; \mat{\Phi}(\mat{X})^\top[\mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2\mat{I}]^{-1}\vec{y}, \mat{I} - \mat{\Phi}(\mat{X})^\top[\mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2\mat{I}]\mat{\Phi}(\mat{X}))
+                    \end{align*}
+            \end{enumerate}
+            The second method requires keeping in mind more properties of probability densities.
+            Observe the following;
+            \begin{align*}
+                \log p(\vec{\theta}\ |\ \vec{y}) & = -\log p(\vec{y}) + \log p(\vec{y}\ |\ \vec{\theta}) + p(\vec{\theta}) \\
+                & = c - \frac{1}{2\sigma^2}(\vec{y} - \mat{\Phi}(\mat{X})\vec{\theta})^\top(\vec{y} - \mat{\Phi}(\mat{X})\vec{\theta}) - \frac{1}{2} \vec{\theta}^\top\vec{\theta}
+            \end{align*}
+            Note that this is quadratic in $\mat{\theta}$, which is a property all Gaussians share when taking logarithms.
+            The posterior equation (seen above), can be written in some form;
+            $$\log \mathcal{N}(\vec{\theta}; \vec{\mu}, \mat{\Sigma}) = c^\prime - \frac{1}{2}(\vec{\theta} - \vec{\mu})^\top\mat{\Sigma}^{-1}(\vec{\theta} - \vec{\mu})$$
+            This can be done by equating coefficients, and we don't need to care about the constant $c^\prime$.
+            Taking derivatives (the maximum of the distribution is equal to the mean, the Hessian is equal to the covariance);
+            \begin{align*}
+                \dif{}{\vec{\theta}} \log p(\vec{\theta}\ |\ \vec{y}) & = -\frac{1}{2\sigma^2}(\vec{y} - \mat{\Phi}(\mat{X})\vec{\theta})^\top \cdot -\mat{\Phi}(\mat{X}) - \vec{\theta}^\top \\
+                & = \frac{1}{\sigma^2}(\vec{y} - \mat{\Phi}(\mat{X})\vec{\theta})^\top \mat{\Phi}(\mat{X}) - \vec{\theta}^\top \\
+                & = \frac{1}{\sigma^2}\vec{y}^\top\mat{\Phi}(\mat{X}) - \frac{1}{\sigma^2}\vec{\theta}^\top\mat{\Phi}(\mat{X})^\top\mat{\Phi}(\mat{X}) - \vec{\theta}^\top \\
+                & = \frac{1}{\sigma^2}\vec{y}^\top\mat{\Phi}(\mat{X}) - \vec{\theta}^\top\left(\frac{1}{\sigma^2}\mat{\Phi}(\mat{X})^\top\mat{\Phi}(\mat{X}) - \mat{I}\right) \\
+                & = 0 & \text{finding maximum} \Rightarrow \\
+                \vec{\theta^*} & = \left(\frac{1}{\sigma^2}\mat{\Phi}(\mat{X})^\top\mat{\Phi}(\mat{X}) - \mat{I}\right)^{-1} \frac{1}{\sigma^2}\vec{y}^\top\mat{\Phi}(\mat{X}) \\
+                & = \vec{\mu} \\
+                \dif{^2}{\vec{\theta}\mathrm{d}\vec{\theta}^\top} \log \mathcal{N}(\vec{\theta}; \vec{\mu}, \mat{\Sigma}) & = \mat{\Sigma}^{-1} \\
+                & = \dif{^2}{\vec{\theta}\mathrm{d}\vec{\theta}^\top} [c + \log p(\vec{y}\ |\ \vec{\theta}) + \log p(\vec{\theta})] \\
+                \mat{\Sigma}^{-1} & = \frac{1}{\sigma^2} \mat{\Phi}(\mat{X})^\top\mat{\Phi}(\mat{X}) + \mat{I}
+            \end{align*}
+            The answers are `different'; they are equal, just a different way of computing.
+            The mean from method 1 has complexity $O(N^3)$ whereas the second result has complexity $O(M^3)$.
+            If the number of data points is smaller than the number of features, it's faster to do the first method, and vice versa.
+            Using the Woodbury identity, we can show equivalence;
+            $$(\mat{A} + \mat{U}\mat{C}\mat{V})^{-1} = \mat{A}^{-1} - \mat{A}^{-1}\mat{U}\mat{A}(\mat{C}^{-1} + \mat{V}\mat{A}^{-1}\mat{U})^{-1}\mat{V}\mat{A}^{-1}$$
+            Finding the predictive distribution is desirable as we can make a new prediction not as a point estimate but with probability distribution.
+            Intuitively, finding the posterior over the parameter is all that's required.
+            Again there are two methods, starting with the first.
+            We first assume that we already know what the posterior is (calculated before).
+            We know the following, as we assume all observations are independent from one another, given we know the parameters;
+            $$p(\vec{y}, y^*\ |\ \vec{\theta}) = p(\vec{y}\ |\ \vec{\theta})p(y^*\ |\ \vec{\theta})$$
+            We want to find the distribution based on what we've defined in our model, or found earlier;
+            \setcounter{equation}{0}
+            \begin{align}
+                p(\vec{y}\ |\ y^*\ |\ \vec{\theta}) & = \indefint{p(y^*, \vec{\theta}\ |\ \vec{y})}{\vec{\theta}} \\
+                & = \indefint{p(y^*\ |\ \vec{\theta}, \vec{y})p(\vec{\theta}\ |\ \vec{y})}{\vec{\theta}} \\
+                & = \indefint{p(y^*\ |\ \vec{\theta})p(\vec{\theta}\ |\ \vec{y})}{\vec{\theta}} \\
+                p(y^*\ |\ \vec{\theta}) & = \mathcal{N}(y^*; \vec{\phi}(\vec{x^*})^\top\vec{\theta}, \sigma^2) \\
+                y^* & = \vec{\phi}(\vec{x^*})^\top\vec{\theta} + \epsilon \\
+                p(\vec{\theta}\ |\ \vec{y}) & = \mathcal{N}(\vec{\theta}; \vec{\mu}, \mat{\Sigma}) \\
+                \mathbb{E}_{\epsilon, \vec{\theta} | \vec{y}}[y^*] & = \vec{\phi}(\vec{x^*})^\top \vec{\mu} \\
+                \mathbb{V}_{\epsilon, \vec{\theta} | \vec{y}}[y^*] & = \mathbb{V}[\vec{\phi}(\vec{x^*})^\top\vec{\theta}] + \mathbb{V}[\epsilon] \\
+                & = \vec{\phi}(\vec{x^*})^\top \mat{\Sigma} \vec{\phi}(\vec{x^*}) + \sigma^2 \mat{I}
+            \end{align}
+            \begin{enumerate}[(1)]
+                \itemsep0em
+                \item marginal of a distribution containing the parameter $\vec{\theta}$ (sum rule)
+                \item apply product rule
+                \item independence assumption (see above, $y^*$ doesn't depend on $\vec{y}$)
+                \item Gaussian distribution
+                \item linear transformation of Gaussian random variables
+                \item posterior from before
+            \end{enumerate}
+            Another method of doing this is as follows (only requiring the conditioning rule for Gaussians).
+            Find the joint $\vec{y}, \vec{\theta}, y^*$ (linearly related with Gaussian distributions), note that $\vec{\theta} \in \mbbr^M, \vec{\epsilon} \in \mbbr^N, \epsilon^* \in \mbbr, \vec{\phi}(\vec{x^*})^\top \in \mbbr^{1 \times M}$;
+                $$\mathcal{N}\left(\begin{bmatrix}
+                    \vec{\theta} \\
+                    \vec{y} \\
+                    y^*
+                \end{bmatrix}; \begin{bmatrix}
+                    \vec{0} \\
+                    \vec{0} \\
+                    0
+                \end{bmatrix}, \begin{bmatrix}
+                    \mat{I} & \mat{\Phi}(\mat{X})^\top & \vec{\phi}(\vec{x^*}) \\
+                    \mat{\Phi}(\mat{X}) & \mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2\mat{I} & \mat{\Phi}(\mat{X})^\top\vec{\phi}(\vec{x^*}) \\ % ^\top?
+                    \vec{\phi}(\vec{x^*})^\top & \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X}) & \vec{\phi}(\vec{x^*})^\top\vec{\phi}(\vec{x^*}) + \sigma^2\mat{I} \\
+                \end{bmatrix}\right)$$
+                \begin{align*}
+                    \begin{bmatrix}
+                        \vec{\theta} \\
+                        \vec{y} \\
+                        y^*
+                    \end{bmatrix} & = \begin{bmatrix}
+                        \mat{I} & \mat{0} & \mat{0} \\
+                        \mat{\Phi}(\mat{X}) & \mat{I} & \mat{0} \\
+                        \vec{\phi}(\vec{x^*})^\top & \mat{0} & 1
+                    \end{bmatrix} \begin{bmatrix}
+                        \vec{\theta} \\
+                        \vec{\epsilon} \\
+                        \epsilon^*
+                    \end{bmatrix} \\
+                    \mathbb{C}[y^*, \vec{y}] & = \mathbb{E}[y^*\vec{y}^\top] \\
+                    & = \mathbb{E}[(\vec{\phi}(\vec{x^*})^\top\vec{\theta} + \epsilon^*)(\mat{\Phi}(\mat{X})\vec{\theta} + \vec{\epsilon})] \\
+                    & = \mathbb{E}[\vec{\phi}(\vec{x^*})^\top\vec{\theta}\vec{\theta}^\top\mat{\Phi}(\mat{X}) + \epsilon^*\mat{\Phi}(\mat{X})^\top + \epsilon^*\mat{\Phi}(\mat{X})^\top + \epsilon^*\vec{\epsilon}^\top + \vec{\phi}(\vec{x^*})^\top\vec{\theta}\vec{\epsilon}] \\
+                    & = \mathbb{E}[\vec{\phi}(\vec{x^*})^\top\vec{\theta}\vec{\theta}^\top\mat{\Phi}(\mat{X})] \\
+                    & = \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X})
+                \end{align*}
+                To find $p(y^*\ |\ \vec{y})$, we need the joint distribution between only those two (only need the bottom right submatrix for covariance);
+                \begin{align*}
+                    p(y^*\ |\ \vec{y}) & = \mathcal{N}(y^*\ |\ \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X})[\mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2 \mat{I}]^{-1}\vec{y}, \\
+                    & \phantom{= \mathcal{N}(y^*\ |\ \ } \vec{\phi}(\vec{x^*})^\top\vec{\phi}(\vec{x^*}) + \sigma^2\mat{I} - \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X})[\mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2 \mat{I}]^{-1}\mat{\Phi}(\mat{X})\vec{\phi}(\vec{x^*}))
+                \end{align*}
+                Note that one of the solutions (see below) is the same as the solution from the regularisation view (maximum a posteriori solution, the maximum of the density of the posterior distribution);
+                $$\left(\frac{1}{\sigma^2}\mat{\Phi}(\mat{X})^\top\mat{\Phi}(\mat{X}) - \mat{I}\right)^{-1} \frac{1}{\sigma^2}\vec{y}^\top\mat{\Phi}(\mat{X})$$
+                Note that $\vec{y}$ and $y^*$ are marginally not independent; they are conditionally independent if we knew the parameters.
+                A intuitive way is to think of them as outcomes of $x$ and $x^*$ based on parameters $\vec{\theta}$; if $\vec{\theta}$ were to shift, both would shift together.
 \end{document}
