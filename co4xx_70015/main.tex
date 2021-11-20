@@ -2072,46 +2072,46 @@
             \end{enumerate}
             Another method of doing this is as follows (only requiring the conditioning rule for Gaussians).
             Find the joint $\vec{y}, \vec{\theta}, y^*$ (linearly related with Gaussian distributions), note that $\vec{\theta} \in \mbbr^M, \vec{\epsilon} \in \mbbr^N, \epsilon^* \in \mbbr, \vec{\phi}(\vec{x^*})^\top \in \mbbr^{1 \times M}$;
-                $$\mathcal{N}\left(\begin{bmatrix}
+            $$\mathcal{N}\left(\begin{bmatrix}
+                \vec{\theta} \\
+                \vec{y} \\
+                y^*
+            \end{bmatrix}; \begin{bmatrix}
+                \vec{0} \\
+                \vec{0} \\
+                0
+            \end{bmatrix}, \begin{bmatrix}
+                \mat{I} & \mat{\Phi}(\mat{X})^\top & \vec{\phi}(\vec{x^*}) \\
+                \mat{\Phi}(\mat{X}) & \mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2\mat{I} & \mat{\Phi}(\mat{X})^\top\vec{\phi}(\vec{x^*}) \\ % ^\top?
+                \vec{\phi}(\vec{x^*})^\top & \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X}) & \vec{\phi}(\vec{x^*})^\top\vec{\phi}(\vec{x^*}) + \sigma^2\mat{I} \\
+            \end{bmatrix}\right)$$
+            \begin{align*}
+                \begin{bmatrix}
                     \vec{\theta} \\
                     \vec{y} \\
                     y^*
-                \end{bmatrix}; \begin{bmatrix}
-                    \vec{0} \\
-                    \vec{0} \\
-                    0
-                \end{bmatrix}, \begin{bmatrix}
-                    \mat{I} & \mat{\Phi}(\mat{X})^\top & \vec{\phi}(\vec{x^*}) \\
-                    \mat{\Phi}(\mat{X}) & \mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2\mat{I} & \mat{\Phi}(\mat{X})^\top\vec{\phi}(\vec{x^*}) \\ % ^\top?
-                    \vec{\phi}(\vec{x^*})^\top & \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X}) & \vec{\phi}(\vec{x^*})^\top\vec{\phi}(\vec{x^*}) + \sigma^2\mat{I} \\
-                \end{bmatrix}\right)$$
-                \begin{align*}
-                    \begin{bmatrix}
-                        \vec{\theta} \\
-                        \vec{y} \\
-                        y^*
-                    \end{bmatrix} & = \begin{bmatrix}
-                        \mat{I} & \mat{0} & \mat{0} \\
-                        \mat{\Phi}(\mat{X}) & \mat{I} & \mat{0} \\
-                        \vec{\phi}(\vec{x^*})^\top & \mat{0} & 1
-                    \end{bmatrix} \begin{bmatrix}
-                        \vec{\theta} \\
-                        \vec{\epsilon} \\
-                        \epsilon^*
-                    \end{bmatrix} \\
-                    \mathbb{C}[y^*, \vec{y}] & = \mathbb{E}[y^*\vec{y}^\top] \\
-                    & = \mathbb{E}[(\vec{\phi}(\vec{x^*})^\top\vec{\theta} + \epsilon^*)(\mat{\Phi}(\mat{X})\vec{\theta} + \vec{\epsilon})] \\
-                    & = \mathbb{E}[\vec{\phi}(\vec{x^*})^\top\vec{\theta}\vec{\theta}^\top\mat{\Phi}(\mat{X}) + \epsilon^*\mat{\Phi}(\mat{X})^\top + \epsilon^*\mat{\Phi}(\mat{X})^\top + \epsilon^*\vec{\epsilon}^\top + \vec{\phi}(\vec{x^*})^\top\vec{\theta}\vec{\epsilon}] \\
-                    & = \mathbb{E}[\vec{\phi}(\vec{x^*})^\top\vec{\theta}\vec{\theta}^\top\mat{\Phi}(\mat{X})] \\
-                    & = \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X})
-                \end{align*}
-                To find $p(y^*\ |\ \vec{y})$, we need the joint distribution between only those two (only need the bottom right submatrix for covariance);
-                \begin{align*}
-                    p(y^*\ |\ \vec{y}) & = \mathcal{N}(y^*\ |\ \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X})[\mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2 \mat{I}]^{-1}\vec{y}, \\
-                    & \phantom{= \mathcal{N}(y^*\ |\ \ } \vec{\phi}(\vec{x^*})^\top\vec{\phi}(\vec{x^*}) + \sigma^2\mat{I} - \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X})[\mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2 \mat{I}]^{-1}\mat{\Phi}(\mat{X})\vec{\phi}(\vec{x^*}))
-                \end{align*}
-                Note that one of the solutions (see below) is the same as the solution from the regularisation view (maximum a posteriori solution, the maximum of the density of the posterior distribution);
-                $$\left(\frac{1}{\sigma^2}\mat{\Phi}(\mat{X})^\top\mat{\Phi}(\mat{X}) - \mat{I}\right)^{-1} \frac{1}{\sigma^2}\vec{y}^\top\mat{\Phi}(\mat{X})$$
-                Note that $\vec{y}$ and $y^*$ are marginally not independent; they are conditionally independent if we knew the parameters.
-                A intuitive way is to think of them as outcomes of $x$ and $x^*$ based on parameters $\vec{\theta}$; if $\vec{\theta}$ were to shift, both would shift together.
+                \end{bmatrix} & = \begin{bmatrix}
+                    \mat{I} & \mat{0} & \mat{0} \\
+                    \mat{\Phi}(\mat{X}) & \mat{I} & \mat{0} \\
+                    \vec{\phi}(\vec{x^*})^\top & \mat{0} & 1
+                \end{bmatrix} \begin{bmatrix}
+                    \vec{\theta} \\
+                    \vec{\epsilon} \\
+                    \epsilon^*
+                \end{bmatrix} \\
+                \mathbb{C}[y^*, \vec{y}] & = \mathbb{E}[y^*\vec{y}^\top] \\
+                & = \mathbb{E}[(\vec{\phi}(\vec{x^*})^\top\vec{\theta} + \epsilon^*)(\mat{\Phi}(\mat{X})\vec{\theta} + \vec{\epsilon})] \\
+                & = \mathbb{E}[\vec{\phi}(\vec{x^*})^\top\vec{\theta}\vec{\theta}^\top\mat{\Phi}(\mat{X}) + \epsilon^*\mat{\Phi}(\mat{X})^\top + \epsilon^*\mat{\Phi}(\mat{X})^\top + \epsilon^*\vec{\epsilon}^\top + \vec{\phi}(\vec{x^*})^\top\vec{\theta}\vec{\epsilon}] \\
+                & = \mathbb{E}[\vec{\phi}(\vec{x^*})^\top\vec{\theta}\vec{\theta}^\top\mat{\Phi}(\mat{X})] \\
+                & = \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X})
+            \end{align*}
+            To find $p(y^*\ |\ \vec{y})$, we need the joint distribution between only those two (only need the bottom right submatrix for covariance);
+            \begin{align*}
+                p(y^*\ |\ \vec{y}) & = \mathcal{N}(y^*\ |\ \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X})[\mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2 \mat{I}]^{-1}\vec{y}, \\
+                & \phantom{= \mathcal{N}(y^*\ |\ \ } \vec{\phi}(\vec{x^*})^\top\vec{\phi}(\vec{x^*}) + \sigma^2\mat{I} - \vec{\phi}(\vec{x^*})\mat{\Phi}(\mat{X})[\mat{\Phi}(\mat{X})\mat{\Phi}(\mat{X})^\top + \sigma^2 \mat{I}]^{-1}\mat{\Phi}(\mat{X})\vec{\phi}(\vec{x^*}))
+            \end{align*}
+            Note that one of the solutions (see below) is the same as the solution from the regularisation view (maximum a posteriori solution, the maximum of the density of the posterior distribution);
+            $$\left(\frac{1}{\sigma^2}\mat{\Phi}(\mat{X})^\top\mat{\Phi}(\mat{X}) - \mat{I}\right)^{-1} \frac{1}{\sigma^2}\vec{y}^\top\mat{\Phi}(\mat{X})$$
+            Note that $\vec{y}$ and $y^*$ are marginally not independent; they are conditionally independent if we knew the parameters.
+            A intuitive way is to think of them as outcomes of $x$ and $x^*$ based on parameters $\vec{\theta}$; if $\vec{\theta}$ were to shift, both would shift together.
 \end{document}
