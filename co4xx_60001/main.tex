@@ -2022,6 +2022,108 @@
                 \medskip
 
                 Different browser windows / tabs should obviously not be in the same address space, since bounds checking is insufficient.
+            \subsubsection*{Attacking Other Processes and the OS}
+                Recall the bounds check code (as instructions that would go to the RUU);
+                \begin{lstlisting}
+                    if p is in bounds
+                    LOAD s = *p
+                    addr = 16*s & 1
+                    r = B[addr]
+                \end{lstlisting}
+                The commit unit checks the head of the queue, once it is ready to commit, it updates the commit side registers (persistent state).
+                This is also where mispredictions are detected.
+                Assume the conditional branch isn't ready; the processor will attempt to execute the other instructions.
+                Once the load instruction is executed, it will broadcast on the CDB and allow the address to be calculated, which then allows the memory allocation to begin.
+                As the cache was initially flushed, this will lead to a miss; the data is then loaded and stored in the cache.
+                Once the conditional check has failed, it will flush the results (not commit them), but it will not reset the cache allocation.
+                \medskip
+
+                Commonly the operating system benefited from an optimisation where the virtual address space of a process would also include the OS kernel, but marked in \textbf{supervisor-mode}.
+                The entire virtual address space is present, but accessing a supervisor-mode mapping in user-mode would lead to an exception.
+                This allows the supervisor bit to be flipped on an interrupt and do whatever is required (accessing kernel data, etc.), and return back by flipping the bit again.
+                It's also common for the kernel's virtual address space to include all of physical memory; this means that it's possible to capture secrets from all other user processes.
+                \medskip
+
+                The TLB entries don't only just contain the translated physical addresses, but also include metadata; including whether a translation is valid for the current processor state - if we're in user mode, we might not be able to access a particular address translation.
+                This is checked at the access validity check, which goes to the RUU entry of the corresponding load instruction.
+                The designers assumed the microarchitectural state isn't observable; they assumed ti was safe to defer checking at the commit stage.
+                \medskip
+
+                Modern operation systems have a number of mitigations which complicate the attack.
+                This includes user-mode address-space layout randomisation (ASLR) and later kernel address-space layout randomisation (KASLR).
+                This randomises the placement of code and data in the machines address space.
+                This means that the attacker would have to guess where the OS kernel mappings are in the processes' address space.
+                The distribution of code and data of the OS is randomly distributed in physical memory as well.
+                \medskip
+
+                Kernel address space isolation (KPTI) mitigates this.
+                The optimisation previously mentioned is given up; each process properly runs in its own virtual address space, and the OS has its own virtual address space.
+                On a context switch, the current TLB state needs to be discarded and reload the TLB state corresponding to the address space that the processor is switching into.
+                This gives a significant performance loss for some specific applications.
+                \medskip
+
+                Suppose the kernel includes the following bit of code (called a \textbf{gadget}) - note that ~s~ is secret;
+                \begin{lstlisting}
+                    label:
+                      s = *p;
+                      r = B[(s & 1) * 16];
+                \end{lstlisting}
+                To perform the attack, we need the code to be executed, arrange for ~p~ to point to the secret, and know the address of ~B~ to observe the cache state.
+                The branch predictor could be trained to mispredict a branch target to be ~label~.
+                However, we're not able to read ~B~ (as it's part of the victim's address space), but we can have data of our own that would conflict in the cache.
+                \medskip
+
+                We cannot jump to any arbitrary address in the OS; instead we jump into the OS through a table, indexed by the system call number.
+                For example, the user code may have something like the following;
+                \begin{lstlisting}
+                    __asm__(
+                        movl $\dollar$20, %eax // getpid system call
+                        call *sys      // vsyscall
+                        movl %eax, pid // get result
+                    )
+                \end{lstlisting}
+                In the kernel;
+                \begin{lstlisting}
+                    Sysentry:
+                      syscallid = %eax
+                      handler = handlers[syscallid];
+                      *handler();
+                      sysexit
+                \end{lstlisting}
+                However, this is an indirect function call, which is predicted by the branch target buffer, which gives a prediction.
+                The BTB could be primed to jump to the gadget.
+                \medskip
+
+                Spectre variant two involves the following;
+                \begin{enumerate}
+                    \itemsep0em
+                    \item find gadget in victim's code space (or put it there)
+                    \item train branch predictor to cause a speculative branch to the gadget when system call is executed
+                    \item observe microarchitectural or cache sidechannel from the speculatively executed gadget
+                    \item steal secret
+                \end{enumerate}
+                To mitigate this, there are a number of approaches.
+                This includes blocking sidechannels, which may be difficult to do completely with certainty.
+                Another approach is to add noise to timers, which adds delays - however the attacker could just repeat the experiments.
+                It's possible to prevent the attacker from poisoning the branch predictor, such as by adding instructions to prevent the use of the predictor; however this requires finding all the uses, as well as paying a penalty of a branch misprediction on every branch.
+                Another approach is to maintain separate predictions for each thread in each protection domain; a per-process branch predictor.
+                \medskip
+
+                Retpolines are a way of mitigating Spectre; implementing an indirect branch with a return instruction.
+                It also fixes the return address stack to ensure a benign prediction target;
+                \begin{lstlisting}
+                    RP0: call RP2                 ; push address of RP1 onto stack and jump to RP2
+                    RP1: int 3                    ; breakpoint to capture speculation
+                    RP2: mov [rsp], <jump target> ; overwrite return address to desired target
+                    RP3: ret                      ; return
+                \end{lstlisting}
+                The speculative jump from the return address stack will go back to ~RP0~, and then execute a breakpoint instruction to prevent further damage.
+                A branch misprediction will occur and a jump will go to the correct intended target.
+                The goal is to ensure we can jump somewhere without an attacker influencing the prediction.
+                \medskip
+
+                This lead to more sidechannel vulnerabilities being disclosed.
+                The lecture then goes into a history of the vulnerability.
         \subsection*{November 9 - Live Lecture}
             VIPT does translation in parallel with the L1 data cache access (indexed with untranslated address bits).
             The physical address from the cache is compared with the translation.
