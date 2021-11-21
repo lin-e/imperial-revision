@@ -2471,4 +2471,27 @@
                 Hardware-based speculation works better when control flow is unpredictable and when hardware-based branch prediction is superior to software-based branch prediction done at compile time.
                 Compiler-based approaches may benefit from having a more global view of the code sequence (better code scheduling).
                 Hardware based scheduling doesn't require different sequences to achieve good performance for different implementations of an architecture.
+        \subsection*{November 16 - Live Lecture}
+            When we train the branch target predictor, we're trying to influence the target prediction for a branch in another address space.
+            However, the branch predictor is typically indexed on virtual addresses, which means that training it in the attacker's virtual address space means it can be used in the victim's virtual address space.
+            The branch target needs to be a valid address in the attacker's victim address space.
+            The branch predictor is being trained to a homonym; we are training the predictor to an arbitrary address, as long as that address maps to the gadget's virtual address in the victim.
+            \medskip
+
+            The point of a retpoline is to execute an indirect branch in an unpoisonable way (not influenced by the prior training of the branch predictor).
+            The trick is to use the return stack predictor (predicts where an instruction will jump to; typically the call location).
+            All modern processors have hardware to provide a branch prediction for a return instruction (uses a model of what the stack holds).
+            Return instructions are just indirect branches, but with a different branch predictor.
+            \medskip
+
+            The worst case of VLIW is when we fail to pack multiple operations into a molecule.
+            This leads to underutilisation.
+            \medskip
+
+            A case where unrolling is worse than software pipelining is a high number of iterations.
+            The unrolled part of the loop uses operations well, however the fill phase and drain phase are sub-optimal.
+            \medskip
+
+            When there's no more space in the IA-64 physical register stack, the processor will have to copy the contents of a register window to a main memory stack.
+            There is typically locality in the stack (calls and returns, rather than multiple calls).
 \end{document}
