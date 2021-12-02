@@ -2716,4 +2716,171 @@
             \medskip
 
             \textit{ARM}'s SVE (scalable vector extension) is an ISA design that is independent to the actual vector length supported by the hardware / registers.
+        \subsection*{Chapter 9}
+            When the workload consists of thousands of threads, speculation should never be done, nor should branch prediction - there is always another thread waiting with work to do.
+            Multithreading can therefore be used on a large scale, since there is significant parallelism - this helps to hide pipeline hazards as well as memory access latency.
+            In graphics, the parallelism tends to be proportional to the number of pixels on the screen; we shouldn't need a `loop' to explicitly launch all of these threads.
+            \medskip
+
+            In a CPU, a small area of the actual chip area is actually dedicated to computation (ALUs), with a large amount of the area being used for control and cache.
+            On the other hand, most of the area on a GPU is used for computation (with much smaller area for control overhead).
+            The GPU has significantly less cache (compared to a CPU) as FGMT (fine grained multithreading) can be used to cover memory access latency.
+            \medskip
+
+            This example goes over the \textit{NVIDIA G80}, from 2006.
+            There are 16 cores (SMs - streaming multiprocessors, a fetch execute engine) packaged in pairs called TPCs, each with 8 SP, shared memory / scratchpad SRAM associated with each core, and some cache.
+            There's also a high performance interconnection network connecting these processors to an array of memory interfaces (DRAM, off-chip).
+            In front of each DRAM is an L2 cache, as well as a ROP (raster operation processor, for computations like alpha blending and $z$-buffer, (see graphics module)).
+            This is connected to the CPU through some interface, such as PCIe, and has units for distributing pixel and vertex rendering tasks among the resources, as well as distributing computational work (where the launching of parallel threads is done).
+            \medskip
+
+            A TPC (texture / processor cluster) groups SMs based on shared resources.
+            Some newer models exclude this.
+            The components include the following;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{SMC} - streaming multiprocessor controller - (shared)
+                \item \textbf{geometry controller} (shared) - directs all primitive and vertex attribute and topology flow in the TPC
+                \item \textbf{texture cache} - performs interpolation, indexed by location in a texture with floating point numbers; this has locality in 2D (shared)
+                \item \textbf{MT issue} - multithreaded instruction fetch and issue unit
+                \item \textbf{C cache} - constant read-only cache
+                \item \textbf{I cache} - instruction cache
+                \item \textbf{SFU} - special-function unit, for computing transcendental functions such as $\sin$, $\cos$, $\log x$, $\frac{1}{x}$ (2 in an SM)
+                \item \textbf{SP} - streaming processor (8 in an SM)
+                    \smallskip
+
+                    This is where the computation is actually done.
+                    SPs work on 32-wide vector instructions.
+                \item \textbf{shared memory} - scratchpad memory (such as a user managed cache), shared by SPs / threads in an SM
+            \end{itemize}
+            Note the following `translations' between \textit{NVIDIA}'s terminology; warps on a GPU are like threads on a CPU, and threads on a GPU are like lanes on a SIMD CPU.
+            The multithread issue stage selects which warp to issue from in each cycle (FGMT) - each warp consists of control flow executing a sequence of 32-wide SIMD vector instructions.
+            In this product, they're executed in 4 steps, using 8 SPs (vector pipelining with lanewise predication).
+            Each SM has local, explicitly programmed scratchpad memory which is shared between different warps on the same SM.
+            There is a level of parallelism hierarchy; there are threads that run on an SP, warps that run on an SM, and a block of warps that run on an SM together.
+            An SM has an L1 data cache, but no cache-coherency protocol as they do not exchange data between SMs through writes to memory, in the execution of an individual kernel.
+            \medskip
+
+            The chip has multiple DRAM channels each includes an L2 cache.
+            However each data value can only be in a single L2 location, hence there are no cache coherency issues in L2.
+            Data that lives in one DRAM can only be in that specific cache.
+            \medskip
+
+            The unified architecture uses the same hardware for both vertex-shader and pixel-shader stages, and instead dynamically schedules the different shading stages of the rendering pipeline.
+            CUDA is a C extension that allows for serial CPU code and parallel GPU code (kernels).
+            A GPU kernel is a C function that operates on a GPU thread (a lane for SIMD CPUs).
+            A group of threads forms a thread block (the unit of scheduling / allocation of threads to an SM) - threads in the same block have access to a common shared memory.
+            Thread blocks are then organised into a grid (hierarchy of parallelism).
+            Consider the following C code, for `double precision $ax + y$';
+            \begin{lstlisting}
+                daxpy(n, 2.0, x, y);
+
+                void daxpy(int n, double a, double *x, double *y) {
+                  for (int i = 0; i < n; ++i) {
+                    y[i] = a*x[i] + y[i];
+                  }
+                }
+            \end{lstlisting}
+            In CUDA, this needs to be split into two parts, the CUDA kernel and the CPU code to launch the kernel on the GPU;
+            \begin{lstlisting}
+                // the keyword tells us that it runs on the GPU, and the function is what one thread does (one thread does one iteration of the loop)
+                __global__ void daxpy(int N, double a, double *x, double *y) {
+                  // figure out where it is in the iteration space, using registers set by the thread launch mechanism
+                  int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+                  if (i < N) {
+                    y[i] = a*x[i] + y[i];
+                  }
+                }
+
+                int main() {
+                  // kernel setup
+                  int N = 1024;
+                  int blockDim = 256;                         // number of threads per block
+                  int gridDim = 256;                          // number of blocks
+                  daxpy<<<gridDim, blockDim>>>(N, 2.0, x, y); // invocation
+                }
+            \end{lstlisting}
+            See the slides for an example of the generated PTX (proprietary pseudo-assembly).
+            \medskip
+
+            The goal is to fill the machine with enough warps so FGMT can fully occupy the machine, and keep enough memory accesses in flight to hide memory access latency.
+            However, due to the dynamic scheduling, we may encounter a load balancing problem, hence the work might be broken up into a smaller number of blocks in order to reduce the load imbalance issue.
+            \medskip
+
+            Similar to multithreaded CPUs, there are a limited number of registers; if each warp can use a small number of registers then many can run at the same time.
+            On the other hand, if warps use as many registers as they need, then not as many can run simultaneously.
+            \medskip
+
+            As we execute successive instructions from a given warp, we progress the execution of all of the threads (which are individual `lanes' in the warp).
+            Each warp can be interleaved with other warps.
+            The idea is to program what happens in a single CUDA thread; a single lane; also called SIMT (single instruction, multiple threads).
+            Threads can branch, typically by predication.
+            However, if all of the threads agree on a particular branch (or branch not being taken), then a conditional jump can be executed and code that isn't needed can be skipped.
+            Therefore, it becomes important to recognise that threads that form a 32-wide warp have coupled execution progress (and therefore threads in other warps are decoupled).
+            \medskip
+
+            Threads can either take the same path in a warp or diverge.
+            A warp serially executes each path, disabling some threads; when all paths complete the threads reconverge.
+            Note that divergence only occurs within the same warp.
+            This can be thought of as control-flow coherence; adjacent threads are likely to be adjacent in a warp; and therefore will run in a lock step way.
+            When these threads branch, it'd be ideal if they branched in the same way; spatial branch locality (spatial in terms of adjacent threads in the thread index space).
+            \begin{center}
+                \begin{minipage}[t]{0.45\textwidth}
+                    \textbf{SIMT}
+                    \begin{itemize}
+                        \itemsep0em
+                        \item one thread per lane
+                        \item adjacent threads (warp / wavefront) execute in lockstep
+                        \item SMT: multiple warps run on the same core to hide memory latency (multithreading on much larger scale)
+                    \end{itemize}
+                \end{minipage}
+                \hfill
+                \begin{minipage}[t]{0.45\textwidth}
+                    \textbf{SIMD}
+                    \begin{itemize}
+                        \itemsep0em
+                        \item each thread may include SIMD vector instructions
+                        \item SMT: a small number of threads run on the same core to hide memory latency
+                    \end{itemize}
+                \end{minipage}
+            \end{center}
+            In the SIMD world, the concept of adjacent threads doesn't exist.
+            Threads are scheduled onto processors in some fashion, whereas the SIMT context, these are very fine grained threads that are being within the lanes of a vector instruction.
+            \medskip
+
+            On an CPU, we care about spatial locality (adjacent loop iterations access adjacent data) - when we vectorise a loop, adjacent iterations are packed into a single vector instruction.
+            In SIMT, spatial locality concerns the behaviour of adjacent threads.
+            Adjacent threads should access adjacent data.
+            \medskip
+
+            Consider the two examples;
+            On CPU, this has good spatial locality as it traverses the data in layout order;
+            \begin{lstlisting}
+                void add(float *c, float *a, float *b) {
+                  for (int i = 0; i <= N; i++) {
+                    __m128 *pa = (__m128*) &a[i][0];
+                    __m128 *pb = (__m128*) &b[i][0];
+                    __m128 *pc = (__m128*) &c[i][0];
+                    for (int j = 0; j <= N/4; j++) {
+                      *pc++ = _mm_add_ps(*pa++, *pb++)
+                    }
+                  }
+                }
+            \end{lstlisting}
+            On GPU, this has poor spatial locality since adjacent threads access different columns (for example, thread ~i=0~ accesses the first element of row 0, ~i=1~ accesses the first element of row 1, and so on - adjacent thread IDs access data in different cache lines);
+            \begin{lstlisting}
+                __global__ void add(int N, double *a, double *b, double *c) {
+                  int i = blockIdx.x * blockDim.x + threadIdx.x;
+                  for (int j = 0; j <= N; j++) {
+                    c[i][j] = a[i][j] + b[i][j];
+                  }
+                }
+            \end{lstlisting}
+            SIMT requires us to reconsider the spatial locality of our code; in GPU terms, this is known as coalescing.
+            \medskip
+
+            Another consideration is spatial control locality.
+            In SIMT, branch coherence states that adjacent threads in a warp all usually branch the same way (spatial locality for branches, across threads).
+            On the other hand in SIMD, branch predictability states that each individual branch is mostly taken / not-taken (or is generally predicted by global history).
 \end{document}
