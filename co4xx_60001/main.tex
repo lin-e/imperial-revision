@@ -2494,4 +2494,60 @@
 
             When there's no more space in the IA-64 physical register stack, the processor will have to copy the contents of a register window to a main memory stack.
             There is typically locality in the stack (calls and returns, rather than multiple calls).
+        \subsection*{Chapter 7}
+            Superscalar describes what was seen in the \textit{SimpleScalar} simulator; where we have a dynamically scheduled processor.
+            This achieves higher performance, but still misses issue opportunities and wastes resources.
+            See the slides for a visual example.
+            \medskip
+
+            The difference between fine grained multithreading and simultaneous multithreading is that the former fetches from each of the threads in a round robin fashion, and do not mix (on the same cycle).
+            On the other hand, SMT allows instructions to be fetched from multiple threads, and be packed for simultaneous issue and dispatch.
+            \medskip
+
+            In a basic out-of-order, we have a fetch stage (with instruction cache), issue-side register alias table (register map) and renaming, and a queue of instructions (RUU or similar).
+            When instructions are ready to be dispatched, the operands are read from registers and sent into the execution units (with possible memory access).
+            Results may then be distributed to other waiting instructions, and finally retired to the commit-side of the machine.
+            An SMT pipeline does the exact same thing, but fetches from 4 PCs in parallel (or rather, dynamically scheduling the fetches).
+            The instruction cache would have allocations from all four different threads.
+            A register map would be required for each thread to tell us what the software visible registers are for each of the threads.
+            After renaming, the instructions are passed into a common queue, in a FCFS fashion.
+            The register renaming phase then allocates physical registers to them, dynamically from a common pool.
+            Instructions are then executed, without regards to the thread they belong to.
+            When the instructions are retired, the thread ID will determine what TLB entries are valid for a particular memory access (to keep within protection domains).
+            Some considerations are the larger working set, as well as possible contention for resources.
+            A case where this may be symbiotic is two threads, one being heavily arithmetic dominated and the other being memory dominated, where they can work without interference.
+            \medskip
+
+            In \textit{Intel}'s \textit{Pentium 4} (one of the first commercial processors with hyperthreading), the performance of two cores was compared with two threads running on one core.
+            When it does work, it doesn't improve performance by much and commonly made performance worse (hence it was commonly disabled).
+            \medskip
+
+            One of the most important considerations in the microarchitecture of a SMT core is where the `price' is being paid; what needs to be replicated (one per thread), and where the contention is likely to be.
+            Both the instruction and data caches are going to be under contention.
+            Some aspects of the branch predictor benefit from being shared, such as branch target buffer (as the two threads may operate on a common piece of code).
+            We do need a register file for each core (both issue and commit side).
+            \medskip
+
+            SMT raises issues, including each thread risks running slowly; the user experience is dominated by the slowest thread (hence we want the slowest thread to run as fast as possible).
+            SMT may be preferred over FGMT; if only one thread is present, it's able to monopolise of all the processor's resources.
+            There can also be destructive contention, such as thrashing the cache or other shared resources.
+            SMT threads need to be fair; if a thread could monopolise the whole CPU, it could lead to a denial of service.
+            An example is a slow thread that suffers many caches misses could fill the RUU and block issue (a bug in \textit{Pentium 4}); this failed to yield the process and blocked other threads.
+            \medskip
+
+            One key benefit of multithreading is memory system parallelism; different parts of the hierarchy can be active at the same time (for example, a hit in L1 while servicing an L2 access).
+            Multithreading is another way of getting memory accesses in flight at the same time (similar to hit under miss and prefetching).
+            This comes naturally as multiple threads tend to have multiple memory accesses - this naturally fills the access latency (hides it) by overlapping computation with data access.
+            The limit to the number of threads comes from the requirement of a lot of logical registers.
+            \medskip
+
+            Rather than performing dynamic register renaming (as would happen in a dynamically scheduled processor), the register file can be statically partitioned.
+            The goal is to have as many threads as possible running simultaneously on the machine to have memory system parallelism, enabling latency hiding - maximum occupancy.
+            The register file can be partitioned based on the number of registers each thread requires.
+            A program could be compiled (with fewer registers) and observed whether it results in significant spilling to memory, or if the particular program successfully fits into fewer registers.
+            This is done by many GPUs.
+            This leads to a tradeoff where there can be lots of lightweight threads to maximise latency hiding, or fewer heavyweight threads that benefits from many registers (this is called occupancy).
+            \medskip
+
+            See the slides for an example of this division, as well as an example with CUDA.
 \end{document}
