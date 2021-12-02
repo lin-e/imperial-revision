@@ -2550,4 +2550,170 @@
             \medskip
 
             See the slides for an example of this division, as well as an example with CUDA.
+        \subsection*{Chapter 8}
+            This lecture concerns vector instructions and SIMD (single instruction, multiple data), a trick for reducing the Turing Tax.
+            SIMD is the idea that we have registers that hold entire vectors of operands (and we have instructions that work on entire vectors), which helps to amortise the fetch execute overhead.
+            \medskip
+
+            The Roofline model is a tool for thinking about what is limiting the performance of a program (and therefore, what should be changed in the code to improve performance).
+            A program with low arithmetic intensity is one that requires a large amount of data to me moved to do a small amount of floating point / arithmetic operations (for example, sparse matrices).
+            On the other hand, a program with high amount of arithmetic intensity is one that can do a huge amount of computation with only a bit of data moved.
+            Arithmetic intensity is the ratio of operations to bytes of DRAM traffic.
+            \medskip
+
+            The idea for the Roofline model is to plot the arithmetic intensity against the achieved FLOPs per second (both on a log scale).
+            The theoretical peak performance is a ceiling on the achievable performance defined at some horizontal line.
+            \medskip
+
+            A machine with significantly higher memory bandwidth allows the theoretical peak performance to be reached by a larger class of applications.
+            The theoretical performance can be reached by applications with a lower arithmetic intensity.
+            \medskip
+
+            The AVX512 instruction set extends the scalar processor with vector registers, called ~ZMM0~ to ~ZMM31~, which are 512 bits wide; these can be used to store 8 doubles, 16 floats, 32 shorts, or 64 bytes.
+            This means that instructions are executed in parallel on `lanes' (can be thought of as what happens to an individual element-side slice through the sequence of vector registers).
+            The instruction set also provides predicate registers ~k0~ (always true) to ~k7~.
+            Each register holds a predicate per operand (lane), hence each register holds up to 64 bits.
+            \medskip
+
+            An example of vector addition is as follows (note that in C, this can be written with vector intrinsics as ~res = \_mm512\_maskz\_add\_ps(k, a, b)~);
+            \begin{lstlisting}
+                VADDPS zmm1 {k1}{z}, zmm2, zmm3
+            \end{lstlisting}
+            Only the lanes with the corresponding bit set in ~k1~ are active.
+            In the example above, with zero masking (note ~z~), inactive lanes produce zero.
+            On the other hand, if masking only (omit ~z~), inactive lanes do not overwrite prior register contents.
+            \medskip
+
+            Note the following program (note that the arrays are global variables, the loop trip count is known and divisible by 4, and sizes are powers of two);
+            \begin{lstlisting}
+                float c[1024];
+                float a[1024];
+                float b[1024];
+                void add() {
+                  for (int i = 0; i < 1024; i++) {
+                    c[i] = a[i] + b[i];
+                  }
+                }
+            \end{lstlisting}
+            Note that the generated instructions use SSE (a simpler version, present on most modern \textit{Intel} processors).
+            The ~p~ in ~movaps~ refers to a packed instruction (one that is actually a vector instruction).
+            Once one `constraint' is relaxed, when the loop trip count is set to ~N~ (a variable, and not known to be divisible by 4), the code becomes more complex.
+            Part of the code remains the same to handle the majority of cases, and three copies of the loop body are also produced, to handle the cases when it's less than 4.
+            \medskip
+
+            The next relaxation is to set the arrays to be parameters of the function;
+            \begin{lstlisting}
+                void add(float *__restrict__ c, float *__restrict__ a, float *__restrict__ b, int N) {
+                  for (int i = 0; i <= N; i++) {
+                    c[i] = a[i] + b[i];
+                  }
+                }
+            \end{lstlisting}
+            However, as these pointers are not known (not global), the compiler doesn't know if they are aligned on boundaries (vector operations work much faster on aligned operations).
+            Three \textbf{more} copies of the loop body are now added before the main loop, in order to align the start address of the vectorised code on a 32-byte boundary.
+            The removal of the ~\_\_restrict\_\_~ keyword means that the compiler doesn't know that the pointers refer to disjoint storage regions (hence the pointers can overlap in some way).
+            More code is added at the start to check for overlaps; if overlaps do occur then a non-vectorised version of the loop is used, otherwise the vectorised version is used.
+            \medskip
+
+            If the compiler refuses to vectorise the loop, there are a number of options;
+            \begin{itemize}
+                \itemsep0em
+                \item ignore vector dependencies compiler hint; telling the compiler that there are no loop-carried dependencies - this only tells the compiler that it is safe, it may still not vectorise
+                    \begin{lstlisting}
+                        void add(float *c, float *a, float *b, int N) {
+                          #pragma ivdep
+                          for (int i = 0; i <= N; i++) {
+                            c[i] = a[i] + b[i];
+                          }
+                        }
+                    \end{lstlisting}
+                \item OpenMP pragmas can be used;
+                    \begin{itemize}
+                        \itemsep0em
+                        \item loopwise (loop can be transformed into a SIMD loop, executed concurrently with SIMD instructions)
+                            \begin{lstlisting}
+                                void add(float *c, float *a, float *b, int N) {
+                                  #pragma omp simd
+                                  for (int i = 0; i <= N; i++) {
+                                    c[i] = a[i] + b[i];
+                                  }
+                                }
+                            \end{lstlisting}
+                        \item functionwise (generate a variant of this function that operates on a vector of operands, allowing it to be called from a vectorised loop like above)
+                            \begin{lstlisting}
+                                #pragma omp declare simd
+                                void add(float *c, float *a, float *b) {
+                                  *c = *a + *b;
+                                }
+                            \end{lstlisting}
+                    \end{itemize}
+                \item SIMD intrinsics (tells the compiler which specific vector instructions to generate, guarantees vectorisation)
+                    \begin{lstlisting}
+                        void add(float *c, float *a, float *b) {
+                          __m128* pSrc1 = (__m128*) a;
+                          __m128* pSrc2 = (__m128*) b;
+                          __m128* pDest = (__m128*) c;
+                          for (int i = 0; i <= N/4; i++) {
+                            *pDest++ = __mm_add_ps(*pSrc1++, *pSrc2++);
+                          }
+                        }
+                    \end{lstlisting}
+                \item SIMT (single instruction, multiple thread) - think of each lane as a thread (predication can be used to handle nested if-then-else, while / for loops, and function calls)
+                    \begin{lstlisting}
+                        #pragma omp simd
+                        for (int i = 0; i < N; i++) {
+                          if (...) {...} else {...}
+                          for (int j = ...) {...}
+                          while (...) {...}
+                          f(...)
+                        }
+                    \end{lstlisting}
+            \end{itemize}
+            Consider the following example, which has an additional level of indirection (this spreads out the vector, which could end up existing on different pages);
+            \begin{lstlisting}
+                float ALIGN c[1024];
+                float ALIGN a[1024];
+                float ALIGN b[1024];
+                int ALIGN ind[1024];
+
+                void add() {
+                  for (int i = 0; i < 1024; i++) {
+                    c[i] = a[i] + b[ind[i]];
+                  }
+                }
+            \end{lstlisting}
+            This introduces the gather instruction, which is a vector load that loads from a different address in each lane.
+            \medskip
+
+            Vector instructions may execute $n$-wide vector operations with an $n$-wide ALU, or possibly in smaller $m$-wide blocks.
+            Two execution strategies involve;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{vector pipelining}
+                    \smallskip
+
+                    Consider an extreme case where we have 64 doubles, and only one execution unit.
+                    The vector instructions are executed serially, element-by-element with a pipelined functional unit.
+                    This works well with vector chaining (each word forwarded to the next instruction as soon as it's available), with the FUs forming a long pipelined chain.
+                    Chaining is essentially a vector version of forwarding.
+                \item \textbf{uop decomposition}
+                    \smallskip
+
+                    Consider a processor that only has a 128-bit vector unit, but we want to execute a 256-bit vector instruction.
+                    At decode time, we could break the 256-bit instruction into two uops, and issue them separately into the out-of-order execution engine.
+                    Eventually, the two instructions would retire and meet together in the retire unit, creating the impression that they completed at the same time.
+                    \medskip
+
+                    An example of this is in the \textit{AMD Jaguar} processor, where there are two 128-bit ALUs.
+                    When the split instructions (split at the decode stage) complete, the retire unit waits for both halves to arrive before it allows for the combined 256-bit instruction to commit.
+                    If we know that half of the words are zero (not used), it can be used to avoid producing two instructions at decode time.
+                    This can be tracked with a zero-bit.
+            \end{itemize}
+            SIMD reduces Turing tax by performing more work with fewer instructions.
+            However, this depends on the compiler (for simple loops, etc.) or the programmer.
+            Lane-by-lane predication helps to vectorise conditionals, but branch divergence can lead to poor utilisation.
+            Spatial locality for gather instructions can be difficult to achieve unless the accesses fall on a small number of distinct cache lines - a gather could lead to sequential execution if it hits multiple cache lines.
+            \medskip
+
+            \textit{ARM}'s SVE (scalable vector extension) is an ISA design that is independent to the actual vector length supported by the hardware / registers.
 \end{document}
