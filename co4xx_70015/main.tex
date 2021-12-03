@@ -2252,4 +2252,187 @@
 
                 To find a point of contact between the surfaces $-L(\vec{x}) = c^*$ and $h(\vec{x}) = 0$ is the same as finding $\vec{x^*}$ such that $-\nabla_{\vec{x^*}}L(\vec{x^*})$ and $\nabla_{\vec{x^*}}h(\vec{x^*})$ align on the same line.
                 A tangent plane is defined by its normal vector, which is essentially the gradient.
+        \subsection*{Lecture 13 - More on Constrained Optimisation}
+            Recall the following form of a constrained optimisation problem;
+            \begin{mini*}|l|
+                {\vec{x}}{L(\vec{x})}
+                {}{}
+                \addConstraint{g_i(\vec{x})}{\leq 0 \text{, for $i = 1, \dots, N$}}
+                \addConstraint{h_j(\vec{x})}{= 0 \text{, for $j = 1, \dots, M$}}
+            \end{mini*}
+            This lecture will cover inequality constraints as well as the Karush-Kuhn-Tucker (KKT) conditions.
+            \subsubsection*{Constrained Linear Regression}
+                Consider the example of \violet{constrained} linear regression, with the goal of finding $\mat{\theta} \in \mbbr^{D \times 1}$;
+                \begin{align*}
+                    \mathcal{D} & = \{ \mat{X}, \mat{y} \} \\
+                    \mat{X} & = [\vec{x_1}, \dots, \vec{x_N}]^\top & \in \mbbr^{N \times D} \\
+                    \mat{y} & = [y_1, \dots, y_N]^\top & \in \mbbr^{N \times 1} \\
+                    \mat{y} & \approx \mat{X}\mat{\theta} \\
+                    \violet{|| \mat{\theta} ||_2^2} & \violet{\ \leq \delta} & \delta > 0
+                \end{align*}
+                A typical constrained linear regression model has $\mat{x} \in \mbbr^{D \times 1}$ input features with an output value of $y \in \mbbr$.
+                The model is as follows;
+                \begin{align*}
+                    f(\mat{x}, \mat{\theta}) & = \mat{\theta}^\top\mat{\theta} \\
+                    y & = f(\mat{x}, \mat{\theta}) + \epsilon & \epsilon \sim \mathcal{N}(0, \sigma^2)
+                \end{align*}
+                The constrained optimisation problem is;
+                \begin{mini*}|l|
+                    {\mat{\theta}}{L(\mat{\theta}) = \frac{1}{2\sigma^2} || \mat{y} - \mat{X}\mat{\theta} ||_2^2}
+                    {}{}
+                    \addConstraint{|| \mat{\theta} ||_2^2 - \delta}{\leq 0}
+                \end{mini*}
+                The Lagrange multiplier method can be used here, with the alternative objective (the Lagrangian) being;
+                $$L(\mat{\theta}; \lambda) = \underbrace{\frac{1}{2 \sigma^2} || \mat{y} - \mat{X}\mat{\theta} ||_2^2}_{L(\mat{\theta})} + \underbrace{\lambda(|| \mat{\theta} ||_2^2 - \delta)}_{\lambda g(\mat{\theta})}$$
+                The KKT constraints are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item find the minimum of $L(\mat{\theta}; \lambda)$ with respect to $\mat{\theta}$, essentially $\nabla_{\mat{\theta}}L(\mat{\theta}; \lambda) = \mat{0}$
+                        \begin{align*}
+                            \nabla_{\mat{\theta}}L(\mat{\theta}; \lambda) & = -\frac{1}{\sigma^2} \mat{X}^\top(\mat{y} - \mat{X}\mat{\theta}) + 2\lambda\mat{\theta} \\
+                            & = 0 & \Rightarrow \\
+                            \mat{\theta^*}(\lambda) & = (2 \sigma^2 \lambda \mat{I} + \mat{X}^\top\mat{X})^{-1}\mat{X}^\top\mat{y} \\
+                            & = (\sigma^2 \lambda^\prime \mat{I} + \mat{X}^\top\mat{X})^{-1}\mat{X}^\top\mat{y} & \lambda^\prime = 2\lambda
+                        \end{align*}
+                    \item \textbf{primal feasibility} \hfill $|| \mat{\theta^*}(\lambda) ||_2^2 - \delta \leq 0$
+                    \item \textbf{dual feasibility} \hfill $\lambda \geq 0$
+                        \smallskip
+
+                        We require the Lagrange multiplier $\lambda \geq 0$ (required for \textbf{inequality} constraints).
+                        Assume we have some $\mat{\theta}$ such that $g(\mat{\theta}) \leq 0$.
+                        Therefore, $\forall \lambda \geq 0,\ \lambda g(\mat{\theta}) \leq 0$.
+                        As such, the objective is an upper bound of the Lagrangian; $L(\mat{\theta}) \geq L(\mat{\theta}; \lambda)$.
+                        \medskip
+
+                        This can also be expressed as the following.
+                        For any $\mat{\theta}$ such that $|| \mat{\theta} ||_2^2 \leq \delta$;
+                        $$\lambda(|| \mat{\theta^*}(\lambda) ||_2^2 - \delta) \leq 0 \Rightarrow L(\mat{\theta}) \geq L(\mat{\theta}; \lambda)$$
+                        Assume that we have a solution to the constrained optimisation problem (this clearly depends on $\delta$, as it describes the valid subset of solutions);
+                        $$\mat{\theta_\delta^*} = \argmin_{|| \mat{\theta} ||_2^2 \leq \delta} L(\mat{\theta})$$
+                        Then for a fixed $\lambda \geq 0$;
+                        $$\min_{|| \mat{\theta} ||_2^2 \leq \delta} L(\mat{\theta}) := L(\mat{\theta_\delta^*}) \violet{\geq} L(\mat{\theta_\delta^*}; \lambda) \geq \violet{\min_{|| \mat{\theta} ||_2^2 \leq \delta} L(\mat{\theta}; \lambda)}$$
+                        Note that the following holds as we have $g(\mat{\theta_\delta^*}) \leq 0$ (otherwise it isn't a valid solution to the optimisation problem, given that it's a constraint).
+                        With a fixed $\lambda$, we can minimise the Lagrangian as a function of $\mat{\theta}$, hence we have the final inequality.
+                        As such, we have a \violet{tight bound}.
+                    \item \textbf{complementary slackness} \hfill $\lambda(|| \mat{\theta^*}(\lambda) ||_2^2 - \delta) = 0$
+                        \smallskip
+
+                        The condition essentially requires $\lambda g(\mat{\theta}) = 0$.
+                        This can either be satisfied with $\lambda = 0$ or $g(\mat{\theta}) = 0$.
+                        \medskip
+
+                        Assume we can obtain some $\lambda^* \geq 0$ that satisfies complementary slackness; this makes the lower-bound tight
+                        $$\min_{|| \mat{\theta} ||_2^2 \leq \delta} L(\mat{\theta}; \lambda^*) = L(\mat{\theta^*}(\lambda^*); \lambda^*) = L(\mat{\theta^*}(\lambda^*)) \leq \min_{|| \mat{\theta} ||_2^2 \leq \delta} L(\mat{\theta}) \Rightarrow \argmin_{|| \mat{\theta} ||_2^2 \leq \delta}L(\mat{\theta}) = \mat{\theta^*}(\lambda^*)$$
+                        This can be done as we have $L(\mat{\theta^*}(\lambda^*); \lambda^*) = L(\mat{\theta^*}(\lambda^*)) + \lambda^* g(\mat{\theta^*}(\lambda^*))$, but the second term is equal to zero, by the condition.
+                        \medskip
+
+                        Consider the two cases of this condition;
+                        \begin{itemize}
+                            \itemsep0em
+                            \item $\lambda^* = 0$ (try this first)
+                                \smallskip
+
+                                Here we still need to satisfy the primal feasibility condition; $|| \mat{\theta^*}(0) ||_2^2 - \delta \leq 0$.
+                                If it satisfies it, then the constraint is \textbf{redundant} (an intuitive example is that the global optimum falls within the constraint).
+                                $$\argmin_{|| \mat{\theta} ||_2^2 \leq \delta} L(\mat{\theta}) = \mat{\theta^*}(0)$$
+                            \item $\lambda^* > 0$ and $g(\mat{\theta^*}(\lambda^*)) = 0$, in this example $|| \mat{\theta^*}(\lambda^*) ||_2^2 = \delta$
+                                \smallskip
+
+                                This case occurs when $|| \mat{\theta^*}(0) ||_2^2 - \delta > 0$.
+                                The constraint is \textbf{binding} in this case.
+                                Note that we have to set $g(\mat{\theta}) = 0$, hence the solution is at the boundary of the feasible region.
+                                $$\argmin_{|| \mat{\theta} ||_2^2 \leq \delta} L(\mat{\theta}) = \mat{\theta^*}(\lambda^*)$$
+                        \end{itemize}
+                        In this regression problem ($\ell_2$ loss and the norm constraints), there is a one-to-one relationship between $\lambda^*$ and $\delta$, which can be obtained by solving $|| \mat{\theta^*}(\lambda) ||_2^2 = \delta$ for $\lambda$.
+                \end{itemize}
+                Note that the Lagrangian for the constrained linear regression problem is
+                $$L(\mat{\theta}; \lambda) = \frac{1}{2 \sigma^2} || \mat{y} - \mat{X}\mat{\theta} ||_2^2 + \lambda(|| \mat{\theta} ||_2^2 - \delta)$$
+                Recall the ridge regression problem, for a given $\lambda \geq 0$
+                $$\min_{\mat{\theta}} \frac{1}{2\sigma^2} || \mat{y} - \mat{X}\mat{\theta} ||_2^2 + \lambda || \mat{\theta} ||_2^2$$
+                Because of the one-to-one relationship between $\lambda^*$ and $\delta$, this means that choosing a regulariser in ridge regression with a particular $\lambda$ value, we are implicitly setting a particular $\delta$ - we are choosing $\delta = || \mat{\theta^*}(\lambda) ||_2^2$.
+            \subsubsection*{Summary of KKT Conditions}
+                Recall the general form of a minimisation problem;
+                \begin{mini*}|l|
+                    {\mat{x}}{L(\mat{x})}
+                    {}{}
+                    \addConstraint{g_i(\mat{x})}{\leq 0 \text{, for $i = 1, \dots, N$}}
+                    \addConstraint{h_j(\mat{x})}{= 0 \text{, for $j = 1, \dots, M$}}
+                \end{mini*}
+                The general Lagrangian can be written as;
+                $$L(\mat{x}; \{ \lambda_i \}, \{ \nu_j \}) = L(\mat{x}) + \summation{i = 1}{N} \lambda_i g_i(\mat{x}) + \summation{j = 1}{M} \nu_j h_j(\mat{x})$$
+                The KKT conditions for the solutions of $\mat{x}, \{ \lambda_i \}, \{ \nu_j \}$ are as follows;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{stationarity} \hfill $\nabla_{\mat{x}} L(\mat{x}; \{ \lambda_i \}, \{ \nu_j \}) = 0$
+                    \item \textbf{primal feasibility} \hfill $\forall i\ g_i(\mat{x}) \leq 0$ and $\forall j\ h_j(\mat{x}) = 0$)
+                        \smallskip
+
+                        This tells us that the solution must satisfy all the existing constraints.
+                    \item \textbf{dual feasibility} \hfill $\forall i\ \lambda_i \geq 0$
+                        \smallskip
+
+                        Only applies to the inequality constraints.
+                        The second condition of the primal feasibility constraint tells us that $\nabla_{v_j} L(\mat{x}; \{ \lambda_i \}, \{ \nu_j \}) = 0$.
+                    \item \textbf{complementary slackness} \hfill $\forall i\ \lambda_i g_i(\mat{x}) = 0$
+                        \smallskip
+
+                        Similarly, only applies to inequality constraints.
+                        Here, we need to consider both cases, where $\lambda_i = 0$ and $\lambda_i > 0$ (but $g_i(\mat{x}) = 0$).
+                \end{itemize}
+            \subsubsection*{Dual Optimisation}
+                The primal problem in this example is
+                \begin{mini*}
+                    {\mat{x}}{L(\mat{x})}
+                    {}{}
+                    \addConstraint{g(\mat{x})}{\leq 0}
+                \end{mini*}
+                As such, the Lagrangian can be written as $L(\mat{x}; \lambda) = L(\mat{x}) + \lambda g(\mat{x})$.
+                The dual feasibility condition requires $\lambda \geq 0$.
+                For $\mat{x}$ satisfying primal feasibility;
+                $$\forall \lambda \geq 0\ \lambda g(\mat{x}) \leq 0 \Rightarrow L(\mat{x}) \geq L(\mat{x}; \lambda)$$
+                Assume that we have $\mat{x^*}$ as the solution of the constrained optimisation problem;
+                $$\mat{x^*} = \argmin_{g(\mat{x}) \leq 0} L(\mat{x})$$
+                Note that this tells us $g(\mat{x}) \leq 0$; as such, we can pick any non-negative $\lambda$ and construct a lower bound;
+                $$L(\mat{x^*}) \geq L(\mat{x^*}; \lambda) \geq \min_{g(\mat{x}) \leq 0} L(\mat{x}; \lambda) \geq \underbrace{\min_{\mat{x}} L(\mat{x}; \lambda)}_{:= L(\mat{x^*}(\lambda); \lambda)}$$
+                The second inequality comes from the fixed $\lambda$ and that we know $g(\mat{x}) \leq 0$.
+                The final inequality comes from the fact that the minimum in a restricted region will be greater than or equal to the minimum in an unrestricted region.
+                We can define the dual objective as follows (implicitly defined);
+                $$D(\lambda) = \min_{\mat{x}} L(\mat{x}; \lambda) = L(\mat{x^*}(\lambda); \lambda)$$
+                By substitution with the above, we can write;
+                $$L(\mat{x^*}) \geq L(\mat{x^*}; \lambda) \geq D(\lambda)$$
+                To make the bounds tight, we want to maximise $D$ while satisfying the constraint that $\lambda \geq 0$.
+                $$L(\mat{x^*}) \geq L(\mat{x^*}; \lambda) \geq D(\lambda^*) \text{\ \ where\ \ } \lambda^* = \argmax_{\lambda \geq 0} D(\lambda)$$
+                We need to check if the optimal lower bound touches the objective.
+                If there exists a $\lambda^* > 0$, complementary slackness tells us
+                $$\exists \lambda^* > 0\ \lambda^* g(\mat{x^*}(\lambda^*)) = 0 \Rightarrow L(\mat{x^*}(\lambda^*)) = L(\mat{x^*}(\lambda^*); \lambda^*)$$
+                We therefore have the following (note that $g(\mat{x^*}(\lambda^*)) \leq 0 \Rightarrow \mat{x^*} = \mat{x^*}(\lambda^*)$);
+                $$\min_{g(\mat{x}) \leq 0} L(\mat{x}) \geq \max_{\lambda \geq 0} D(\lambda) \geq D(\lambda^*) = L(\mat{x^*}(\lambda^*); \lambda^*) = L(\mat{x^*}(\lambda^*))$$
+                Instead of directly solving for $\mat{x}$, we can first construct a dual problem which solves for an optimal $\lambda$.
+                If the complementary slackness condition holds, then the corresponding $\mat{x^*}(\lambda^*)$ will actually be one of the stationary points for the primal problem.
+                By tightening the lower bounds, we have;
+                $$\min_{g(\mat{x}) \leq 0} L(\mat{x}) = \max_{\lambda \geq 0} D(\lambda) = D(\lambda^*)$$
+                The dual problem can be written as;
+                \begin{maxi*}|l|
+                    {\lambda}{D(\lambda) := \min_{\mat{x}}(L(\mat{x}) + \lambda g(\mat{x}))}
+                    {}{}
+                    \addConstraint{\lambda}{\geq 0}
+                \end{maxi*}
+                The objective of the dual problem comes from the stationarity of the KKT conditions; we need to first figure out the minimum of the Lagrangian with respect to $\mat{x}$ (by setting it to zero).
+                We also assume primal feasibility.
+                The $\lambda \geq 0$ constraint comes from the dual feasibility.
+                The maximum dual problem comes from complementary slackness.
+                \medskip
+
+                Weak duality always holds;
+                $$\min_{g(\mat{x}) \leq 0} L(\mat{x}) \geq \max_{\lambda \geq 0} D(\lambda)$$
+                This comes from the following;
+                \begin{align*}
+                    L(\mat{x}) & \geq \max_{\lambda \geq 0} L(\mat{x}; \lambda) & \Rightarrow \\
+                    \min_{g(\mat{x}) \leq 0} L(\mat{x}) & \geq \min_{g(\mat{x}) \leq 0} \max_{\lambda \geq 0} L(\mat{x}; \lambda) & \text{minimise both} \\
+                    & \geq \max_{\lambda \geq 0} \min_{g(\mat{x}) \leq 0} L(\mat{x}; \lambda) & \text{swap min and max} \\
+                    & \geq \max_{\lambda \geq 0} \min_{\mat{x}} L(\mat{x}; \lambda) & \text{relax constraints} \\
+                    & = \max_{\lambda \geq 0} D(\lambda) & \text{by definition of $D$}
+                \end{align*}
+                Strong duality states the following;
+                $$\min_{g(\mat{x}) \leq 0} L(\mat{x}) = \max_{\lambda \geq 0} D(\lambda)$$
 \end{document}
