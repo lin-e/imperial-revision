@@ -3039,4 +3039,161 @@
                 OpenMP is easy, but hides the communications (we don't need to consider allocating memory to receive from neighbouring processors) which can lead to bugs if unintended sharing occurs.
                 MPI requires more copying of data (namely in sending data), or at least appears to (this may be done when accessing across boundaries in OpenMP).
                 MPI allows us to see how to reduce communication and synchronisation.
+            \subsubsection*{Cache Coherency Protocols}
+                This mainly looks at the `snooping' family of cache coherency protocols, which works for a modest number of cores.
+                This is due to the reliance on some interconnect between the processors, allowing every processor to see all the traffic on the network.
+                \medskip
+
+                Consider the following example;
+                \begin{center}
+                    \begin{tikzpicture}[y=0.67cm]
+                        \draw
+                        (5.5, 3) -- (5.5, 2)
+                        (4, 4) -- (7, 4) -- (7, 3) -- (4, 3) -- cycle
+                        (0, 2) -- (11, 2) -- (11, 1) -- (0, 1) -- cycle;
+                        \foreach \x in {0, 4, 8} {
+                            \begin{scope}[shift={(\x, 0)}]
+                                \foreach \y in {0, -2, -4} {
+                                    \begin{scope}[shift={(0, \y)}]
+                                        \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                                    \end{scope}
+                                };
+                                \node at (1.5, -0.5) {~L2 cache~};
+                                \node at (1.5, -2.5) {~L1 cache~};
+                                \node at (1.5, -4.5) {~CPU~};
+                                \draw
+                                (1.5, 0) -- (1.5, 1)
+                                (1.5, -2) -- (1.5, -1)
+                                (1.5, -4) -- (1.5, -3);
+                            \end{scope}
+                        };
+                        \node at (1.5, -5.5) {processor 0};
+                        \node at (5.5, -5.5) {processor 1};
+                        \node at (9.5, -5.5) {processor 2};
+                        \node at (5.5, 3.5) {~main memory~};
+                        \node at (5.5, 1.5) {~interconnection network~};
+                    \end{tikzpicture}
+                \end{center}
+                Suppose there is some memory location ~x~ that sits in main memory.
+                First processor 0 loads from memory location ~x~; this is allocated in both the ~L2~ and ~L1~ cache for processor 0.
+                Then processor 1 loads from the same location, which becomes allocated in both caches as well (now there are a total of 5 copies).
+                Now assume that processor 0 stores to location ~x~; thus updating the ~L2~ and ~L1~ caches (assuming there's some writing back); note that the main memory isn't updated.
+                Whether we actually write back or not doesn't make much difference to the fundamental problem; processor 1 doesn't know what's happened.
+                Suppose processor 2 also reads from ~x~ - it needs to know whether to get ~x~ from main memory (occasionally, this can be the only source), processor 0, or processor 1.
+                This raises two issues;
+                \begin{itemize}
+                    \itemsep0em
+                    \item where do we find the latest version of the cache line
+                    \item when can we use the cached copy, and when do we have to look for a more updated version
+                \end{itemize}
+                Lamport's idea of sequential consistency states the following - the result of any execution is the same as if the operations of all the processors were executed in some sequential order, and the operations of each individual processor appear in this sequence in the order specific by its program.
+                \medskip
+
+                When we observe the behaviour of another core by watching its issued loads and stores, we should see something consistent with its program order.
+                This may not happen as writes / reads may be reordered in some way.
+                \medskip
+
+                We don't want remote copies to be indefinitely out of date; one approach is to update whoever has a copy of the address once a store is executed (with an update message).
+                To do this; we'd either need to broadcast every store to every remote cache, keep a list of which remote caches may hold the cache line, or at note that if there are any remote copies of this line (a shared bit).
+                There are a number of problems with updates.
+                One issue is that if the cache line is several words long, we may need to do a broadcast for each word in the line.
+                We may also update processors that don't care about the new writes; it would be nice to have exclusive access to the cache line, to avoid broadcasting updates.
+                \medskip
+
+                Invalidation is a more popular plan; instead of updating remote cache lines, they are invalidated when a store occurs.
+                After the first write to a cache line, we can be sure there are no remote copies (since they are all invalidated), meaning subsequent writes don't need communication.
+                However, if another processor requests a copy, we will know more copies exist and require invalidation if we do another update.
+                This is often better than updates, however if the processors really need the new data quickly, it forces them to suffer a read miss.
+                Each cache line will need some additional state maintained, to exploit this.
+                \medskip
+
+                In snooping, an additional cache controller (~SCC~ in the diagram) is added between the L2 cache and the interconnection network / bus;
+                \begin{center}
+                    \begin{tikzpicture}[y=0.67cm]
+                        \draw
+                        (5.5, 3) -- (5.5, 2)
+                        (4, 4) -- (7, 4) -- (7, 3) -- (4, 3) -- cycle
+                        (0, 2) -- (11, 2) -- (11, 1) -- (0, 1) -- cycle;
+                        \foreach \x in {0, 4, 8} {
+                            \begin{scope}[shift={(\x, 0)}]
+                                \foreach \y in {0, -2, -4, -6} {
+                                    \begin{scope}[shift={(0, \y)}]
+                                        \draw (0, 0) -- (3, 0) -- (3, -1) -- (0, -1) -- cycle;
+                                    \end{scope}
+                                };
+                                \node[violet] at (1.5, -0.5) {~SCC~};
+                                \node at (1.5, -2.5) {~L2 cache~};
+                                \node at (1.5, -4.5) {~L1 cache~};
+                                \node at (1.5, -6.5) {~CPU~};
+                                \draw
+                                (1.5, 0) -- (1.5, 1)
+                                (1.5, -2) -- (1.5, -1)
+                                (1.5, -4) -- (1.5, -3)
+                                (1.5, -6) -- (1.5, -5);
+                            \end{scope}
+                        };
+                        \node at (1.5, -7.5) {processor 0};
+                        \node at (5.5, -7.5) {processor 1};
+                        \node at (9.5, -7.5) {processor 2};
+                        \node at (5.5, 3.5) {~main memory~};
+                        \node at (5.5, 1.5) {~interconnection network~};
+                    \end{tikzpicture}
+                \end{center}
+                The snooping cache controller has to monitor all bus transactions and check them against its caches' tags.
+                For example, if processor 0 was to invalidate address ~x~, processor 1's SCC would notice the presence of address ~x~ in its caches.
+                Similarly, when processor 2 requests address ~x~, a read request is broadcasted on the bus.
+                If another processor has a dirty copy of the data, it is important for it to supply this data (in this example, processor 0's copy is more recent than the one in main memory).
+                The SCC therefore needs to monitor for read requests as well.
+                \medskip
+
+                The Berkeley protocol has 2 bits (4 possible states) for each cache line in each core (note that ownership refers to a processor's job; if it is the owner, its the processor's job to supply the data);
+                \begin{itemize}
+                    \itemsep0em
+                    \item invalid \hfill
+                    \item valid \hfill clean, potentially shared, unowned
+                        \subitem The processor does not have the right to write to that data, nor is it the processor's responsibility to supply it on a request
+                    \item shared-dirty \hfill modified, possibly shared, owned
+                        \subitem From the dirty state, if someone else tries to read it, it supplies it and becomes shared-dirty
+                    \item dirty \hfill modified, only copy, owned
+                        \subitem This has been written to and an invalidation has been broadcast (hence only copy and exclusive access) - subsequent writes don't need another invalidation
+                \end{itemize}
+                The cases are as follows (see the slides for a state diagram);
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{read hit}
+                        \smallskip
+
+                        The easiest case; if the cache line is not in an invalid state, the data can be read directly.
+                    \item \textbf{read miss}
+                        \smallskip
+
+                        On a read miss, we broadcast the request on the bus.
+                        If another cache line has the line in either a shared-dirty or dirty state, it supplies it and sets its own state to shared-dirty, our copy is set to valid.
+                        Otherwise, the line comes from memory, set to valid.
+                    \item \textbf{write hit}
+                        \smallskip
+
+                        On a write hit, nothing happens if the line is in a dirty state (already invalidated all other copies, no further invalidation is required).
+                        However, if the state is valid or shared-dirty, an invalidation is performed and the local state is set to dirty.
+                        This is done to gain exclusive access.
+                    \item \textbf{write miss}
+                        \smallskip
+
+                        The line comes from the owner (either main memory or another processor, as with the read miss case).
+                        All other copies are invalidated (set to invalid) and the line in the requesting (local) cache is set to dirty.
+                \end{itemize}
+                The cache controller will see all the memory traffic of all of the cores.
+                Transitions between states are triggered either by the bus (invalidate, write miss, read miss) or the CPU (read hit, read miss, write hit, write miss).
+                For every transaction on the bus, the cache controller needs to look up the directory (cache line state) information for a specified address.
+                The states don't handle what happens in a cache displacement (see textbook). % lol no
+                \medskip
+
+                The dirty bit records whether remote copies exist (invalidation is done by broadcasting messages on the bus).
+                It also handles where to get updated data with a read miss request on the bus.
+                \medskip
+
+                Since every bus transaction checks cache tags, there could be contention between what the SCC wants to do with tags and the CPU.
+                One solution is to duplicate the tags, to give the SCC parallel access to the cache state.
+                Another solution is to use multi-level inclusion (if everything in L1 is in L2, then we can use L2 to filter invalidations - only have to check L1 if L2 tag matches).
+                Alternatives for cache inclusivity is a snoop filter.
 \end{document}
