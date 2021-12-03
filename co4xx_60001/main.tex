@@ -2908,4 +2908,135 @@
             \medskip
 
             A thread in \textit{NVIDIA}'s terms is a dataflow slice associated with a sequence of lanes (what happens in a lane of a warp).
+        \subsection*{Chapter 10}
+            \subsubsection*{Motivation for Multicore, Parallel Programming, and Shared-memory versus Distributed-memory}
+                During the `escalator'-phase, programmers didn't need to know anything complex to benefit from the performance gains.
+                However, the single threaded performance is no longer growing with Moore's law; the clock rate at which processors can run at has hit a ceiling (somewhere in the early 2000s) - it's rare for a processor to go beyond $4.5$ - $5$GHz.
+                Similarly, chips have been hitting an power ceiling.
+                A consequence of this is an increase in the number of logical cores.
+                \medskip
+
+                This is due to power being the critical constraint.
+                Consider the following;
+                \begin{itemize}
+                    \itemsep0em
+                    \item \textbf{dynamic power}
+                        \smallskip
+
+                        Power is consumed when signals change (when a wire is charged up to deliver current to the other end of the wire).
+                        Power is consumed in resistance.
+                        Dennard Scaling is the reason Moore's law has been linked to single thread performance; dynamic power gets smaller as we make transistors smaller.
+                        As such, we can increase the clock rate as transistors get smaller (within the same power budget).
+                    \item \textbf{static leakage}
+                        \smallskip
+
+                        Power is consumed when the gates are powered-up, due to leakage through the circuit structure (through the transistors).
+                        The end of Dennard Scaling could be part of the reason of the clock rate ceiling.
+                        As transistors get smaller, static leakage becomes the most important factor (whereas previously, dynamic power was the only consideration).
+                        This leakage is exaggerated at a high voltage, which is required for high clock rates.
+                \end{itemize}
+                We can achieve a given level of performance by increasing the clock rate or exploiting parallelism.
+                The former has an issue where the power increases sharply with clock rate as there is not only high dynamic switching, but also high static leakage (from the high voltage).
+                The latter is more efficient, as it allows us to run at a lower clock rate and use less energy per operation.
+                \medskip
+
+                One approach to minimise power usage is to compute quickly and then turn it off; which could be useful in a data centre where there are other tenants that could use the machine.
+                Another solution is to go extremely slowly, to minimise energy (as long as it can meet the deadline).
+                Other strategies at a lower level are clock / power gating, where units are turned off when not in use, either functional units / entire cores.
+                Another popular solution is dynamic voltage / clock regulation, where the clock rate / supply voltage are dynamically reduced.
+                An example use case for this is when the battery is low or when the CPU isn't a bottleneck (for example, trying to match the framerate of the screen, or dominated by memory accesses).
+                Another solution is to run multiple cores, each at a slower clock rate.
+                If only one core is active, then the clock rate could be boosted for the active core.
+                \medskip
+
+                Consider the following example, highlighting why shared memory makes parallel programming easier;
+                \begin{lstlisting}
+                    for (i = 0; i < N; ++i) {
+                      par_for (j = 0; j < M; ++j) {
+                        A[i, j] = (A[i - 1, j] + A[i, j]) * 0.5;
+                      }
+                    }
+
+                    par_for (i = 0; i < N; ++i) {
+                      for (j = 0; j < M; ++j) {
+                        A[i, j] = (A[i, j - 1] + A[i, j]) * 0.5;
+                      }
+                    }
+                \end{lstlisting}
+                Note that the parallelism is slightly different in both parts due to the dependence.
+                Also note that ~i~ indexes a row and ~j~ indexes a column.
+                The simplest synchronisation for the first inner loop is a simple barrier, where we wait for all of the threads in the parallel loop to finish before continuing to the next ~i~ iteration.
+                As such, by the time we enter the second outer loop, we know all the elements have been computed.
+                \medskip
+
+                The first loop operates on rows in parallel, and the second loop operates on columns in parallel.
+                With a distributed memory system, we'd need to pass messages to transpose the array between the two outer loops; however this isn't an issue for a shared memory system.
+                Shared memory is convenient and fast; communication is done with just loads and stores.
+                However, shared memory encourages programmers to ignore where communication occurs.
+                \medskip
+
+                OpenMP is a standard design for language extensions for shared-memory parallel programming.
+                The implementation requires some compiler support.
+                \medskip
+
+                With the simple example above, each iteration should take a similar amount of time.
+                However, if the loop body was more complex, then there may be a load imbalance, hence allocating a fixed amount of iterations to each thread isn't ideal.
+                A self scheduling loop can be seen on the slides.
+                This shows that there is some overhead in managing the loop; when the actual loop code is quite simple, some considerations should be made whether this could be done in chunks, or similar.
+                Another optimisation that could be made is to exploit cache affinity.
+                In the case we have a sequence of parallel loops, ideally each core would work on a corresponding chunk; a core should be assigned iterations of a loop that accesses common data with what was recently accessed.
+                \medskip
+
+                Using locks for the atomic ~FetchAndAdd~ is quite expensive.
+                Many processors have built in hardware support for atomic increments, such as GCC's built in ~\_\_sync\_fetch\_and\_add(p, inc)~.
+                In a large system, any atomic iteration requires all processors queuing up to be able to execute an atomic operation on the shared variable (even in the single instruction case).
+                When two ~FetchAndAdd~ messages meet, they could be combined into a single ~FetchAndAdd~ that increments by 2 and returns two values (~n~ and ~n + 1~).
+                \medskip
+
+                The slide goes into an example explaining the meaning of;
+                \begin{lstlisting}
+                    #pragma omp parallel for default(shared) private(i) schedule(static, chunk) reduction(+:result)
+                \end{lstlisting}
+                MPI, message-passing interface, is a popular alternative for large scale systems.
+                This is standard API using message passing.
+                MPI allows complex programs to be written with arbitrary graphs of communicating processes.
+                Most of the time, we are concerned with programs that are dominated by loops.
+                The advice is to keep the program simple, with SPMD (single-program, multiple data); where each process has a share of the data and shares the same control-flow (as far as it affects any communications that the program does).
+                This allows us to reason about the program by thinking about a small number of processors.
+                \medskip
+
+                An example of MPI is the stencil problem;
+                \begin{lstlisting}
+                    DO j = 1, m
+                      DO i = 1, n
+                        B(i, j) = 0.25 * (A(i - 1, j) + A(i + 1, j) + A(i, j - 1) + A(i, j + 1))
+                      END DO
+                    END DO
+                \end{lstlisting}
+                In OpenMP, this can be expressed as the following (note the convergence condition has been omitted, additionally ~collapse(2)~ allows for the two loops be executed in parallel);
+                \begin{lstlisting}
+                    while (!converged) {
+                      #pragma omp parallel for private(j) collapse(2)
+                      for (i = 0; i < N; ++i)
+                        for (j = 0; j < M; ++j)
+                          B[i][j] = 0.25 * (A[i-1][j] + A[i+1][j] + A[i][j-1] + A[i][j+1]);
+                      #pragma omp parallel for private(j) collapse(2)
+                        for (i = 0; i < N; ++i)
+                          for (j = 0; j < M; ++j)
+                            A[i][j] = B[i][j];
+                    }
+                \end{lstlisting}
+                See the slides for an example of a larger allocation.
+                Each slice needs to have a `halo' region, which bounds it on the left and right, for items that are being read by a processor but not assigned to.
+                The halo of one region is in the region of the adjacent processor, and similarly that adjacent processor will have a halo in the previous processor.
+                This has to be made explicit in MPI.
+                \medskip
+
+                See the example on the slides for this.
+                Note that the allocated space is the data that we (the processor) compute, as well as everything that the data depends on (the halo regions).
+                \medskip
+
+                OpenMP is easy, but hides the communications (we don't need to consider allocating memory to receive from neighbouring processors) which can lead to bugs if unintended sharing occurs.
+                MPI requires more copying of data (namely in sending data), or at least appears to (this may be done when accessing across boundaries in OpenMP).
+                MPI allows us to see how to reduce communication and synchronisation.
 \end{document}
