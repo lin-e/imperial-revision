@@ -2883,4 +2883,29 @@
             Another consideration is spatial control locality.
             In SIMT, branch coherence states that adjacent threads in a warp all usually branch the same way (spatial locality for branches, across threads).
             On the other hand in SIMD, branch predictability states that each individual branch is mostly taken / not-taken (or is generally predicted by global history).
+        \subsection*{November 23 - Live Lecture}
+            In FGMT (different threads in different cycles), in each clock cycle, all the operations belong to one thread.
+            As such, they are interleaved in a clock-by-clock basis, hence there is no context switching overhead (instead, we are context switching on every clock cycle).
+            On the other hand, with SMT (dynamic scheduling of operations from a pool of threads), threads may be selected in a round robin fashion, but the out-of-order processor may reordered without prejudice as to which thread they belong to.
+            \medskip
+
+            With a GPU, we can actually choose how many threads run on a core at once, whereas with typical CPUs, this is limited by the hardware (typically two threads).
+            On a CPU, the two threads may belong to completely different processes, whereas with the GPU, the threads are optimised to be essentially doing the same thing.
+            \medskip
+
+            Suppose we have very wide vectors (such as 32 elements).
+            Assume that we have a load instruction, which is also 32 wide, then a multiply which consumes the result from the load, and an add that consumes the result from the multiply (and so on).
+            However, the machine may only have 8 wide vector functional units (despite supporting 32 wide) - as such, it does 8 operands from the 32 in each clock cycle.
+            The idea of chaining concerns when we can forward from one vector instruction to another.
+            Since the vector instruction operates over 4 clock cycles, the next instruction can be started after the first block of 8 is done.
+            Essentially; we don't have to wait for all 32 to be done before passing values to the next instruction.
+            \medskip
+
+            Each level of the parallelism hierarchy can be determined by what resources are shared, as well as capabilities.
+            For example (on the latter), different vector lanes can't execute arbitrarily different code (they must execute the same sequence of vector instructions).
+            In the CUDA execution model; a grid runs on the whole GPU, a set of warps runs on an SM, and this is further subdivided into threads (each warp is a thread of vector instructions) which run on SPs.
+            Once a thread block is mapped onto an SM, it can share resources associated with the SM.
+            \medskip
+
+            A thread in \textit{NVIDIA}'s terms is a dataflow slice associated with a sequence of lanes (what happens in a lane of a warp).
 \end{document}
