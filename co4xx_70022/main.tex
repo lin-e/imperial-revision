@@ -2585,11 +2585,239 @@
             If a network partition occurs in spanner, the uncertainty will begin to increase, leading to the throughput dropping.
             \medskip
 
-            TrueTime gives a very simple API, which gives the following;
+            TrueTime has a very simple API, which gives the following;
             \begin{itemize}
                 \itemsep0em
                 \item ~now()~ \hfill returns current system time, but also $\varepsilon$ which tells maximum uncertainty
                 \item ~after(t)~ \hfill ~true~ if ~t~ is definitely passed
                 \item ~before(t)~ \hfill ~true~ if ~d~ definitely not arrived
             \end{itemize}
+            A global time (infinitely accurate) transaction can pick a timestamp at any interval where it holds the the lock.
+            Therefore any subsequent transaction can only pick a timestamp after the lock is released (timestamp is strictly greater).
+            This gives a guaranteed ordering.
+            \medskip
+
+            With TrueTime, it picks the current time that is most into the future across all nodes in the system.
+            By picking this time, it can wait until time has progressed to the leftmost bound of TrueTime.
+            This ensures it has picked a timestamp that was sufficiently conservative and waits for clocks that were lagging behind to ensure there are no overlaps in the system.
+            \medskip
+
+            All the other concurrency protocols do the same thing (such as consensus protocols); acquire some lock to gain exclusive access, pick some timestamp $s$, and then start a consensus then achieve a consensus, then release locks.
+            See the slides for an example of 2PC.
+            \medskip
+
+            The first level is a Paxos group on a replicated tablet (similar to BigTable).
+            Replication is required for redundant copies (across data centres).
+            They need a protocol to ensure this replication happens.
+            The Paxos protocol is a state machine replication protocol that can replicate operations across multiple nodes (any nodes can fail, the protocol can handle that and still replicate writes).
+            One benefit is that it allows you to efficiently execute a batch of operations in parallel (across different nodes).
+            BigTable relies on GFS performing 3-way replication, whereas Spanner doesn't rely on GFS (Paxos gives strong consistency).
+            GFS was never designed for different continents, but rather just as a distributed file system distributed in a single location (possibly poor performance if in different locations).
+            By bringing replication into Spanner (which was designed for global replication), it could be tuned to perform better.
+            \medskip
+
+            Paxos is a consensus algorithm that tries to ensure that nodes in a distributed system will agree on the ordering of a set of operations.
+            In Spanner, these operations are writes as part of transactions; we want a global ordering.
+            Paxos works in rounds, and there are three different types of nodes;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{proposers} \hfill clients executing a transaction
+                \item \textbf{acceptors} \hfill need to agree on the ordering
+                \item \textbf{learners} \hfill sees the outcome of the consensus
+            \end{itemize}
+            This works by electing a leader, which proposes the consensus decision.
+            If the leader fails, a leader needs to be reelected (after everyone agrees the leader has failed).
+            A Paxos group is a tablet and its replicas, as well as the concurrency machinery across the replicas.
+            \medskip
+
+            The difference with BigTable is that transactions only applied on individual rows.
+            With Paxos groups, Spanner can execute within a single Paxos group atomically; we can execute atomic transactions on data that resides in the same tablet.
+            However, we may want to maintain ACID properties for transactions that have data across tablets; this isn't possible with only Paxos groups.
+            We need a way to execute transactions that update multiple Paxos groups / touches multiple tablets.
+            The transactional model that Spanner supports has no restrictions on how the data is mapped.
+            \medskip
+
+            We are now considering transactions that update data, involving multiple Paxos groups.
+            If the transaction only involves a single Paxos group, the Transaction Manager and Participant Leader machinery can be bypassed.
+            With multiple Paxos groups, 2PC is used on the participant leaders (which sits on top of the Paxos groups).
+            The participant group leader is one of the Paxos group leaders, which interacts with other participant leaders.
+            \medskip
+
+            This design was used, rather than a single layer with Paxos doing replication everywhere, as Paxos doesn't scale well with the number of instances in a single group.
+            This problem is avoided with a two-level hierarchy.
+            \medskip
+
+            Note that there are a number of optimisations that avoid the expensive locking.
+            For example, a read-only can be done in a special way that is more efficient.
+            Some shortcuts can be taken, with assumptions about what the transaction is going to do.
+            \medskip
+
+            A stronger schema was one of the motivations for Spanner.
+            As long as the schema is stored as data in the database itself, the existing mechanisms can be used to update the schema.
+            A schema change touches all of the data, which requires locks being accessed (hence it is heavy).
+            Instead, the schema change transaction is executed in the background, making changes in a way that is transparent to other transactions.
+            Spanner is a multiple version database, which means that it can be done on a different version than the one that is being used to execute regular transactions.
+            Once the update is done, a single `visible switch' is flipped, moving to the new schema.
+            \medskip
+
+            Spanner's load balancing mechanism allows for different parts of the data to be transparently moved around between different servers / zones (can be thought of as data centres).
+            It does this automatically in the background.
+            A directory is analogous to a bucket in BigTable (smallest unit of data placement and smallest unit to define replication properties); a directory may be sharded into fragments if it becomes too large.
+            \medskip
+
+            F1 is Google's advertising backend.
+            This system is extremely important as it generates income, and needs to be strongly consistent (for example, number of advertisement impressions).
+            It also needs to be fault tolerant and fairly low latency.
+            Previously, this was done in MySQL, which was expensive to manually rebalance (and also difficult).
+        \subsection*{MapReduce}
+            The core motivation for MapReduce was scalable computation for programs that would fit into this model (many of which are search related).
+            The programming model that was proposed by MapReduce is largely functional; we have forced type signatures that users have to adhere to, rather than modifying state.
+            The two functions are as follows (type signatures are using Haskell-like syntax);
+            \begin{itemize}
+                \itemsep0em
+                \item ~map :: (k1, v1) -> [(k2, v2)]~
+                \item ~reduce :: (k2, [v2]) -> [v2]~ % note that the slides use [v3], but the paper uses [v2]?
+            \end{itemize}
+            Map takes in a key-value pair and produces a set of key-value pairs.
+            This can then be grouped by the runtime and passed into the reduce workers (realistically, it's map, group by, reduce).
+            Systems already existed to apply map functions, taking in some function that transforms data and deploys it across a data centre (systems such as \textit{Condor}) - however, it was just a transformation function.
+            This can be used for algorithms that are embarrassingly parallelisable (batches / shards can be independent).
+            However, MapReduce is more expressive; it allows for aggregation over the data (or some other global operation over the data).
+            The grouping acts as a repartitioning step.
+            \medskip
+
+            With MapReduce, there is a master-worker architecture, and both failure cases need to be considered (either the master failing or one of the workers failing (at different stages of the job)).
+            One of the main techniques used to recover from failure is to have the master act as a failure detector (as well as acting as an orchestrator, assigning jobs to nodes); when it detects failure, it may reassign the task to another worker.
+            \medskip
+
+            The data processed by a MapReduce job comes from GFS (any data here is fault-tolerant).
+            If any mapper fails, the input data can be obtained from GFS.
+            When a reducer finishes, the result is also saved to GFS (which is also safe).
+            The results of a map operation (intermediate data) are only stored locally, therefore if a map worker fails, the computation will have to be redone.
+            The shuffle phase ensures that the same data is reduced by the same reducer (reads in all keys that are the same).
+            \medskip
+
+            MapReduce assumes the functions are deterministic.
+            The consistency of the output is maintained as we never \textbf{update} any data; data is never updated in place (source file is never touched).
+            This system is immutable; the only update could come from the computation, which we already assume is deterministic.
+            \medskip
+
+            Stragglers are workers that take longer than usual to complete operations.
+            MapReduce deals with stragglers by sending identical operations to another worker, and takes the result of whichever computation finishes first.
+            With a high number of nodes, some nodes will take a bit longer to complete computation; with more nodes, there is a wider distribution, including some extreme outliers.
+            This effect can be caused by machines with hardware faults (such as bad disks), or other tasks executing on the same machine (OS updates, or other scheduled tasks).
+            \medskip
+
+            Colocating a batch service (such as MapReduce) with a latency-sensitive service could have issues, which may require isolation (where CPU cores are allocated to each job).
+            A global work queue could be a bottleneck, additionally data locality can also be taken advantage of here, where the map job is on the server that already has the data (a centralised queue would cause more network traffic).
+            \medskip
+
+            MapReduce is for processing a big amount of data; one of the first mainstream `Big Data' analytics frameworks (an open source version known as Hadoop was released by Yahoo and Apache).
+            This gives a simple programming model - it also gives transparent parallelisation and fault-tolerant processing for free.
+            See the slides for an example of the design space of volume (data amount) versus velocity (latency).
+            \medskip
+
+            The distributed dataflow can be seen as the following (reducer can be seen as aggregation);
+            \begin{center}
+                \begin{tikzpicture}[rotate=-90]
+                    \node[state] (m1) at (0, 0) {~M~};
+                    \node[state] (m2) at (2, 0) {~M~};
+                    \node[state] (m3) at (4, 0) {~M~};
+
+                    \begin{scope}[shift={(0, 2)}]
+                        \draw[fill=green!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                    \end{scope}
+                    \begin{scope}[shift={(0, 2.5)}]
+                        \draw[fill=blue!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                    \end{scope}
+                    \begin{scope}[shift={(0, 3)}]
+                        \draw[fill=red!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                    \end{scope}
+
+                    \begin{scope}[shift={(2, 2)}]
+                        \draw[fill=green!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                    \end{scope}
+                    \begin{scope}[shift={(2, 2.5)}]
+                        \draw[fill=red!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                    \end{scope}
+                    \begin{scope}[shift={(2, 3)}]
+                        \draw[fill=blue!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                    \end{scope}
+
+                    \begin{scope}[shift={(4, 2)}]
+                        \draw[fill=blue!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                    \end{scope}
+                    \begin{scope}[shift={(4, 2.5)}]
+                        \draw[fill=green!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                    \end{scope}
+                    \begin{scope}[shift={(4, 3)}]
+                        \draw[fill=red!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                    \end{scope}
+
+                    \foreach \y in {5, 5.5, 6} {
+                        \begin{scope}[shift={(0, \y)}]
+                            \begin{scope}[shift={(0, 0)}]
+                                \draw[fill=red!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                            \end{scope}
+                            \begin{scope}[shift={(2, 0)}]
+                                \draw[fill=green!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                            \end{scope}
+                            \begin{scope}[shift={(4, 0)}]
+                                \draw[fill=blue!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                            \end{scope}
+                        \end{scope}
+                    };
+
+                    \node[state] (r1) at (0, 8) {~R~};
+                    \node[state] (r2) at (2, 8) {~R~};
+                    \node[state] (r3) at (4, 8) {~R~};
+
+                    \begin{scope}[shift={(0, 10)}]
+                        \begin{scope}[shift={(0, 0)}]
+                            \draw[fill=red!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(2, 0)}]
+                            \draw[fill=green!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                        \end{scope}
+                        \begin{scope}[shift={(4, 0)}]
+                            \draw[fill=blue!33] (-0.75, 0.25) -- (0.75, 0.25) -- (0.75, -0.25) -- (-0.75, -0.25) -- cycle;
+                        \end{scope}
+                    \end{scope}
+
+                    \draw
+                    (0, -1.5) edge[->] (m1)
+                    (2, -1.5) edge[->] (m2)
+                    (4, -1.5) edge[->] (m3)
+                    (m1) edge[->] (0, 1.75)
+                    (m2) edge[->] (2, 1.75)
+                    (m3) edge[->] (4, 1.75)
+                    (0, 3.25) edge[->] (0, 4.75)
+                    (0, 3.25) edge[->] (2, 4.75)
+                    (0, 3.25) edge[->] (4, 4.75)
+                    (2, 3.25) edge[->] (0, 4.75)
+                    (2, 3.25) edge[->] (2, 4.75)
+                    (2, 3.25) edge[->] (4, 4.75)
+                    (4, 3.25) edge[->] (0, 4.75)
+                    (4, 3.25) edge[->] (2, 4.75)
+                    (4, 3.25) edge[->] (4, 4.75)
+                    (0, 6.25) edge[->] (r1)
+                    (2, 6.25) edge[->] (r2)
+                    (4, 6.25) edge[->] (r3)
+                    (r1) edge[->] (0, 9.75)
+                    (r2) edge[->] (2, 9.75)
+                    (r3) edge[->] (4, 9.75);
+
+                    \node at (2, -3) {\shortstack{partitioned\\data on\\distributed\\file system}};
+                    \node at (-1.5, 0) {map};
+                    \node at (-1.5, 4) {shuffle};
+                    \node at (-1.5, 8) {reduce};
+                \end{tikzpicture}
+            \end{center}
+            The standard example for MapReduce is the word count.
+            The map phase processes the input data and generates pairs, such as;
+            \begin{lstlisting}
+                {(cat, 5), (dog, 7), (elephant, 9)}
+            \end{lstlisting}
+            The shuffle phase then distributes intermediate pairs to reduce tasks, for example, all keys starting with ~C~ to reducer 1, ~D~ to reducer 2, and so on.
+            The reducer then aggregates all values associated for each key.
 \end{document}
