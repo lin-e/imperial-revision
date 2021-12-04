@@ -2815,9 +2815,167 @@
             \end{center}
             The standard example for MapReduce is the word count.
             The map phase processes the input data and generates pairs, such as;
-            \begin{lstlisting}
-                {(cat, 5), (dog, 7), (elephant, 9)}
-            \end{lstlisting}
+            \begin{center}
+                ~\string{(cat, 5), (dog, 7), (elephant, 9)\string}~
+            \end{center}
             The shuffle phase then distributes intermediate pairs to reduce tasks, for example, all keys starting with ~C~ to reducer 1, ~D~ to reducer 2, and so on.
             The reducer then aggregates all values associated for each key.
+            \medskip
+
+            The execution model of MapReduce runs in stages; all of the worker machines run the map phase, then all of the worker machines run the reduce phase.
+            Note that all of the map workers need to complete before reduce can begin.
+            We assume the input data is partitioned across the machines and the map phase works on the data that's local (locality-aware scheduler).
+            After this is done, communication occurs between the machines (shuffle phase) to perform the grouping.
+            Reduce tasks then occur to aggregate the data and store it in GFS; the intermediate results are persisted on local disks.
+            Combiner functions fit into the aforementioned execution by combining data on local nodes before sending them across the network (prior to the shuffle phase), as this can help save some bandwidth.
+            This is because the map tasks may already see some keys which are the same, instead of outputting all of the keys that are the same, we can perform a reduction earlier on (an optimisation).
+            \medskip
+
+            There are a number of failure cases;
+            \begin{itemize}
+                \itemsep0em
+                \item \textbf{task failure} \hfill restart task
+                    \smallskip
+
+                    Could be due to an error in the data being read, such as a malformed record / value.
+                    At some point, MapReduce will give up on this task due to failures, however if the failure goes away after retrying the task, it is a form of recovery.
+                    The map tasks fetch data from GFS and reduce tasks fetch intermediate results from local disks.
+                \item \textbf{node failure} \hfill restart tasks on new node
+                    \smallskip
+
+                    All of the tasks on that node need to be recomputed as intermediate results will be lost.
+                    If this was on a map task, we can restart it on a different node and fetch data from HDFS and produce intermediate results.
+                    However, if this was a reduce task, some of the intermediate results may have to be recomputed from map tasks.
+            \end{itemize}
+            When we have a straggler, the overall execution time is dominated by the slowest task (we want to avoid waiting for just one task).
+            MapReduce uses speculative execution to run redundant tasks for slow tasks, hoping that the speculative tasks finish before the straggler does.
+            There can only be one copy of a straggler that is allowed to be speculated.
+            \medskip
+
+            Hadoop locates stragglers by having a progress $\in [0, 1]$ for each task.
+            If a task's progress score is less than the average task (and subtracted $0.2$), and the task has been running for at least a minute, it is marked as a straggler.
+            This makes an assumption that the running time of a task is roughly the same, no matter what chunk of data it is working on.
+            \medskip
+
+            A hash function on the key (to determine which node to send the intermediate data to) has the benefit that each node can apply it locally without communication.
+            An alternative is range partitioning, for example in the word count example.
+            However, one difficulty is that we need to ensure the partitions remain balanced, to avoid hotspots (which would introduce a straggler).
+        \subsection*{Spark / RDD (Resilient Distributed Datasets)}
+            In order to execute loops in the MapReduce model (such as pagerank, ML algorithms, etc.), the output of one computation becomes the input for the next (fixed point operation).
+            This is done until convergence.
+            In MapReduce, this is done by concatenating MapReduce jobs, one after the other (unrolling).
+            However, a major downside is that time is wasted on communication (repeated shuffling even if the data hasn't changed much) and the second iteration of the loop doesn't know about the first.
+            Additionally, the storage of results to disk is much slower than working on data in memory; a reduce task will write to a file system and the next iteration then reads the data back into memory (ideally, we avoid the write).
+            \medskip
+
+            Dryad uses the idea of dataflow as directed acyclic graphs, which allows for more expressive tasks.
+            This idea is also used in Spark, which aimed to work around these limitations.
+            \medskip
+
+            Spark was designed to support iterative algorithms.
+            One of the key ideas in the paper is the reuse of data (which was an issue with MapReduce).
+            Spark uses a graph to express the computation (lineage graphs).
+            Within these graphs data is shared by keeping it in memory, and serialised and sent to other nodes if required.
+            However, keeping it in memory is more expensive (especially when MapReduce was designed) and less fault tolerant.
+            The fault tolerance model of MapReduce revolves around data being in disk, whereas Spark has to take a different approach.
+            Additionally, Spark was able to do interactive processing (try running queries interactively), whereas MapReduce was done in batches (and didn't have an interface to support this).
+            Spark would behave more like an interpreter, rather than a compiler.
+            \medskip
+
+            Complex applications (multi-stage, such as iterative ML / graph processing) and interactive ad-hoc queries both require efficient primitives for data sharing; something MapReduce lacks (MapReduce only has disk-based sharing).
+            Not only is it slow to perform disk based sharing between iterations, there could also be multiple reads on the same data if multiple queries are launched on the same data (rather than just reading it once).
+            However, MapReduce relies on this design for fault tolerance.
+            \medskip
+
+            The goal is in-memory data sharing.
+            The iterative approach first reads from disk and stores the result in memory for the next iteration (as opposed to writing and then reading from disk).
+            On the other hand, the multiple queries have one read, which is then stored in-memory and then all queries are launched reading from memory.
+            \medskip
+
+            However, the main challenge is a distributed memory abstraction that's efficient and fault-tolerant.
+            Recall that two approaches for fault-tolerance are replication and recomputation - Spark takes the latter by remembering the transformations.
+            Another contribution of Spark is the lazy execution.
+            By thinking of the computation as a DAG, we have many stages.
+            The scheduling becomes more complex; whereas with MapReduce we only have 3 stages.
+            However, with more stages, it becomes more difficult for the master to decide how to assign tasks to workers.
+            Spark uses lazy evaluation; it essentially does the execution backwards (rather than executing eagerly).
+            It looks at what's required to obtain a result, and goes back in the computational graph until it hits the source data (which already exists).
+            As such, computation is done on demand, which is very efficient (if something isn't used, it's not computed).
+            \medskip
+
+            Spark abstracts the data as RDD, which is used by transformations.
+            It's resilient as we can keep the lineage graph to reconstruct it, and distributed as it can be partitioned / sharded.
+            RDD can be thought of as the intermediate data in MapReduce (which only really has one RDD).
+            Each stage in the DAG generates an RDD.
+            Each worker works on an RDD partition.
+            Another property of an RDD is that it's immutable (hence we don't need to worry about consistency); when we change an RDD we actually read in an RDD and generate a new one with a new name that's different from the source RDD.
+            \medskip
+
+            This idea of a lineage graph allows us to always be able to recompute, however this can be expensive for obvious reasons.
+            Imagine the case where thousands of iterations have been run, and we have almost achieved convergence, and then a failure occurs.
+            However, if there are data dependencies for a given RDD partition, we have to go back to the beginning.
+            Checkpoints are a way of avoiding this by writing a particular RDD to disk; instead of going to the start, we can restart from a checkpoint (persisted RDD).
+            An example of a lineage graph is as follows;
+            \begin{center}
+                \begin{tikzpicture}
+                    \node[state] (a) at (0, 0) {};
+                    \node[state] (b) at (2, 0) {};
+                    \node[state] (c) at (2, -2) {};
+                    \node[state] (d) at (4, -1) {};
+                    \node[state] (e) at (6, -1) {};
+                    \draw
+                    (a) edge[->, above] node{$T_4$} (b)
+                    (c) edge[->, below] node{$T_3$} (d)
+                    (b) edge[->, above] node{$T_2$} (d)
+                    (d) edge[->, above] node{$T_1$} (e);
+                \end{tikzpicture}
+            \end{center}
+            The difference between a transformation and an action is that the former goes between RDDs whereas the latter does computation to return a value (not RDD) / write to storage.
+            Essentially, the actions have side effects and trigger the lazy evaluation.
+            \medskip
+
+            There's a tradeoff between the granularity of updates and the performance achieved.
+            For example, a regular database or key-value store are good at performing fine grain updates (change a single row in a table, for example) - but this has a cost on the lower write throughput (due to concurrency control / locking).
+            On the other hand, RDDs have high write throughput as it's done on entire batches, but this leads to coarse granularity.
+            This is important as this is a system for memory, so we'd want the throughput to be close to the limit of the memory bandwidth (whereas before it'd be restricted by the network bandwidth).
+            This is less relevant today.
+            \medskip
+
+            An example program is log mining.
+            The execution model is similar to before, where we have masters and workers, the former assigning tasks (based on lazy evaluation) to the latter.
+            \begin{lstlisting}
+                lines = spark.textFile("hdfs://...")         // base RDD
+                errors = lines.filter(_.startsWith("ERROR")) // transformed RDD
+                messages = errors.map(_.split('\t')(2))      // transformed again
+                messages.persist()                           // create checkpoint
+                messages
+                  .filter(_.contains("foo"))
+                  .count                                     // an action, starts execution
+                messages
+                  .filter(_.contains("bar"))
+                  .count                                     // full computation not needed
+            \end{lstlisting}
+            RDDs track the transformation graph that built them, and only requires recomputation on a single partition (whichever partition is lost).
+            \medskip
+
+            The first iteration of an iterative job takes longer as it needs to read from memory.
+            Once a failure is injected, the next iteration will take longer as it has to continue the iterations for the healthy partitions, but also recompute the failed partition (additional work).
+            Once it has recovered, the next iterations take less time.
+            \medskip
+
+            A narrow dependency is one that only relies on one parent dependency; which leads to easy failure recovery.
+            A shuffle or a join is a wide dependency, as it has multiple dependencies, leading to more difficult recovery.
+            \medskip
+
+            If the RDD partitions we want to join are co-partitioned (live on the same worker), it is more efficient as the join can be done locally.
+            If they are not, then they need to communicate and remotely fetch.
+            The API allows the partitioning to be specified to obtain better performance.
+            \medskip
+
+            It's also important to know when to evict RDDs from memory when they are no longer in use.
+            The ~persist()~ call can also prevent Spark from removing it from memory.
+            \medskip
+
+            Current versions of Spark use relational data models (Spark Dataframes).
+            This allows for a schema to be defined, which is what the RDD is.
 \end{document}
