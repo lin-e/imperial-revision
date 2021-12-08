@@ -1921,7 +1921,7 @@
             \medskip
 
             Bayesian inference tells us to use the rules of probability to estimate the parameters we want to estimate;
-            $$\underbrace{p(\vec{\theta}\ |\ \vec{y})}_\text{posterior} = \frac{\overbrace{p(\vec{\theta}\ |\ \vec{y})}^\text{likelihood}\overbrace{p(\vec{\theta})}^\text{prior}}{\underbrace{p(\vec{y})}_\text{evidence}}$$
+            $$\underbrace{p(\vec{\theta}\ |\ \vec{y})}_\text{posterior} = \frac{\overbrace{p(\vec{y}\ |\ \vec{\theta})}^\text{likelihood}\overbrace{p(\vec{\theta})}^\text{prior}}{\underbrace{p(\vec{y})}_\text{evidence}}$$
             We start by taking a particular distribution where we assume our parameters has come from ($p(\vec{\theta})$).
             We assume that $\vec{\theta}$ and $\vec{y}$ are generated in a related way and use conditional probability to reason about this.
             In practice, Bayesian inference makes a leap of faith (selects a prior and hopes that it's a reasonable distribution).
