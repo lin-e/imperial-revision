@@ -3196,4 +3196,113 @@
                 One solution is to duplicate the tags, to give the SCC parallel access to the cache state.
                 Another solution is to use multi-level inclusion (if everything in L1 is in L2, then we can use L2 to filter invalidations - only have to check L1 if L2 tag matches).
                 Alternatives for cache inclusivity is a snoop filter.
+            \subsubsection*{Synchronisation and Memory Models}
+                We need to synchronise in order to know when it's safe for different processes to used shared data.
+                In order to implement locking, we need a form of uninterruptible primitive.
+                We need a way to perform both a read and write in an atomic indivisible operation.
+                Once we can build one of these primitives, we can build on top of it.
+                We want the non-contended path to be fast, and efficient in the case where there is high contention.
+                The distribution should also be fair.
+                \medskip
+
+                All of the following operations require us to do a load and store in a single operation - however, note that no instruction has more than one memory access for a RISC instruction set;
+                \begin{itemize}
+                    \itemsep0em
+                    \item test-and-set
+                    \item fetch-and-increment
+                    \item atomic exchange
+                \end{itemize}
+                This is somewhat feasible in a single-core machine, by locking the memory bus to ensure nothing else can be scheduled in between.
+                This is also possible if done in the memory (not on the CPU).
+                \medskip
+
+                Note that the L1 cache of a GPU doesn't run a cache coherence protocol; it is flushed once a kernel is launched.
+                Load instructions can be buffered in the cache, as well as stores (which may eventually get to main memory), but there is no way for other processors and their caches to know data has been updated.
+                Atomic operations have to be handled in the L2 cache.
+                \medskip
+
+                In a multi-core CPU machine, the idea is to use two instructions; load liked (or load locked), and store conditional.
+                The load linked returns the initial value and stores the address; however, the store conditional only completes if no invalidations for that address have been received since the load completed (doesn't update memory if it fails, but rather returns a 0 if it fails or 1 if it succeeds).
+                For example, in atomic exchange (if we are interrupted for any reason, retry);
+                \begin{lstlisting}
+                    try: mov  R3,R4    ; mov exchange value
+                         ll   R2,0(R1) ; load linked
+                         sc   R3,0(R1) ; store conditional
+                         beqz R3,try   ; branch store fails (R3 = 0)
+                         mov  R4,R2    ; put load value in R4
+                \end{lstlisting}
+                Another example is fetch and increment;
+                \begin{lstlisting}
+                    try: ll   R2,0(R1) ; load linked
+                         addi R2,R2,#1 ; increment (register to register is fine)
+                         sc   R2,0(R1) ; store conditional
+                         beqz R2,try   ; branch if the store fails (R2 = 0)
+                \end{lstlisting}
+                This is done by remembering the load address and checking it against any invalidations.
+                Some processors extend this idea to allow for transactions.
+                \medskip
+
+                This can be used to implement a spin lock, where the processor continues to acquire a lock and loops if it fails.
+                Note here we load a 1 into memory, and exchange it with the lock; if it fails (~R2~ isn't zero), we try again;
+                \begin{lstlisting}
+                    start:  li   R2,#1
+                    lockit: EXCH R2,0(R1)  ; atomic exchange (from above)
+                            bnez R2,lockit ; loop if lock is already acquired
+                \end{lstlisting}
+                We need the cache line where the lock falls to be in a dirty state.
+                If we have multiple processors spinning on this lock, then they will compete to have the cache line in the dirty state, leading to a constant exchange of invalidations and coherency messages; generating significant bus traffic.
+                A solution to this is to read the variable and then try the exchange if it changes;
+                \begin{lstlisting}
+                    try   : li   R2,#1
+                    lockit: lw   R3,0(R1)  ; load var
+                            bnez R3,lockit ; if not free, spin
+                            EXCH R2,0(R1)  ; atomic exchange
+                            bnez R2, try   ; try again if already locked
+                \end{lstlisting}
+                This is an improvement as they only compete once the lock is released (rather than all the time).
+                However; the processor that wins this may be deterministic; which is unfair.
+                \medskip
+
+                A ticket lock starts with the current ticket and the active ticket being zero.
+                This explicitly hands off access to the next in line;
+                \begin{lstlisting}
+                    ticketLock_init(int *next_ticket, int *now_serving) {
+                        *now_serving = *next_ticket = 0;
+                    }
+
+                    ticketLock_acquire(int *next_ticket, int *now_serving) {
+                        my_ticket = fetch_and_inc(next_ticket);
+                        while (*now_serving != my_ticket) { } // spin lock
+                    }
+
+                    ticketLock_release(int *now_serving) {
+                        ++*now_serving;
+                    }
+                \end{lstlisting}
+                The number of caches misses per acquisition is proportional to the number of processors / threads that are waiting on the lock.
+                The ticket lock can experience a performance collapse with more cores.
+                \medskip
+
+                Consider the following example;
+                \begin{lstlisting}
+                    // thread 1
+                    P1: A = 0
+                        ...
+                        A = 1
+                    L1: if (B == 0) ...
+
+                    // thread 2
+                    P2: B = 0
+                        ...
+                        B = 1
+                    L2: if (A == 0) ...
+                \end{lstlisting}
+                Intuitively, it seems that both conditions can't be true.
+                However, if we do not wait for the invalidation (as it needs to be acknowledged) and allow the processor to continue, we can observe the thread in an inconsistent order.
+                If we wait for the acknowledgement, we can get sequential consistency (where our reasoning holds); therefore we need to delay all memory accesses until all invalidations are complete.
+                \medskip
+
+                Weak consistency can be faster however.
+                If we aren't able to get sequential consistency, we need some sort of consistency still; instead of a total ordering, the accesses may be ordered only at synchronisation operations (the points where we end up waiting for invalidations to be completed).
+                Different architectures have subtly different memory consistency models.
 \end{document}
