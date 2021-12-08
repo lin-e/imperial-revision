@@ -3305,4 +3305,90 @@
                 Weak consistency can be faster however.
                 If we aren't able to get sequential consistency, we need some sort of consistency still; instead of a total ordering, the accesses may be ordered only at synchronisation operations (the points where we end up waiting for invalidations to be completed).
                 Different architectures have subtly different memory consistency models.
+            \subsubsection*{Scalable Cache Coherency Protocols}
+                For larger systems, directory based cache coherency protocols can be used to reduce the amount of broadcasting in the system, giving desirable scalability properties.
+                The snooping cache coherency protocol relies on busses to broadcast invalidations and read requests, as well as to establish a global ordering on all events in the system.
+                However, as every access is monitored, the bus becomes a bottleneck with many processors; snooping will no longer work and a more general interconnection network is required.
+                \medskip
+
+                Main memory will also be distributed around the system, leading to NUMA (non-uniform memory architecture), where some DRAM is closer to some cores than others.
+                Ideally, when a processor allocates memory, it allocates with its local DRAM, requiring the OS to know where the local DRAM is and where allocation should be made.
+                Copies of remote data are also cached.
+                \medskip
+
+                Directories are how we represent what we know about where the data lives.
+                Consider a system with separate memory per processor, with local / remote access via the memory controller.
+                There's a directory per cache, tracking the state of every block in the cache (such as which caches has a copy of a block, the state, etc.).
+                We need to consider whether to keep information per memory block or per cache block, as well as preventing the directory from being a bottleneck.
+                \medskip
+
+                An example of this is \textit{Sun}'s \textit{S3MP}.
+                Each processor has a cache controller, some memory, and a CPU.
+                Directory information was included with every cache line stored in memory, as well as with every cache line in the cache.
+                The cache consists of a tag, a dirty bit, and a pointer (which is also in main memory).
+                The pointer is used to implement a linked list that connects all caches which hold a copy of this data.
+                As processors request read copies of the data and cache them locally, a linked list is constructed (it may start as a null pointer).
+                This allows an invalidation message to be sent which visits each of these caches and invalidates the copy.
+                \medskip
+
+                Each cache line also has a home node, which is a unique place where it will live if it lives in DRAM.
+                We can tell what home node the particular address is in by looking at the physical address (after address translation).
+                All the activity with respect to a specific cache line can be handled by that home node.
+                \medskip
+
+                See the example on the slides for this.
+                Node 2 makes a request and node 5 (home) updates it, creating a pointer.
+                The next case is when another processor (node 7) has the data.
+                Node 2 asks node 5 as it's the home node, but the read request is forwarded to node 7 which has the data, which then shares it to node 2.
+                It also then updates its sharing pointer to point to node 2 (before it was pointing to node 4), and tells node 2 to then point to node 4.
+                \medskip
+
+                When a write occurs, the node makes a request to the home node, which sets a lock on the cache line, preventing simultaneous transactions.
+                An invalidation message is passed to the head of the sharing list, and all the way down (including the writing node, even if it has a shared copy).
+                Once it gets to the final node, it sends two messages; one to unlock it (sent to home) and another to the writing node, saying it's done.
+                \medskip
+
+                For a displacement to occur, the displacing node sends an `unhook' request to the home node.
+                This locks the cache line in the home.
+                The home node then hooks an unhook forwarding message to the head of the chain, which gets forwarded down the chain up to the node \textbf{prior to the displacing node}.
+                The node requests the pointer from the displacing node which gives it and changes its pointer to the displacing node's successor.
+                An unlock is then sent from the predecessor node.
+                \medskip
+
+                For a CPU to find a valid copy, it needs to do the following;
+                \begin{enumerate}
+                    \itemsep0em
+                    \item translate virtual address to physical
+                    \item identify home node from physical address' high order bits
+                    \item home node is where the DRAM for an address resides
+                    \item current valid copy may not be at the home node (may be in another CPU's cache), but it holds pointer to the sharing chain, so it can find it
+                \end{enumerate}
+                This has strong sequential consistency (recent designs have weaker models).
+                It uses a singly-linked chain, which means there's less metadata.
+                A disadvantage occurs with long chains (when the data is widely-shared), with operations begin time consuming with many sequential messages.
+                However, simulations showed that invalidation over widely shared data is rare (read-only is fine).
+                On average, they were right; but the worst case behaviour was quite poor.
+                \medskip
+
+                Other approaches included a doubly-linked sharing list, or a 64-bit sharing list (which has a bit for each of the remote processors where the data might be).
+                With the latter approach, a bit may represent multiple processors (where an invalidation is broadcast to all processors under that bit, for example 4 processors with \textit{SGI Origin 2000}'s 256 CPUs).
+                Multiple busses were also used, but was not as scalable (required some replication of tag arrays).
+                \medskip
+
+                Each processor in \textit{Intel Haswell} can come with up to 18 cores, with 9 cores in each ring, and 4 DRAM interfaces (2 per ring).
+                The chip also had an interconnection interface, called the QPI interface.
+                The chip was designed to be used in pairs on a dual socket system.
+                In socket 1, there are nodes 0 and 1, and in socket 2 there are nodes 2 and 3, representing the rings.
+                Each node is treated as a different NUMA subdomain, where each domain has uniform access to its main memory (and caches in the ring), and non-uniform access to others.
+                Home agents in this machine has a similar role to home nodes from before.
+                This is a hybrid between a snooping based machine and a directory based machine.
+                Each cache line contains 2 bits of directory, which indicate whether the line is held in any other nodes (remote-invalid (no other copies in other nodes), snoop-all (potentially modified copy exists), or shared (multiple clean, consistent with main memory, exists)).
+                \medskip
+
+                On an L2 miss, the core sends a request to a cache agent on its node (based on a hash of the physical address).
+                The agent looks after a block of LLC, and checks for a hit.
+                If it has a hit, then the line will include directory bits.
+                If it misses, it passes the request to the home agent, which is responsible for sending a read request or broadcasting invalidations.
+                To do this, it may have more directory information.
+                This directory information, for frequently exchanged lines, are cached in the home agent (8 bits, indicating which nodes may hold this).
 \end{document}
