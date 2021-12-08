@@ -1533,4 +1533,203 @@
             The two tasks are separated in double $Q$-learning (each one handling something different; one handling determining the highest value and the other determining the value).
             The slowly updating network determines which action has the highest value, whereas the fast updating network determines the value of the action, with more updated information.
             The two values are independent from each other, hence we are less susceptible to variance.
+        \subsection*{Deep Reinforcement Learning (Live Lecture)}
+            So far, we've been looking at value-based methods, which approximates an optimal value function (mapping an action to a value, with some parameter $\vec{w}$ in the DQN example).
+            These are more sample efficient and steady.
+            On the other hand, there are policy-based methods, which directly find the optimal policy without a $Q$ or $V$ function, this has the parameter $\vec{\theta}$.
+            These typically converge faster and are better suited for continuous and stochastic environments.
+            \medskip
+
+            Consider an extremely simple setup; there are two boxes, which are labelled $-1$ and $+1$, which have the rewards $-1$ and $1$, respectively.
+            The two actions are to choose the $-1$ box or to choose the $+1$ box.
+            However, consider at the start, the policy is equal for both, hence $p(-\ |\ \_) = \frac{1}{2} = p(+\ |\ \_)$ (note that there is no real state, as it is a single step game).
+            \medskip
+
+            The average return from this is $\frac{1}{2} \cdot -1 + \frac{1}{2} \cdot 1 = 0$.
+            However, we see from playing the game that choosing the $+$ action is better, so we increase the probability to $\frac{2}{3}$ (and therefore decrease the $-$ probability to $\frac{1}{3}$).
+            This gives an average return of $\frac{1}{3}$.
+            We can continue this sequence, decreasing the $-$ probability to $\frac{1}{4}$ and increasing the $+$ probability to $\frac{3}{4}$, and so on, eventually giving us $p(+\ |\ \_) = 1$ and $p(-\ |\ \_) = 0$.
+            Once we notice a change in a given direction is good; we kept changing in that direction.
+            \medskip
+
+            In a policy-based method, we want to directly learn the policy without an intermediate value function.
+            The parameterised policy $\pi$ depends on the parameters $\vec{\theta}$.
+            The probability of a trace, given a parameter, is as follows (starting with the probability of starting in $s_1$) - this is sometimes referred to as $p_{\vec{\theta}}(\tau)$;
+            $$p_{\vec{\theta}}(s_1, a_1, \dots, s_T, a_T) = p(s_1) \product{t = 1}{T} \pi_{\vec{\theta}}(a_t\ |\ s_t) p(s_{t + 1}\ |\ s_t, a_t)$$
+            The optimal policy parameters are defined as the maximum average return, across all the possible traces;
+            $$\vec{\theta^*} = \argmax_{\vec{\theta}} \mathbb{E} \left[\summation{t = 1}{T} r(s_t, a_t)\right]_{\tau \propto p_{\vec{\theta}}(\tau)}$$
+            Previously, the policy was generated from the value function (which was learnt, and actions selected based on estimated action-values).
+            We want to now a parameterised policy which can select actions without consulting a value function.
+            A value function may be used to help (see actor-critics), but is not required.
+            An example is that in robotics, it may be difficult to quantify the value of an action.
+            For example, we may not care how we grab an object, just that we have.
+            Any parametric method can be used to learn the parameters.
+            \medskip
+
+            Let us define the policy weight vector as $\vec{\theta}$ and the policy as $\pi(a\ |\ s, \vec{\theta})$ (a conditional probability of choosing $a$ given that the agent is in state $s$ with the policy weight vector).
+            The performance measure $J(\vec{\theta}) = V^\pi(s_0)$ is the total expected return from starting at the state $s_0$.
+            We're trying to maximise $J$.
+            \medskip
+
+            The simplest way of doing this is to obtain gradients by using finite difference.
+            The partial derivative is as follows, where $\vec{u_k}$ is a unit vector that is zero everywhere other than the $k^\text{th}$ component, and $\epsilon$ is some small positive amount;
+            $$\frac{J(\vec{\theta} + \vec{u_k}\epsilon) - J(\vec{\theta})}{\epsilon}$$
+            This gives a simple update rule which updates the $k^\text{th}$ parameter with some learning rate $\alpha$;
+            $$\theta_k \leftarrow \theta_k + \alpha \frac{J(\vec{\theta} + \vec{u_k}\epsilon) - J(\vec{\theta})}{\epsilon}$$
+            This is simple, however but it is noisy and inefficient (since we have to run simulations).
+            However, it works even when the policy is non-differentiable and can be effective if other PG methods fail.
+            \medskip
+
+            A direct policy gradient directly computes values.
+            The policy gradient theorem gives us a simplification of how to compute things;
+            $$J(\vec{\theta}) = \mathbb{E} \left[\summation{t = 1}{T} r(s_t, a_t)\right]_{\tau \propto p_{\vec{\theta}}(\tau)} \approx \summation{1}{N} \summation{t}{} r(s_{i, t}, a_{i, t})$$
+            Note the following identity (which comes from the chain rule when taking the derivative of a logarithm);
+            $$\pi_{\vec{\theta}}(\tau) \nabla_{\vec{\theta}} \log \pi_{\vec{\theta}}(\tau) = \pi_{\vec{\theta}}(\tau) \frac{\nabla_{\vec{\theta}} \pi_{\vec{\theta}}(\tau)}{\pi_{\vec{\theta}}(\tau)} = \nabla_{\vec{\theta}} \pi_{\vec{\theta}}(\tau)$$
+            The derivation is as follows;
+            \begin{align*}
+                r(\tau) & = \summation{t = 1}{T} r_{s_t, a_t} \\
+                J(\vec{\theta}) & = \mathbb{E}_{\tau \sim \pi_{\vec{\theta}}(\tau)}[r(\tau)] \\
+                & = \indefint{\pi_{\vec{\theta}}(\tau) r(\tau)}{\tau} \\
+                \nabla_{\vec{\theta}} J(\vec{\theta}) & = \indefint{\nabla_{\vec{\theta} \pi_{\vec{\theta}}(\tau) r(\tau)}}{\tau} \\
+                & = \indefint{\pi_{\vec{\theta}}(\tau) \nabla_{\vec{\theta}} \log \pi_{\vec{\theta}}(\tau) r(\tau)}{\tau} \\
+                & = \mathbb{E}_{\tau \sim \pi_{\vec{\theta}}(\tau)} [\nabla_{\vec{\theta}} \log \pi_{\vec{\theta}}(\tau) r(\tau)]
+            \end{align*}
+            The final set of equations is the policy gradient theorem; the derivative of the expected reward is the expectation of the product of the return and gradient of the log of the policy $\pi_{\vec{\theta}}$.
+            \medskip
+
+            However, recall our previous definition of $\pi_{\vec{\theta}}(\tau)$, and taking logarithms of both sides;
+            $$\log \pi_{\vec{\theta}}(\tau) = \red{\log p(s_1)} + \summation{t = 1}{T} (\log \pi_{\vec{\theta}}(a_t\ |\ s_t) \red{+ \log p(s_{t + 1}\ |\ s_t, a_t)})$$
+            In the policy gradient theorem, we're taking the gradient with respect to $\vec{\theta}$, hence any terms that don't rely on $\vec{\theta}$ fall out (those in \red{red}).
+            Therefore, we can write it as;
+            $$\nabla_{\vec{\theta}} J(\vec{\theta}) = \mathbb{E}_{\tau \sim \pi_{\vec{\theta}}(\tau)} \left[ \left(\summation{t = 1}{T} \nabla_{\vec{\theta}} \log \pi_{\vec{\theta}}(a_t\ |\ s_t) \right) \left(\summation{t = 1}{T} r(s_t, a_t) \right) \right]$$
+            The gradient of our cost-to-go ($J$) is the expected return of the gradient of the log of the probability of choosing an action for a trace times the return of that trace.
+            This removes the transition dynamics, which would be hard to measure, as well as the probability of being in a starting state.
+            \medskip
+
+            We are essentially weighting the grad log steps by the return, and we can think about this as a way of averaging over policies by setting the weight of the policy to be proportional to the return generated.
+            We are increasing the weights of policy steps that increase rewards, and implicitly decreasing the weight of those which are bad for rewards.
+            \medskip
+
+            The REINFORCE algorithm involves the following steps (iterate back to 1 after 3);
+            \begin{enumerate}
+                \itemsep0em
+                \item sample $\{ \tau^i \}$ from $\pi_{\vec{\theta}}(a_t\ | s_t)$ (run the policy)
+                \item calculate the gradient of the parameters;
+                    $$\nabla_{\vec{\theta}} J(\vec{\theta}) \approx \summation{i}{} \left(\summation{t}{} \nabla_{\vec{\theta}} \log \pi_{\vec{\theta}}(a_t^i\ |\ s_t^i) \right)\left( \summation{t}{} r(s_t^i, a_t^i) \right)$$
+                \item update parameters
+                    $$\vec{\theta} \leftarrow \vec{\theta} + \alpha \nabla_{\vec{\theta}} J(\vec{\theta})$$
+            \end{enumerate}
+            Not only do these methods allow us to learn without a value function, they also allow us to use continuous actions (rather than discrete).
+            \medskip
+
+            With Gaussian policies, actions are simply set to a continuous probability distribution;
+            \begin{align*}
+                \pi_{\vec{\theta}}(a_t\ |\ s_t) & = \mathcal{N}(f_{\text{nn}}(s_t); \mat{\Sigma}) \\
+                \log \pi_{\vec{\theta}}(a_t\ |\ s_t) & = -\frac{1}{2} || f(s_t) - a_t ||_\Sigma^2 + c \\
+                \nabla_{\vec{\theta}} \log \pi_{\vec{\theta}}(a_t\ |\ s_t) & = -\frac{1}{2} \mat{\Sigma}^{-1} (f(s_t) - a_t) \dif{f}{\vec{\theta}}
+            \end{align*}
+            By using a Gaussian, we have the convenient property that the max of the action is the mean; this is non-trivial for general continuous policies.
+            \medskip
+
+            The actor-critic model splits learning into two parts; the actor for computing an action based on the state, and the critic for producing the $Q$ values of the action (intuitively, the actor does something, and the critic judges how `good' it is).
+            The actor takes in a state and outputs an action; it controls how the agent learns with policy-based learning (learning the optimal policy).
+            The critic evaluates this action by computing the value function (with value-based learning).
+            These models compete and learn more efficiently than two separate methods.
+            \medskip
+
+            The naive actor-critic is as follows;
+            \begin{enumerate}
+                \itemsep0em
+                \item initialise both model parameters, $\vec{\theta}$ and $\vec{w}$, pick a starting state $s$ and action $a = \pi_{\vec{\theta}}(a\ |\ s)$
+                \item for each timestep $t = 1, \dots, T$;
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item take a sample, get immediate reward $r$ and next state $s^\prime$
+                        \item sample the next action $a^\prime \sim \pi_{\vec{\theta}}(a^\prime\ |\ s^\prime)$
+                        \item update the actor (policy model parameters) - note that we use the $Q$ value estimate, rather than the (empirical) return
+                            $$\vec{\theta} \leftarrow \vec{\theta} + \alpha_{\vec{w}} Q(s, a) \nabla_{\vec{\theta}} \ln \pi_{\vec{\theta}}(a\ |\ s)$$
+                        \item calculate TD error
+                            $$\delta = r + \gamma Q_{\vec{w}}(s^\prime, a^\prime) - Q_{\vec{w}}(s, a)$$
+                        \item update the value model parameters
+                            $$\vec{w} \leftarrow \vec{w} + \alpha_{\vec{w}} \delta \nabla_{\vec{w}} Q_{\vec{w}}(s, a)$$
+                        \item update the next state $s \leftarrow s^\prime$ and action $a \leftarrow a^\prime$
+                    \end{enumerate}
+            \end{enumerate}
+            The critic's judgement is used, instead of the empirical returns (a form of bootstrapping).
+            This gives lower variance since we can update at each step with the $Q$ values (not just at the end of an episode), additionally, it also gives lower variance since we bootstrap off our own $Q$ value predictions.
+            This allows us to learn in a non-episodic domain, as well as faster policy convergence within an episode.
+            \medskip
+
+            The $Q$ function can be broken down into 2 terms, the state value function $V(s)$ (the value of being in a state) and the advantage value $A(s, a)$, which is the benefit / detriment of choosing an action, hence $Q(s, a) = V(s) + A(s, a)$.
+            This is known as the advantage actor-critic.
+            The advantage function, $A(s, a) = Q(s, a) - V(s)$, captures how much better an action is compared to others in a given state, or how much better it is compared to the average action (uniform random).
+            \medskip
+
+            A2C learns $A$ values rather than $Q$ values; the evaluation is based on how much better the action can be as well as how good the action is.
+            This reduces the high variance of policy networks and stabilises the model (we are multiplying by much smaller numbers).
+            The algorithm is as follows (go to 1 after 5);
+            \begin{enumerate}
+                \itemsep0em
+                \item sample $\{ \tau^i \}$ from $\pi_{\vec{\theta}}(a_t\ | s_t)$ (run the policy)
+                \item fit $V_{\vec{w}}^\pi(s)$ to the sampled reward sums
+                \item evaluate $A^\pi(s_i, a_i) = r(s_i, a_i) + V_{\vec{w}}^\pi(s_i^\prime) - V_{\vec{w}}^\pi(s_i)$
+                \item calculate the gradient of the parameters;
+                    $$\nabla_{\vec{\theta}} J(\vec{\theta}) \approx \summation{i}{} \nabla_{\vec{\theta}} \log \pi_{\vec{\theta}}(a_i\ |\ s_i) A^\pi(s_i, a_i)$$
+                \item update parameters
+                    $$\vec{\theta} \leftarrow \vec{\theta} + \alpha \nabla_{\vec{\theta}} J(\vec{\theta})$$
+            \end{enumerate}
+            Note that the reward function isn't differentiated; therefore there is no requirement for it to be continuous, hence a single reward for `success' can be used.
+            \medskip
+
+            The Asynchronous Advantage Actor-Critic (A3C) has multiple independent agents (own weights), who interact with different copies of the environment in parallel.
+            This allows for a bigger part of the state action space to be explored in less time.
+            The individual workers are trained in parallel, which periodically update a global deep network (which holds shared parameters, and are fed back into the workers).
+            This may not be as efficient as A2C, despite exploring more.
+            \medskip
+
+            In classic value-based $Q$ learning, it was trivial to find the optimal action, by taking a maximum, however this is non-trivial for general continuous action policies.
+            If the action space is continuous, and the function $Q^*(s, a)$ is differentiable, then we can perform gradient ascent to find the maximum.
+            We can use the mean function $\mu(s) = a$ to approximate the maximum; $\max_a Q^*(s, a) \approx Q(s, \mu(s))$.
+            \medskip
+
+            DDPG (deep deterministic policy gradients) is a deterministic policy, model-free, off-policy, actor-critic algorithm which learns the value model $Q$ and a policy.
+            It also learns off-policy and uses the Bellman equation to learn the $Q$ function (first use of bootstrapping) and uses the $Q$ function to learn the policy (second use of bootstrapping).
+            This is considered the continuous action version of the DQN.
+            The algorithm is as follows (note that in the notation below $\vec{\theta^Q}$ is the weights of the critic, and $\vec{\theta^\mu}$ is the weights of the actor);
+            \begin{enumerate}
+                \itemsep0em
+                \item randomly initialise the critic network $Q(s, a\ |\ \vec{\theta^Q})$ and actor $\mu(s\ |\ \vec{\theta^\mu})$
+                \item randomly initialise target network $Q^\prime$ and $\mu^\prime$ with the weights $\vec{\theta^{Q\prime}}$ and $\vec{\theta^{\mu\prime}}$ (same as the critic and actor weights initially)
+                \item initialise the replay buffer $R$
+                \item for episodes in $1, M$
+                    \begin{enumerate}
+                        \itemsep0em
+                        \item initialise a random process $\mathcal{N}$ for action exploration
+                        \item receive initial observation state $s_1$
+                        \item for $t = 1, T$
+                            \begin{enumerate}
+                                \itemsep0em
+                                \item select an action $a_t = \mu(s_t\ |\ \vec{\theta^\mu}) + \mathcal{N}_t$ (according to the current policy, adding exploration noise to explore around the mean action)
+                                \item execute the action $a_t$, observe the reward $r_t$, and the new state $s_{t + 1}$
+                                \item store the transition $(s_t, a_t, r_t, s_{t + 1})$ in $R$
+                                \item sample a minibatch of $N$ transitions from $R$
+                                \item set up $y_i = r_i + \gamma Q^\prime(s_{i + 1}, \mu^\prime(s_{i + 1}\ |\ \vec{\theta^{\mu\prime}})\ |\ \vec{\theta^{Q\prime}})$; consisting of the reward, the the value that would've been obtained with the action that would've been chosen (similar to TD target)
+                                \item the critic is updated by minimising the squared loss
+                                    $$L = \frac{1}{N} \summation{i}{} (y_i - Q(s_i, a_i\ |\ \vec{\theta^Q}))^2$$
+                                \item the actor policy is updated using the sampled policy gradient
+                                    $$\nabla_{\vec{\theta^\mu}} J \approx \frac{1}{N} \nabla_{a}\left.Q(s, a\ |\ \vec{\theta^Q})\right|_{s = s_i, a = \mu(s_i)} \left. \nabla_{\vec{\theta^\mu}} \mu(s\ |\ \vec{\theta^\mu}) \right|_{s_i}$$
+                                \item update the target networks;
+                                    \begin{align*}
+                                        \vec{\theta^{Q\prime}} & \leftarrow \tau \vec{\theta^Q} + (1 - \tau) \vec{\theta^{Q\prime}} \\
+                                        \vec{\theta^{\mu\prime}} & \leftarrow \tau \vec{\theta^\mu} + (1 - \tau) \vec{\theta^{\mu\prime}}
+                                    \end{align*}
+                            \end{enumerate}
+                    \end{enumerate}
+            \end{enumerate}
+            This involves performing exploration in continuous spaces with Gaussian noise (to perturb a mean action) - this can be thought as being similar to $\epsilon$-greedy, where we choose it closer to the intended action $\mu$.
+            Learning variability is controlled similar to DQN, with replay buffers and minibatches.
+            Error-based learning is used on the mean-squared Bellman error.
+            Policy gradient based learning is used on the actor network.
+            Similarly to DQN, learning variability is controlled by a target network.
+            However, this isn't done in sudden steps as in DQN (discrete) - instead it blends the values with smooth updates.
 \end{document}
