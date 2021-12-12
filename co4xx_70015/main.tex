@@ -2052,7 +2052,7 @@
             We want to find the distribution based on what we've defined in our model, or found earlier;
             \setcounter{equation}{0}
             \begin{align}
-                p(\vec{y}\ |\ y^*\ |\ \vec{\theta}) & = \indefint{p(y^*, \vec{\theta}\ |\ \vec{y})}{\vec{\theta}} \\
+                p(\vec{y}, y^*\ |\ \vec{\theta}) & = \indefint{p(y^*, \vec{\theta}\ |\ \vec{y})}{\vec{\theta}} \\
                 & = \indefint{p(y^*\ |\ \vec{\theta}, \vec{y})p(\vec{\theta}\ |\ \vec{y})}{\vec{\theta}} \\
                 & = \indefint{p(y^*\ |\ \vec{\theta})p(\vec{\theta}\ |\ \vec{y})}{\vec{\theta}} \\
                 p(y^*\ |\ \vec{\theta}) & = \mathcal{N}(y^*; \vec{\phi}(\vec{x^*})^\top\vec{\theta}, \sigma^2) \\
